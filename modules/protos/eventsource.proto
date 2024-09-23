@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package todo;
+
+option go_package = "https://github.com/cardboardrobots/liara";
+
+service EventSourceService {
+  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+}
+
+// -----------------------------------------------------------------------------
+// List Events
+// -----------------------------------------------------------------------------
+
+message ListEventsRequest {
+}
+
+message ListEventsResponse {
+}
