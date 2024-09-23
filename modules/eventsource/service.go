@@ -8,7 +8,7 @@ import (
 type (
 	Service[T AggregateRoot[U], U ~string] struct {
 		eventSource EventSource
-		fromEvent   func(name string, data string) (any, error)
+		fromEvent   func(name string, data []byte) (any, error)
 		init        func() T
 	}
 
@@ -27,12 +27,12 @@ type (
 
 func NewService[T AggregateRoot[U], U ~string, E EventData](
 	eventSource EventSource,
-	fromEvent func(name string, data string) (E, error),
+	fromEvent func(name string, data []byte) (E, error),
 	init func() T,
 ) *Service[T, U] {
 	return &Service[T, U]{
 		eventSource: eventSource,
-		fromEvent:   func(name, data string) (any, error) { return fromEvent(name, data) },
+		fromEvent:   func(name string, data []byte) (any, error) { return fromEvent(name, data) },
 		init:        init,
 	}
 }
@@ -108,13 +108,13 @@ func (s *Service[T, U]) GetByIDAndName(ctx context.Context, id U, name Aggregate
 	return t, version, nil
 }
 
-func (s *Service[T, U]) aggregateCallback(callback func(Event, any) error) func(em Event) error {
-	return func(em Event) error {
-		data, err := s.fromEvent(em.Name.String(), em.Data)
-		if err != nil {
-			return err
-		}
+// func (s *Service[T, U]) aggregateCallback(callback func(Event, any) error) func(em Event) error {
+// 	return func(em Event) error {
+// 		data, err := s.fromEvent(em.Name.String(), em.Data)
+// 		if err != nil {
+// 			return err
+// 		}
 
-		return callback(em, data)
-	}
-}
+// 		return callback(em, data)
+// 	}
+// }

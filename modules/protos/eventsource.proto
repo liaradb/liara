@@ -2,18 +2,75 @@ syntax = "proto3";
 
 package todo;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "https://github.com/cardboardrobots/liara";
 
 service EventSourceService {
-  rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {}
+  rpc Append(AppendRequest) returns (AppendResponse) {}
+  rpc Get(GetRequest) returns (stream Event) {}
+  rpc GetByAggregateIDAndName(GetByAggregateIDAndNameRequest)
+      returns (stream Event) {}
+}
+
+message Event {
+  // The global version of the Event
+  int64 global_version = 1;
+
+  // The name of the Aggregate
+  string aggregate_name = 2;
+
+  // The unique ID of the Event
+  string id = 3;
+
+  // The ID of the Aggregate to which this Event applies
+  string aggregate_id = 4;
+
+  // The Version of the Aggregate
+  int64 version = 5;
+
+  // The unique GetName of the Event
+  string name = 6;
+
+  // The ID of the entire Command and Event chain
+  string correlation_id = 7;
+
+  // The ID of the User issuing the Command
+  string user_id = 8;
+
+  // The Time this Event was created
+  google.protobuf.Timestamp time = 9;
+
+  // The schema for the internal data
+  string schema = 10;
+
+  // The internal data of the Event
+  bytes data = 11;
 }
 
 // -----------------------------------------------------------------------------
-// List Events
+// Append
 // -----------------------------------------------------------------------------
 
-message ListEventsRequest {
+message AppendRequest {
+  repeated Event events = 1;
 }
 
-message ListEventsResponse {
+message AppendResponse {}
+
+// -----------------------------------------------------------------------------
+// Get
+// -----------------------------------------------------------------------------
+
+message GetRequest {
+  string aggregate_id = 1;
+}
+
+// -----------------------------------------------------------------------------
+// Get By Aggregate ID And Name
+// -----------------------------------------------------------------------------
+
+message GetByAggregateIDAndNameRequest {
+  string aggregate_id = 1;
+  string name = 2;
 }

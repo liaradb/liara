@@ -22,7 +22,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventSourceServiceClient interface {
-	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
+	Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error)
+	GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error)
 }
 
 type eventSourceServiceClient struct {
@@ -33,20 +35,86 @@ func NewEventSourceServiceClient(cc grpc.ClientConnInterface) EventSourceService
 	return &eventSourceServiceClient{cc}
 }
 
-func (c *eventSourceServiceClient) ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error) {
-	out := new(ListEventsResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/ListEvents", in, out, opts...)
+func (c *eventSourceServiceClient) Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error) {
+	out := new(AppendResponse)
+	err := c.cc.Invoke(ctx, "/todo.EventSourceService/Append", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
+func (c *eventSourceServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[0], "/todo.EventSourceService/Get", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventSourceServiceGetClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventSourceService_GetClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type eventSourceServiceGetClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventSourceServiceGetClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventSourceServiceClient) GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[1], "/todo.EventSourceService/GetByAggregateIDAndName", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventSourceServiceGetByAggregateIDAndNameClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventSourceService_GetByAggregateIDAndNameClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type eventSourceServiceGetByAggregateIDAndNameClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventSourceServiceGetByAggregateIDAndNameClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EventSourceServiceServer is the server API for EventSourceService service.
 // All implementations must embed UnimplementedEventSourceServiceServer
 // for forward compatibility
 type EventSourceServiceServer interface {
-	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
+	Append(context.Context, *AppendRequest) (*AppendResponse, error)
+	Get(*GetRequest, EventSourceService_GetServer) error
+	GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error
 	mustEmbedUnimplementedEventSourceServiceServer()
 }
 
@@ -54,8 +122,14 @@ type EventSourceServiceServer interface {
 type UnimplementedEventSourceServiceServer struct {
 }
 
-func (UnimplementedEventSourceServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
+func (UnimplementedEventSourceServiceServer) Append(context.Context, *AppendRequest) (*AppendResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Append not implemented")
+}
+func (UnimplementedEventSourceServiceServer) Get(*GetRequest, EventSourceService_GetServer) error {
+	return status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedEventSourceServiceServer) GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetByAggregateIDAndName not implemented")
 }
 func (UnimplementedEventSourceServiceServer) mustEmbedUnimplementedEventSourceServiceServer() {}
 
@@ -70,22 +144,64 @@ func RegisterEventSourceServiceServer(s grpc.ServiceRegistrar, srv EventSourceSe
 	s.RegisterService(&EventSourceService_ServiceDesc, srv)
 }
 
-func _EventSourceService_ListEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListEventsRequest)
+func _EventSourceService_Append_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppendRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventSourceServiceServer).ListEvents(ctx, in)
+		return srv.(EventSourceServiceServer).Append(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/ListEvents",
+		FullMethod: "/todo.EventSourceService/Append",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventSourceServiceServer).ListEvents(ctx, req.(*ListEventsRequest))
+		return srv.(EventSourceServiceServer).Append(ctx, req.(*AppendRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_Get_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventSourceServiceServer).Get(m, &eventSourceServiceGetServer{stream})
+}
+
+type EventSourceService_GetServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type eventSourceServiceGetServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventSourceServiceGetServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _EventSourceService_GetByAggregateIDAndName_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetByAggregateIDAndNameRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventSourceServiceServer).GetByAggregateIDAndName(m, &eventSourceServiceGetByAggregateIDAndNameServer{stream})
+}
+
+type EventSourceService_GetByAggregateIDAndNameServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type eventSourceServiceGetByAggregateIDAndNameServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventSourceServiceGetByAggregateIDAndNameServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 // EventSourceService_ServiceDesc is the grpc.ServiceDesc for EventSourceService service.
@@ -96,10 +212,21 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*EventSourceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ListEvents",
-			Handler:    _EventSourceService_ListEvents_Handler,
+			MethodName: "Append",
+			Handler:    _EventSourceService_Append_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Get",
+			Handler:       _EventSourceService_Get_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetByAggregateIDAndName",
+			Handler:       _EventSourceService_GetByAggregateIDAndName_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "eventsource.proto",
 }

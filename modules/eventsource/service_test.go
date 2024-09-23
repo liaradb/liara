@@ -83,7 +83,7 @@ func (baseExampleEvent) AggregateName() string { return exampleAggregate }
 func (incremented) EventName() string { return incrementedEvent }
 func (incremented) Schema() string    { return "" }
 
-func parseExampleEvent(name string, data string) (EventData, error) {
+func parseExampleEvent(name string, data []byte) (EventData, error) {
 	switch name {
 	case incrementedEvent:
 		return fromJsonPointer[incremented](data)
@@ -92,9 +92,9 @@ func parseExampleEvent(name string, data string) (EventData, error) {
 	}
 }
 
-func fromJsonPointer[T any](data string) (*T, error) {
+func fromJsonPointer[T any](data []byte) (*T, error) {
 	var t T
-	err := json.Unmarshal([]byte(data), &t)
+	err := json.Unmarshal(data, &t)
 	return &t, err
 }
 

@@ -3,6 +3,7 @@ package essql
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 
 	"database/sql"
@@ -66,7 +67,7 @@ func TestEventRepository_Append(t *testing.T) {
 			}
 
 			count++
-			if e != want {
+			if reflect.DeepEqual(e, want) {
 				t.Error("event is incorrect")
 			}
 		}

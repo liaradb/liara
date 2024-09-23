@@ -20,6 +20,8 @@ type (
 	}
 )
 
+var _ eventsource.EventSource = EventRepository{}
+
 func NewEventRepository(db *sql.DB, name string) EventRepository {
 	return EventRepository{
 		db,

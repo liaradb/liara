@@ -48,7 +48,7 @@ type (
 		Schema Schema
 
 		// The internal data of the Event
-		Data string
+		Data []byte
 	}
 
 	EventData interface {
@@ -99,7 +99,7 @@ func newEvent(options EventOptions, data EventData) (Event, error) {
 		UserID:        options.UserID,
 		Time:          options.Time,
 		Schema:        Schema(data.Schema()),
-		Data:          string(d),
+		Data:          d,
 	}, nil
 }
 

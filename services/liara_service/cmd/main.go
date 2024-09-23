@@ -10,6 +10,7 @@ import (
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 	"github.com/cardboardrobots/listener"
 	"google.golang.org/grpc"
 )
@@ -31,14 +32,20 @@ func main() {
 }
 
 func initService() *grpc.Server {
-	service := listener.NewServerBuilder().
+	s := listener.NewServerBuilder().
 		AddUnary(
 			listener.LogGRPC(false),
 			listener.ErrorInterceptor(base.GetStatusCodeGRPC),
 		).
+		AddStream(
+			listener.LogStreamGRPC(false),
+			listener.ErrorInterceptorStream(base.GetStatusCodeGRPC),
+		).
 		Build()
 
-	pb.RegisterEventSourceServiceServer(service, &controller.EventSourceController{})
+	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
+		service.NewEventService(&eventsource.MockEventSource{}),
+	))
 
-	return service
+	return s
 }

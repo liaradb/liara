@@ -10,6 +10,9 @@
 			"path": "modules/essql"
 		},
 		{
+			"path": "modules/esgrpc"
+		},
+		{
 			"path": "modules/estream"
 		},
 		{
@@ -33,6 +36,10 @@
 			"**/Thumbs.db": true,
 			"modules": true,
 			"services": true,
-		}
+		},
+		"editor.formatOnPaste": true,
+		"editor.formatOnSave": true,
+		"clang-format.style": "google",
+		"clang-format.executable": "clang-format",
 	}
 }
