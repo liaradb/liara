@@ -1,1 +1,3 @@
 port: 50055
+postgresDbUri: postgresql://postgres:example@localhost:5432/pg-service?sslmode=disable
+sqliteDbUri: test.db

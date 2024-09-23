@@ -41,5 +41,13 @@
 		"editor.formatOnSave": true,
 		"clang-format.style": "google",
 		"clang-format.executable": "clang-format",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "local",
+				"database": "${workspaceFolder:liara_service}/test.db"
+			}
+		],
 	}
 }
