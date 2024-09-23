@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": "modules/eventsource"
+		},
+		{
+			"path": "modules/essql"
+		},
+		{
+			"path": "modules/estream"
+		},
+		{
+			"path": "modules/esmongo"
+		},
+		{
+			"path": "modules/protos"
+		},
+		{
+			"name": "root",
+			"path": "."
+		},
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"modules": true,
+		}
+	}
+}
