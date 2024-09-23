@@ -1,6 +1,9 @@
 {
 	"folders": [
 		{
+			"path": "services/liara_service"
+		},
+		{
 			"path": "modules/eventsource"
 		},
 		{
@@ -29,6 +32,7 @@
 			"**/.DS_Store": true,
 			"**/Thumbs.db": true,
 			"modules": true,
+			"services": true,
 		}
 	}
 }
