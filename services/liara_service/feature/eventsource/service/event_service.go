@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"iter"
 
 	"github.com/cardboardrobots/eventsource"
@@ -20,8 +19,14 @@ func NewEventService(
 	}
 }
 
-func (es *EventService) Get(ctx context.Context) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
-		yield(eventsource.Event{}, errors.New("unimplemented"))
-	}
+func (es *EventService) Append(ctx context.Context, e ...eventsource.Event) error {
+	return es.eventSource.Append(ctx, e...)
+}
+
+func (es *EventService) Get(ctx context.Context, id eventsource.AggregateID) iter.Seq2[eventsource.Event, error] {
+	return es.eventSource.Get(ctx, id)
+}
+
+func (es *EventService) GetByAggregateIDAndName(ctx context.Context, id eventsource.AggregateID, name eventsource.AggregateName) iter.Seq2[eventsource.Event, error] {
+	return es.eventSource.GetByAggregateIDAndName(ctx, id, name)
 }

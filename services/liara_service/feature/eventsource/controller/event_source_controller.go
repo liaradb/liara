@@ -3,10 +3,10 @@ package controller
 import (
 	"context"
 
+	"github.com/cardboardrobots/esgrpc"
+	"github.com/cardboardrobots/eventsource"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type EventSourceController struct {
@@ -22,15 +22,42 @@ func NewEventSourceController(
 	}
 }
 
-func (esc *EventSourceController) Append(ctx context.Context, stream *pb.AppendRequest) (*pb.AppendResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Append not implemented")
+func (esc *EventSourceController) Append(ctx context.Context, request *pb.AppendRequest) (*pb.AppendResponse, error) {
+	events := make([]eventsource.Event, 0, len(request.Events))
+	for _, e := range request.Events {
+		events = append(events, esgrpc.DtoToEvent(e))
+	}
+	err := esc.eventService.Append(ctx, events...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.AppendResponse{}, nil
 }
 
 func (esc *EventSourceController) Get(request *pb.GetRequest, stream pb.EventSourceService_GetServer) error {
-	_ = esc.eventService.Get(stream.Context())
-	return status.Errorf(codes.Unimplemented, "method Get not implemented")
+	rows := esc.eventService.Get(stream.Context(),
+		eventsource.AggregateID(request.AggregateId))
+	for row, err := range rows {
+		if err != nil {
+			return err
+		}
+
+		stream.Send(esgrpc.EventToDto(row))
+	}
+	return nil
 }
 
 func (esc *EventSourceController) GetByAggregateIDAndName(request *pb.GetByAggregateIDAndNameRequest, stream pb.EventSourceService_GetByAggregateIDAndNameServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetByAggregateIDAndName not implemented")
+	rows := esc.eventService.GetByAggregateIDAndName(stream.Context(),
+		eventsource.AggregateID(request.AggregateId),
+		eventsource.AggregateName(request.Name))
+	for row, err := range rows {
+		if err != nil {
+			return err
+		}
+
+		stream.Send(esgrpc.EventToDto(row))
+	}
+	return nil
 }

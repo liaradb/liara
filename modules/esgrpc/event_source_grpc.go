@@ -30,7 +30,7 @@ func NewEventSourceGRPC(
 func (es *EventSourceGRPC) Append(ctx context.Context, events ...eventsource.Event) error {
 	data := make([]*pb.Event, 0, len(events))
 	for _, event := range events {
-		data = append(data, eventToDto(event))
+		data = append(data, EventToDto(event))
 	}
 
 	_, err := es.client.Append(ctx, &pb.AppendRequest{
@@ -60,7 +60,7 @@ func (es *EventSourceGRPC) Get(ctx context.Context, id eventsource.AggregateID) 
 				return
 			}
 
-			yield(dtoToEvent(e), nil)
+			yield(DtoToEvent(e), nil)
 		}
 	}
 }
@@ -87,12 +87,12 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(ctx context.Context, id event
 				return
 			}
 
-			yield(dtoToEvent(e), nil)
+			yield(DtoToEvent(e), nil)
 		}
 	}
 }
 
-func dtoToEvent(dto *pb.Event) eventsource.Event {
+func DtoToEvent(dto *pb.Event) eventsource.Event {
 	return eventsource.Event{
 		GlobalVersion: eventsource.GlobalVersion(dto.GlobalVersion),
 		AggregateName: eventsource.AggregateName(dto.AggregateName),
@@ -108,7 +108,7 @@ func dtoToEvent(dto *pb.Event) eventsource.Event {
 	}
 }
 
-func eventToDto(e eventsource.Event) *pb.Event {
+func EventToDto(e eventsource.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
 		AggregateName: string(e.AggregateName),
