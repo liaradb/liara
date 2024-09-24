@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/cardboardrobots/essql"
 	"github.com/cardboardrobots/eventsource"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 	"github.com/cardboardrobots/listener"
 	"google.golang.org/grpc"
@@ -54,13 +54,7 @@ func initService(db *sql.DB) *grpc.Server {
 		Build()
 
 	ctx := context.Background()
-	eventRepository := essql.NewEventRepository(db, "events")
-	err := eventRepository.CreateTable(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = eventRepository.CreateIndex(ctx)
+	eventRepository, err := createTable(ctx, db)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,6 +64,21 @@ func initService(db *sql.DB) *grpc.Server {
 	))
 
 	return s
+}
+
+func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventRepository, error) {
+	eventRepository := infrastructure.NewEventRepository(db, "events")
+	err := eventRepository.CreateTable(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = eventRepository.CreateIndex(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &eventRepository, nil
 }
 
 func ConnectPostgresDB(uri string) (*sql.DB, error) {

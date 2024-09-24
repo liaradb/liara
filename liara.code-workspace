@@ -7,9 +7,6 @@
 			"path": "modules/eventsource"
 		},
 		{
-			"path": "modules/essql"
-		},
-		{
 			"path": "modules/esgrpc"
 		},
 		{
