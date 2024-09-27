@@ -38,14 +38,14 @@ func (ses *StreamEventPublisher) Handle(ctx context.Context, event eventsource.E
 	}
 
 	if useStream {
-		return ses.handleStream(ctx, data)
+		return ses.handleStream(ctx, data, string(event.ID))
 	} else {
 		return ses.handleQueue(data)
 	}
 }
 
-func (ses *StreamEventPublisher) handleStream(ctx context.Context, data []byte) error {
-	_, err := ses.js.Publish(ctx, ses.streamName, data)
+func (ses *StreamEventPublisher) handleStream(ctx context.Context, data []byte, id string) error {
+	_, err := ses.js.Publish(ctx, ses.streamName, data, jetstream.WithMsgID(id))
 	return err
 }
 
