@@ -67,7 +67,7 @@ func TestEventRepository_Append(t *testing.T) {
 			}
 
 			count++
-			if reflect.DeepEqual(e, want) {
+			if !reflect.DeepEqual(e, want) {
 				t.Error("event is incorrect")
 			}
 		}

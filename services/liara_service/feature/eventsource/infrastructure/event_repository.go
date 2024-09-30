@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS %v (
 	user_id VARCHAR(50) NOT NULL,
 	time TIMESTAMP NOT NULL,
 	schema VARCHAR(50) NOT NULL,
-	data BLOB NOT NULL,
+	data BLOB,
 	CONSTRAINT event_version UNIQUE (aggregate_id, aggregate_name, version)
 );
 `, er.name)
