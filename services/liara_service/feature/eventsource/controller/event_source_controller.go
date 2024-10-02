@@ -22,7 +22,10 @@ func NewEventSourceController(
 	}
 }
 
-func (esc *EventSourceController) Append(ctx context.Context, request *pb.AppendRequest) (*pb.AppendResponse, error) {
+func (esc *EventSourceController) Append(
+	ctx context.Context,
+	request *pb.AppendRequest,
+) (*pb.AppendResponse, error) {
 	events := make([]eventsource.Event, 0, len(request.Events))
 	for _, e := range request.Events {
 		events = append(events, esgrpc.DtoToEvent(e))
@@ -35,7 +38,10 @@ func (esc *EventSourceController) Append(ctx context.Context, request *pb.Append
 	return &pb.AppendResponse{}, nil
 }
 
-func (esc *EventSourceController) Get(request *pb.GetRequest, stream pb.EventSourceService_GetServer) error {
+func (esc *EventSourceController) Get(
+	request *pb.GetRequest,
+	stream pb.EventSourceService_GetServer,
+) error {
 	rows := esc.eventService.Get(stream.Context(),
 		eventsource.AggregateID(request.AggregateId))
 	for row, err := range rows {
@@ -48,7 +54,10 @@ func (esc *EventSourceController) Get(request *pb.GetRequest, stream pb.EventSou
 	return nil
 }
 
-func (esc *EventSourceController) GetByAggregateIDAndName(request *pb.GetByAggregateIDAndNameRequest, stream pb.EventSourceService_GetByAggregateIDAndNameServer) error {
+func (esc *EventSourceController) GetByAggregateIDAndName(
+	request *pb.GetByAggregateIDAndNameRequest,
+	stream pb.EventSourceService_GetByAggregateIDAndNameServer,
+) error {
 	rows := esc.eventService.GetByAggregateIDAndName(stream.Context(),
 		eventsource.AggregateID(request.AggregateId),
 		eventsource.AggregateName(request.Name))

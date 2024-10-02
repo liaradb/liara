@@ -37,7 +37,14 @@ func NewService[T AggregateRoot[U], U ~string, E EventData](
 	}
 }
 
-func (s *Service[T, U]) Append(ctx context.Context, correlationID CorrelationID, userID UserID, id U, version Version, events ...EventData) error {
+func (s *Service[T, U]) Append(
+	ctx context.Context,
+	correlationID CorrelationID,
+	userID UserID,
+	id U,
+	version Version,
+	events ...EventData,
+) error {
 	options := EventOptions{
 		AggregateID:   AggregateID(id),
 		Version:       version,
@@ -58,7 +65,10 @@ func (s *Service[T, U]) Append(ctx context.Context, correlationID CorrelationID,
 	return s.eventSource.Append(ctx, data...)
 }
 
-func (s *Service[T, U]) GetByID(ctx context.Context, id U) (T, Version, error) {
+func (s *Service[T, U]) GetByID(
+	ctx context.Context,
+	id U,
+) (T, Version, error) {
 	t := s.init()
 	var version Version
 
@@ -83,7 +93,11 @@ func (s *Service[T, U]) GetByID(ctx context.Context, id U) (T, Version, error) {
 	return t, version, nil
 }
 
-func (s *Service[T, U]) GetByIDAndName(ctx context.Context, id U, name AggregateName) (T, Version, error) {
+func (s *Service[T, U]) GetByIDAndName(
+	ctx context.Context,
+	id U,
+	name AggregateName,
+) (T, Version, error) {
 	t := s.init()
 	var version Version
 

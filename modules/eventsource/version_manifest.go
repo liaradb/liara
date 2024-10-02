@@ -1,10 +1,8 @@
 package eventsource
 
-type (
-	VersionManifest struct {
-		versions map[AggregateID]Version
-	}
-)
+type VersionManifest struct {
+	versions map[AggregateID]Version
+}
 
 func (vm *VersionManifest) AddVersion(id AggregateID, version Version) bool {
 	if version <= vm.versions[id] {
