@@ -29,7 +29,7 @@ type (
 		UserID        UserID        // The ID of the User issuing the Command
 		Time          time.Time     // The Time this Event was created
 		Schema        Schema        // The schema for the internal data
-		Data          []byte        // The internal data of the Event
+		Data          Data          // The internal data of the Event
 	}
 
 	EventData interface {
