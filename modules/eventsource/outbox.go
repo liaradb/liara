@@ -65,8 +65,7 @@ func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error
 	}
 
 	updatedGlobalVersion := globalVersion
-	rows := o.eventRepository.GetAfterGlobalVersion(ctx, globalVersion, limit)
-	for em, err := range rows {
+	for em, err := range o.eventRepository.GetAfterGlobalVersion(ctx, globalVersion, limit) {
 		if err != nil {
 			return err
 		}

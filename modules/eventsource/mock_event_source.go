@@ -13,7 +13,10 @@ type MockEventSource struct {
 var _ EventSource = &MockEventSource{}
 var _ EventRepository = &MockEventSource{}
 
-func (mes *MockEventSource) Get(ctx context.Context, id AggregateID) iter.Seq2[Event, error] {
+func (mes *MockEventSource) Get(
+	ctx context.Context,
+	id AggregateID,
+) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id {
@@ -27,11 +30,19 @@ func (mes *MockEventSource) Get(ctx context.Context, id AggregateID) iter.Seq2[E
 	}
 }
 
-func (mes *MockEventSource) GetAfterGlobalVersion(context.Context, GlobalVersion, Limit) iter.Seq2[Event, error] {
+func (mes *MockEventSource) GetAfterGlobalVersion(
+	ctx context.Context,
+	globalVersion GlobalVersion,
+	limit Limit,
+) iter.Seq2[Event, error] {
 	panic("unimplemented")
 }
 
-func (mes *MockEventSource) GetByAggregateIDAndName(ctx context.Context, id AggregateID, name AggregateName) iter.Seq2[Event, error] {
+func (mes *MockEventSource) GetByAggregateIDAndName(
+	ctx context.Context,
+	id AggregateID,
+	name AggregateName,
+) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id ||
@@ -46,7 +57,10 @@ func (mes *MockEventSource) GetByAggregateIDAndName(ctx context.Context, id Aggr
 	}
 }
 
-func (mes *MockEventSource) Append(ctx context.Context, events ...Event) error {
+func (mes *MockEventSource) Append(
+	ctx context.Context,
+	events ...Event,
+) error {
 	if mes.events == nil {
 		mes.events = make([]Event, 0)
 	}

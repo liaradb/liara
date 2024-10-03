@@ -72,9 +72,7 @@ func (s *Service[T, U]) GetByID(
 	t := s.init()
 	var version Version
 
-	rows := s.eventSource.Get(ctx, AggregateID(id))
-
-	for e, err := range rows {
+	for e, err := range s.eventSource.Get(ctx, AggregateID(id)) {
 		if err != nil {
 			return t, version, err
 		}
@@ -101,9 +99,7 @@ func (s *Service[T, U]) GetByIDAndName(
 	t := s.init()
 	var version Version
 
-	rows := s.eventSource.GetByAggregateIDAndName(ctx, AggregateID(id), name)
-
-	for e, err := range rows {
+	for e, err := range s.eventSource.GetByAggregateIDAndName(ctx, AggregateID(id), name) {
 		if err != nil {
 			return t, version, err
 		}
