@@ -1,6 +1,9 @@
 {
 	"folders": [
 		{
+			"path": "modules/liara"
+		},
+		{
 			"path": "services/liara_service"
 		},
 		{
