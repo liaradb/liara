@@ -66,6 +66,19 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 	return nil
 }
 
+func (esc *EventSourceController) GetAfterGlobalVersion(request *pb.GetAfterGlobalVersionRequest, stream pb.EventSourceService_GetAfterGlobalVersionServer) error {
+	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
+		eventsource.GlobalVersion(request.GlobalVersion),
+		eventsource.Limit(request.Limit)) {
+		if err != nil {
+			return err
+		}
+
+		stream.Send(esgrpc.EventToDto(row))
+	}
+	return nil
+}
+
 func mapSlice[T any, U any](slice []T, mapper func(T) U) []U {
 	result := make([]U, 0, len(slice))
 	for _, item := range slice {

@@ -143,3 +143,26 @@ export namespace GetByAggregateIDAndNameRequest {
         name: string,
     }
 }
+
+export class GetAfterGlobalVersionRequest extends jspb.Message { 
+    getGlobalVersion(): number;
+    setGlobalVersion(value: number): GetAfterGlobalVersionRequest;
+    getLimit(): number;
+    setLimit(value: number): GetAfterGlobalVersionRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetAfterGlobalVersionRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetAfterGlobalVersionRequest): GetAfterGlobalVersionRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetAfterGlobalVersionRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetAfterGlobalVersionRequest;
+    static deserializeBinaryFromReader(message: GetAfterGlobalVersionRequest, reader: jspb.BinaryReader): GetAfterGlobalVersionRequest;
+}
+
+export namespace GetAfterGlobalVersionRequest {
+    export type AsObject = {
+        globalVersion: number,
+        limit: number,
+    }
+}

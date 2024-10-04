@@ -11,6 +11,8 @@ service EventSourceService {
   rpc Get(GetRequest) returns (stream Event) {}
   rpc GetByAggregateIDAndName(GetByAggregateIDAndNameRequest)
       returns (stream Event) {}
+  rpc GetAfterGlobalVersion(GetAfterGlobalVersionRequest)
+      returns (stream Event) {}
 }
 
 message Event {
@@ -73,4 +75,12 @@ message GetRequest {
 message GetByAggregateIDAndNameRequest {
   string aggregate_id = 1;
   string name = 2;
+}
+
+// -----------------------------------------------------------------------------
+// Get After Global Version
+// -----------------------------------------------------------------------------
+message GetAfterGlobalVersionRequest {
+  int64 global_version = 1;
+  int64 limit = 2;
 }

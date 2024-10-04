@@ -38,6 +38,17 @@ function deserialize_todo_Event(buffer_arg) {
   return eventsource_pb.Event.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_todo_GetAfterGlobalVersionRequest(arg) {
+  if (!(arg instanceof eventsource_pb.GetAfterGlobalVersionRequest)) {
+    throw new Error('Expected argument of type todo.GetAfterGlobalVersionRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_GetAfterGlobalVersionRequest(buffer_arg) {
+  return eventsource_pb.GetAfterGlobalVersionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_todo_GetByAggregateIDAndNameRequest(arg) {
   if (!(arg instanceof eventsource_pb.GetByAggregateIDAndNameRequest)) {
     throw new Error('Expected argument of type todo.GetByAggregateIDAndNameRequest');
@@ -92,6 +103,17 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     responseType: eventsource_pb.Event,
     requestSerialize: serialize_todo_GetByAggregateIDAndNameRequest,
     requestDeserialize: deserialize_todo_GetByAggregateIDAndNameRequest,
+    responseSerialize: serialize_todo_Event,
+    responseDeserialize: deserialize_todo_Event,
+  },
+  getAfterGlobalVersion: {
+    path: '/todo.EventSourceService/GetAfterGlobalVersion',
+    requestStream: false,
+    responseStream: true,
+    requestType: eventsource_pb.GetAfterGlobalVersionRequest,
+    responseType: eventsource_pb.Event,
+    requestSerialize: serialize_todo_GetAfterGlobalVersionRequest,
+    requestDeserialize: deserialize_todo_GetAfterGlobalVersionRequest,
     responseSerialize: serialize_todo_Event,
     responseDeserialize: deserialize_todo_Event,
   },

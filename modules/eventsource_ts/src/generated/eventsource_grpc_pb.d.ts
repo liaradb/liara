@@ -12,6 +12,7 @@ interface IEventSourceServiceService extends grpc.ServiceDefinition<grpc.Untyped
     append: IEventSourceServiceService_IAppend;
     get: IEventSourceServiceService_IGet;
     getByAggregateIDAndName: IEventSourceServiceService_IGetByAggregateIDAndName;
+    getAfterGlobalVersion: IEventSourceServiceService_IGetAfterGlobalVersion;
 }
 
 interface IEventSourceServiceService_IAppend extends grpc.MethodDefinition<eventsource_pb.AppendRequest, eventsource_pb.AppendResponse> {
@@ -41,6 +42,15 @@ interface IEventSourceServiceService_IGetByAggregateIDAndName extends grpc.Metho
     responseSerialize: grpc.serialize<eventsource_pb.Event>;
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
+interface IEventSourceServiceService_IGetAfterGlobalVersion extends grpc.MethodDefinition<eventsource_pb.GetAfterGlobalVersionRequest, eventsource_pb.Event> {
+    path: "/todo.EventSourceService/GetAfterGlobalVersion";
+    requestStream: false;
+    responseStream: true;
+    requestSerialize: grpc.serialize<eventsource_pb.GetAfterGlobalVersionRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.GetAfterGlobalVersionRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.Event>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
+}
 
 export const EventSourceServiceService: IEventSourceServiceService;
 
@@ -48,6 +58,7 @@ export interface IEventSourceServiceServer extends grpc.UntypedServiceImplementa
     append: grpc.handleUnaryCall<eventsource_pb.AppendRequest, eventsource_pb.AppendResponse>;
     get: grpc.handleServerStreamingCall<eventsource_pb.GetRequest, eventsource_pb.Event>;
     getByAggregateIDAndName: grpc.handleServerStreamingCall<eventsource_pb.GetByAggregateIDAndNameRequest, eventsource_pb.Event>;
+    getAfterGlobalVersion: grpc.handleServerStreamingCall<eventsource_pb.GetAfterGlobalVersionRequest, eventsource_pb.Event>;
 }
 
 export interface IEventSourceServiceClient {
@@ -58,6 +69,8 @@ export interface IEventSourceServiceClient {
     get(request: eventsource_pb.GetRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
 }
 
 export class EventSourceServiceClient extends grpc.Client implements IEventSourceServiceClient {
@@ -69,4 +82,6 @@ export class EventSourceServiceClient extends grpc.Client implements IEventSourc
     public get(request: eventsource_pb.GetRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    public getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    public getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
 }

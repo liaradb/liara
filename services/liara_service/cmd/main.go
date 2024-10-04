@@ -60,7 +60,7 @@ func initService(db *sql.DB) *grpc.Server {
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		service.NewEventService(eventRepository),
+		service.NewEventService(eventRepository, eventRepository),
 	))
 
 	return s

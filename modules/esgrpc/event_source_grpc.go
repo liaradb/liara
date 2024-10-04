@@ -16,6 +16,7 @@ type EventSourceGRPC struct {
 }
 
 var _ eventsource.EventSource = &EventSourceGRPC{}
+var _ eventsource.EventRepository = &EventSourceGRPC{}
 
 func NewEventSourceGRPC(
 	conn *grpc.ClientConn,
@@ -70,6 +71,33 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(ctx context.Context, id event
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
 			AggregateId: string(id),
 			Name:        string(name),
+		})
+		if err != nil {
+			yield(eventsource.Event{}, err)
+			return
+		}
+
+		for {
+			e, err := stream.Recv()
+			if err == io.EOF {
+				return
+			}
+
+			if err != nil {
+				yield(eventsource.Event{}, err)
+				return
+			}
+
+			yield(DtoToEvent(e), nil)
+		}
+	}
+}
+
+func (es *EventSourceGRPC) GetAfterGlobalVersion(ctx context.Context, version eventsource.GlobalVersion, limit eventsource.Limit) iter.Seq2[eventsource.Event, error] {
+	return func(yield func(eventsource.Event, error) bool) {
+		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
+			GlobalVersion: int64(version),
+			Limit:         int64(limit),
 		})
 		if err != nil {
 			yield(eventsource.Event{}, err)

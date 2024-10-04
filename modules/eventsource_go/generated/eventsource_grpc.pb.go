@@ -25,6 +25,7 @@ type EventSourceServiceClient interface {
 	Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error)
 	GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error)
+	GetAfterGlobalVersion(ctx context.Context, in *GetAfterGlobalVersionRequest, opts ...grpc.CallOption) (EventSourceService_GetAfterGlobalVersionClient, error)
 }
 
 type eventSourceServiceClient struct {
@@ -108,6 +109,38 @@ func (x *eventSourceServiceGetByAggregateIDAndNameClient) Recv() (*Event, error)
 	return m, nil
 }
 
+func (c *eventSourceServiceClient) GetAfterGlobalVersion(ctx context.Context, in *GetAfterGlobalVersionRequest, opts ...grpc.CallOption) (EventSourceService_GetAfterGlobalVersionClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[2], "/todo.EventSourceService/GetAfterGlobalVersion", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventSourceServiceGetAfterGlobalVersionClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventSourceService_GetAfterGlobalVersionClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type eventSourceServiceGetAfterGlobalVersionClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventSourceServiceGetAfterGlobalVersionClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EventSourceServiceServer is the server API for EventSourceService service.
 // All implementations must embed UnimplementedEventSourceServiceServer
 // for forward compatibility
@@ -115,6 +148,7 @@ type EventSourceServiceServer interface {
 	Append(context.Context, *AppendRequest) (*AppendResponse, error)
 	Get(*GetRequest, EventSourceService_GetServer) error
 	GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error
+	GetAfterGlobalVersion(*GetAfterGlobalVersionRequest, EventSourceService_GetAfterGlobalVersionServer) error
 	mustEmbedUnimplementedEventSourceServiceServer()
 }
 
@@ -130,6 +164,9 @@ func (UnimplementedEventSourceServiceServer) Get(*GetRequest, EventSourceService
 }
 func (UnimplementedEventSourceServiceServer) GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetByAggregateIDAndName not implemented")
+}
+func (UnimplementedEventSourceServiceServer) GetAfterGlobalVersion(*GetAfterGlobalVersionRequest, EventSourceService_GetAfterGlobalVersionServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetAfterGlobalVersion not implemented")
 }
 func (UnimplementedEventSourceServiceServer) mustEmbedUnimplementedEventSourceServiceServer() {}
 
@@ -204,6 +241,27 @@ func (x *eventSourceServiceGetByAggregateIDAndNameServer) Send(m *Event) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _EventSourceService_GetAfterGlobalVersion_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetAfterGlobalVersionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventSourceServiceServer).GetAfterGlobalVersion(m, &eventSourceServiceGetAfterGlobalVersionServer{stream})
+}
+
+type EventSourceService_GetAfterGlobalVersionServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type eventSourceServiceGetAfterGlobalVersionServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventSourceServiceGetAfterGlobalVersionServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // EventSourceService_ServiceDesc is the grpc.ServiceDesc for EventSourceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -225,6 +283,11 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetByAggregateIDAndName",
 			Handler:       _EventSourceService_GetByAggregateIDAndName_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetAfterGlobalVersion",
+			Handler:       _EventSourceService_GetAfterGlobalVersion_Handler,
 			ServerStreams: true,
 		},
 	},
