@@ -13,6 +13,10 @@ service EventSourceService {
       returns (stream Event) {}
   rpc GetAfterGlobalVersion(GetAfterGlobalVersionRequest)
       returns (stream Event) {}
+  rpc GetOrCreateOutbox(GetOrCreateOutboxRequest)
+      returns (GetOrCreateOutboxResponse) {}
+  rpc UpdateOutboxPosition(UpdateOutboxPositionRequest)
+      returns (UpdateOutboxPositionResponse) {}
 }
 
 message Event {
@@ -80,7 +84,31 @@ message GetByAggregateIDAndNameRequest {
 // -----------------------------------------------------------------------------
 // Get After Global Version
 // -----------------------------------------------------------------------------
+
 message GetAfterGlobalVersionRequest {
   int64 global_version = 1;
   int64 limit = 2;
 }
+
+// -----------------------------------------------------------------------------
+// Get Or Create Outbox
+// -----------------------------------------------------------------------------
+
+message GetOrCreateOutboxRequest {
+  string outbox_id = 1;
+}
+
+message GetOrCreateOutboxResponse {
+  int64 global_version = 1;
+}
+
+// -----------------------------------------------------------------------------
+// Update Outbox Position
+// -----------------------------------------------------------------------------
+
+message UpdateOutboxPositionRequest {
+  string outbox_id = 1;
+  int64 global_version = 2;
+}
+
+message UpdateOutboxPositionResponse {}

@@ -8,8 +8,9 @@ import (
 )
 
 type EventService struct {
-	eventSource     eventsource.EventSource
-	eventRepository eventsource.EventRepository
+	eventSource      eventsource.EventSource
+	eventRepository  eventsource.EventRepository
+	outboxRepository eventsource.OutboxRepository
 }
 
 func NewEventService(
@@ -50,4 +51,19 @@ func (es *EventService) GetAfterGlobalVersion(
 	limit eventsource.Limit,
 ) iter.Seq2[eventsource.Event, error] {
 	return es.eventRepository.GetAfterGlobalVersion(ctx, version, limit)
+}
+
+func (es *EventService) GetOrCreateOutbox(
+	ctx context.Context,
+	outboxID eventsource.OutboxID,
+) (eventsource.GlobalVersion, error) {
+	return es.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
+}
+
+func (es *EventService) UpdateOutboxPosition(
+	ctx context.Context,
+	outboxID eventsource.OutboxID,
+	globalVersion eventsource.GlobalVersion,
+) error {
+	return es.outboxRepository.UpdateOutboxPosition(ctx, outboxID, globalVersion)
 }

@@ -166,3 +166,83 @@ export namespace GetAfterGlobalVersionRequest {
         limit: number,
     }
 }
+
+export class GetOrCreateOutboxRequest extends jspb.Message { 
+    getOutboxId(): string;
+    setOutboxId(value: string): GetOrCreateOutboxRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetOrCreateOutboxRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetOrCreateOutboxRequest): GetOrCreateOutboxRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetOrCreateOutboxRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetOrCreateOutboxRequest;
+    static deserializeBinaryFromReader(message: GetOrCreateOutboxRequest, reader: jspb.BinaryReader): GetOrCreateOutboxRequest;
+}
+
+export namespace GetOrCreateOutboxRequest {
+    export type AsObject = {
+        outboxId: string,
+    }
+}
+
+export class GetOrCreateOutboxResponse extends jspb.Message { 
+    getGlobalVersion(): number;
+    setGlobalVersion(value: number): GetOrCreateOutboxResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetOrCreateOutboxResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetOrCreateOutboxResponse): GetOrCreateOutboxResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetOrCreateOutboxResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetOrCreateOutboxResponse;
+    static deserializeBinaryFromReader(message: GetOrCreateOutboxResponse, reader: jspb.BinaryReader): GetOrCreateOutboxResponse;
+}
+
+export namespace GetOrCreateOutboxResponse {
+    export type AsObject = {
+        globalVersion: number,
+    }
+}
+
+export class UpdateOutboxPositionRequest extends jspb.Message { 
+    getOutboxId(): string;
+    setOutboxId(value: string): UpdateOutboxPositionRequest;
+    getGlobalVersion(): number;
+    setGlobalVersion(value: number): UpdateOutboxPositionRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UpdateOutboxPositionRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: UpdateOutboxPositionRequest): UpdateOutboxPositionRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UpdateOutboxPositionRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UpdateOutboxPositionRequest;
+    static deserializeBinaryFromReader(message: UpdateOutboxPositionRequest, reader: jspb.BinaryReader): UpdateOutboxPositionRequest;
+}
+
+export namespace UpdateOutboxPositionRequest {
+    export type AsObject = {
+        outboxId: string,
+        globalVersion: number,
+    }
+}
+
+export class UpdateOutboxPositionResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): UpdateOutboxPositionResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: UpdateOutboxPositionResponse): UpdateOutboxPositionResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: UpdateOutboxPositionResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): UpdateOutboxPositionResponse;
+    static deserializeBinaryFromReader(message: UpdateOutboxPositionResponse, reader: jspb.BinaryReader): UpdateOutboxPositionResponse;
+}
+
+export namespace UpdateOutboxPositionResponse {
+    export type AsObject = {
+    }
+}

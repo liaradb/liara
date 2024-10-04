@@ -60,6 +60,28 @@ function deserialize_todo_GetByAggregateIDAndNameRequest(buffer_arg) {
   return eventsource_pb.GetByAggregateIDAndNameRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_todo_GetOrCreateOutboxRequest(arg) {
+  if (!(arg instanceof eventsource_pb.GetOrCreateOutboxRequest)) {
+    throw new Error('Expected argument of type todo.GetOrCreateOutboxRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_GetOrCreateOutboxRequest(buffer_arg) {
+  return eventsource_pb.GetOrCreateOutboxRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_GetOrCreateOutboxResponse(arg) {
+  if (!(arg instanceof eventsource_pb.GetOrCreateOutboxResponse)) {
+    throw new Error('Expected argument of type todo.GetOrCreateOutboxResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_GetOrCreateOutboxResponse(buffer_arg) {
+  return eventsource_pb.GetOrCreateOutboxResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_todo_GetRequest(arg) {
   if (!(arg instanceof eventsource_pb.GetRequest)) {
     throw new Error('Expected argument of type todo.GetRequest');
@@ -69,6 +91,28 @@ function serialize_todo_GetRequest(arg) {
 
 function deserialize_todo_GetRequest(buffer_arg) {
   return eventsource_pb.GetRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_UpdateOutboxPositionRequest(arg) {
+  if (!(arg instanceof eventsource_pb.UpdateOutboxPositionRequest)) {
+    throw new Error('Expected argument of type todo.UpdateOutboxPositionRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_UpdateOutboxPositionRequest(buffer_arg) {
+  return eventsource_pb.UpdateOutboxPositionRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_UpdateOutboxPositionResponse(arg) {
+  if (!(arg instanceof eventsource_pb.UpdateOutboxPositionResponse)) {
+    throw new Error('Expected argument of type todo.UpdateOutboxPositionResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_UpdateOutboxPositionResponse(buffer_arg) {
+  return eventsource_pb.UpdateOutboxPositionResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -116,6 +160,28 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     requestDeserialize: deserialize_todo_GetAfterGlobalVersionRequest,
     responseSerialize: serialize_todo_Event,
     responseDeserialize: deserialize_todo_Event,
+  },
+  getOrCreateOutbox: {
+    path: '/todo.EventSourceService/GetOrCreateOutbox',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.GetOrCreateOutboxRequest,
+    responseType: eventsource_pb.GetOrCreateOutboxResponse,
+    requestSerialize: serialize_todo_GetOrCreateOutboxRequest,
+    requestDeserialize: deserialize_todo_GetOrCreateOutboxRequest,
+    responseSerialize: serialize_todo_GetOrCreateOutboxResponse,
+    responseDeserialize: deserialize_todo_GetOrCreateOutboxResponse,
+  },
+  updateOutboxPosition: {
+    path: '/todo.EventSourceService/UpdateOutboxPosition',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.UpdateOutboxPositionRequest,
+    responseType: eventsource_pb.UpdateOutboxPositionResponse,
+    requestSerialize: serialize_todo_UpdateOutboxPositionRequest,
+    requestDeserialize: deserialize_todo_UpdateOutboxPositionRequest,
+    responseSerialize: serialize_todo_UpdateOutboxPositionResponse,
+    responseDeserialize: deserialize_todo_UpdateOutboxPositionResponse,
   },
 };
 

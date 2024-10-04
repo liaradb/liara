@@ -66,7 +66,10 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 	return nil
 }
 
-func (esc *EventSourceController) GetAfterGlobalVersion(request *pb.GetAfterGlobalVersionRequest, stream pb.EventSourceService_GetAfterGlobalVersionServer) error {
+func (esc *EventSourceController) GetAfterGlobalVersion(
+	request *pb.GetAfterGlobalVersionRequest,
+	stream pb.EventSourceService_GetAfterGlobalVersionServer,
+) error {
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		eventsource.GlobalVersion(request.GlobalVersion),
 		eventsource.Limit(request.Limit)) {
@@ -77,6 +80,34 @@ func (esc *EventSourceController) GetAfterGlobalVersion(request *pb.GetAfterGlob
 		stream.Send(esgrpc.EventToDto(row))
 	}
 	return nil
+}
+
+func (esc *EventSourceController) GetOrCreateOutbox(
+	ctx context.Context,
+	request *pb.GetOrCreateOutboxRequest,
+) (*pb.GetOrCreateOutboxResponse, error) {
+	result, err := esc.eventService.GetOrCreateOutbox(ctx, eventsource.OutboxID(request.OutboxId))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetOrCreateOutboxResponse{
+		GlobalVersion: int64(result),
+	}, nil
+}
+
+func (esc *EventSourceController) UpdateOutboxPosition(
+	ctx context.Context,
+	request *pb.UpdateOutboxPositionRequest,
+) (*pb.UpdateOutboxPositionResponse, error) {
+	err := esc.eventService.UpdateOutboxPosition(ctx,
+		eventsource.OutboxID(request.OutboxId),
+		eventsource.GlobalVersion(request.GlobalVersion))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.UpdateOutboxPositionResponse{}, nil
 }
 
 func mapSlice[T any, U any](slice []T, mapper func(T) U) []U {

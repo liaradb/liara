@@ -28,7 +28,10 @@ func NewEventSourceGRPC(
 	}
 }
 
-func (es *EventSourceGRPC) Append(ctx context.Context, events ...eventsource.Event) error {
+func (es *EventSourceGRPC) Append(
+	ctx context.Context,
+	events ...eventsource.Event,
+) error {
 	data := make([]*pb.Event, 0, len(events))
 	for _, event := range events {
 		data = append(data, EventToDto(event))
@@ -40,7 +43,10 @@ func (es *EventSourceGRPC) Append(ctx context.Context, events ...eventsource.Eve
 	return err
 }
 
-func (es *EventSourceGRPC) Get(ctx context.Context, id eventsource.AggregateID) iter.Seq2[eventsource.Event, error] {
+func (es *EventSourceGRPC) Get(
+	ctx context.Context,
+	id eventsource.AggregateID,
+) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.Get(ctx, &pb.GetRequest{
 			AggregateId: string(id),
@@ -66,7 +72,11 @@ func (es *EventSourceGRPC) Get(ctx context.Context, id eventsource.AggregateID) 
 	}
 }
 
-func (es *EventSourceGRPC) GetByAggregateIDAndName(ctx context.Context, id eventsource.AggregateID, name eventsource.AggregateName) iter.Seq2[eventsource.Event, error] {
+func (es *EventSourceGRPC) GetByAggregateIDAndName(
+	ctx context.Context,
+	id eventsource.AggregateID,
+	name eventsource.AggregateName,
+) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
 			AggregateId: string(id),
@@ -93,7 +103,11 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(ctx context.Context, id event
 	}
 }
 
-func (es *EventSourceGRPC) GetAfterGlobalVersion(ctx context.Context, version eventsource.GlobalVersion, limit eventsource.Limit) iter.Seq2[eventsource.Event, error] {
+func (es *EventSourceGRPC) GetAfterGlobalVersion(
+	ctx context.Context,
+	version eventsource.GlobalVersion,
+	limit eventsource.Limit,
+) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
 			GlobalVersion: int64(version),
@@ -118,6 +132,32 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(ctx context.Context, version ev
 			yield(DtoToEvent(e), nil)
 		}
 	}
+}
+
+func (es *EventSourceGRPC) GetOrCreateOutbox(
+	ctx context.Context,
+	outboxID eventsource.OutboxID,
+) (eventsource.GlobalVersion, error) {
+	response, err := es.client.GetOrCreateOutbox(ctx, &pb.GetOrCreateOutboxRequest{
+		OutboxId: string(outboxID),
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return eventsource.GlobalVersion(response.GlobalVersion), nil
+}
+
+func (es *EventSourceGRPC) UpdateOutboxPosition(
+	ctx context.Context,
+	outboxID eventsource.OutboxID,
+	globalVersion eventsource.GlobalVersion,
+) error {
+	_, err := es.client.UpdateOutboxPosition(ctx, &pb.UpdateOutboxPositionRequest{
+		OutboxId:      string(outboxID),
+		GlobalVersion: int64(globalVersion),
+	})
+	return err
 }
 
 func DtoToEvent(dto *pb.Event) eventsource.Event {
