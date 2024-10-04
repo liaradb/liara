@@ -17,6 +17,7 @@ type EventSourceGRPC struct {
 
 var _ eventsource.EventSource = &EventSourceGRPC{}
 var _ eventsource.EventRepository = &EventSourceGRPC{}
+var _ eventsource.OutboxRepository = &EventSourceGRPC{}
 
 func NewEventSourceGRPC(
 	conn *grpc.ClientConn,
@@ -67,7 +68,9 @@ func (es *EventSourceGRPC) Get(
 				return
 			}
 
-			yield(DtoToEvent(e), nil)
+			if !yield(DtoToEvent(e), nil) {
+				return
+			}
 		}
 	}
 }
@@ -98,7 +101,9 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 				return
 			}
 
-			yield(DtoToEvent(e), nil)
+			if !yield(DtoToEvent(e), nil) {
+				return
+			}
 		}
 	}
 }
@@ -129,7 +134,9 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 				return
 			}
 
-			yield(DtoToEvent(e), nil)
+			if !yield(DtoToEvent(e), nil) {
+				return
+			}
 		}
 	}
 }

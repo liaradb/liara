@@ -16,10 +16,12 @@ type EventService struct {
 func NewEventService(
 	eventSource eventsource.EventSource,
 	eventRepository eventsource.EventRepository,
+	outboxRepository eventsource.OutboxRepository,
 ) *EventService {
 	return &EventService{
-		eventSource:     eventSource,
-		eventRepository: eventRepository,
+		eventSource:      eventSource,
+		eventRepository:  eventRepository,
+		outboxRepository: outboxRepository,
 	}
 }
 

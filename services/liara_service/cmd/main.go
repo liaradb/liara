@@ -54,31 +54,37 @@ func initService(db *sql.DB) *grpc.Server {
 		Build()
 
 	ctx := context.Background()
-	eventRepository, err := createTable(ctx, db)
+	eventRepository, outboxRepository, err := createTable(ctx, db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		service.NewEventService(eventRepository, eventRepository),
+		service.NewEventService(eventRepository, eventRepository, outboxRepository),
 	))
 
 	return s
 }
 
-func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventRepository, error) {
+func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventRepository, *infrastructure.OutboxRepository, error) {
 	eventRepository := infrastructure.NewEventRepository(db, "events")
 	err := eventRepository.CreateTable(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = eventRepository.CreateIndex(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return &eventRepository, nil
+	outboxRepository := infrastructure.NewOutboxRepository(db, "outbox")
+	err = outboxRepository.CreateTable(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &eventRepository, outboxRepository, nil
 }
 
 func ConnectPostgresDB(uri string) (*sql.DB, error) {

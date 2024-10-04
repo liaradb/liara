@@ -77,7 +77,6 @@ func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error
 			}
 		}
 		updatedGlobalVersion = em.GlobalVersion
-		return nil
 	}
 	if updatedGlobalVersion == globalVersion {
 		return err

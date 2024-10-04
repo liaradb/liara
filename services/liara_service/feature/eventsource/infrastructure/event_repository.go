@@ -22,6 +22,7 @@ type (
 
 var _ eventsource.EventSource = EventRepository{}
 
+// TODO: Change to pointer
 func NewEventRepository(
 	db *sql.DB,
 	name string,
