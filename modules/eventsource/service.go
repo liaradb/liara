@@ -21,7 +21,7 @@ type (
 	EventSource interface {
 		Get(ctx context.Context, id AggregateID) iter.Seq2[Event, error]
 		GetByAggregateIDAndName(ctx context.Context, id AggregateID, name AggregateName) iter.Seq2[Event, error]
-		Append(ctx context.Context, e ...Event) error
+		Append(ctx context.Context, e ...AppendEvent) error
 	}
 )
 
@@ -52,7 +52,7 @@ func (s *Service[T, U]) Append(
 		UserID:        userID,
 	}
 
-	data := make([]Event, 0, len(events))
+	data := make([]AppendEvent, 0, len(events))
 	for _, item := range events {
 		event, err := newEvent(options, item)
 		if err != nil {

@@ -62,11 +62,63 @@ export namespace Event {
     }
 }
 
+export class AppendEvent extends jspb.Message { 
+    getId(): string;
+    setId(value: string): AppendEvent;
+    getAggregateName(): string;
+    setAggregateName(value: string): AppendEvent;
+    getAggregateId(): string;
+    setAggregateId(value: string): AppendEvent;
+    getVersion(): number;
+    setVersion(value: number): AppendEvent;
+    getName(): string;
+    setName(value: string): AppendEvent;
+    getCorrelationId(): string;
+    setCorrelationId(value: string): AppendEvent;
+    getUserId(): string;
+    setUserId(value: string): AppendEvent;
+
+    hasTime(): boolean;
+    clearTime(): void;
+    getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
+    setTime(value?: google_protobuf_timestamp_pb.Timestamp): AppendEvent;
+    getSchema(): string;
+    setSchema(value: string): AppendEvent;
+    getData(): Uint8Array | string;
+    getData_asU8(): Uint8Array;
+    getData_asB64(): string;
+    setData(value: Uint8Array | string): AppendEvent;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AppendEvent.AsObject;
+    static toObject(includeInstance: boolean, msg: AppendEvent): AppendEvent.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AppendEvent, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AppendEvent;
+    static deserializeBinaryFromReader(message: AppendEvent, reader: jspb.BinaryReader): AppendEvent;
+}
+
+export namespace AppendEvent {
+    export type AsObject = {
+        id: string,
+        aggregateName: string,
+        aggregateId: string,
+        version: number,
+        name: string,
+        correlationId: string,
+        userId: string,
+        time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+        schema: string,
+        data: Uint8Array | string,
+    }
+}
+
 export class AppendRequest extends jspb.Message { 
     clearEventsList(): void;
-    getEventsList(): Array<Event>;
-    setEventsList(value: Array<Event>): AppendRequest;
-    addEvents(value?: Event, index?: number): Event;
+    getEventsList(): Array<AppendEvent>;
+    setEventsList(value: Array<AppendEvent>): AppendRequest;
+    addEvents(value?: AppendEvent, index?: number): AppendEvent;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): AppendRequest.AsObject;
@@ -80,7 +132,7 @@ export class AppendRequest extends jspb.Message {
 
 export namespace AppendRequest {
     export type AsObject = {
-        eventsList: Array<Event.AsObject>,
+        eventsList: Array<AppendEvent.AsObject>,
     }
 }
 

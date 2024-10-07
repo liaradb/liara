@@ -31,11 +31,11 @@ func NewEventSourceGRPC(
 
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
-	events ...eventsource.Event,
+	events ...eventsource.AppendEvent,
 ) error {
-	data := make([]*pb.Event, 0, len(events))
+	data := make([]*pb.AppendEvent, 0, len(events))
 	for _, event := range events {
-		data = append(data, EventToDto(event))
+		data = append(data, AppendEventToDto(event))
 	}
 
 	_, err := es.client.Append(ctx, &pb.AppendRequest{
@@ -186,6 +186,36 @@ func DtoToEvent(dto *pb.Event) eventsource.Event {
 func EventToDto(e eventsource.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
+		AggregateName: string(e.AggregateName),
+		Id:            string(e.ID),
+		AggregateId:   string(e.AggregateID),
+		Version:       int64(e.Version),
+		Name:          e.Name.String(),
+		CorrelationId: string(e.CorrelationID),
+		UserId:        string(e.UserID),
+		Time:          timestamppb.New(e.Time),
+		Schema:        string(e.Schema),
+		Data:          e.Data,
+	}
+}
+
+func DtoToAppendEvent(dto *pb.AppendEvent) eventsource.AppendEvent {
+	return eventsource.AppendEvent{
+		AggregateName: eventsource.AggregateName(dto.AggregateName),
+		ID:            eventsource.EventID(dto.Id),
+		AggregateID:   eventsource.AggregateID(dto.AggregateId),
+		Version:       eventsource.Version(dto.Version),
+		Name:          eventsource.EventName(dto.Name),
+		CorrelationID: eventsource.CorrelationID(dto.CorrelationId),
+		UserID:        eventsource.UserID(dto.UserId),
+		Time:          dto.Time.AsTime(),
+		Schema:        eventsource.Schema(dto.Schema),
+		Data:          dto.Data,
+	}
+}
+
+func AppendEventToDto(e eventsource.AppendEvent) *pb.AppendEvent {
+	return &pb.AppendEvent{
 		AggregateName: string(e.AggregateName),
 		Id:            string(e.ID),
 		AggregateId:   string(e.AggregateID),

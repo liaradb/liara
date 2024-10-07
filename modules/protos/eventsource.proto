@@ -58,8 +58,40 @@ message Event {
 // Append
 // -----------------------------------------------------------------------------
 
+message AppendEvent {
+  // The unique ID of the Event
+  string id = 1;
+
+  // The name of the Aggregate
+  string aggregate_name = 2;
+
+  // The ID of the Aggregate to which this Event applies
+  string aggregate_id = 3;
+
+  // The Version of the Aggregate
+  int64 version = 4;
+
+  // The unique GetName of the Event
+  string name = 5;
+
+  // The ID of the entire Command and Event chain
+  string correlation_id = 6;
+
+  // The ID of the User issuing the Command
+  string user_id = 7;
+
+  // The Time this Event was created
+  google.protobuf.Timestamp time = 8;
+
+  // The schema for the internal data
+  string schema = 9;
+
+  // The internal data of the Event
+  bytes data = 10;
+}
+
 message AppendRequest {
-  repeated Event events = 1;
+  repeated AppendEvent events = 1;
 }
 
 message AppendResponse {}

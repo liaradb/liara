@@ -35,7 +35,7 @@ func NewEventRepository(
 
 func (er EventRepository) Append(
 	ctx context.Context,
-	ems ...eventsource.Event,
+	ems ...eventsource.AppendEvent,
 ) error {
 	for _, em := range ems {
 		if err := em.Valid(); err != nil {
@@ -55,7 +55,7 @@ func (er EventRepository) Append(
 
 func (er EventRepository) appendEvents(
 	ctx context.Context,
-	ems []eventsource.Event,
+	ems []eventsource.AppendEvent,
 ) error {
 	return runTx(ctx, er.db, &sql.TxOptions{Isolation: sql.LevelDefault}, func(tx *sql.Tx) error {
 		for _, em := range ems {
@@ -70,7 +70,7 @@ func (er EventRepository) appendEvents(
 func (er EventRepository) appendEvent(
 	ctx context.Context,
 	qr queryRunner,
-	em eventsource.Event,
+	em eventsource.AppendEvent,
 ) error {
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )

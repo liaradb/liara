@@ -46,8 +46,7 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := eventsource.AggregateID("aggregateID")
 
-		want := eventsource.Event{
-			GlobalVersion: 1,
+		want := eventsource.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
@@ -87,8 +86,7 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := eventsource.AggregateID("aggregateID")
 
-		want := eventsource.Event{
-			GlobalVersion: 1,
+		want := eventsource.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
@@ -111,8 +109,7 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := eventsource.AggregateID("aggregateID")
 
-		want := eventsource.Event{
-			GlobalVersion: 1,
+		want := eventsource.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,

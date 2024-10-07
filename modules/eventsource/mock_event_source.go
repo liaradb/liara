@@ -59,7 +59,7 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 
 func (mes *MockEventSource) Append(
 	ctx context.Context,
-	events ...Event,
+	events ...AppendEvent,
 ) error {
 	if mes.events == nil {
 		mes.events = make([]Event, 0)
@@ -84,11 +84,18 @@ func (mes *MockEventSource) Append(
 		versions[event.AggregateID] = event.Version
 	}
 
+	globalVersion := len(mes.events)
+
 	// Apply Snapshot
 	for id, version := range versions {
 		mes.versions[id] = version
 	}
-	mes.events = append(mes.events, events...)
+	data := make([]Event, 0, len(events))
+	for _, event := range events {
+		globalVersion++
+		data = append(data, event.ToEvent(GlobalVersion(globalVersion)))
+	}
+	mes.events = append(mes.events, data...)
 
 	return nil
 }

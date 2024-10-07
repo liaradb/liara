@@ -29,7 +29,7 @@ type (
 		UserID        UserID        // The ID of the User issuing the Command
 		Time          time.Time     // The Time this Event was created
 		Schema        Schema        // The schema for the internal data
-		Data          Data          // The internal data of the Event
+		Data          []byte        // The internal data of the Event
 	}
 
 	EventData interface {
@@ -46,20 +46,53 @@ type (
 		CorrelationID CorrelationID
 		UserID        UserID
 	}
+
+	AppendEvent struct {
+		AggregateName AggregateName // The name of the Aggregate
+		ID            EventID       // The unique ID of the Event
+		AggregateID   AggregateID   // The ID of the Aggregate to which this Event applies
+		Version       Version       // The Version of the Aggregate
+		Name          EventName     // The unique GetName of the Event
+		CorrelationID CorrelationID // The ID of the entire Command and Event chain
+		IdempotenceID IdempotenceID // The ID to de-duplicate Events
+		PartitionID   PartitionID   // The ID to partition Events
+		UserID        UserID        // The ID of the User issuing the Command
+		Time          time.Time     // The Time this Event was created
+		Schema        Schema        // The schema for the internal data
+		Data          []byte        // The internal data of the Event
+	}
 )
 
-func (e *Event) Valid() error {
-	if e.Version < 1 {
+func (ae AppendEvent) ToEvent(globalVersion GlobalVersion) Event {
+	return Event{
+		GlobalVersion: globalVersion,
+		AggregateName: ae.AggregateName,
+		ID:            ae.ID,
+		AggregateID:   ae.AggregateID,
+		Version:       ae.Version,
+		Name:          ae.Name,
+		CorrelationID: ae.CorrelationID,
+		IdempotenceID: ae.IdempotenceID,
+		PartitionID:   ae.PartitionID,
+		UserID:        ae.UserID,
+		Time:          ae.Time,
+		Schema:        ae.Schema,
+		Data:          ae.Data,
+	}
+}
+
+func (ae *AppendEvent) Valid() error {
+	if ae.Version < 1 {
 		return ErrAggregateVersionInvalid
 	}
 
 	return nil
 }
 
-func newEvent(options EventOptions, data EventData) (Event, error) {
+func newEvent(options EventOptions, data EventData) (AppendEvent, error) {
 	d, err := json.Marshal(data)
 	if err != nil {
-		return Event{}, err
+		return AppendEvent{}, err
 	}
 
 	if options.EventID == "" {
@@ -70,7 +103,7 @@ func newEvent(options EventOptions, data EventData) (Event, error) {
 		options.Time = time.Now()
 	}
 
-	return Event{
+	return AppendEvent{
 		AggregateName: AggregateName(data.AggregateName()),
 		Name:          EventName(data.EventName()),
 		ID:            options.EventID,

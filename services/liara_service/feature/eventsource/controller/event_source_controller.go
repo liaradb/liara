@@ -27,7 +27,7 @@ func (esc *EventSourceController) Append(
 	request *pb.AppendRequest,
 ) (*pb.AppendResponse, error) {
 	err := esc.eventService.Append(ctx,
-		mapSlice(request.Events, esgrpc.DtoToEvent)...)
+		mapSlice(request.Events, esgrpc.DtoToAppendEvent)...)
 	if err != nil {
 		return nil, err
 	}

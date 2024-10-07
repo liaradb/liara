@@ -27,7 +27,7 @@ func NewEventService(
 
 func (es *EventService) Append(
 	ctx context.Context,
-	e ...eventsource.Event,
+	e ...eventsource.AppendEvent,
 ) error {
 	return es.eventSource.Append(ctx, e...)
 }
