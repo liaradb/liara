@@ -6,6 +6,7 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -46,11 +47,11 @@ func (es *EventSourceGRPC) Append(
 
 func (es *EventSourceGRPC) Get(
 	ctx context.Context,
-	id eventsource.AggregateID,
+	id value.AggregateID,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.Get(ctx, &pb.GetRequest{
-			AggregateId: string(id),
+			AggregateId: id.String(),
 		})
 		if err != nil {
 			yield(eventsource.Event{}, err)
@@ -77,13 +78,13 @@ func (es *EventSourceGRPC) Get(
 
 func (es *EventSourceGRPC) GetByAggregateIDAndName(
 	ctx context.Context,
-	id eventsource.AggregateID,
-	name eventsource.AggregateName,
+	id value.AggregateID,
+	name value.AggregateName,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
-			AggregateId: string(id),
-			Name:        string(name),
+			AggregateId: id.String(),
+			Name:        name.String(),
 		})
 		if err != nil {
 			yield(eventsource.Event{}, err)
@@ -110,8 +111,8 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 
 func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
-	version eventsource.GlobalVersion,
-	limit eventsource.Limit,
+	version value.GlobalVersion,
+	limit value.Limit,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
@@ -143,25 +144,25 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 
 func (es *EventSourceGRPC) GetOrCreateOutbox(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-) (eventsource.GlobalVersion, error) {
+	outboxID value.OutboxID,
+) (value.GlobalVersion, error) {
 	response, err := es.client.GetOrCreateOutbox(ctx, &pb.GetOrCreateOutboxRequest{
-		OutboxId: string(outboxID),
+		OutboxId: outboxID.String(),
 	})
 	if err != nil {
 		return 0, err
 	}
 
-	return eventsource.GlobalVersion(response.GlobalVersion), nil
+	return value.GlobalVersion(response.GlobalVersion), nil
 }
 
 func (es *EventSourceGRPC) UpdateOutboxPosition(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-	globalVersion eventsource.GlobalVersion,
+	outboxID value.OutboxID,
+	globalVersion value.GlobalVersion,
 ) error {
 	_, err := es.client.UpdateOutboxPosition(ctx, &pb.UpdateOutboxPositionRequest{
-		OutboxId:      string(outboxID),
+		OutboxId:      outboxID.String(),
 		GlobalVersion: int64(globalVersion),
 	})
 	return err
@@ -169,16 +170,16 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 
 func DtoToEvent(dto *pb.Event) eventsource.Event {
 	return eventsource.Event{
-		GlobalVersion: eventsource.GlobalVersion(dto.GlobalVersion),
-		AggregateName: eventsource.AggregateName(dto.AggregateName),
-		ID:            eventsource.EventID(dto.Id),
-		AggregateID:   eventsource.AggregateID(dto.AggregateId),
-		Version:       eventsource.Version(dto.Version),
-		Name:          eventsource.EventName(dto.Name),
-		CorrelationID: eventsource.CorrelationID(dto.CorrelationId),
-		UserID:        eventsource.UserID(dto.UserId),
+		GlobalVersion: value.GlobalVersion(dto.GlobalVersion),
+		AggregateName: value.AggregateName(dto.AggregateName),
+		ID:            value.EventID(dto.Id),
+		AggregateID:   value.AggregateID(dto.AggregateId),
+		Version:       value.Version(dto.Version),
+		Name:          value.EventName(dto.Name),
+		CorrelationID: value.CorrelationID(dto.CorrelationId),
+		UserID:        value.UserID(dto.UserId),
 		Time:          dto.Time.AsTime(),
-		Schema:        eventsource.Schema(dto.Schema),
+		Schema:        value.Schema(dto.Schema),
 		Data:          dto.Data,
 	}
 }
@@ -186,45 +187,45 @@ func DtoToEvent(dto *pb.Event) eventsource.Event {
 func EventToDto(e eventsource.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
-		AggregateName: string(e.AggregateName),
-		Id:            string(e.ID),
-		AggregateId:   string(e.AggregateID),
+		AggregateName: e.AggregateName.String(),
+		Id:            e.ID.String(),
+		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		CorrelationId: string(e.CorrelationID),
-		UserId:        string(e.UserID),
+		CorrelationId: e.CorrelationID.String(),
+		UserId:        e.UserID.String(),
 		Time:          timestamppb.New(e.Time),
-		Schema:        string(e.Schema),
+		Schema:        e.Schema.String(),
 		Data:          e.Data,
 	}
 }
 
 func DtoToAppendEvent(dto *pb.AppendEvent) eventsource.AppendEvent {
 	return eventsource.AppendEvent{
-		AggregateName: eventsource.AggregateName(dto.AggregateName),
-		ID:            eventsource.EventID(dto.Id),
-		AggregateID:   eventsource.AggregateID(dto.AggregateId),
-		Version:       eventsource.Version(dto.Version),
-		Name:          eventsource.EventName(dto.Name),
-		CorrelationID: eventsource.CorrelationID(dto.CorrelationId),
-		UserID:        eventsource.UserID(dto.UserId),
+		AggregateName: value.AggregateName(dto.AggregateName),
+		ID:            value.EventID(dto.Id),
+		AggregateID:   value.AggregateID(dto.AggregateId),
+		Version:       value.Version(dto.Version),
+		Name:          value.EventName(dto.Name),
+		CorrelationID: value.CorrelationID(dto.CorrelationId),
+		UserID:        value.UserID(dto.UserId),
 		Time:          dto.Time.AsTime(),
-		Schema:        eventsource.Schema(dto.Schema),
+		Schema:        value.Schema(dto.Schema),
 		Data:          dto.Data,
 	}
 }
 
 func AppendEventToDto(e eventsource.AppendEvent) *pb.AppendEvent {
 	return &pb.AppendEvent{
-		AggregateName: string(e.AggregateName),
-		Id:            string(e.ID),
-		AggregateId:   string(e.AggregateID),
+		AggregateName: e.AggregateName.String(),
+		Id:            e.ID.String(),
+		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		CorrelationId: string(e.CorrelationID),
-		UserId:        string(e.UserID),
+		CorrelationId: e.CorrelationID.String(),
+		UserId:        e.UserID.String(),
 		Time:          timestamppb.New(e.Time),
-		Schema:        string(e.Schema),
+		Schema:        e.Schema.String(),
 		Data:          e.Data,
 	}
 }

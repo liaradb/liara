@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,8 +28,8 @@ func Database(c *mongo.Client, dbName string) *mongo.Database {
 func Insert[T any, I ~string, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	toM func(eventsource.Version, I, *T) *M,
-	v eventsource.Version,
+	toM func(value.Version, I, *T) *M,
+	v value.Version,
 	id I,
 	t *T,
 ) error {
@@ -42,9 +43,9 @@ func Insert[T any, I ~string, M any](
 func Get[T any, I ~string, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (eventsource.Version, *T),
+	fromM func(*M) (value.Version, *T),
 	id I,
-) (eventsource.Version, *T, error) {
+) (value.Version, *T, error) {
 	var m M
 	err := c.FindOne(ctx,
 		bson.M{"_id": id}).
@@ -69,7 +70,7 @@ func Delete[I ~string](
 func GetList[T any, F any, S any, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (eventsource.Version, *T),
+	fromM func(*M) (value.Version, *T),
 	f F,
 	s S,
 	p Page,
@@ -113,7 +114,7 @@ func GetList[T any, F any, S any, M any](
 func GetListSlice[T any, F any, S any, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (eventsource.Version, *T),
+	fromM func(*M) (value.Version, *T),
 	f F,
 	s S,
 	p Page,

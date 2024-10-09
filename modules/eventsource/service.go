@@ -3,6 +3,8 @@ package eventsource
 import (
 	"context"
 	"iter"
+
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -19,8 +21,8 @@ type (
 	}
 
 	EventSource interface {
-		Get(ctx context.Context, id AggregateID) iter.Seq2[Event, error]
-		GetByAggregateIDAndName(ctx context.Context, id AggregateID, name AggregateName) iter.Seq2[Event, error]
+		Get(ctx context.Context, id value.AggregateID) iter.Seq2[Event, error]
+		GetByAggregateIDAndName(ctx context.Context, id value.AggregateID, name value.AggregateName) iter.Seq2[Event, error]
 		Append(ctx context.Context, e ...AppendEvent) error
 	}
 )
@@ -39,14 +41,14 @@ func NewService[T AggregateRoot[U], U ~string, E EventData](
 
 func (s *Service[T, U]) Append(
 	ctx context.Context,
-	correlationID CorrelationID,
-	userID UserID,
+	correlationID value.CorrelationID,
+	userID value.UserID,
 	id U,
-	version Version,
+	version value.Version,
 	events ...EventData,
 ) error {
 	options := EventOptions{
-		AggregateID:   AggregateID(id),
+		AggregateID:   value.AggregateID(id),
 		Version:       version,
 		CorrelationID: correlationID,
 		UserID:        userID,
@@ -68,11 +70,11 @@ func (s *Service[T, U]) Append(
 func (s *Service[T, U]) GetByID(
 	ctx context.Context,
 	id U,
-) (T, Version, error) {
+) (T, value.Version, error) {
 	t := s.init()
-	var version Version
+	var version value.Version
 
-	for e, err := range s.eventSource.Get(ctx, AggregateID(id)) {
+	for e, err := range s.eventSource.Get(ctx, value.AggregateID(id)) {
 		if err != nil {
 			return t, version, err
 		}
@@ -94,12 +96,12 @@ func (s *Service[T, U]) GetByID(
 func (s *Service[T, U]) GetByIDAndName(
 	ctx context.Context,
 	id U,
-	name AggregateName,
-) (T, Version, error) {
+	name value.AggregateName,
+) (T, value.Version, error) {
 	t := s.init()
-	var version Version
+	var version value.Version
 
-	for e, err := range s.eventSource.GetByAggregateIDAndName(ctx, AggregateID(id), name) {
+	for e, err := range s.eventSource.GetByAggregateIDAndName(ctx, value.AggregateID(id), name) {
 		if err != nil {
 			return t, version, err
 		}

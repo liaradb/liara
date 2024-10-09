@@ -38,7 +38,7 @@ func (ses *StreamEventPublisher) Handle(ctx context.Context, event eventsource.E
 	}
 
 	if useStream {
-		return ses.handleStream(ctx, data, string(event.ID))
+		return ses.handleStream(ctx, data, event.ID.String())
 	} else {
 		return ses.handleQueue(data)
 	}

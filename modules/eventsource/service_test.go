@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 func TestService_Append(t *testing.T) {
@@ -14,7 +16,7 @@ func TestService_Append(t *testing.T) {
 	ctx := context.Background()
 
 	id := exampleID("exampleID")
-	version := Version(1)
+	version := value.Version(1)
 
 	err := se.Append(ctx, "", "", id, version, incremented{})
 	if err != nil {

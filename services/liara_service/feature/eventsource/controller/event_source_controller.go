@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/cardboardrobots/esgrpc"
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 )
@@ -40,7 +40,7 @@ func (esc *EventSourceController) Get(
 	stream pb.EventSourceService_GetServer,
 ) error {
 	for row, err := range esc.eventService.Get(stream.Context(),
-		eventsource.AggregateID(request.AggregateId)) {
+		value.AggregateID(request.AggregateId)) {
 		if err != nil {
 			return err
 		}
@@ -55,8 +55,8 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 	stream pb.EventSourceService_GetByAggregateIDAndNameServer,
 ) error {
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
-		eventsource.AggregateID(request.AggregateId),
-		eventsource.AggregateName(request.Name)) {
+		value.AggregateID(request.AggregateId),
+		value.AggregateName(request.Name)) {
 		if err != nil {
 			return err
 		}
@@ -71,8 +71,8 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	stream pb.EventSourceService_GetAfterGlobalVersionServer,
 ) error {
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
-		eventsource.GlobalVersion(request.GlobalVersion),
-		eventsource.Limit(request.Limit)) {
+		value.GlobalVersion(request.GlobalVersion),
+		value.Limit(request.Limit)) {
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func (esc *EventSourceController) GetOrCreateOutbox(
 	ctx context.Context,
 	request *pb.GetOrCreateOutboxRequest,
 ) (*pb.GetOrCreateOutboxResponse, error) {
-	result, err := esc.eventService.GetOrCreateOutbox(ctx, eventsource.OutboxID(request.OutboxId))
+	result, err := esc.eventService.GetOrCreateOutbox(ctx, value.OutboxID(request.OutboxId))
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +101,8 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	request *pb.UpdateOutboxPositionRequest,
 ) (*pb.UpdateOutboxPositionResponse, error) {
 	err := esc.eventService.UpdateOutboxPosition(ctx,
-		eventsource.OutboxID(request.OutboxId),
-		eventsource.GlobalVersion(request.GlobalVersion))
+		value.OutboxID(request.OutboxId),
+		value.GlobalVersion(request.GlobalVersion))
 	if err != nil {
 		return nil, err
 	}

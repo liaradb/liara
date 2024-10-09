@@ -4,15 +4,15 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
 	SnapshotModel[U ~string] struct {
 		AggregateID U
-		EventID     eventsource.EventID
-		Version     eventsource.Version
-		Schema      eventsource.Schema
+		EventID     value.EventID
+		Version     value.Version
+		Schema      value.Schema
 		Data        string
 	}
 

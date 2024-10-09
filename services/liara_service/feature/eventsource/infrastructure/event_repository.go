@@ -7,6 +7,7 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -92,8 +93,8 @@ INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
 
 func (er EventRepository) GetAfterGlobalVersion(
 	ctx context.Context,
-	globalVersion eventsource.GlobalVersion,
-	limit eventsource.Limit,
+	globalVersion value.GlobalVersion,
+	limit value.Limit,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		var rows *sql.Rows
@@ -134,7 +135,7 @@ ORDER BY global_version
 
 func (er EventRepository) Get(
 	ctx context.Context,
-	aggregateID eventsource.AggregateID,
+	aggregateID value.AggregateID,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		rows, err := er.db.QueryContext(ctx, fmt.Sprintf(`
@@ -160,8 +161,8 @@ ORDER BY global_version
 
 func (er EventRepository) GetByAggregateIDAndName(
 	ctx context.Context,
-	aggregateID eventsource.AggregateID,
-	name eventsource.AggregateName,
+	aggregateID value.AggregateID,
+	name value.AggregateName,
 ) iter.Seq2[eventsource.Event, error] {
 	return func(yield func(eventsource.Event, error) bool) {
 		rows, err := er.db.QueryContext(ctx, fmt.Sprintf(`
@@ -188,7 +189,7 @@ ORDER BY global_version
 
 func (er EventRepository) Rollback(
 	ctx context.Context,
-	gv eventsource.GlobalVersion,
+	gv value.GlobalVersion,
 ) error {
 	q := fmt.Sprintf(`
 DELETE FROM %v

@@ -3,11 +3,13 @@ package eventsource
 import (
 	"context"
 	"iter"
+
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type MockEventSource struct {
 	events   []Event
-	versions map[AggregateID]Version
+	versions map[value.AggregateID]value.Version
 }
 
 var _ EventSource = &MockEventSource{}
@@ -15,7 +17,7 @@ var _ EventRepository = &MockEventSource{}
 
 func (mes *MockEventSource) Get(
 	ctx context.Context,
-	id AggregateID,
+	id value.AggregateID,
 ) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
@@ -32,16 +34,16 @@ func (mes *MockEventSource) Get(
 
 func (mes *MockEventSource) GetAfterGlobalVersion(
 	ctx context.Context,
-	globalVersion GlobalVersion,
-	limit Limit,
+	globalVersion value.GlobalVersion,
+	limit value.Limit,
 ) iter.Seq2[Event, error] {
 	panic("unimplemented")
 }
 
 func (mes *MockEventSource) GetByAggregateIDAndName(
 	ctx context.Context,
-	id AggregateID,
-	name AggregateName,
+	id value.AggregateID,
+	name value.AggregateName,
 ) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
@@ -66,11 +68,11 @@ func (mes *MockEventSource) Append(
 	}
 
 	if mes.versions == nil {
-		mes.versions = make(map[AggregateID]Version)
+		mes.versions = make(map[value.AggregateID]value.Version)
 	}
 
 	// Snapshot versions
-	versions := make(map[AggregateID]Version)
+	versions := make(map[value.AggregateID]value.Version)
 
 	for _, event := range events {
 		if err := event.Valid(); err != nil {
@@ -93,14 +95,14 @@ func (mes *MockEventSource) Append(
 	data := make([]Event, 0, len(events))
 	for _, event := range events {
 		globalVersion++
-		data = append(data, event.ToEvent(GlobalVersion(globalVersion)))
+		data = append(data, event.ToEvent(value.GlobalVersion(globalVersion)))
 	}
 	mes.events = append(mes.events, data...)
 
 	return nil
 }
 
-func (mes *MockEventSource) aggregateVersion(versions map[AggregateID]Version, id AggregateID) (version Version) {
+func (mes *MockEventSource) aggregateVersion(versions map[value.AggregateID]value.Version, id value.AggregateID) (version value.Version) {
 	a := mes.versions[id]
 	b := versions[id]
 	if a > b {

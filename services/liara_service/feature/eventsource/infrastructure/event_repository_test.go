@@ -9,6 +9,7 @@ import (
 	"database/sql"
 
 	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 	_ "modernc.org/sqlite"
 )
 
@@ -44,7 +45,7 @@ func TestEventRepository_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		aggregateID := eventsource.AggregateID("aggregateID")
+		aggregateID := value.AggregateID("aggregateID")
 
 		want := eventsource.AppendEvent{
 			AggregateName: "example",
@@ -84,7 +85,7 @@ func TestEventRepository_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		aggregateID := eventsource.AggregateID("aggregateID")
+		aggregateID := value.AggregateID("aggregateID")
 
 		want := eventsource.AppendEvent{
 			AggregateName: "example",
@@ -107,7 +108,7 @@ func TestEventRepository_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		aggregateID := eventsource.AggregateID("aggregateID")
+		aggregateID := value.AggregateID("aggregateID")
 
 		want := eventsource.AppendEvent{
 			AggregateName: "example",

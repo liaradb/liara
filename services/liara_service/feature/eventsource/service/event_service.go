@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type EventService struct {
@@ -34,38 +35,38 @@ func (es *EventService) Append(
 
 func (es *EventService) Get(
 	ctx context.Context,
-	id eventsource.AggregateID,
+	id value.AggregateID,
 ) iter.Seq2[eventsource.Event, error] {
 	return es.eventSource.Get(ctx, id)
 }
 
 func (es *EventService) GetByAggregateIDAndName(
 	ctx context.Context,
-	id eventsource.AggregateID,
-	name eventsource.AggregateName,
+	id value.AggregateID,
+	name value.AggregateName,
 ) iter.Seq2[eventsource.Event, error] {
 	return es.eventSource.GetByAggregateIDAndName(ctx, id, name)
 }
 
 func (es *EventService) GetAfterGlobalVersion(
 	ctx context.Context,
-	version eventsource.GlobalVersion,
-	limit eventsource.Limit,
+	version value.GlobalVersion,
+	limit value.Limit,
 ) iter.Seq2[eventsource.Event, error] {
 	return es.eventRepository.GetAfterGlobalVersion(ctx, version, limit)
 }
 
 func (es *EventService) GetOrCreateOutbox(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-) (eventsource.GlobalVersion, error) {
+	outboxID value.OutboxID,
+) (value.GlobalVersion, error) {
 	return es.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
 }
 
 func (es *EventService) UpdateOutboxPosition(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-	globalVersion eventsource.GlobalVersion,
+	outboxID value.OutboxID,
+	globalVersion value.GlobalVersion,
 ) error {
 	return es.outboxRepository.UpdateOutboxPosition(ctx, outboxID, globalVersion)
 }

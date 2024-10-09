@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -16,8 +16,8 @@ type (
 	}
 
 	outboxModel struct {
-		ID       eventsource.OutboxID
-		Position eventsource.GlobalVersion
+		ID       value.OutboxID
+		Position value.GlobalVersion
 	}
 )
 
@@ -30,8 +30,8 @@ func NewOutboxRepository(db *sql.DB, name string) *OutboxRepository {
 
 func (s *OutboxRepository) GetOrCreateOutbox(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-) (eventsource.GlobalVersion, error) {
+	outboxID value.OutboxID,
+) (value.GlobalVersion, error) {
 	outbox, err := s.getOutbox(ctx, outboxID)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = s.createOutbox(ctx, outboxID)
@@ -41,7 +41,7 @@ func (s *OutboxRepository) GetOrCreateOutbox(
 
 func (s *OutboxRepository) getOutbox(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
+	outboxID value.OutboxID,
 ) (outboxModel, error) {
 	row := s.db.QueryRowContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v
@@ -53,7 +53,7 @@ WHERE id = $1
 
 func (s *OutboxRepository) createOutbox(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
+	outboxID value.OutboxID,
 ) error {
 	_, err := s.db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v
@@ -65,8 +65,8 @@ VALUES( $1, $2 )
 
 func (s *OutboxRepository) UpdateOutboxPosition(
 	ctx context.Context,
-	outboxID eventsource.OutboxID,
-	position eventsource.GlobalVersion,
+	outboxID value.OutboxID,
+	position value.GlobalVersion,
 ) error {
 	_, err := s.db.ExecContext(ctx, fmt.Sprintf(`
 UPDATE %v

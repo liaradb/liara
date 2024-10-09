@@ -5,6 +5,8 @@ import (
 	"errors"
 	"iter"
 	"time"
+
+	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -14,15 +16,13 @@ type (
 		subscriptions    []EventSubscriber
 	}
 
-	Limit int
-
 	EventRepository interface {
-		GetAfterGlobalVersion(context.Context, GlobalVersion, Limit) iter.Seq2[Event, error]
+		GetAfterGlobalVersion(context.Context, value.GlobalVersion, value.Limit) iter.Seq2[Event, error]
 	}
 
 	OutboxRepository interface {
-		GetOrCreateOutbox(context.Context, OutboxID) (GlobalVersion, error)
-		UpdateOutboxPosition(context.Context, OutboxID, GlobalVersion) error
+		GetOrCreateOutbox(context.Context, value.OutboxID) (value.GlobalVersion, error)
+		UpdateOutboxPosition(context.Context, value.OutboxID, value.GlobalVersion) error
 	}
 
 	EventSubscriber interface {
@@ -34,8 +34,6 @@ type (
 		Init(context.Context) (func() error, error)
 		Subscribe(EventSubscriber) func()
 	}
-
-	OutboxID string
 )
 
 func NewOutbox(
@@ -49,7 +47,7 @@ func NewOutbox(
 	}
 }
 
-func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, limit Limit) {
+func (o *Outbox) Run(ctx context.Context, outboxID value.OutboxID, duration time.Duration, limit value.Limit) {
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
@@ -58,7 +56,7 @@ func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Durat
 	}()
 }
 
-func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error {
+func (o *Outbox) read(ctx context.Context, outboxID value.OutboxID, limit value.Limit) error {
 	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
 	if err != nil {
 		return err
