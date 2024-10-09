@@ -6,9 +6,9 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
+	"github.com/cardboardrobots/liara"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,8 +17,8 @@ type EventSourceGRPC struct {
 	client pb.EventSourceServiceClient
 }
 
-var _ service.EventRepository = &EventSourceGRPC{}
-var _ service.OutboxRepository = &EventSourceGRPC{}
+var _ liara.EventRepository = &EventSourceGRPC{}
+var _ liara.OutboxRepository = &EventSourceGRPC{}
 
 func NewEventSourceGRPC(
 	conn *grpc.ClientConn,

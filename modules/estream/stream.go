@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/service"
+	"github.com/cardboardrobots/liara"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -19,7 +19,7 @@ type (
 	StreamEventSubscriber struct {
 		nc            *nats.Conn
 		js            jetstream.JetStream
-		subscriptions []service.EventSubscriber
+		subscriptions []liara.EventSubscriber
 		streamName    string
 		queueName     string
 	}
@@ -120,7 +120,7 @@ func (ses *StreamEventSubscriber) queueInit(ctx context.Context) (func() error, 
 	return sub.Unsubscribe, nil
 }
 
-func (ses *StreamEventSubscriber) Subscribe(es service.EventSubscriber) func() {
+func (ses *StreamEventSubscriber) Subscribe(es liara.EventSubscriber) func() {
 	ses.subscriptions = append(ses.subscriptions, es)
 
 	return func() {

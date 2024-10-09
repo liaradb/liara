@@ -6,9 +6,12 @@ replace github.com/cardboardrobots/eventsource => ../../modules/eventsource
 
 replace github.com/cardboardrobots/eventsource_go => ../../modules/eventsource_go
 
+replace github.com/cardboardrobots/liara => ../../modules/liara
+
 require (
 	github.com/cardboardrobots/eventsource v0.0.0
 	github.com/cardboardrobots/eventsource_go v0.0.0
+	github.com/cardboardrobots/liara v0.0.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
 )

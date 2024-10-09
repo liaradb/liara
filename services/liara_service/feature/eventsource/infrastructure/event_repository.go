@@ -7,8 +7,8 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
+	"github.com/cardboardrobots/liara"
 )
 
 type (
@@ -22,7 +22,7 @@ type (
 	}
 )
 
-var _ service.EventRepository = EventRepository{}
+var _ liara.EventRepository = EventRepository{}
 
 // TODO: Change to pointer
 func NewEventRepository(

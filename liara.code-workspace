@@ -1,13 +1,13 @@
 {
 	"folders": [
 		{
+			"path": "modules/eventsource"
+		},
+		{
 			"path": "modules/liara"
 		},
 		{
 			"path": "services/liara_service"
-		},
-		{
-			"path": "modules/eventsource"
 		},
 		{
 			"path": "modules/esgrpc"

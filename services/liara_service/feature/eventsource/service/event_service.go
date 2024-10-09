@@ -5,18 +5,18 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
+	"github.com/cardboardrobots/liara"
 )
 
 type EventService struct {
-	eventRepository  service.EventRepository
-	outboxRepository service.OutboxRepository
+	eventRepository  liara.EventRepository
+	outboxRepository liara.OutboxRepository
 }
 
 func NewEventService(
-	eventRepository service.EventRepository,
-	outboxRepository service.OutboxRepository,
+	eventRepository liara.EventRepository,
+	outboxRepository liara.OutboxRepository,
 ) *EventService {
 	return &EventService{
 		eventRepository:  eventRepository,

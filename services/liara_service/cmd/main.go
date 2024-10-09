@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	esservice "github.com/cardboardrobots/eventsource/service"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
+	"github.com/cardboardrobots/liara"
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
@@ -38,7 +38,7 @@ func main() {
 		http.NewServeMux(),
 		initService(db))
 
-	_ = esservice.MockEventSource{}
+	_ = liara.MockEventSource{}
 }
 
 func initService(db *sql.DB) *grpc.Server {
