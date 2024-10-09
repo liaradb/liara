@@ -17,7 +17,6 @@ type EventSourceGRPC struct {
 	client pb.EventSourceServiceClient
 }
 
-var _ service.EventSource = &EventSourceGRPC{}
 var _ service.EventRepository = &EventSourceGRPC{}
 var _ service.OutboxRepository = &EventSourceGRPC{}
 

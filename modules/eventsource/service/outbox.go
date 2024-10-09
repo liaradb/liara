@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"iter"
 	"time"
 
 	"github.com/cardboardrobots/eventsource/entity"
@@ -15,15 +14,6 @@ type (
 		outboxRepository OutboxRepository
 		eventRepository  EventRepository
 		subscriptions    []EventSubscriber
-	}
-
-	EventRepository interface {
-		GetAfterGlobalVersion(context.Context, value.GlobalVersion, value.Limit) iter.Seq2[entity.Event, error]
-	}
-
-	OutboxRepository interface {
-		GetOrCreateOutbox(context.Context, value.OutboxID) (value.GlobalVersion, error)
-		UpdateOutboxPosition(context.Context, value.OutboxID, value.GlobalVersion) error
 	}
 
 	EventSubscriber interface {

@@ -22,7 +22,7 @@ type (
 	}
 )
 
-var _ service.EventSource = EventRepository{}
+var _ service.EventRepository = EventRepository{}
 
 // TODO: Change to pointer
 func NewEventRepository(

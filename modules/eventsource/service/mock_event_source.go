@@ -13,7 +13,6 @@ type MockEventSource struct {
 	versions map[value.AggregateID]value.Version
 }
 
-var _ EventSource = &MockEventSource{}
 var _ EventRepository = &MockEventSource{}
 
 func (mes *MockEventSource) Get(

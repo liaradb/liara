@@ -10,18 +10,15 @@ import (
 )
 
 type EventService struct {
-	eventSource      service.EventSource
 	eventRepository  service.EventRepository
 	outboxRepository service.OutboxRepository
 }
 
 func NewEventService(
-	eventSource service.EventSource,
 	eventRepository service.EventRepository,
 	outboxRepository service.OutboxRepository,
 ) *EventService {
 	return &EventService{
-		eventSource:      eventSource,
 		eventRepository:  eventRepository,
 		outboxRepository: outboxRepository,
 	}
@@ -31,14 +28,14 @@ func (es *EventService) Append(
 	ctx context.Context,
 	e ...entity.AppendEvent,
 ) error {
-	return es.eventSource.Append(ctx, e...)
+	return es.eventRepository.Append(ctx, e...)
 }
 
 func (es *EventService) Get(
 	ctx context.Context,
 	id value.AggregateID,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventSource.Get(ctx, id)
+	return es.eventRepository.Get(ctx, id)
 }
 
 func (es *EventService) GetByAggregateIDAndName(
@@ -46,7 +43,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventSource.GetByAggregateIDAndName(ctx, id, name)
+	return es.eventRepository.GetByAggregateIDAndName(ctx, id, name)
 }
 
 func (es *EventService) GetAfterGlobalVersion(

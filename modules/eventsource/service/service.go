@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"iter"
 
 	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
@@ -10,9 +9,9 @@ import (
 
 type (
 	Service[T AggregateRoot[U], U ~string] struct {
-		eventSource EventSource
-		fromEvent   func(name string, data []byte) (any, error)
-		init        func() T
+		eventRepository EventRepository
+		fromEvent       func(name string, data []byte) (any, error)
+		init            func() T
 	}
 
 	AggregateRoot[U ~string] interface {
@@ -20,23 +19,17 @@ type (
 		// The method to project an Event onto the Aggregate
 		Apply(any)
 	}
-
-	EventSource interface {
-		Get(ctx context.Context, id value.AggregateID) iter.Seq2[entity.Event, error]
-		GetByAggregateIDAndName(ctx context.Context, id value.AggregateID, name value.AggregateName) iter.Seq2[entity.Event, error]
-		Append(ctx context.Context, e ...entity.AppendEvent) error
-	}
 )
 
 func NewService[T AggregateRoot[U], U ~string, E entity.EventData](
-	eventSource EventSource,
+	eventRepository EventRepository,
 	fromEvent func(name string, data []byte) (E, error),
 	init func() T,
 ) *Service[T, U] {
 	return &Service[T, U]{
-		eventSource: eventSource,
-		fromEvent:   func(name string, data []byte) (any, error) { return fromEvent(name, data) },
-		init:        init,
+		eventRepository: eventRepository,
+		fromEvent:       func(name string, data []byte) (any, error) { return fromEvent(name, data) },
+		init:            init,
 	}
 }
 
@@ -65,7 +58,7 @@ func (s *Service[T, U]) Append(
 		data = append(data, event)
 	}
 
-	return s.eventSource.Append(ctx, data...)
+	return s.eventRepository.Append(ctx, data...)
 }
 
 func (s *Service[T, U]) GetByID(
@@ -75,7 +68,7 @@ func (s *Service[T, U]) GetByID(
 	t := s.init()
 	var version value.Version
 
-	for e, err := range s.eventSource.Get(ctx, value.AggregateID(id)) {
+	for e, err := range s.eventRepository.Get(ctx, value.AggregateID(id)) {
 		if err != nil {
 			return t, version, err
 		}
@@ -102,7 +95,7 @@ func (s *Service[T, U]) GetByIDAndName(
 	t := s.init()
 	var version value.Version
 
-	for e, err := range s.eventSource.GetByAggregateIDAndName(ctx, value.AggregateID(id), name) {
+	for e, err := range s.eventRepository.GetByAggregateIDAndName(ctx, value.AggregateID(id), name) {
 		if err != nil {
 			return t, version, err
 		}
