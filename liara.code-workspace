@@ -13,8 +13,11 @@
 			"path": "modules/esgrpc"
 		},
 		{
-			"path": "modules/eventsource_go"
+			"path": "modules/essql"
 		},
+		// {
+		// 	"path": "modules/eventsource_go"
+		// },
 		{
 			"path": "modules/estream"
 		},

@@ -6,12 +6,12 @@ import (
 	"log"
 	"net/http"
 
+	essql "github.com/cardboardrobots/essql"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara"
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 	"github.com/cardboardrobots/listener"
 	"google.golang.org/grpc"
@@ -66,8 +66,8 @@ func initService(db *sql.DB) *grpc.Server {
 	return s
 }
 
-func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventRepository, *infrastructure.OutboxRepository, error) {
-	eventRepository := infrastructure.NewEventRepository(db, "events")
+func createTable(ctx context.Context, db *sql.DB) (*essql.EventRepository, *essql.OutboxRepository, error) {
+	eventRepository := essql.NewEventRepository(db, "events")
 	err := eventRepository.CreateTable(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -78,7 +78,7 @@ func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventReposito
 		return nil, nil, err
 	}
 
-	outboxRepository := infrastructure.NewOutboxRepository(db, "outbox")
+	outboxRepository := essql.NewOutboxRepository(db, "outbox")
 	err = outboxRepository.CreateTable(ctx)
 	if err != nil {
 		return nil, nil, err
