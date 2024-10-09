@@ -1,4 +1,4 @@
-package eventsource
+package service
 
 import "github.com/cardboardrobots/eventsource/value"
 

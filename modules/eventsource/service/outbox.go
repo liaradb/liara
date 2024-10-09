@@ -1,4 +1,4 @@
-package eventsource
+package service
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
@@ -17,7 +18,7 @@ type (
 	}
 
 	EventRepository interface {
-		GetAfterGlobalVersion(context.Context, value.GlobalVersion, value.Limit) iter.Seq2[Event, error]
+		GetAfterGlobalVersion(context.Context, value.GlobalVersion, value.Limit) iter.Seq2[entity.Event, error]
 	}
 
 	OutboxRepository interface {
@@ -26,7 +27,7 @@ type (
 	}
 
 	EventSubscriber interface {
-		Handle(context.Context, Event) error
+		Handle(context.Context, entity.Event) error
 	}
 
 	// TODO: Where is this used?

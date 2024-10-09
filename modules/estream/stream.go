@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/entity"
+	"github.com/cardboardrobots/eventsource/service"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -18,7 +19,7 @@ type (
 	StreamEventSubscriber struct {
 		nc            *nats.Conn
 		js            jetstream.JetStream
-		subscriptions []eventsource.EventSubscriber
+		subscriptions []service.EventSubscriber
 		streamName    string
 		queueName     string
 	}
@@ -65,7 +66,7 @@ func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error,
 	}
 
 	cons, err := c.Consume(func(msg jetstream.Msg) {
-		em := eventsource.Event{}
+		em := entity.Event{}
 		err := json.Unmarshal(msg.Data(), &em)
 		if err != nil {
 			log.Println(err)
@@ -93,7 +94,7 @@ func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error,
 
 func (ses *StreamEventSubscriber) queueInit(ctx context.Context) (func() error, error) {
 	sub, err := ses.nc.QueueSubscribe(ses.streamName, ses.queueName, func(msg *nats.Msg) {
-		em := eventsource.Event{}
+		em := entity.Event{}
 		err := json.Unmarshal(msg.Data, &em)
 		if err != nil {
 			log.Println(err)
@@ -119,7 +120,7 @@ func (ses *StreamEventSubscriber) queueInit(ctx context.Context) (func() error, 
 	return sub.Unsubscribe, nil
 }
 
-func (ses *StreamEventSubscriber) Subscribe(es eventsource.EventSubscriber) func() {
+func (ses *StreamEventSubscriber) Subscribe(es service.EventSubscriber) func() {
 	ses.subscriptions = append(ses.subscriptions, es)
 
 	return func() {

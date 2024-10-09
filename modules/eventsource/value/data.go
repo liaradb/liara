@@ -1,4 +1,4 @@
-package eventsource
+package value
 
 type Data []byte
 

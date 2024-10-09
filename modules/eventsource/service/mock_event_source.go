@@ -1,14 +1,15 @@
-package eventsource
+package service
 
 import (
 	"context"
 	"iter"
 
+	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
 type MockEventSource struct {
-	events   []Event
+	events   []entity.Event
 	versions map[value.AggregateID]value.Version
 }
 
@@ -18,8 +19,8 @@ var _ EventRepository = &MockEventSource{}
 func (mes *MockEventSource) Get(
 	ctx context.Context,
 	id value.AggregateID,
-) iter.Seq2[Event, error] {
-	return func(yield func(Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id {
 				continue
@@ -36,7 +37,7 @@ func (mes *MockEventSource) GetAfterGlobalVersion(
 	ctx context.Context,
 	globalVersion value.GlobalVersion,
 	limit value.Limit,
-) iter.Seq2[Event, error] {
+) iter.Seq2[entity.Event, error] {
 	panic("unimplemented")
 }
 
@@ -44,8 +45,8 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 	ctx context.Context,
 	id value.AggregateID,
 	name value.AggregateName,
-) iter.Seq2[Event, error] {
-	return func(yield func(Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id ||
 				e.AggregateName != name {
@@ -61,10 +62,10 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 
 func (mes *MockEventSource) Append(
 	ctx context.Context,
-	events ...AppendEvent,
+	events ...entity.AppendEvent,
 ) error {
 	if mes.events == nil {
-		mes.events = make([]Event, 0)
+		mes.events = make([]entity.Event, 0)
 	}
 
 	if mes.versions == nil {
@@ -80,7 +81,7 @@ func (mes *MockEventSource) Append(
 		}
 
 		if mes.aggregateVersion(versions, event.AggregateID) != event.Version-1 {
-			return ErrAggregateVersionMismatch
+			return value.ErrAggregateVersionMismatch
 		}
 
 		versions[event.AggregateID] = event.Version
@@ -92,7 +93,7 @@ func (mes *MockEventSource) Append(
 	for id, version := range versions {
 		mes.versions[id] = version
 	}
-	data := make([]Event, 0, len(events))
+	data := make([]entity.Event, 0, len(events))
 	for _, event := range events {
 		globalVersion++
 		data = append(data, event.ToEvent(value.GlobalVersion(globalVersion)))

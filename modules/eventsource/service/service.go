@@ -1,9 +1,10 @@
-package eventsource
+package service
 
 import (
 	"context"
 	"iter"
 
+	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
@@ -21,13 +22,13 @@ type (
 	}
 
 	EventSource interface {
-		Get(ctx context.Context, id value.AggregateID) iter.Seq2[Event, error]
-		GetByAggregateIDAndName(ctx context.Context, id value.AggregateID, name value.AggregateName) iter.Seq2[Event, error]
-		Append(ctx context.Context, e ...AppendEvent) error
+		Get(ctx context.Context, id value.AggregateID) iter.Seq2[entity.Event, error]
+		GetByAggregateIDAndName(ctx context.Context, id value.AggregateID, name value.AggregateName) iter.Seq2[entity.Event, error]
+		Append(ctx context.Context, e ...entity.AppendEvent) error
 	}
 )
 
-func NewService[T AggregateRoot[U], U ~string, E EventData](
+func NewService[T AggregateRoot[U], U ~string, E entity.EventData](
 	eventSource EventSource,
 	fromEvent func(name string, data []byte) (E, error),
 	init func() T,
@@ -45,18 +46,18 @@ func (s *Service[T, U]) Append(
 	userID value.UserID,
 	id U,
 	version value.Version,
-	events ...EventData,
+	events ...entity.EventData,
 ) error {
-	options := EventOptions{
+	options := entity.EventOptions{
 		AggregateID:   value.AggregateID(id),
 		Version:       version,
 		CorrelationID: correlationID,
 		UserID:        userID,
 	}
 
-	data := make([]AppendEvent, 0, len(events))
+	data := make([]entity.AppendEvent, 0, len(events))
 	for _, item := range events {
-		event, err := newEvent(options, item)
+		event, err := entity.NewEvent(options, item)
 		if err != nil {
 			return err
 		}

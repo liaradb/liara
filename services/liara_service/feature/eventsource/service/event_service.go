@@ -4,20 +4,21 @@ import (
 	"context"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/entity"
+	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
 type EventService struct {
-	eventSource      eventsource.EventSource
-	eventRepository  eventsource.EventRepository
-	outboxRepository eventsource.OutboxRepository
+	eventSource      service.EventSource
+	eventRepository  service.EventRepository
+	outboxRepository service.OutboxRepository
 }
 
 func NewEventService(
-	eventSource eventsource.EventSource,
-	eventRepository eventsource.EventRepository,
-	outboxRepository eventsource.OutboxRepository,
+	eventSource service.EventSource,
+	eventRepository service.EventRepository,
+	outboxRepository service.OutboxRepository,
 ) *EventService {
 	return &EventService{
 		eventSource:      eventSource,
@@ -28,7 +29,7 @@ func NewEventService(
 
 func (es *EventService) Append(
 	ctx context.Context,
-	e ...eventsource.AppendEvent,
+	e ...entity.AppendEvent,
 ) error {
 	return es.eventSource.Append(ctx, e...)
 }
@@ -36,7 +37,7 @@ func (es *EventService) Append(
 func (es *EventService) Get(
 	ctx context.Context,
 	id value.AggregateID,
-) iter.Seq2[eventsource.Event, error] {
+) iter.Seq2[entity.Event, error] {
 	return es.eventSource.Get(ctx, id)
 }
 
@@ -44,7 +45,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	ctx context.Context,
 	id value.AggregateID,
 	name value.AggregateName,
-) iter.Seq2[eventsource.Event, error] {
+) iter.Seq2[entity.Event, error] {
 	return es.eventSource.GetByAggregateIDAndName(ctx, id, name)
 }
 
@@ -52,7 +53,7 @@ func (es *EventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	version value.GlobalVersion,
 	limit value.Limit,
-) iter.Seq2[eventsource.Event, error] {
+) iter.Seq2[entity.Event, error] {
 	return es.eventRepository.GetAfterGlobalVersion(ctx, version, limit)
 }
 

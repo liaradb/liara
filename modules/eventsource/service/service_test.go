@@ -1,4 +1,4 @@
-package eventsource
+package service
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
@@ -85,7 +86,7 @@ func (baseExampleEvent) AggregateName() string { return exampleAggregate }
 func (incremented) EventName() string { return incrementedEvent }
 func (incremented) Schema() string    { return "" }
 
-func parseExampleEvent(name string, data []byte) (EventData, error) {
+func parseExampleEvent(name string, data []byte) (entity.EventData, error) {
 	switch name {
 	case incrementedEvent:
 		return fromJsonPointer[incremented](data)

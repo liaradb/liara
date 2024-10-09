@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cardboardrobots/eventsource"
 	"github.com/cardboardrobots/eventsource/value"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,7 +50,7 @@ func Get[T any, I ~string, M any](
 		bson.M{"_id": id}).
 		Decode(&m)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = eventsource.ErrNotFound
+		err = value.ErrNotFound
 	}
 
 	v, e := fromM(&m)
@@ -96,7 +95,7 @@ func GetList[T any, F any, S any, M any](
 		err = result.Decode(&m)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				err = eventsource.ErrNotFound
+				err = value.ErrNotFound
 			}
 			return int(count), err
 		}

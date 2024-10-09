@@ -1,7 +1,7 @@
 package liara
 
 import (
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/entity"
 )
 
-type Event = eventsource.Event
+type Event = entity.Event

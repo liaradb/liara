@@ -1,4 +1,4 @@
-package eventsource
+package entity
 
 import (
 	"encoding/json"
@@ -75,13 +75,13 @@ func (ae AppendEvent) ToEvent(globalVersion value.GlobalVersion) Event {
 
 func (ae *AppendEvent) Valid() error {
 	if ae.Version < 1 {
-		return ErrAggregateVersionInvalid
+		return value.ErrAggregateVersionInvalid
 	}
 
 	return nil
 }
 
-func newEvent(options EventOptions, data EventData) (AppendEvent, error) {
+func NewEvent(options EventOptions, data EventData) (AppendEvent, error) {
 	d, err := json.Marshal(data)
 	if err != nil {
 		return AppendEvent{}, err

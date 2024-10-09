@@ -5,7 +5,8 @@ import (
 	"io"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/entity"
+	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"google.golang.org/grpc"
@@ -16,9 +17,9 @@ type EventSourceGRPC struct {
 	client pb.EventSourceServiceClient
 }
 
-var _ eventsource.EventSource = &EventSourceGRPC{}
-var _ eventsource.EventRepository = &EventSourceGRPC{}
-var _ eventsource.OutboxRepository = &EventSourceGRPC{}
+var _ service.EventSource = &EventSourceGRPC{}
+var _ service.EventRepository = &EventSourceGRPC{}
+var _ service.OutboxRepository = &EventSourceGRPC{}
 
 func NewEventSourceGRPC(
 	conn *grpc.ClientConn,
@@ -32,7 +33,7 @@ func NewEventSourceGRPC(
 
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
-	events ...eventsource.AppendEvent,
+	events ...entity.AppendEvent,
 ) error {
 	data := make([]*pb.AppendEvent, 0, len(events))
 	for _, event := range events {
@@ -48,13 +49,13 @@ func (es *EventSourceGRPC) Append(
 func (es *EventSourceGRPC) Get(
 	ctx context.Context,
 	id value.AggregateID,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		stream, err := es.client.Get(ctx, &pb.GetRequest{
 			AggregateId: id.String(),
 		})
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -65,7 +66,7 @@ func (es *EventSourceGRPC) Get(
 			}
 
 			if err != nil {
-				yield(eventsource.Event{}, err)
+				yield(entity.Event{}, err)
 				return
 			}
 
@@ -80,14 +81,14 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 	ctx context.Context,
 	id value.AggregateID,
 	name value.AggregateName,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
 			AggregateId: id.String(),
 			Name:        name.String(),
 		})
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -98,7 +99,7 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 			}
 
 			if err != nil {
-				yield(eventsource.Event{}, err)
+				yield(entity.Event{}, err)
 				return
 			}
 
@@ -113,14 +114,14 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
 	version value.GlobalVersion,
 	limit value.Limit,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
 			GlobalVersion: int64(version),
 			Limit:         int64(limit),
 		})
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -131,7 +132,7 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 			}
 
 			if err != nil {
-				yield(eventsource.Event{}, err)
+				yield(entity.Event{}, err)
 				return
 			}
 
@@ -168,8 +169,8 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 	return err
 }
 
-func DtoToEvent(dto *pb.Event) eventsource.Event {
-	return eventsource.Event{
+func DtoToEvent(dto *pb.Event) entity.Event {
+	return entity.Event{
 		GlobalVersion: value.GlobalVersion(dto.GlobalVersion),
 		AggregateName: value.AggregateName(dto.AggregateName),
 		ID:            value.EventID(dto.Id),
@@ -184,7 +185,7 @@ func DtoToEvent(dto *pb.Event) eventsource.Event {
 	}
 }
 
-func EventToDto(e eventsource.Event) *pb.Event {
+func EventToDto(e entity.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
 		AggregateName: e.AggregateName.String(),
@@ -200,8 +201,8 @@ func EventToDto(e eventsource.Event) *pb.Event {
 	}
 }
 
-func DtoToAppendEvent(dto *pb.AppendEvent) eventsource.AppendEvent {
-	return eventsource.AppendEvent{
+func DtoToAppendEvent(dto *pb.AppendEvent) entity.AppendEvent {
+	return entity.AppendEvent{
 		AggregateName: value.AggregateName(dto.AggregateName),
 		ID:            value.EventID(dto.Id),
 		AggregateID:   value.AggregateID(dto.AggregateId),
@@ -215,7 +216,7 @@ func DtoToAppendEvent(dto *pb.AppendEvent) eventsource.AppendEvent {
 	}
 }
 
-func AppendEventToDto(e eventsource.AppendEvent) *pb.AppendEvent {
+func AppendEventToDto(e entity.AppendEvent) *pb.AppendEvent {
 	return &pb.AppendEvent{
 		AggregateName: e.AggregateName.String(),
 		Id:            e.ID.String(),

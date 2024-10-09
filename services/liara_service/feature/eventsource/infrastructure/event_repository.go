@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource"
+	"github.com/cardboardrobots/eventsource/entity"
+	"github.com/cardboardrobots/eventsource/service"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
@@ -21,7 +22,7 @@ type (
 	}
 )
 
-var _ eventsource.EventSource = EventRepository{}
+var _ service.EventSource = EventRepository{}
 
 // TODO: Change to pointer
 func NewEventRepository(
@@ -36,7 +37,7 @@ func NewEventRepository(
 
 func (er EventRepository) Append(
 	ctx context.Context,
-	ems ...eventsource.AppendEvent,
+	ems ...entity.AppendEvent,
 ) error {
 	for _, em := range ems {
 		if err := em.Valid(); err != nil {
@@ -56,7 +57,7 @@ func (er EventRepository) Append(
 
 func (er EventRepository) appendEvents(
 	ctx context.Context,
-	ems []eventsource.AppendEvent,
+	ems []entity.AppendEvent,
 ) error {
 	return runTx(ctx, er.db, &sql.TxOptions{Isolation: sql.LevelDefault}, func(tx *sql.Tx) error {
 		for _, em := range ems {
@@ -71,7 +72,7 @@ func (er EventRepository) appendEvents(
 func (er EventRepository) appendEvent(
 	ctx context.Context,
 	qr queryRunner,
-	em eventsource.AppendEvent,
+	em entity.AppendEvent,
 ) error {
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
@@ -95,8 +96,8 @@ func (er EventRepository) GetAfterGlobalVersion(
 	ctx context.Context,
 	globalVersion value.GlobalVersion,
 	limit value.Limit,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		var rows *sql.Rows
 		var err error
 
@@ -119,7 +120,7 @@ ORDER BY global_version
 				globalVersion)
 		}
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -136,8 +137,8 @@ ORDER BY global_version
 func (er EventRepository) Get(
 	ctx context.Context,
 	aggregateID value.AggregateID,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		rows, err := er.db.QueryContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v WHERE
 aggregate_id = $1
@@ -145,7 +146,7 @@ ORDER BY global_version
 `,
 			er.name), aggregateID)
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -163,8 +164,8 @@ func (er EventRepository) GetByAggregateIDAndName(
 	ctx context.Context,
 	aggregateID value.AggregateID,
 	name value.AggregateName,
-) iter.Seq2[eventsource.Event, error] {
-	return func(yield func(eventsource.Event, error) bool) {
+) iter.Seq2[entity.Event, error] {
+	return func(yield func(entity.Event, error) bool) {
 		rows, err := er.db.QueryContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v 
 WHERE aggregate_id = $1
@@ -173,7 +174,7 @@ ORDER BY global_version
 `,
 			er.name), aggregateID, name)
 		if err != nil {
-			yield(eventsource.Event{}, err)
+			yield(entity.Event{}, err)
 			return
 		}
 
@@ -200,8 +201,8 @@ WHERE global_version > $1
 	return err
 }
 
-func (er EventRepository) scanRow(row Row) (eventsource.Event, error) {
-	event := eventsource.Event{}
+func (er EventRepository) scanRow(row Row) (entity.Event, error) {
+	event := entity.Event{}
 	err := row.Scan(
 		&event.GlobalVersion,
 		&event.ID,
