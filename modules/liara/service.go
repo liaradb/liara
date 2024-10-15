@@ -2,7 +2,9 @@ package liara
 
 import (
 	"context"
+	"encoding/json"
 	"iter"
+	"time"
 
 	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
@@ -18,6 +20,22 @@ type (
 	AggregateRoot[U ~string] interface {
 		ID() U
 		Apply(any) // The method to project an Event onto the Aggregate
+	}
+
+	EventData interface {
+		EventName() string
+		AggregateName() string
+		Schema() string
+	}
+
+	EventOptions[U ~string] struct {
+		EventID       value.EventID
+		Time          time.Time
+		AggregateID   U
+		Version       value.Version
+		CorrelationID value.CorrelationID
+		UserID        value.UserID
+		Data          EventData
 	}
 )
 
@@ -91,4 +109,32 @@ func (s *Service[T, U]) apply(
 	}
 
 	return t, version, nil
+}
+
+func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
+	d, err := json.Marshal(eo.Data)
+	if err != nil {
+		return AppendEvent{}, err
+	}
+
+	if eo.EventID == "" {
+		eo.EventID = value.NewEventID()
+	}
+
+	if eo.Time.IsZero() {
+		eo.Time = time.Now()
+	}
+
+	return AppendEvent{
+		AggregateName: value.AggregateName(eo.Data.AggregateName()),
+		Name:          value.EventName(eo.Data.EventName()),
+		ID:            eo.EventID,
+		AggregateID:   value.AggregateID(eo.AggregateID),
+		Version:       eo.Version,
+		CorrelationID: eo.CorrelationID,
+		UserID:        eo.UserID,
+		Time:          eo.Time,
+		Schema:        value.Schema(eo.Data.Schema()),
+		Data:          d,
+	}, nil
 }
