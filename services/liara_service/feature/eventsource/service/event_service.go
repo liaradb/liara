@@ -26,7 +26,7 @@ func NewEventService(
 
 func (es *EventService) Append(
 	ctx context.Context,
-	e ...entity.AppendEvent,
+	e ...liara.AppendEvent,
 ) error {
 	return es.eventRepository.Append(ctx, e...)
 }

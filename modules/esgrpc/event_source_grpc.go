@@ -31,7 +31,7 @@ func NewEventSourceGRPC(
 
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
-	events ...entity.AppendEvent,
+	events ...liara.AppendEvent,
 ) error {
 	data := make([]*pb.AppendEvent, 0, len(events))
 	for _, event := range events {

@@ -8,8 +8,8 @@ import (
 
 	"database/sql"
 
-	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
+	"github.com/cardboardrobots/liara"
 	_ "modernc.org/sqlite"
 )
 
@@ -47,14 +47,20 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := value.AggregateID("aggregateID")
 
-		want := entity.AppendEvent{
+		want := liara.Event{
+			GlobalVersion: 1,
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
 			Version:       1,
 		}
 
-		err = er.Append(ctx, want)
+		err = er.Append(ctx, liara.AppendEvent{
+			AggregateName: "example",
+			ID:            "eventID",
+			AggregateID:   aggregateID,
+			Version:       1,
+		})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +93,7 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := value.AggregateID("aggregateID")
 
-		want := entity.AppendEvent{
+		want := liara.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
@@ -110,7 +116,7 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := value.AggregateID("aggregateID")
 
-		want := entity.AppendEvent{
+		want := liara.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,

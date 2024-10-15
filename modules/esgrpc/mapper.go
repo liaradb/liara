@@ -4,6 +4,7 @@ import (
 	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
+	"github.com/cardboardrobots/liara"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -39,8 +40,8 @@ func EventToDto(e entity.Event) *pb.Event {
 	}
 }
 
-func DtoToAppendEvent(dto *pb.AppendEvent) entity.AppendEvent {
-	return entity.AppendEvent{
+func DtoToAppendEvent(dto *pb.AppendEvent) liara.AppendEvent {
+	return liara.AppendEvent{
 		AggregateName: value.AggregateName(dto.AggregateName),
 		ID:            value.EventID(dto.Id),
 		AggregateID:   value.AggregateID(dto.AggregateId),
@@ -54,7 +55,7 @@ func DtoToAppendEvent(dto *pb.AppendEvent) entity.AppendEvent {
 	}
 }
 
-func AppendEventToDto(e entity.AppendEvent) *pb.AppendEvent {
+func AppendEventToDto(e liara.AppendEvent) *pb.AppendEvent {
 	return &pb.AppendEvent{
 		AggregateName: e.AggregateName.String(),
 		Id:            e.ID.String(),

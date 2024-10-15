@@ -21,7 +21,7 @@ type (
 	}
 )
 
-func NewService[T AggregateRoot[U], U ~string, E entity.EventData](
+func NewService[T AggregateRoot[U], U ~string, E EventData](
 	eventRepository EventRepository,
 	fromEvent func(name string, data []byte) (E, error),
 	init func() T,
@@ -35,22 +35,11 @@ func NewService[T AggregateRoot[U], U ~string, E entity.EventData](
 
 func (s *Service[T, U]) Append(
 	ctx context.Context,
-	correlationID value.CorrelationID,
-	userID value.UserID,
-	id U,
-	version value.Version,
-	events ...entity.EventData,
+	events ...EventOptions[U],
 ) error {
-	options := entity.EventOptions{
-		AggregateID:   value.AggregateID(id),
-		Version:       version,
-		CorrelationID: correlationID,
-		UserID:        userID,
-	}
-
-	data := make([]entity.AppendEvent, 0, len(events))
-	for _, item := range events {
-		event, err := entity.NewEvent(options, item)
+	data := make([]AppendEvent, 0, len(events))
+	for _, e := range events {
+		event, err := e.toAppendEvent()
 		if err != nil {
 			return err
 		}

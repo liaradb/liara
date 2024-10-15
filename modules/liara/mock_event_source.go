@@ -61,7 +61,7 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 
 func (mes *MockEventSource) Append(
 	ctx context.Context,
-	events ...entity.AppendEvent,
+	events ...AppendEvent,
 ) error {
 	if mes.events == nil {
 		mes.events = make([]entity.Event, 0)
@@ -95,7 +95,7 @@ func (mes *MockEventSource) Append(
 	data := make([]entity.Event, 0, len(events))
 	for _, event := range events {
 		globalVersion++
-		data = append(data, event.ToEvent(value.GlobalVersion(globalVersion)))
+		data = append(data, mes.toEvent(value.GlobalVersion(globalVersion), event))
 	}
 	mes.events = append(mes.events, data...)
 
@@ -109,4 +109,22 @@ func (mes *MockEventSource) aggregateVersion(versions map[value.AggregateID]valu
 		return a
 	}
 	return b
+}
+
+func (mes *MockEventSource) toEvent(globalVersion value.GlobalVersion, ae AppendEvent) Event {
+	return Event{
+		GlobalVersion: globalVersion,
+		AggregateName: ae.AggregateName,
+		ID:            ae.ID,
+		AggregateID:   ae.AggregateID,
+		Version:       ae.Version,
+		Name:          ae.Name,
+		CorrelationID: ae.CorrelationID,
+		IdempotenceID: ae.IdempotenceID,
+		PartitionID:   ae.PartitionID,
+		UserID:        ae.UserID,
+		Time:          ae.Time,
+		Schema:        ae.Schema,
+		Data:          ae.Data,
+	}
 }

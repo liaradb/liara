@@ -6,7 +6,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
 )
 
@@ -19,7 +18,11 @@ func TestService_Append(t *testing.T) {
 	id := exampleID("exampleID")
 	version := value.Version(1)
 
-	err := se.Append(ctx, "", "", id, version, incremented{})
+	err := se.Append(ctx, EventOptions[exampleID]{
+		AggregateID: id,
+		Version:     version,
+		Data:        incremented{},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +89,7 @@ func (baseExampleEvent) AggregateName() string { return exampleAggregate }
 func (incremented) EventName() string { return incrementedEvent }
 func (incremented) Schema() string    { return "" }
 
-func parseExampleEvent(name string, data []byte) (entity.EventData, error) {
+func parseExampleEvent(name string, data []byte) (EventData, error) {
 	switch name {
 	case incrementedEvent:
 		return fromJsonPointer[incremented](data)
