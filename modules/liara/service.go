@@ -2,6 +2,7 @@ package liara
 
 import (
 	"context"
+	"iter"
 
 	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/eventsource/value"
@@ -16,8 +17,7 @@ type (
 
 	AggregateRoot[U ~string] interface {
 		ID() U
-		// The method to project an Event onto the Aggregate
-		Apply(any)
+		Apply(any) // The method to project an Event onto the Aggregate
 	}
 )
 
@@ -65,26 +65,8 @@ func (s *Service[T, U]) GetByID(
 	ctx context.Context,
 	id U,
 ) (T, value.Version, error) {
-	t := s.init()
-	var version value.Version
-
-	for e, err := range s.eventRepository.Get(ctx, value.AggregateID(id)) {
-		if err != nil {
-			return t, version, err
-		}
-
-		data, err := s.fromEvent(e.Name.String(), e.Data)
-		if err != nil {
-			return t, version, err
-		}
-
-		if version < e.Version {
-			version = e.Version
-		}
-		t.Apply(data)
-	}
-
-	return t, version, nil
+	return s.apply(s.eventRepository.Get(ctx,
+		value.AggregateID(id)))
 }
 
 func (s *Service[T, U]) GetByIDAndName(
@@ -92,10 +74,18 @@ func (s *Service[T, U]) GetByIDAndName(
 	id U,
 	name value.AggregateName,
 ) (T, value.Version, error) {
+	return s.apply(s.eventRepository.GetByAggregateIDAndName(ctx,
+		value.AggregateID(id),
+		name))
+}
+
+func (s *Service[T, U]) apply(
+	events iter.Seq2[entity.Event, error],
+) (T, value.Version, error) {
 	t := s.init()
 	var version value.Version
 
-	for e, err := range s.eventRepository.GetByAggregateIDAndName(ctx, value.AggregateID(id), name) {
+	for e, err := range events {
 		if err != nil {
 			return t, version, err
 		}
@@ -113,14 +103,3 @@ func (s *Service[T, U]) GetByIDAndName(
 
 	return t, version, nil
 }
-
-// func (s *Service[T, U]) aggregateCallback(callback func(Event, any) error) func(em Event) error {
-// 	return func(em Event) error {
-// 		data, err := s.fromEvent(em.Name.String(), em.Data)
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		return callback(em, data)
-// 	}
-// }
