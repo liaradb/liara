@@ -3,23 +3,20 @@ package liara
 import (
 	"context"
 	"iter"
-
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
 )
 
 type MockEventSource struct {
-	events   []entity.Event
-	versions map[value.AggregateID]value.Version
+	events   []Event
+	versions map[AggregateID]Version
 }
 
 var _ EventRepository = &MockEventSource{}
 
 func (mes *MockEventSource) Get(
 	ctx context.Context,
-	id value.AggregateID,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+	id AggregateID,
+) iter.Seq2[Event, error] {
+	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id {
 				continue
@@ -34,18 +31,18 @@ func (mes *MockEventSource) Get(
 
 func (mes *MockEventSource) GetAfterGlobalVersion(
 	ctx context.Context,
-	globalVersion value.GlobalVersion,
-	limit value.Limit,
-) iter.Seq2[entity.Event, error] {
+	globalVersion GlobalVersion,
+	limit Limit,
+) iter.Seq2[Event, error] {
 	panic("unimplemented")
 }
 
 func (mes *MockEventSource) GetByAggregateIDAndName(
 	ctx context.Context,
-	id value.AggregateID,
-	name value.AggregateName,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+	id AggregateID,
+	name AggregateName,
+) iter.Seq2[Event, error] {
+	return func(yield func(Event, error) bool) {
 		for _, e := range mes.events {
 			if e.AggregateID != id ||
 				e.AggregateName != name {
@@ -64,15 +61,15 @@ func (mes *MockEventSource) Append(
 	events ...AppendEvent,
 ) error {
 	if mes.events == nil {
-		mes.events = make([]entity.Event, 0)
+		mes.events = make([]Event, 0)
 	}
 
 	if mes.versions == nil {
-		mes.versions = make(map[value.AggregateID]value.Version)
+		mes.versions = make(map[AggregateID]Version)
 	}
 
 	// Snapshot versions
-	versions := make(map[value.AggregateID]value.Version)
+	versions := make(map[AggregateID]Version)
 
 	for _, event := range events {
 		if err := event.Valid(); err != nil {
@@ -80,7 +77,7 @@ func (mes *MockEventSource) Append(
 		}
 
 		if mes.aggregateVersion(versions, event.AggregateID) != event.Version-1 {
-			return value.ErrAggregateVersionMismatch
+			return ErrAggregateVersionMismatch
 		}
 
 		versions[event.AggregateID] = event.Version
@@ -92,17 +89,17 @@ func (mes *MockEventSource) Append(
 	for id, version := range versions {
 		mes.versions[id] = version
 	}
-	data := make([]entity.Event, 0, len(events))
+	data := make([]Event, 0, len(events))
 	for _, event := range events {
 		globalVersion++
-		data = append(data, mes.toEvent(value.GlobalVersion(globalVersion), event))
+		data = append(data, mes.toEvent(GlobalVersion(globalVersion), event))
 	}
 	mes.events = append(mes.events, data...)
 
 	return nil
 }
 
-func (mes *MockEventSource) aggregateVersion(versions map[value.AggregateID]value.Version, id value.AggregateID) (version value.Version) {
+func (mes *MockEventSource) aggregateVersion(versions map[AggregateID]Version, id AggregateID) (version Version) {
 	a := mes.versions[id]
 	b := versions[id]
 	if a > b {
@@ -111,7 +108,7 @@ func (mes *MockEventSource) aggregateVersion(versions map[value.AggregateID]valu
 	return b
 }
 
-func (mes *MockEventSource) toEvent(globalVersion value.GlobalVersion, ae AppendEvent) Event {
+func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, ae AppendEvent) Event {
 	return Event{
 		GlobalVersion: globalVersion,
 		AggregateName: ae.AggregateName,

@@ -5,8 +5,6 @@ import (
 	"io"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara"
 	"google.golang.org/grpc"
@@ -46,14 +44,14 @@ func (es *EventSourceGRPC) Append(
 
 func (es *EventSourceGRPC) Get(
 	ctx context.Context,
-	id value.AggregateID,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+	id liara.AggregateID,
+) iter.Seq2[liara.Event, error] {
+	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.Get(ctx, &pb.GetRequest{
 			AggregateId: id.String(),
 		})
 		if err != nil {
-			yield(entity.Event{}, err)
+			yield(liara.Event{}, err)
 			return
 		}
 
@@ -64,7 +62,7 @@ func (es *EventSourceGRPC) Get(
 			}
 
 			if err != nil {
-				yield(entity.Event{}, err)
+				yield(liara.Event{}, err)
 				return
 			}
 
@@ -77,16 +75,16 @@ func (es *EventSourceGRPC) Get(
 
 func (es *EventSourceGRPC) GetByAggregateIDAndName(
 	ctx context.Context,
-	id value.AggregateID,
-	name value.AggregateName,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+	id liara.AggregateID,
+	name liara.AggregateName,
+) iter.Seq2[liara.Event, error] {
+	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
 			AggregateId: id.String(),
 			Name:        name.String(),
 		})
 		if err != nil {
-			yield(entity.Event{}, err)
+			yield(liara.Event{}, err)
 			return
 		}
 
@@ -97,7 +95,7 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 			}
 
 			if err != nil {
-				yield(entity.Event{}, err)
+				yield(liara.Event{}, err)
 				return
 			}
 
@@ -110,16 +108,16 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 
 func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
-	version value.GlobalVersion,
-	limit value.Limit,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+	version liara.GlobalVersion,
+	limit liara.Limit,
+) iter.Seq2[liara.Event, error] {
+	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
 			GlobalVersion: int64(version),
 			Limit:         int64(limit),
 		})
 		if err != nil {
-			yield(entity.Event{}, err)
+			yield(liara.Event{}, err)
 			return
 		}
 
@@ -130,7 +128,7 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 			}
 
 			if err != nil {
-				yield(entity.Event{}, err)
+				yield(liara.Event{}, err)
 				return
 			}
 
@@ -143,8 +141,8 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 
 func (es *EventSourceGRPC) GetOrCreateOutbox(
 	ctx context.Context,
-	outboxID value.OutboxID,
-) (value.GlobalVersion, error) {
+	outboxID liara.OutboxID,
+) (liara.GlobalVersion, error) {
 	response, err := es.client.GetOrCreateOutbox(ctx, &pb.GetOrCreateOutboxRequest{
 		OutboxId: outboxID.String(),
 	})
@@ -152,13 +150,13 @@ func (es *EventSourceGRPC) GetOrCreateOutbox(
 		return 0, err
 	}
 
-	return value.GlobalVersion(response.GlobalVersion), nil
+	return liara.GlobalVersion(response.GlobalVersion), nil
 }
 
 func (es *EventSourceGRPC) UpdateOutboxPosition(
 	ctx context.Context,
-	outboxID value.OutboxID,
-	globalVersion value.GlobalVersion,
+	outboxID liara.OutboxID,
+	globalVersion liara.GlobalVersion,
 ) error {
 	_, err := es.client.UpdateOutboxPosition(ctx, &pb.UpdateOutboxPositionRequest{
 		OutboxId:      outboxID.String(),

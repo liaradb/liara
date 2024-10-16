@@ -1,16 +1,10 @@
 {
 	"folders": [
 		{
-			"path": "modules/eventsource"
-		},
-		{
 			"path": "modules/liara"
 		},
 		{
 			"path": "services/liara_service"
-		},
-		{
-			"path": "modules/esgrpc"
 		},
 		// {
 		// 	"path": "modules/eventsource_go"
@@ -20,6 +14,9 @@
 		},
 		{
 			"path": "modules/esmongo"
+		},
+		{
+			"path": "modules/eventsource"
 		},
 		{
 			"path": "modules/protos"

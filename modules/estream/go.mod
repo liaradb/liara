@@ -7,7 +7,6 @@ replace github.com/cardboardrobots/eventsource => ../eventsource
 replace github.com/cardboardrobots/liara => ../liara
 
 require (
-	github.com/cardboardrobots/eventsource v0.0.0
 	github.com/cardboardrobots/liara v0.0.0
 	github.com/nats-io/nats.go v1.37.0
 )

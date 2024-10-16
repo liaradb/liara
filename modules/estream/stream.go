@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/cardboardrobots/eventsource/entity"
 	"github.com/cardboardrobots/liara"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
@@ -66,7 +65,7 @@ func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error,
 	}
 
 	cons, err := c.Consume(func(msg jetstream.Msg) {
-		em := entity.Event{}
+		em := liara.Event{}
 		err := json.Unmarshal(msg.Data(), &em)
 		if err != nil {
 			log.Println(err)
@@ -94,7 +93,7 @@ func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error,
 
 func (ses *StreamEventSubscriber) queueInit(ctx context.Context) (func() error, error) {
 	sub, err := ses.nc.QueueSubscribe(ses.streamName, ses.queueName, func(msg *nats.Msg) {
-		em := entity.Event{}
+		em := liara.Event{}
 		err := json.Unmarshal(msg.Data, &em)
 		if err != nil {
 			log.Println(err)

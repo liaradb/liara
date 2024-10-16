@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"iter"
 	"time"
-
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -29,12 +26,12 @@ type (
 	}
 
 	EventOptions[U ~string] struct {
-		EventID       value.EventID
+		EventID       EventID
 		Time          time.Time
 		AggregateID   U
-		Version       value.Version
-		CorrelationID value.CorrelationID
-		UserID        value.UserID
+		Version       Version
+		CorrelationID CorrelationID
+		UserID        UserID
 		Data          EventData
 	}
 )
@@ -71,26 +68,26 @@ func (s *Service[T, U]) Append(
 func (s *Service[T, U]) GetByID(
 	ctx context.Context,
 	id U,
-) (T, value.Version, error) {
+) (T, Version, error) {
 	return s.apply(s.eventRepository.Get(ctx,
-		value.AggregateID(id)))
+		AggregateID(id)))
 }
 
 func (s *Service[T, U]) GetByIDAndName(
 	ctx context.Context,
 	id U,
-	name value.AggregateName,
-) (T, value.Version, error) {
+	name AggregateName,
+) (T, Version, error) {
 	return s.apply(s.eventRepository.GetByAggregateIDAndName(ctx,
-		value.AggregateID(id),
+		AggregateID(id),
 		name))
 }
 
 func (s *Service[T, U]) apply(
-	events iter.Seq2[entity.Event, error],
-) (T, value.Version, error) {
+	events iter.Seq2[Event, error],
+) (T, Version, error) {
 	t := s.init()
-	var version value.Version
+	var version Version
 
 	for e, err := range events {
 		if err != nil {
@@ -118,7 +115,7 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 	}
 
 	if eo.EventID == "" {
-		eo.EventID = value.NewEventID()
+		eo.EventID = NewEventID()
 	}
 
 	if eo.Time.IsZero() {
@@ -126,15 +123,15 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 	}
 
 	return AppendEvent{
-		AggregateName: value.AggregateName(eo.Data.AggregateName()),
-		Name:          value.EventName(eo.Data.EventName()),
+		AggregateName: AggregateName(eo.Data.AggregateName()),
+		Name:          EventName(eo.Data.EventName()),
 		ID:            eo.EventID,
-		AggregateID:   value.AggregateID(eo.AggregateID),
+		AggregateID:   AggregateID(eo.AggregateID),
 		Version:       eo.Version,
 		CorrelationID: eo.CorrelationID,
 		UserID:        eo.UserID,
 		Time:          eo.Time,
-		Schema:        value.Schema(eo.Data.Schema()),
+		Schema:        Schema(eo.Data.Schema()),
 		Data:          d,
 	}, nil
 }

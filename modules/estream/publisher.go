@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/cardboardrobots/eventsource/entity"
+	"github.com/cardboardrobots/liara"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -31,7 +31,7 @@ func NewStreamEventPublisher(
 
 const useStream = false
 
-func (ses *StreamEventPublisher) Handle(ctx context.Context, event entity.Event) error {
+func (ses *StreamEventPublisher) Handle(ctx context.Context, event liara.Event) error {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err

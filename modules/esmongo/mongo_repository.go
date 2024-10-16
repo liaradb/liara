@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cardboardrobots/eventsource/value"
+	"github.com/cardboardrobots/liara"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -27,8 +27,8 @@ func Database(c *mongo.Client, dbName string) *mongo.Database {
 func Insert[T any, I ~string, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	toM func(value.Version, I, *T) *M,
-	v value.Version,
+	toM func(liara.Version, I, *T) *M,
+	v liara.Version,
 	id I,
 	t *T,
 ) error {
@@ -42,15 +42,15 @@ func Insert[T any, I ~string, M any](
 func Get[T any, I ~string, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (value.Version, *T),
+	fromM func(*M) (liara.Version, *T),
 	id I,
-) (value.Version, *T, error) {
+) (liara.Version, *T, error) {
 	var m M
 	err := c.FindOne(ctx,
 		bson.M{"_id": id}).
 		Decode(&m)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = value.ErrNotFound
+		err = liara.ErrNotFound
 	}
 
 	v, e := fromM(&m)
@@ -69,7 +69,7 @@ func Delete[I ~string](
 func GetList[T any, F any, S any, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (value.Version, *T),
+	fromM func(*M) (liara.Version, *T),
 	f F,
 	s S,
 	p Page,
@@ -95,7 +95,7 @@ func GetList[T any, F any, S any, M any](
 		err = result.Decode(&m)
 		if err != nil {
 			if errors.Is(err, mongo.ErrNoDocuments) {
-				err = value.ErrNotFound
+				err = liara.ErrNotFound
 			}
 			return int(count), err
 		}
@@ -113,7 +113,7 @@ func GetList[T any, F any, S any, M any](
 func GetListSlice[T any, F any, S any, M any](
 	ctx context.Context,
 	c *mongo.Collection,
-	fromM func(*M) (value.Version, *T),
+	fromM func(*M) (liara.Version, *T),
 	f F,
 	s S,
 	p Page,

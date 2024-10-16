@@ -1,19 +1,11 @@
 package liara
 
 import (
-	"context"
-	"iter"
 	"time"
 )
 
-type EventRepository interface {
-	Get(context.Context, AggregateID) iter.Seq2[Event, error]
-	GetAfterGlobalVersion(context.Context, GlobalVersion, Limit) iter.Seq2[Event, error]
-	GetByAggregateIDAndName(context.Context, AggregateID, AggregateName) iter.Seq2[Event, error]
-	Append(context.Context, ...AppendEvent) error
-}
-
-type AppendEvent struct {
+type Event struct {
+	GlobalVersion GlobalVersion // The global version of the Event
 	AggregateName AggregateName // The name of the Aggregate
 	ID            EventID       // The unique ID of the Event
 	AggregateID   AggregateID   // The ID of the Aggregate to which this Event applies
@@ -26,12 +18,4 @@ type AppendEvent struct {
 	Time          time.Time     // The Time this Event was created
 	Schema        Schema        // The schema for the internal data
 	Data          []byte        // The internal data of the Event
-}
-
-func (ae *AppendEvent) Valid() error {
-	if ae.Version < 1 {
-		return ErrAggregateVersionInvalid
-	}
-
-	return nil
 }

@@ -1,18 +1,18 @@
 package eventsource
 
-import "github.com/cardboardrobots/eventsource/value"
+import "github.com/cardboardrobots/liara"
 
 type VersionManifest struct {
-	versions map[value.AggregateID]value.Version
+	versions map[liara.AggregateID]liara.Version
 }
 
-func (vm *VersionManifest) AddVersion(id value.AggregateID, version value.Version) bool {
+func (vm *VersionManifest) AddVersion(id liara.AggregateID, version liara.Version) bool {
 	if version <= vm.versions[id] {
 		return true
 	}
 
 	if vm.versions == nil {
-		vm.versions = make(map[value.AggregateID]value.Version)
+		vm.versions = make(map[liara.AggregateID]liara.Version)
 	}
 
 	vm.versions[id] = version
@@ -20,6 +20,6 @@ func (vm *VersionManifest) AddVersion(id value.AggregateID, version value.Versio
 	return false
 }
 
-func (vm *VersionManifest) GetVersion(id value.AggregateID) value.Version {
+func (vm *VersionManifest) GetVersion(id liara.AggregateID) liara.Version {
 	return vm.versions[id]
 }

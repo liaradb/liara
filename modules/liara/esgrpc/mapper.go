@@ -1,30 +1,28 @@
 package esgrpc
 
 import (
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func DtoToEvent(dto *pb.Event) entity.Event {
-	return entity.Event{
-		GlobalVersion: value.GlobalVersion(dto.GlobalVersion),
-		AggregateName: value.AggregateName(dto.AggregateName),
-		ID:            value.EventID(dto.Id),
-		AggregateID:   value.AggregateID(dto.AggregateId),
-		Version:       value.Version(dto.Version),
-		Name:          value.EventName(dto.Name),
-		CorrelationID: value.CorrelationID(dto.CorrelationId),
-		UserID:        value.UserID(dto.UserId),
+func DtoToEvent(dto *pb.Event) liara.Event {
+	return liara.Event{
+		GlobalVersion: liara.GlobalVersion(dto.GlobalVersion),
+		AggregateName: liara.AggregateName(dto.AggregateName),
+		ID:            liara.EventID(dto.Id),
+		AggregateID:   liara.AggregateID(dto.AggregateId),
+		Version:       liara.Version(dto.Version),
+		Name:          liara.EventName(dto.Name),
+		CorrelationID: liara.CorrelationID(dto.CorrelationId),
+		UserID:        liara.UserID(dto.UserId),
 		Time:          dto.Time.AsTime(),
-		Schema:        value.Schema(dto.Schema),
+		Schema:        liara.Schema(dto.Schema),
 		Data:          dto.Data,
 	}
 }
 
-func EventToDto(e entity.Event) *pb.Event {
+func EventToDto(e liara.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
 		AggregateName: e.AggregateName.String(),
@@ -42,15 +40,15 @@ func EventToDto(e entity.Event) *pb.Event {
 
 func DtoToAppendEvent(dto *pb.AppendEvent) liara.AppendEvent {
 	return liara.AppendEvent{
-		AggregateName: value.AggregateName(dto.AggregateName),
-		ID:            value.EventID(dto.Id),
-		AggregateID:   value.AggregateID(dto.AggregateId),
-		Version:       value.Version(dto.Version),
-		Name:          value.EventName(dto.Name),
-		CorrelationID: value.CorrelationID(dto.CorrelationId),
-		UserID:        value.UserID(dto.UserId),
+		AggregateName: liara.AggregateName(dto.AggregateName),
+		ID:            liara.EventID(dto.Id),
+		AggregateID:   liara.AggregateID(dto.AggregateId),
+		Version:       liara.Version(dto.Version),
+		Name:          liara.EventName(dto.Name),
+		CorrelationID: liara.CorrelationID(dto.CorrelationId),
+		UserID:        liara.UserID(dto.UserId),
 		Time:          dto.Time.AsTime(),
-		Schema:        value.Schema(dto.Schema),
+		Schema:        liara.Schema(dto.Schema),
 		Data:          dto.Data,
 	}
 }

@@ -2,10 +2,10 @@ module github.com/cardboardrobots/esmongo
 
 go 1.23.1
 
-replace github.com/cardboardrobots/eventsource => ../eventsource
+replace github.com/cardboardrobots/liara => ../liara
 
 require (
-	github.com/cardboardrobots/eventsource v0.0.0
+	github.com/cardboardrobots/liara v0.0.0
 	go.mongodb.org/mongo-driver v1.17.1
 )
 

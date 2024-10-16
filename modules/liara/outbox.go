@@ -4,9 +4,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
 )
 
 type (
@@ -17,7 +14,7 @@ type (
 	}
 
 	EventSubscriber interface {
-		Handle(context.Context, entity.Event) error
+		Handle(context.Context, Event) error
 	}
 
 	// TODO: Where is this used?
@@ -38,7 +35,7 @@ func NewOutbox(
 	}
 }
 
-func (o *Outbox) Run(ctx context.Context, outboxID value.OutboxID, duration time.Duration, limit value.Limit) {
+func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, limit Limit) {
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
@@ -47,7 +44,7 @@ func (o *Outbox) Run(ctx context.Context, outboxID value.OutboxID, duration time
 	}()
 }
 
-func (o *Outbox) read(ctx context.Context, outboxID value.OutboxID, limit value.Limit) error {
+func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error {
 	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
 	if err != nil {
 		return err
