@@ -10,8 +10,8 @@ import (
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/service"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 	"github.com/cardboardrobots/listener"
 	"google.golang.org/grpc"
 

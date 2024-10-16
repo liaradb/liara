@@ -4,8 +4,8 @@ import (
 	"context"
 
 	pb "github.com/cardboardrobots/eventsource_go/generated"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/service"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 )
 
 type EventSourceController struct {
