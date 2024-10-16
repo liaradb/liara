@@ -6,8 +6,6 @@ replace github.com/cardboardrobots/eventsource => ../../modules/eventsource
 
 replace github.com/cardboardrobots/esgrpc => ../../modules/esgrpc
 
-replace github.com/cardboardrobots/essql => ../../modules/essql
-
 replace github.com/cardboardrobots/eventsource_go => ../../modules/eventsource_go
 
 replace github.com/cardboardrobots/liara => ../../modules/liara
@@ -16,7 +14,6 @@ require (
 	github.com/cardboardrobots/baseerror v0.0.2
 	github.com/cardboardrobots/config v0.0.0
 	github.com/cardboardrobots/esgrpc v0.0.0
-	github.com/cardboardrobots/essql v0.0.0
 	github.com/cardboardrobots/eventsource v0.0.0
 	github.com/cardboardrobots/eventsource_go v0.0.0
 	github.com/cardboardrobots/liara v0.0.0

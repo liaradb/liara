@@ -12,9 +12,6 @@
 		{
 			"path": "modules/esgrpc"
 		},
-		{
-			"path": "modules/essql"
-		},
 		// {
 		// 	"path": "modules/eventsource_go"
 		// },

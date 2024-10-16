@@ -1,4 +1,4 @@
-package essql
+package infrastructure
 
 type (
 	Rows interface {

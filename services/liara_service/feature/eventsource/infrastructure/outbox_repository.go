@@ -1,4 +1,4 @@
-package essql
+package infrastructure
 
 import (
 	"context"
