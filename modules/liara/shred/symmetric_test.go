@@ -1,4 +1,4 @@
-package eventsource
+package shred
 
 import (
 	"testing"

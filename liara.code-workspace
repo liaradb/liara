@@ -16,9 +16,6 @@
 			"path": "modules/esmongo"
 		},
 		{
-			"path": "modules/eventsource"
-		},
-		{
 			"path": "modules/protos"
 		},
 		{
