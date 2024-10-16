@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
-	"github.com/cardboardrobots/liara"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 )
 
 type (
@@ -22,7 +22,7 @@ type (
 	}
 )
 
-var _ liara.EventRepository = EventRepository{}
+var _ service.EventRepository = EventRepository{}
 
 // TODO: Change to pointer
 func NewEventRepository(
@@ -37,7 +37,7 @@ func NewEventRepository(
 
 func (er EventRepository) Append(
 	ctx context.Context,
-	ems ...liara.AppendEvent,
+	ems ...service.AppendEvent,
 ) error {
 	for _, em := range ems {
 		if err := em.Valid(); err != nil {
@@ -57,7 +57,7 @@ func (er EventRepository) Append(
 
 func (er EventRepository) appendEvents(
 	ctx context.Context,
-	ems []liara.AppendEvent,
+	ems []service.AppendEvent,
 ) error {
 	return runTx(ctx, er.db, &sql.TxOptions{Isolation: sql.LevelDefault}, func(tx *sql.Tx) error {
 		for _, em := range ems {
@@ -72,7 +72,7 @@ func (er EventRepository) appendEvents(
 func (er EventRepository) appendEvent(
 	ctx context.Context,
 	qr queryRunner,
-	em liara.AppendEvent,
+	em service.AppendEvent,
 ) error {
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )

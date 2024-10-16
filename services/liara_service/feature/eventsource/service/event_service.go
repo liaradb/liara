@@ -4,19 +4,18 @@ import (
 	"context"
 	"iter"
 
-	"github.com/cardboardrobots/eventsource/entity"
-	"github.com/cardboardrobots/eventsource/value"
-	"github.com/cardboardrobots/liara"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
 
 type EventService struct {
-	eventRepository  liara.EventRepository
-	outboxRepository liara.OutboxRepository
+	eventRepository  EventRepository
+	outboxRepository OutboxRepository
 }
 
 func NewEventService(
-	eventRepository liara.EventRepository,
-	outboxRepository liara.OutboxRepository,
+	eventRepository EventRepository,
+	outboxRepository OutboxRepository,
 ) *EventService {
 	return &EventService{
 		eventRepository:  eventRepository,
@@ -26,7 +25,7 @@ func NewEventService(
 
 func (es *EventService) Append(
 	ctx context.Context,
-	e ...liara.AppendEvent,
+	e ...AppendEvent,
 ) error {
 	return es.eventRepository.Append(ctx, e...)
 }

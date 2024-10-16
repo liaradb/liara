@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cardboardrobots/eventsource/value"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
 
 type (

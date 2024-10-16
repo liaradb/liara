@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	pb "github.com/cardboardrobots/eventsource_go/generated"
-	"github.com/cardboardrobots/liara"
 	"github.com/cardboardrobots/liara_service/config"
 	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
@@ -37,8 +36,6 @@ func main() {
 	listener.Listen(context.Background(), conf.Port, conf.Port+1,
 		http.NewServeMux(),
 		initService(db))
-
-	_ = liara.MockEventSource{}
 }
 
 func initService(db *sql.DB) *grpc.Server {

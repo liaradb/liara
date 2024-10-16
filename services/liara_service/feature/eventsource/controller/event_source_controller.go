@@ -3,9 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/cardboardrobots/esgrpc"
-	"github.com/cardboardrobots/eventsource/value"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/service"
 )
 
@@ -27,7 +26,7 @@ func (esc *EventSourceController) Append(
 	request *pb.AppendRequest,
 ) (*pb.AppendResponse, error) {
 	err := esc.eventService.Append(ctx,
-		mapSlice(request.Events, esgrpc.DtoToAppendEvent)...)
+		mapSlice(request.Events, dtoToAppendEvent)...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +44,7 @@ func (esc *EventSourceController) Get(
 			return err
 		}
 
-		stream.Send(esgrpc.EventToDto(row))
+		stream.Send(eventToDto(row))
 	}
 	return nil
 }
@@ -61,7 +60,7 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 			return err
 		}
 
-		stream.Send(esgrpc.EventToDto(row))
+		stream.Send(eventToDto(row))
 	}
 	return nil
 }
@@ -77,7 +76,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 			return err
 		}
 
-		stream.Send(esgrpc.EventToDto(row))
+		stream.Send(eventToDto(row))
 	}
 	return nil
 }
