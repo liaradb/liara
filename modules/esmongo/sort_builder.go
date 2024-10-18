@@ -11,47 +11,53 @@ type SortBuilder struct {
 	skip  int
 }
 
-func (sb *SortBuilder) SetLimit(limit int) {
+func (sb *SortBuilder) SetLimit(limit int) *SortBuilder {
 	sb.limit = limit
+	return sb
 }
 
-func (sb *SortBuilder) SetSkip(skip int) {
+func (sb *SortBuilder) SetSkip(skip int) *SortBuilder {
 	sb.skip = skip
+	return sb
 }
 
-func (sb *SortBuilder) Asc(key string) {
+func (sb *SortBuilder) Asc(key string) *SortBuilder {
 	sb.data = append(sb.data, primitive.E{
 		Key:   key,
 		Value: 1,
 	})
+	return sb
 }
 
-func (sb *SortBuilder) Desc(key string) {
+func (sb *SortBuilder) Desc(key string) *SortBuilder {
 	sb.data = append(sb.data, primitive.E{
 		Key:   key,
 		Value: -1,
 	})
+	return sb
 }
 
-func (sb *SortBuilder) IfAsc(key string, test bool) {
+func (sb *SortBuilder) IfAsc(key string, test bool) *SortBuilder {
 	if test {
 		sb.data = append(sb.data, primitive.E{
 			Key:   key,
 			Value: 1,
 		})
 	}
+	return sb
 }
 
-func (sb *SortBuilder) IfDesc(key string, test bool) {
+func (sb *SortBuilder) IfDesc(key string, test bool) *SortBuilder {
 	if test {
 		sb.data = append(sb.data, primitive.E{
 			Key:   key,
 			Value: -1,
 		})
 	}
+	return sb
 }
 
-func (sb *SortBuilder) IfAscElseDesc(key string, test bool) {
+func (sb *SortBuilder) IfAscElseDesc(key string, test bool) *SortBuilder {
 	if test {
 		sb.data = append(sb.data, primitive.E{
 			Key:   key,
@@ -63,6 +69,7 @@ func (sb *SortBuilder) IfAscElseDesc(key string, test bool) {
 			Value: -1,
 		})
 	}
+	return sb
 }
 
 func (sb *SortBuilder) Build() *options.FindOptions {
