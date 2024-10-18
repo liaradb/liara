@@ -24,58 +24,78 @@ func Database(c *mongo.Client, dbName string) *mongo.Database {
 	return c.Database(dbName)
 }
 
-func Insert[T any, I ~string, M any](
+type decoder interface {
+	Decode(any) error
+}
+
+func decode[M any](decoder decoder) (M, error) {
+	var m M
+	return m, decoder.Decode(&m)
+}
+
+type Mapper[T any, I ~string, M any] interface {
+	FromM(*M) (liara.Version, *T)
+	ToM(liara.Version, I, *T) *M
+}
+
+type MongoRepository[T any, I ~string, M any] struct {
+	collection *mongo.Collection
+	mapper     Mapper[T, I, M]
+}
+
+func NewMongoRepository[T any, I ~string, M any](
+	collection *mongo.Collection,
+	mapper Mapper[T, I, M],
+) *MongoRepository[T, I, M] {
+	return &MongoRepository[T, I, M]{
+		collection: collection,
+		mapper:     mapper,
+	}
+}
+
+func (mr *MongoRepository[T, I, M]) Insert(
 	ctx context.Context,
-	c *mongo.Collection,
-	toM func(liara.Version, I, *T) *M,
 	v liara.Version,
 	id I,
 	t *T,
 ) error {
-	_, err := c.ReplaceOne(ctx,
+	_, err := mr.collection.ReplaceOne(ctx,
 		bson.M{"_id": id},
-		toM(v, id, t),
+		mr.mapper.ToM(v, id, t),
 		options.Replace().SetUpsert(true))
 	return err
 }
 
-func Get[T any, I ~string, M any](
+func (mr *MongoRepository[T, I, M]) Get(
 	ctx context.Context,
-	c *mongo.Collection,
-	fromM func(*M) (liara.Version, *T),
 	id I,
 ) (liara.Version, *T, error) {
-	var m M
-	err := c.FindOne(ctx,
-		bson.M{"_id": id}).
-		Decode(&m)
+	m, err := decode[M](mr.collection.FindOne(ctx, bson.M{
+		"_id": id}))
 	if errors.Is(err, mongo.ErrNoDocuments) {
 		err = liara.ErrNotFound
 	}
 
-	v, e := fromM(&m)
+	v, e := mr.mapper.FromM(&m)
 	return v, e, err
 }
 
-func Delete[I ~string](
+func (mr *MongoRepository[T, I, M]) Delete(
 	ctx context.Context,
-	c *mongo.Collection,
 	id I,
 ) error {
-	_, err := c.DeleteOne(ctx, bson.M{"_id": id})
+	_, err := mr.collection.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
 
-func GetList[T any, F any, S any, M any](
+func (mr *MongoRepository[T, I, M]) GetList(
 	ctx context.Context,
-	c *mongo.Collection,
-	fromM func(*M) (liara.Version, *T),
-	f F,
-	s S,
+	f any,
+	s any,
 	p Page,
 ) iter.Seq2[*T, error] {
 	return func(yield func(*T, error) bool) {
-		result, err := c.Find(ctx, f, options.Find().
+		result, err := mr.collection.Find(ctx, f, options.Find().
 			SetSort(s).
 			SetSkip(int64(p.Offset)).
 			SetLimit(int64(p.Limit)))
@@ -87,8 +107,7 @@ func GetList[T any, F any, S any, M any](
 		defer result.Close(ctx)
 
 		for result.Next(ctx) {
-			var m M
-			err = result.Decode(&m)
+			m, err := decode[M](result)
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
 					err = liara.ErrNotFound
@@ -97,12 +116,38 @@ func GetList[T any, F any, S any, M any](
 				return
 			}
 
-			_, e := fromM(&m)
+			_, e := mr.mapper.FromM(&m)
 			if yield(e, nil) {
 				return
 			}
 		}
 	}
+}
+
+func (mr *MongoRepository[T, I, M]) Watch(
+	ctx context.Context,
+	pipeline any,
+	token string,
+) (iter.Seq2[bson.Raw, string], error) {
+	o := options.ChangeStream()
+	if token != "" {
+		o.SetResumeAfter(bson.Raw(token))
+	}
+
+	cs, err := mr.collection.Watch(ctx, pipeline, o)
+	if err != nil {
+		return nil, err
+	}
+
+	return func(yield func(bson.Raw, string) bool) {
+		defer cs.Close(ctx)
+
+		for cs.Next(ctx) {
+			if !yield(cs.Current, cs.ResumeToken().String()) {
+				return
+			}
+		}
+	}, nil
 }
 
 func RunTransaction[T any](
@@ -122,31 +167,4 @@ func RunTransaction[T any](
 	})
 	t, _ := value.(T)
 	return t, err
-}
-
-func Watch[P []bson.D](
-	ctx context.Context,
-	coll *mongo.Collection,
-	pipeline P,
-	token string,
-) (iter.Seq2[bson.Raw, string], error) {
-	o := options.ChangeStream()
-	if token != "" {
-		o.SetResumeAfter(bson.Raw(token))
-	}
-
-	cs, err := coll.Watch(ctx, pipeline, o)
-	if err != nil {
-		return nil, err
-	}
-
-	return func(yield func(bson.Raw, string) bool) {
-		defer cs.Close(ctx)
-
-		for cs.Next(ctx) {
-			if !yield(cs.Current, cs.ResumeToken().String()) {
-				return
-			}
-		}
-	}, nil
 }
