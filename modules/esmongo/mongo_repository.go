@@ -3,7 +3,7 @@ package esmongo
 import (
 	"context"
 	"errors"
-	"fmt"
+	"iter"
 
 	"github.com/cardboardrobots/liara"
 	"go.mongodb.org/mongo-driver/bson"
@@ -73,80 +73,43 @@ func GetList[T any, F any, S any, M any](
 	f F,
 	s S,
 	p Page,
-	callback func(*T) error,
-) (int, error) {
-	count, err := c.CountDocuments(ctx, f)
-	if err != nil {
-		return 0, err
-	}
-
-	result, err := c.Find(ctx, f, options.Find().
-		SetSort(s).
-		SetSkip(int64(p.Offset)).
-		SetLimit(int64(p.Limit)))
-	if err != nil {
-		return int(count), err
-	}
-
-	defer result.Close(ctx)
-
-	for result.Next(ctx) {
-		var m M
-		err = result.Decode(&m)
+) iter.Seq2[*T, error] {
+	return func(yield func(*T, error) bool) {
+		result, err := c.Find(ctx, f, options.Find().
+			SetSort(s).
+			SetSkip(int64(p.Offset)).
+			SetLimit(int64(p.Limit)))
 		if err != nil {
-			if errors.Is(err, mongo.ErrNoDocuments) {
-				err = liara.ErrNotFound
+			yield(nil, err)
+			return
+		}
+
+		defer result.Close(ctx)
+
+		for result.Next(ctx) {
+			var m M
+			err = result.Decode(&m)
+			if err != nil {
+				if errors.Is(err, mongo.ErrNoDocuments) {
+					err = liara.ErrNotFound
+				}
+				yield(nil, err)
+				return
 			}
-			return int(count), err
-		}
 
-		_, e := fromM(&m)
-		err = callback(e)
-		if err != nil {
-			return int(count), err
+			_, e := fromM(&m)
+			if yield(e, nil) {
+				return
+			}
 		}
 	}
-
-	return int(count), nil
 }
 
-func GetListSlice[T any, F any, S any, M any](
+func RunTransaction[T any](
 	ctx context.Context,
-	c *mongo.Collection,
-	fromM func(*M) (liara.Version, *T),
-	f F,
-	s S,
-	p Page,
-) ([]*T, int, error) {
-	count, err := c.CountDocuments(ctx, f)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	m := []M{}
-	result, err := c.Find(ctx, f, options.Find().
-		SetSort(s).
-		SetSkip(int64(p.Offset)).
-		SetLimit(int64(p.Limit)))
-	if err != nil {
-		return nil, 0, err
-	}
-
-	err = result.All(ctx, &m)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	t := make([]*T, 0, len(m))
-	for _, m := range m {
-		_, e := fromM(&m)
-		t = append(t, e)
-	}
-
-	return t, int(count), nil
-}
-
-func RunTransaction[T any](ctx context.Context, c *mongo.Client, p func(ctx context.Context) (T, error)) (T, error) {
+	c *mongo.Client,
+	p func(ctx context.Context) (T, error),
+) (T, error) {
 	s, err := c.StartSession()
 	if err != nil {
 		var t T
@@ -161,27 +124,29 @@ func RunTransaction[T any](ctx context.Context, c *mongo.Client, p func(ctx cont
 	return t, err
 }
 
-func Watch(ctx context.Context, coll *mongo.Collection, token string) (string, error) {
+func Watch[P []bson.D](
+	ctx context.Context,
+	coll *mongo.Collection,
+	pipeline P,
+	token string,
+) (iter.Seq2[bson.Raw, string], error) {
 	o := options.ChangeStream()
 	if token != "" {
-		resumeToken := bson.Raw(token)
-		o.SetResumeAfter(resumeToken)
+		o.SetResumeAfter(bson.Raw(token))
 	}
 
-	cs, err := coll.Watch(ctx, mongo.Pipeline{}, o)
+	cs, err := coll.Watch(ctx, pipeline, o)
 	if err != nil {
-		return token, err
+		return nil, err
 	}
 
-	defer cs.Close(ctx)
+	return func(yield func(bson.Raw, string) bool) {
+		defer cs.Close(ctx)
 
-	for cs.Next(ctx) {
-		next := cs.Current
-		fmt.Println(next)
-
-		token = cs.ResumeToken().String()
-		fmt.Println(token)
-	}
-
-	return token, err
+		for cs.Next(ctx) {
+			if !yield(cs.Current, cs.ResumeToken().String()) {
+				return
+			}
+		}
+	}, nil
 }
