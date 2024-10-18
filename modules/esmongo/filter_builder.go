@@ -6,6 +6,10 @@ import (
 
 type FilterBuilder map[string]any
 
+func Filter() FilterBuilder {
+	return FilterBuilder{}
+}
+
 func (fb FilterBuilder) If(condition bool, a func(fb FilterBuilder)) FilterBuilder {
 	if condition {
 		a(fb)

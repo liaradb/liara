@@ -74,7 +74,7 @@ func (mr *MongoRepository[T, I, M]) Delete(
 func (mr *MongoRepository[T, I, M]) GetList(
 	ctx context.Context,
 	filter FilterBuilder,
-	sort SortBuilder,
+	sort *SortBuilder,
 ) iter.Seq2[*T, error] {
 	return func(yield func(*T, error) bool) {
 		f := filter.Build()

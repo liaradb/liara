@@ -11,6 +11,10 @@ type SortBuilder struct {
 	skip  int
 }
 
+func Sort() *SortBuilder {
+	return &SortBuilder{}
+}
+
 func (sb *SortBuilder) SetLimit(limit int) *SortBuilder {
 	sb.limit = limit
 	return sb
@@ -73,6 +77,10 @@ func (sb *SortBuilder) IfAscElseDesc(key string, test bool) *SortBuilder {
 }
 
 func (sb *SortBuilder) Build() *options.FindOptions {
+	if sb == nil {
+		return options.Find()
+	}
+
 	o := options.Find()
 	if sb.data != nil {
 		o = o.SetSort(sb.data)
