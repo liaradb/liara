@@ -10,7 +10,6 @@ import (
 )
 
 type DataAccess struct {
-	client   *mongo.Client
 	database *mongo.Database
 }
 
@@ -20,7 +19,6 @@ func DbConnect(
 	databaseName string,
 	m *event.CommandMonitor,
 ) (*DataAccess, error) {
-	dataAccess := new(DataAccess)
 	o := options.Client().ApplyURI(uri)
 	if m != nil {
 		o = o.SetMonitor(m)
@@ -34,15 +32,14 @@ func DbConnect(
 		return nil, err
 	}
 
-	dataAccess.client = client
-	dataAccess.database = client.Database(databaseName)
-	return dataAccess, nil
+	return &DataAccess{
+		database: client.Database(databaseName),
+	}, nil
 }
 
 func (da *DataAccess) Database(databaseName string) DataAccess {
 	return DataAccess{
-		client:   da.client,
-		database: da.client.Database(databaseName),
+		database: da.database.Client().Database(databaseName),
 	}
 }
 
@@ -51,6 +48,6 @@ func (da *DataAccess) Collection(collectionName string) *mongo.Collection {
 }
 
 func (da *DataAccess) Close(ctx context.Context) error {
-	err := da.client.Disconnect(ctx)
+	err := da.database.Client().Disconnect(ctx)
 	return err
 }

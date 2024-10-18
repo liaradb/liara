@@ -1,9 +1,22 @@
 package esmongo
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
 type SortBuilder struct {
-	data []primitive.E
+	data  []primitive.E
+	limit int
+	skip  int
+}
+
+func (sb *SortBuilder) SetLimit(limit int) {
+	sb.limit = limit
+}
+
+func (sb *SortBuilder) SetSkip(skip int) {
+	sb.skip = skip
 }
 
 func (sb *SortBuilder) Asc(key string) {
@@ -52,6 +65,16 @@ func (sb *SortBuilder) IfAscElseDesc(key string, test bool) {
 	}
 }
 
-func (sb *SortBuilder) Build() primitive.D {
-	return primitive.D(sb.data)
+func (sb *SortBuilder) Build() *options.FindOptions {
+	o := options.Find()
+	if sb.data != nil {
+		o = o.SetSort(sb.data)
+	}
+	if sb.limit != 0 {
+		o = o.SetLimit(int64(sb.limit))
+	}
+	if sb.skip != 0 {
+		o = o.SetSkip(int64(sb.skip))
+	}
+	return o
 }

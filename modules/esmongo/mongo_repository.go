@@ -16,23 +16,6 @@ type Page struct {
 	Limit  int
 }
 
-func Connect(ctx context.Context, uri string) (*mongo.Client, error) {
-	return mongo.Connect(ctx, options.Client().ApplyURI(uri))
-}
-
-func Database(c *mongo.Client, dbName string) *mongo.Database {
-	return c.Database(dbName)
-}
-
-type decoder interface {
-	Decode(any) error
-}
-
-func decode[M any](decoder decoder) (M, error) {
-	var m M
-	return m, decoder.Decode(&m)
-}
-
 type Mapper[T any, I ~string, M any] interface {
 	FromM(*M) (liara.Version, *T)
 	ToM(liara.Version, I, *T) *M
@@ -90,15 +73,13 @@ func (mr *MongoRepository[T, I, M]) Delete(
 
 func (mr *MongoRepository[T, I, M]) GetList(
 	ctx context.Context,
-	f any,
-	s any,
-	p Page,
+	filter FilterBuilder,
+	sort SortBuilder,
 ) iter.Seq2[*T, error] {
 	return func(yield func(*T, error) bool) {
-		result, err := mr.collection.Find(ctx, f, options.Find().
-			SetSort(s).
-			SetSkip(int64(p.Offset)).
-			SetLimit(int64(p.Limit)))
+		f := filter.Build()
+		o := sort.Build()
+		result, err := mr.collection.Find(ctx, f, o)
 		if err != nil {
 			yield(nil, err)
 			return
