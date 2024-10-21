@@ -4,14 +4,10 @@ go 1.23.1
 
 replace github.com/cardboardrobots/liara => ../liara
 
-require (
-	github.com/cardboardrobots/liara v0.0.0
-	go.mongodb.org/mongo-driver v1.17.1
-)
+require go.mongodb.org/mongo-driver v1.17.1
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

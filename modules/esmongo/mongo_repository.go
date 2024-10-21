@@ -5,30 +5,32 @@ import (
 	"errors"
 	"iter"
 
-	"github.com/cardboardrobots/liara"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+var ErrNotFound = errors.New("not found")
+var ErrNotFoundAtVersion = errors.New("not found at version")
 
 type Page struct {
 	Offset int
 	Limit  int
 }
 
-type Mapper[T any, I ~string, M any] interface {
-	FromM(*M) (liara.Version, *T)
-	ToM(liara.Version, I, *T) *M
+type Mapper[T any, M any] interface {
+	FromModel(*M) *T
+	ToModel(*T) *M
 }
 
 type MongoRepository[T any, I ~string, M any] struct {
 	collection *mongo.Collection
-	mapper     Mapper[T, I, M]
+	mapper     Mapper[T, M]
 }
 
 func NewMongoRepository[T any, I ~string, M any](
 	collection *mongo.Collection,
-	mapper Mapper[T, I, M],
+	mapper Mapper[T, M],
 ) *MongoRepository[T, I, M] {
 	return &MongoRepository[T, I, M]{
 		collection: collection,
@@ -38,29 +40,51 @@ func NewMongoRepository[T any, I ~string, M any](
 
 func (mr *MongoRepository[T, I, M]) Insert(
 	ctx context.Context,
-	v liara.Version,
 	id I,
 	t *T,
 ) error {
 	_, err := mr.collection.ReplaceOne(ctx,
 		bson.M{"_id": id},
-		mr.mapper.ToM(v, id, t),
+		mr.mapper.ToModel(t),
 		options.Replace().SetUpsert(true))
 	return err
+}
+
+func (mr *MongoRepository[T, I, M]) Replace(
+	ctx context.Context,
+	id I,
+	v int,
+	t *T,
+) error {
+	result, err := mr.collection.ReplaceOne(ctx,
+		bson.M{
+			"_id":     id,
+			"version": v},
+		mr.mapper.ToModel(t),
+		options.Replace())
+	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return ErrNotFoundAtVersion
+	}
+
+	return nil
 }
 
 func (mr *MongoRepository[T, I, M]) Get(
 	ctx context.Context,
 	id I,
-) (liara.Version, *T, error) {
+) (*T, error) {
 	m, err := decode[M](mr.collection.FindOne(ctx, bson.M{
 		"_id": id}))
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		err = liara.ErrNotFound
+		err = ErrNotFound
 	}
 
-	v, e := mr.mapper.FromM(&m)
-	return v, e, err
+	e := mr.mapper.FromModel(&m)
+	return e, err
 }
 
 func (mr *MongoRepository[T, I, M]) Delete(
@@ -91,13 +115,13 @@ func (mr *MongoRepository[T, I, M]) GetList(
 			m, err := decode[M](result)
 			if err != nil {
 				if errors.Is(err, mongo.ErrNoDocuments) {
-					err = liara.ErrNotFound
+					err = ErrNotFound
 				}
 				yield(nil, err)
 				return
 			}
 
-			_, e := mr.mapper.FromM(&m)
+			e := mr.mapper.FromModel(&m)
 			if yield(e, nil) {
 				return
 			}
