@@ -7,13 +7,12 @@ type (
 	}
 
 	id interface {
-		~string
 		String() string
 	}
 
 	version interface {
-		~int
 		Value() int
+		Increment()
 	}
 )
 
@@ -31,5 +30,5 @@ func NewEntity[I id, V version](
 }
 
 func (e *Entity[I, V]) Increment() {
-	e.version++
+	e.version.Increment()
 }

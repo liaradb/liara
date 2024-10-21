@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	CommandRepository[I id, T Entity[I, Version]] interface {
+	CommandRepository[I id, T Entity[I, version]] interface {
 		GetByID(context.Context, I) (*T, error)
 		Insert(context.Context, *T) error
 		Replace(context.Context, *T) error
