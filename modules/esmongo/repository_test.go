@@ -7,8 +7,8 @@ import (
 
 func TestRepository(t *testing.T) {
 	t.Skip()
-	r := NewRepository[Book, BookID, BookModel](nil, bookMapper{})
-	r.Insert(context.Background(), "1", &Book{})
+	r := NewRepository(nil, bookMapper{})
+	r.Insert(context.Background(), &Book{})
 }
 
 type BookID string
@@ -17,9 +17,12 @@ func (b BookID) String() string { return string(b) }
 
 type Book struct {
 	id      BookID
-	version int
+	version Version
 	title   string
 }
+
+func (b Book) ID() BookID       { return b.id }
+func (b Book) Version() Version { return b.version }
 
 type BookModel struct {
 	Title string `bson:"title"`
@@ -35,7 +38,7 @@ func (bookMapper) ToModel(b *Book) *Model[BookModel] {
 	return &Model[BookModel]{
 		ModelData: ModelData{
 			ID:      b.id.String(),
-			Version: b.version,
+			Version: b.version.Value(),
 		},
 		Value: BookModel{
 			Title: b.title,

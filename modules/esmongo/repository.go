@@ -12,51 +12,46 @@ type Page struct {
 	Limit  int
 }
 
-type Mapper[T any, M any] interface {
-	FromModel(*M) *T
-	ToModel(*T) *M
-}
-
-type Repository[T any, I ~string, M any] struct {
+type Repository[I EntityID, E Entity[I], M any] struct {
 	collection *Collection[Model[M]]
-	mapper     Mapper[T, Model[M]]
+	mapper     Mapper[I, E, Model[M]]
 }
 
-func NewRepository[T any, I ~string, M any](
+func NewRepository[I EntityID, E Entity[I], M any](
 	collection *mongo.Collection,
-	mapper Mapper[T, Model[M]],
-) *Repository[T, I, M] {
-	return &Repository[T, I, M]{
+	mapper Mapper[I, E, Model[M]],
+) *Repository[I, E, M] {
+	return &Repository[I, E, M]{
 		collection: NewCollection[Model[M]](collection),
 		mapper:     mapper,
 	}
 }
 
-func (r *Repository[T, I, M]) Insert(ctx context.Context, id I, t *T) error {
+func (r *Repository[I, E, M]) Insert(ctx context.Context, t *E) error {
 	return r.collection.Insert(ctx,
-		string(id),
+		(*t).ID().String(),
 		r.mapper.ToModel(t))
 }
 
-func (r *Repository[T, I, M]) Replace(ctx context.Context, id I, v int, t *T) error {
+func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, t *E) error {
 	return r.collection.Replace(ctx,
 		Filter().
-			Property("_id", id).
+			Property("_id", id.String()).
 			Property("version", v),
 		r.mapper.ToModel(t))
 }
 
-func (r *Repository[T, I, M]) Get(ctx context.Context, id I) (*T, error) {
-	m, err := r.collection.Get(ctx, string(id))
+func (r *Repository[I, E, M]) Get(ctx context.Context, id I) (*E, error) {
+	m, err := r.collection.Get(ctx, id.String())
 	return r.mapper.FromModel(m), err
 }
 
-func (r *Repository[T, I, M]) Delete(ctx context.Context, id I) error {
-	return r.collection.Delete(ctx, string(id))
+func (r *Repository[I, E, M]) Delete(ctx context.Context, id I) error {
+	return r.collection.Delete(ctx, id.String())
 }
 
-func (r *Repository[T, I, M]) GetList(ctx context.Context, filter FilterBuilder, sort *SortBuilder) iter.Seq2[*T, error] {
-	return func(yield func(*T, error) bool) {
+func (r *Repository[I, E, M]) GetList(ctx context.Context, filter FilterBuilder, sort *SortBuilder) iter.Seq2[*E, error] {
+	return func(yield func(*E, error) bool) {
 		for row, err := range r.collection.GetList(ctx, filter, sort) {
 			if !yield(r.mapper.FromModel(row), err) {
 				return
