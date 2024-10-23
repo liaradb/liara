@@ -11,7 +11,8 @@ type SortBuilder struct {
 	skip  int
 }
 
-func Sort() *SortBuilder {
+// TODO: Rename this
+func NewSort() *SortBuilder {
 	return &SortBuilder{}
 }
 
