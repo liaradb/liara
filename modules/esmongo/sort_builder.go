@@ -5,6 +5,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Sort int
+
+const (
+	SortAsc  Sort = 1
+	SortNone Sort = 0
+	SortDesc Sort = -1
+)
+
 type SortBuilder struct {
 	data  []primitive.E
 	limit int

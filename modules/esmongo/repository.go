@@ -7,29 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Query interface {
-	Filter() map[string]any
-	Sort() map[string]Sort
-	Projection() map[string]Projection
-	Offset() int
-	Limit() int
-}
-
-type Sort int
-
-const (
-	SortAsc  Sort = 1
-	SortNone Sort = 0
-	SortDesc Sort = -1
-)
-
-type Projection int
-
-const (
-	ProjectionInclude = 1
-	ProjectionExclude = 0
-)
-
 type Repository[I EntityID, E Entity[I], M any] struct {
 	collection *Collection[Model[M]]
 	mapper     Mapper[I, E, Model[M]]
