@@ -94,24 +94,36 @@ func (c *Collection[M]) GetList(ctx context.Context, filter FilterBuilder, sort 
 	}
 }
 
-func (c *Collection[M]) Watch(ctx context.Context, pipeline any, token string) (iter.Seq2[bson.Raw, string], error) {
-	o := options.ChangeStream()
-	if token != "" {
-		o.SetResumeAfter(bson.Raw(token))
-	}
+type Change[T any] struct {
+	Value T
+	Token string
+}
 
-	cs, err := c.collection.Watch(ctx, pipeline, o)
-	if err != nil {
-		return nil, err
-	}
+func (c *Collection[M]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[M], error] {
+	return func(yield func(Change[M], error) bool) {
+		o := options.ChangeStream()
+		if token != "" {
+			o.SetResumeAfter(bson.Raw(token))
+		}
 
-	return func(yield func(bson.Raw, string) bool) {
+		cs, err := c.collection.Watch(ctx, pipeline, o)
+		if err != nil {
+			yield(Change[M]{Token: token}, err)
+			return
+		}
+
 		defer cs.Close(ctx)
 
 		for cs.Next(ctx) {
-			if !yield(cs.Current, cs.ResumeToken().String()) {
+			m, err := decode[M](cs)
+			if err != nil {
+				yield(Change[M]{Token: cs.ResumeToken().String()}, nil)
+				return
+			}
+
+			if !yield(Change[M]{Value: m, Token: cs.ResumeToken().String()}, nil) {
 				return
 			}
 		}
-	}, nil
+	}
 }

@@ -23,6 +23,7 @@ type Book struct {
 
 func (b Book) ID() BookID       { return b.id }
 func (b Book) Version() Version { return b.version }
+func (b Book) Events() []Event  { return nil }
 
 type BookModel struct {
 	Title string `bson:"title"`

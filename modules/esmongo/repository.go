@@ -55,6 +55,24 @@ func (r *Repository[I, E, M]) GetList(ctx context.Context, filter FilterBuilder,
 	}
 }
 
+func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[[]Event], error] {
+	return func(yield func(Change[[]Event], error) bool) {
+		rows := r.collection.Watch(ctx, pipeline, token)
+
+		for row, err := range rows {
+			if err != nil {
+				yield(Change[[]Event]{Token: row.Token}, err)
+				return
+			}
+
+			e := *r.mapper.FromModel(&row.Value)
+			if !yield(Change[[]Event]{Value: e.Events(), Token: row.Token}, nil) {
+				return
+			}
+		}
+	}
+}
+
 func RunTransaction[T any](
 	ctx context.Context,
 	c *mongo.Client,
