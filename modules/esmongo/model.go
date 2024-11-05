@@ -2,18 +2,18 @@ package esmongo
 
 import "encoding/json"
 
-type Model[T any] struct {
-	Metadata `bson:"inline"`
-	Value    T `bson:"inline"`
+type model[T any] struct {
+	Record `bson:"inline"`
+	Value  T `bson:"inline"`
 }
 
-type Metadata struct {
-	ID      string        `bson:"_id"`
-	Version int           `bson:"version"`
-	Events  []*ModelEvent `bson:"events"`
+type Record struct {
+	ID      string         `bson:"_id"`
+	Version int            `bson:"version"`
+	Events  []*RecordEvent `bson:"events"`
 }
 
-type ModelEvent struct {
+type RecordEvent struct {
 	ID       string `bson:"id"`
 	Type     string `bson:"type"`
 	EntityID string `bson:"entityId"`
@@ -21,10 +21,10 @@ type ModelEvent struct {
 	Data     []byte `bson:"data"`
 }
 
-func newModel[I EntityID, E Entity[I], M any](entity E, m M) *Model[M] {
+func newModel[I EntityID, E Entity[I], M any](entity E, m M) *model[M] {
 	events, _ := newModelEvents(entity.Events())
-	return &Model[M]{
-		Metadata: Metadata{
+	return &model[M]{
+		Record: Record{
 			ID:      entity.ID().String(),
 			Version: entity.Version().Value(),
 			Events:  events,
@@ -33,13 +33,13 @@ func newModel[I EntityID, E Entity[I], M any](entity E, m M) *Model[M] {
 	}
 }
 
-func newModelEvent(e Event) (*ModelEvent, error) {
+func newModelEvent(e Event) (*RecordEvent, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ModelEvent{
+	return &RecordEvent{
 		ID:       e.ID().String(),
 		Type:     e.Type().String(),
 		EntityID: e.EntityID().String(),
@@ -48,8 +48,8 @@ func newModelEvent(e Event) (*ModelEvent, error) {
 	}, nil
 }
 
-func newModelEvents(events []Event) ([]*ModelEvent, error) {
-	result := make([]*ModelEvent, 0, len(events))
+func newModelEvents(events []Event) ([]*RecordEvent, error) {
+	result := make([]*RecordEvent, 0, len(events))
 
 	for _, e := range events {
 		m, err := newModelEvent(e)

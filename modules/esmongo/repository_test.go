@@ -35,10 +35,10 @@ type BookModel struct {
 
 type bookMapper struct{}
 
-func (b bookMapper) FromModel(d Metadata, m BookModel) Book {
+func (b bookMapper) FromModel(r Record, m BookModel) Book {
 	return Book{
-		id:      BookID(d.ID),
-		version: BookVersion(d.Version),
+		id:      BookID(r.ID),
+		version: BookVersion(r.Version),
 		title:   m.Title,
 	}
 }
