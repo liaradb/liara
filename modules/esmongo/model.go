@@ -61,3 +61,8 @@ func newModelEvents(events []Event) ([]*RecordEvent, error) {
 
 	return result, nil
 }
+
+func ParseEvent[T any](re RecordEvent) (T, error) {
+	var t T
+	return t, json.Unmarshal(re.Data, t)
+}
