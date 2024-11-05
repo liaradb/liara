@@ -8,7 +8,7 @@ import (
 func TestRepository(t *testing.T) {
 	t.Skip()
 	r := NewRepository(nil, bookMapper{})
-	r.Insert(context.Background(), &Book{})
+	r.Insert(context.Background(), Book{})
 }
 
 type BookID string
@@ -31,18 +31,12 @@ type BookModel struct {
 
 type bookMapper struct{}
 
-func (b bookMapper) FromModel(m *Model[BookModel]) *Book {
-	return &Book{}
+func (b bookMapper) FromModel(m Model[BookModel]) Book {
+	return Book{}
 }
 
-func (bookMapper) ToModel(b *Book) *Model[BookModel] {
-	return &Model[BookModel]{
-		ModelData: ModelData{
-			ID:      b.id.String(),
-			Version: b.version.Value(),
-		},
-		Value: BookModel{
-			Title: b.title,
-		},
+func (bookMapper) ToModel(b Book) BookModel {
+	return BookModel{
+		Title: b.title,
 	}
 }

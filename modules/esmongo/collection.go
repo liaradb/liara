@@ -94,8 +94,8 @@ func (c *Collection[M]) GetList(ctx context.Context, filter FilterBuilder, sort 
 	}
 }
 
-type Change[T any] struct {
-	Value T
+type Change[M any] struct {
+	Value M
 	Token string
 }
 
