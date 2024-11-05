@@ -15,6 +15,10 @@ type BookID string
 
 func (b BookID) String() string { return string(b) }
 
+type BookVersion int
+
+func (bv BookVersion) Value() int { return int(bv) }
+
 type Book struct {
 	id      BookID
 	version Version
@@ -31,8 +35,12 @@ type BookModel struct {
 
 type bookMapper struct{}
 
-func (b bookMapper) FromModel(m Model[BookModel]) Book {
-	return Book{}
+func (b bookMapper) FromModel(d Metadata, m BookModel) Book {
+	return Book{
+		id:      BookID(d.ID),
+		version: BookVersion(d.Version),
+		title:   m.Title,
+	}
 }
 
 func (bookMapper) ToModel(b Book) BookModel {

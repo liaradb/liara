@@ -3,10 +3,14 @@ package esmongo
 import "encoding/json"
 
 type Model[T any] struct {
+	Metadata `bson:"inline"`
+	Value    T `bson:"inline"`
+}
+
+type Metadata struct {
 	ID      string        `bson:"_id"`
 	Version int           `bson:"version"`
 	Events  []*ModelEvent `bson:"events"`
-	Value   T             `bson:"inline"`
 }
 
 type ModelEvent struct {
@@ -20,10 +24,12 @@ type ModelEvent struct {
 func newModel[I EntityID, E Entity[I], M any](entity E, m M) *Model[M] {
 	events, _ := newModelEvents(entity.Events())
 	return &Model[M]{
-		ID:      entity.ID().String(),
-		Version: entity.Version().Value(),
-		Events:  events,
-		Value:   m,
+		Metadata: Metadata{
+			ID:      entity.ID().String(),
+			Version: entity.Version().Value(),
+			Events:  events,
+		},
+		Value: m,
 	}
 }
 
