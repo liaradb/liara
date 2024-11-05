@@ -15,6 +15,7 @@ type Repository[I EntityID, E Entity[I], M any] struct {
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(Record, M) E
 	ToModel(E) M
+	ToEvent(RecordEvent) (Event, bool)
 }
 
 func NewRepository[I EntityID, E Entity[I], M any](
@@ -71,8 +72,13 @@ func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token str
 				return
 			}
 
-			e := r.mapper.FromModel(row.Value.Record, row.Value.Value)
-			if !yield(Change[[]Event]{Value: e.Events(), Token: row.Token}, nil) {
+			events := make([]Event, 0, len(row.Value.Events))
+			for _, res := range row.Value.Events {
+				if e, ok := r.mapper.ToEvent(*res); ok {
+					events = append(events, e)
+				}
+			}
+			if !yield(Change[[]Event]{Value: events, Token: row.Token}, nil) {
 				return
 			}
 		}

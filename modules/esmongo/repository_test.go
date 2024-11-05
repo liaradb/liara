@@ -48,3 +48,7 @@ func (bookMapper) ToModel(b Book) BookModel {
 		Title: b.title,
 	}
 }
+
+func (bookMapper) ToEvent(e RecordEvent) (Event, bool) {
+	return nil, false
+}
