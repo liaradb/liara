@@ -22,7 +22,7 @@ type RecordEvent struct {
 }
 
 func newModel[I EntityID, E Entity[I], M any](entity E, m M) *model[M] {
-	events, _ := newModelEvents(entity.Events())
+	events, _ := newRecordEvents(entity.Events())
 	return &model[M]{
 		Record: Record{
 			ID:      entity.ID().String(),
@@ -33,7 +33,7 @@ func newModel[I EntityID, E Entity[I], M any](entity E, m M) *model[M] {
 	}
 }
 
-func newModelEvent(e Event) (*RecordEvent, error) {
+func newRecordEvent(e Event) (*RecordEvent, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
@@ -48,11 +48,11 @@ func newModelEvent(e Event) (*RecordEvent, error) {
 	}, nil
 }
 
-func newModelEvents(events []Event) ([]*RecordEvent, error) {
+func newRecordEvents(events []Event) ([]*RecordEvent, error) {
 	result := make([]*RecordEvent, 0, len(events))
 
 	for _, e := range events {
-		m, err := newModelEvent(e)
+		m, err := newRecordEvent(e)
 		if err != nil {
 			return nil, err
 		}
@@ -60,9 +60,4 @@ func newModelEvents(events []Event) ([]*RecordEvent, error) {
 	}
 
 	return result, nil
-}
-
-func ParseEvent[T any](re RecordEvent) (T, error) {
-	var t T
-	return t, json.Unmarshal(re.Data, t)
 }
