@@ -49,6 +49,10 @@ func (bookMapper) ToModel(b Book) BookModel {
 	}
 }
 
-func (bookMapper) ToEvent(e RecordEvent) (Event, bool) {
+func (bookMapper) ToRecordEvent(Event) (RecordEvent, bool) {
+	return RecordEvent{}, false
+}
+
+func (bookMapper) FromRecordEvent(e RecordEvent) (Event, bool) {
 	return nil, false
 }

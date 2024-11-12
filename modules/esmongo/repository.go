@@ -15,7 +15,8 @@ type Repository[I EntityID, E Entity[I], M any] struct {
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(Record, M) E
 	ToModel(E) M
-	ToEvent(RecordEvent) (Event, bool)
+	ToRecordEvent(Event) (RecordEvent, bool)
+	FromRecordEvent(RecordEvent) (Event, bool)
 }
 
 func NewRepository[I EntityID, E Entity[I], M any](
@@ -28,18 +29,18 @@ func NewRepository[I EntityID, E Entity[I], M any](
 	}
 }
 
-func (r *Repository[I, E, M]) Insert(ctx context.Context, t E) error {
+func (r *Repository[I, E, M]) Insert(ctx context.Context, e E) error {
 	return r.collection.Insert(ctx,
-		t.ID().String(),
-		newModel(t, r.mapper.ToModel(t)))
+		e.ID().String(),
+		newModel(e, r.mapper.ToModel(e)))
 }
 
-func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, t E) error {
+func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, e E) error {
 	return r.collection.Replace(ctx,
 		Filter().
 			Property("_id", id.String()).
 			Property("version", v),
-		newModel(t, r.mapper.ToModel(t)),
+		newModel(e, r.mapper.ToModel(e)),
 	)
 }
 
@@ -74,7 +75,7 @@ func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token str
 
 			events := make([]Event, 0, len(row.Value.Events))
 			for _, res := range row.Value.Events {
-				if e, ok := r.mapper.ToEvent(*res); ok {
+				if e, ok := r.mapper.FromRecordEvent(*res); ok {
 					events = append(events, e)
 				}
 			}
