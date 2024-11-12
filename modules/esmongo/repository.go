@@ -12,6 +12,11 @@ type Repository[I EntityID, E Entity[I], M any] struct {
 	mapper     Mapper[I, E, M]
 }
 
+type model[T any] struct {
+	Record `bson:"inline"`
+	Value  T `bson:"inline"`
+}
+
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(Record, M) E
 	ToModel(E) M
@@ -32,7 +37,7 @@ func NewRepository[I EntityID, E Entity[I], M any](
 func (r *Repository[I, E, M]) Insert(ctx context.Context, e E) error {
 	return r.collection.Insert(ctx,
 		e.ID().String(),
-		newModel(e, r.mapper.ToModel(e)))
+		r.newModel(e))
 }
 
 func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, e E) error {
@@ -40,8 +45,20 @@ func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, e E) err
 		Filter().
 			Property("_id", id.String()).
 			Property("version", v),
-		newModel(e, r.mapper.ToModel(e)),
-	)
+		r.newModel(e))
+}
+
+func (r *Repository[I, E, M]) newModel(entity E) *model[M] {
+	m := r.mapper.ToModel(entity)
+	events, _ := newRecordEvents(entity.Events())
+	return &model[M]{
+		Record: Record{
+			ID:      entity.ID().String(),
+			Version: entity.Version().Value(),
+			Events:  events,
+		},
+		Value: m,
+	}
 }
 
 func (r *Repository[I, E, M]) Get(ctx context.Context, id I) (E, error) {

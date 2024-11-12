@@ -2,11 +2,6 @@ package esmongo
 
 import "encoding/json"
 
-type model[T any] struct {
-	Record `bson:"inline"`
-	Value  T `bson:"inline"`
-}
-
 type Record struct {
 	ID      string         `bson:"_id"`
 	Version int            `bson:"version"`
@@ -19,18 +14,6 @@ type RecordEvent struct {
 	EntityID string `bson:"entityId"`
 	Version  int    `bson:"version"`
 	Data     []byte `bson:"data"`
-}
-
-func newModel[I EntityID, E Entity[I], M any](entity E, m M) *model[M] {
-	events, _ := newRecordEvents(entity.Events())
-	return &model[M]{
-		Record: Record{
-			ID:      entity.ID().String(),
-			Version: entity.Version().Value(),
-			Events:  events,
-		},
-		Value: m,
-	}
 }
 
 func newRecordEvent(e Event) (*RecordEvent, error) {
