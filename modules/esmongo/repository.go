@@ -17,6 +17,11 @@ type model[T any] struct {
 	Value  T `bson:"inline"`
 }
 
+func (m *model[T]) increment() *model[T] {
+	m.Record.increment()
+	return m
+}
+
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(Record, M) E
 	ToModel(E) M
@@ -45,7 +50,8 @@ func (r *Repository[I, E, M]) Replace(ctx context.Context, id I, v int, e E) err
 		Filter().
 			Property("_id", id.String()).
 			Property("version", v),
-		r.newModel(e))
+		r.newModel(e).
+			increment())
 }
 
 func (r *Repository[I, E, M]) newModel(entity E) *model[M] {

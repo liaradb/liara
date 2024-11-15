@@ -99,6 +99,11 @@ type Change[M any] struct {
 	Token string
 }
 
+func newChange[M any](cs *mongo.ChangeStream) (Change[M], error) {
+	m, err := decode[M](cs)
+	return Change[M]{Value: m, Token: cs.ResumeToken().String()}, err
+}
+
 func (c *Collection[M]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[M], error] {
 	return func(yield func(Change[M], error) bool) {
 		o := options.ChangeStream()
@@ -115,13 +120,10 @@ func (c *Collection[M]) Watch(ctx context.Context, pipeline any, token string) i
 		defer cs.Close(ctx)
 
 		for cs.Next(ctx) {
-			m, err := decode[M](cs)
-			if err != nil {
-				yield(Change[M]{Token: cs.ResumeToken().String()}, nil)
+			if c, err := newChange[M](cs); err != nil {
+				yield(c, err)
 				return
-			}
-
-			if !yield(Change[M]{Value: m, Token: cs.ResumeToken().String()}, nil) {
+			} else if !yield(c, nil) {
 				return
 			}
 		}

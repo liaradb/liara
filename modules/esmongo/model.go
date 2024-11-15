@@ -8,6 +8,10 @@ type Record struct {
 	Events  []*RecordEvent `bson:"events"`
 }
 
+func (r *Record) increment() {
+	r.Version++
+}
+
 type RecordEvent struct {
 	ID       string `bson:"id"`
 	Type     string `bson:"type"`
