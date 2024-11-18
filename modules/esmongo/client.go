@@ -9,11 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type DataAccess struct {
-	database *mongo.Database
-}
-
-func DbConnect(
+func Connect(
 	ctx context.Context,
 	uri string,
 	m *event.CommandMonitor,
@@ -32,19 +28,4 @@ func DbConnect(
 	}
 
 	return client, nil
-}
-
-func (da *DataAccess) Database(databaseName string) DataAccess {
-	return DataAccess{
-		database: da.database.Client().Database(databaseName),
-	}
-}
-
-func (da *DataAccess) Collection(collectionName string) *mongo.Collection {
-	return da.database.Collection(collectionName)
-}
-
-func (da *DataAccess) Close(ctx context.Context) error {
-	err := da.database.Client().Disconnect(ctx)
-	return err
 }
