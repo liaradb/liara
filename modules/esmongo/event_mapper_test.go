@@ -7,36 +7,32 @@ import (
 
 type (
 	entityID     string
-	eventID      string
-	eventType    string
 	eventVersion int
 )
 
-func (e entityID) String() string  { return string(e) }
-func (e eventID) String() string   { return string(e) }
-func (e eventType) String() string { return string(e) }
-func (e eventVersion) Value() int  { return int(e) }
+func (e entityID) String() string { return string(e) }
+func (e eventVersion) Value() int { return int(e) }
 
 type createEvent struct {
-	id       eventID
+	id       string
 	entityID entityID
-	version  eventVersion
+	version  int
 }
 
 const (
-	createEventType eventType = "create_event"
+	createEventType = "create_event"
 )
 
-func (c createEvent) ID() EventID        { return c.id }
+func (c createEvent) ID() string         { return c.id }
 func (c createEvent) EntityID() EntityID { return c.entityID }
-func (c createEvent) Type() EventType    { return createEventType }
-func (c createEvent) Version() Version   { return c.version }
+func (c createEvent) Type() string       { return createEventType }
+func (c createEvent) Version() int       { return c.version }
 
 func TestEventMapper(t *testing.T) {
 	em := EventMapper{
-		createEventType.String(): EventMap[createEvent]{},
+		createEventType: EventMap[createEvent]{},
 	}
-	e, _ := newRecordEvent(createEvent{
+	e, _ := newRecordEvent(createEventType, createEvent{
 		id:       "event1",
 		entityID: "entity1",
 		version:  1,

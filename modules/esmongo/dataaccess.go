@@ -16,9 +16,8 @@ type DataAccess struct {
 func DbConnect(
 	ctx context.Context,
 	uri string,
-	databaseName string,
 	m *event.CommandMonitor,
-) (*DataAccess, error) {
+) (*mongo.Client, error) {
 	o := options.Client().ApplyURI(uri)
 	if m != nil {
 		o = o.SetMonitor(m)
@@ -32,9 +31,7 @@ func DbConnect(
 		return nil, err
 	}
 
-	return &DataAccess{
-		database: client.Database(databaseName),
-	}, nil
+	return client, nil
 }
 
 func (da *DataAccess) Database(databaseName string) DataAccess {

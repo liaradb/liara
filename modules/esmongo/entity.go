@@ -2,14 +2,9 @@ package esmongo
 
 type Entity[I EntityID] interface {
 	ID() I
-	Version() Version
-	Events() []Event
+	Version() int
 }
 
 type EntityID interface {
 	String() string
-}
-
-type Version interface {
-	Value() int
 }

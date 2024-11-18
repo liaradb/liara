@@ -8,7 +8,7 @@ import (
 func TestRepository(t *testing.T) {
 	t.Skip()
 	r := NewRepository(nil, bookMapper{})
-	r.Insert(context.Background(), Book{})
+	r.Insert(context.Background(), Book{}, nil)
 }
 
 type BookID string
@@ -21,13 +21,12 @@ func (bv BookVersion) Value() int { return int(bv) }
 
 type Book struct {
 	id      BookID
-	version Version
+	version int
 	title   string
 }
 
-func (b Book) ID() BookID       { return b.id }
-func (b Book) Version() Version { return b.version }
-func (b Book) Events() []Event  { return nil }
+func (b Book) ID() BookID   { return b.id }
+func (b Book) Version() int { return b.version }
 
 type BookModel struct {
 	Title string `bson:"title"`
@@ -38,7 +37,7 @@ type bookMapper struct{}
 func (b bookMapper) FromModel(r Record, m BookModel) Book {
 	return Book{
 		id:      BookID(r.ID),
-		version: BookVersion(r.Version),
+		version: r.Version,
 		title:   m.Title,
 	}
 }
@@ -49,10 +48,6 @@ func (bookMapper) ToModel(b Book) BookModel {
 	}
 }
 
-func (bookMapper) ToRecordEvent(Event) (RecordEvent, bool) {
-	return RecordEvent{}, false
-}
-
-func (bookMapper) FromRecordEvent(e RecordEvent) (Event, bool) {
+func (bookMapper) FromRecordEvent(string, []byte) (any, bool) {
 	return nil, false
 }
