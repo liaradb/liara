@@ -2,32 +2,67 @@ package esmongo
 
 import "encoding/json"
 
-type Record struct {
-	ID      string         `bson:"_id"`
-	Version int            `bson:"version"`
-	Events  []*RecordEvent `bson:"events"`
+type model[T any] struct {
+	ID      string        `bson:"_id"`
+	Version int           `bson:"version"`
+	Events  []*modelEvent `bson:"events"`
+	Value   T             `bson:"inline"`
 }
 
-func (r *Record) increment() {
-	r.Version++
+func newModel[T any](
+	id string,
+	version int,
+	t T,
+	events []Event,
+) *model[T] {
+	evs, _ := newModelEvents(events)
+	return &model[T]{
+		ID:      id,
+		Version: version,
+		Events:  evs,
+		Value:   t,
+	}
 }
 
-type RecordEvent struct {
+func (m *model[T]) increment() *model[T] {
+	m.Version++
+	return m
+}
+
+type modelEvent struct {
 	Type string `bson:"type"`
 	Data []byte `bson:"data"`
 }
 
-func newRecordEvent(
+func newModelEvent(
 	eventType string,
 	e any,
-) (*RecordEvent, error) {
+) (*modelEvent, error) {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return nil, err
 	}
 
-	return &RecordEvent{
+	return &modelEvent{
 		Type: eventType,
 		Data: data,
 	}, nil
+}
+
+func newModelEvents(
+	events []Event,
+) ([]*modelEvent, error) {
+	result := make([]*modelEvent, 0, len(events))
+
+	for _, e := range events {
+		r, err := newModelEvent(
+			e.Type(),
+			e)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r)
+	}
+
+	return result, nil
 }

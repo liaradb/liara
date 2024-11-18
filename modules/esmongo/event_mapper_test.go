@@ -32,7 +32,7 @@ func TestEventMapper(t *testing.T) {
 	em := EventMapper{
 		createEventType: EventMap[createEvent]{},
 	}
-	e, _ := newRecordEvent(createEventType, createEvent{
+	e, _ := newModelEvent(createEventType, createEvent{
 		id:       "event1",
 		entityID: "entity1",
 		version:  1,

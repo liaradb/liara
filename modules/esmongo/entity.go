@@ -8,3 +8,7 @@ type Entity[I EntityID] interface {
 type EntityID interface {
 	String() string
 }
+
+type Event interface {
+	Type() string
+}

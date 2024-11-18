@@ -12,16 +12,6 @@ type Repository[I EntityID, E Entity[I], M any] struct {
 	mapper     Mapper[I, E, M]
 }
 
-type model[T any] struct {
-	Record `bson:"inline"`
-	Value  T `bson:"inline"`
-}
-
-func (m *model[T]) increment() *model[T] {
-	m.Record.increment()
-	return m
-}
-
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(string, int, M) E
 	ToModel(E) M
@@ -65,33 +55,11 @@ func (r *Repository[I, E, M]) Replace(
 
 func (r *Repository[I, E, M]) newModel(entity E, events []Event) *model[M] {
 	m := r.mapper.ToModel(entity)
-	evs, _ := r.newRecordEvents(events)
-	return &model[M]{
-		Record: Record{
-			ID:      entity.ID().String(),
-			Version: entity.Version(),
-			Events:  evs,
-		},
-		Value: m,
-	}
-}
-
-func (r *Repository[I, E, M]) newRecordEvents(
-	events []Event,
-) ([]*RecordEvent, error) {
-	result := make([]*RecordEvent, 0, len(events))
-
-	for _, e := range events {
-		r, err := newRecordEvent(
-			e.Type(),
-			e)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, r)
-	}
-
-	return result, nil
+	return newModel(
+		entity.ID().String(),
+		entity.Version(),
+		m,
+		events)
 }
 
 func (r *Repository[I, E, M]) Get(
@@ -99,7 +67,7 @@ func (r *Repository[I, E, M]) Get(
 	id I,
 ) (E, error) {
 	m, err := r.collection.Get(ctx, id.String())
-	return r.mapper.FromModel(m.Record.ID, m.Record.Version, m.Value), err
+	return r.mapper.FromModel(m.ID, m.Version, m.Value), err
 }
 
 func (r *Repository[I, E, M]) Delete(
@@ -116,7 +84,7 @@ func (r *Repository[I, E, M]) GetList(
 ) iter.Seq2[E, error] {
 	return func(yield func(E, error) bool) {
 		for row, err := range r.collection.GetList(ctx, filter, sort) {
-			if !yield(r.mapper.FromModel(row.Record.ID, row.Record.Version, row.Value), err) {
+			if !yield(r.mapper.FromModel(row.ID, row.Version, row.Value), err) {
 				return
 			}
 		}
