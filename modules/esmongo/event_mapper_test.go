@@ -1,6 +1,7 @@
 package esmongo
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -32,11 +33,12 @@ func TestEventMapper(t *testing.T) {
 	em := EventMapper{
 		createEventType: EventMap[createEvent]{},
 	}
-	e, _ := newModelEvent(createEventType, createEvent{
+	d, _ := json.Marshal(createEvent{
 		id:       "event1",
 		entityID: "entity1",
 		version:  1,
 	})
+	e := newModelEvent(createEventType, d)
 	event, err := em.ParseEvent(*e)
 	fmt.Print(err)
 	fmt.Print(event)

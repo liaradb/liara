@@ -15,7 +15,8 @@ type Repository[I EntityID, E Entity[I], M any] struct {
 type Mapper[I EntityID, E Entity[I], M any] interface {
 	FromModel(string, int, M) E
 	ToModel(E) M
-	ToEvent(string, []byte) (any, bool)
+	FromModelEvent(any) ([]byte, error)
+	ToModelEvent(string, []byte) (any, bool)
 }
 
 func NewRepository[I EntityID, E Entity[I], M any](
@@ -55,11 +56,17 @@ func (r *Repository[I, E, M]) Replace(
 
 func (r *Repository[I, E, M]) newModel(entity E, events []Event) *model[M] {
 	m := r.mapper.ToModel(entity)
+	evs := make([]*modelEvent, 0, len(events))
+	for _, ev := range events {
+		e, _ := r.mapper.FromModelEvent(ev)
+		t := ev.Type()
+		evs = append(evs, newModelEvent(t, e))
+	}
 	return newModel(
 		entity.ID().String(),
 		entity.Version(),
 		m,
-		events)
+		evs)
 }
 
 func (r *Repository[I, E, M]) Get(
@@ -103,7 +110,7 @@ func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token str
 
 			events := make([]any, 0, len(row.Value.Events))
 			for _, res := range row.Value.Events {
-				if e, ok := r.mapper.ToEvent(res.Type, res.Data); ok {
+				if e, ok := r.mapper.ToModelEvent(res.Type, res.Data); ok {
 					events = append(events, e)
 				}
 			}

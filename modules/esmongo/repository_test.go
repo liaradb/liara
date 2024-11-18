@@ -2,6 +2,7 @@ package esmongo
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 )
 
@@ -48,6 +49,10 @@ func (bookMapper) ToModel(b Book) BookModel {
 	}
 }
 
-func (bookMapper) ToEvent(string, []byte) (any, bool) {
+func (bookMapper) FromModelEvent(e any) ([]byte, error) {
+	return json.Marshal(e)
+}
+
+func (bookMapper) ToModelEvent(eType string, data []byte) (any, bool) {
 	return nil, false
 }
