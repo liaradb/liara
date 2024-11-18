@@ -23,9 +23,9 @@ func (m *model[T]) increment() *model[T] {
 }
 
 type Mapper[I EntityID, E Entity[I], M any] interface {
-	FromModel(Record, M) E
+	FromModel(string, int, M) E
 	ToModel(E) M
-	FromRecordEvent(string, []byte) (any, bool)
+	ToEvent(string, []byte) (any, bool)
 }
 
 func NewRepository[I EntityID, E Entity[I], M any](
@@ -99,7 +99,7 @@ func (r *Repository[I, E, M]) Get(
 	id I,
 ) (E, error) {
 	m, err := r.collection.Get(ctx, id.String())
-	return r.mapper.FromModel(m.Record, m.Value), err
+	return r.mapper.FromModel(m.Record.ID, m.Record.Version, m.Value), err
 }
 
 func (r *Repository[I, E, M]) Delete(
@@ -116,7 +116,7 @@ func (r *Repository[I, E, M]) GetList(
 ) iter.Seq2[E, error] {
 	return func(yield func(E, error) bool) {
 		for row, err := range r.collection.GetList(ctx, filter, sort) {
-			if !yield(r.mapper.FromModel(row.Record, row.Value), err) {
+			if !yield(r.mapper.FromModel(row.Record.ID, row.Record.Version, row.Value), err) {
 				return
 			}
 		}
@@ -135,7 +135,7 @@ func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token str
 
 			events := make([]any, 0, len(row.Value.Events))
 			for _, res := range row.Value.Events {
-				if e, ok := r.mapper.FromRecordEvent(res.Type, res.Data); ok {
+				if e, ok := r.mapper.ToEvent(res.Type, res.Data); ok {
 					events = append(events, e)
 				}
 			}

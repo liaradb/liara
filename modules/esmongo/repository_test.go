@@ -34,10 +34,10 @@ type BookModel struct {
 
 type bookMapper struct{}
 
-func (b bookMapper) FromModel(r Record, m BookModel) Book {
+func (b bookMapper) FromModel(id string, version int, m BookModel) Book {
 	return Book{
-		id:      BookID(r.ID),
-		version: r.Version,
+		id:      BookID(id),
+		version: version,
 		title:   m.Title,
 	}
 }
@@ -48,6 +48,6 @@ func (bookMapper) ToModel(b Book) BookModel {
 	}
 }
 
-func (bookMapper) FromRecordEvent(string, []byte) (any, bool) {
+func (bookMapper) ToEvent(string, []byte) (any, bool) {
 	return nil, false
 }
