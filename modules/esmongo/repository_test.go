@@ -49,10 +49,10 @@ func (bookMapper) ToModel(b Book) BookModel {
 	}
 }
 
-func (bookMapper) FromModelEvent(e any) ([]byte, error) {
+func (bookMapper) FromModelEvent(e Event) ([]byte, error) {
 	return json.Marshal(e)
 }
 
-func (bookMapper) ToModelEvent(eType string, data []byte) (any, bool) {
+func (bookMapper) ToModelEvent(eType string, data []byte) (Event, bool) {
 	return nil, false
 }

@@ -7,44 +7,44 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Repository[I EntityID, E Entity[I], M any] struct {
+type Repository[I EntityID, E Entity[I], M any, V Event] struct {
 	collection *Collection[model[M]]
-	mapper     Mapper[I, E, M]
+	mapper     Mapper[I, E, M, V]
 }
 
-type Mapper[I EntityID, E Entity[I], M any] interface {
+type Mapper[I EntityID, E Entity[I], M any, V Event] interface {
 	FromModel(string, int, M) E
 	ToModel(E) M
-	FromModelEvent(any) ([]byte, error)
-	ToModelEvent(string, []byte) (any, bool)
+	FromModelEvent(V) ([]byte, error)
+	ToModelEvent(string, []byte) (V, bool)
 }
 
-func NewRepository[I EntityID, E Entity[I], M any](
+func NewRepository[I EntityID, E Entity[I], M any, V Event](
 	collection *mongo.Collection,
-	mapper Mapper[I, E, M],
-) *Repository[I, E, M] {
-	return &Repository[I, E, M]{
+	mapper Mapper[I, E, M, V],
+) *Repository[I, E, M, V] {
+	return &Repository[I, E, M, V]{
 		collection: NewCollection[model[M]](collection),
 		mapper:     mapper,
 	}
 }
 
-func (r *Repository[I, E, M]) Insert(
+func (r *Repository[I, E, M, V]) Insert(
 	ctx context.Context,
 	entity E,
-	events []Event,
+	events []V,
 ) error {
 	return r.collection.Insert(ctx,
 		entity.ID().String(),
 		r.newModel(entity, events))
 }
 
-func (r *Repository[I, E, M]) Replace(
+func (r *Repository[I, E, M, V]) Replace(
 	ctx context.Context,
 	id I,
 	version int,
 	entity E,
-	events []Event,
+	events []V,
 ) error {
 	return r.collection.Replace(ctx,
 		Filter().
@@ -54,7 +54,7 @@ func (r *Repository[I, E, M]) Replace(
 			increment())
 }
 
-func (r *Repository[I, E, M]) newModel(entity E, events []Event) *model[M] {
+func (r *Repository[I, E, M, V]) newModel(entity E, events []V) *model[M] {
 	m := r.mapper.ToModel(entity)
 	evs := make([]*modelEvent, 0, len(events))
 	for _, ev := range events {
@@ -69,7 +69,7 @@ func (r *Repository[I, E, M]) newModel(entity E, events []Event) *model[M] {
 		evs)
 }
 
-func (r *Repository[I, E, M]) Get(
+func (r *Repository[I, E, M, V]) Get(
 	ctx context.Context,
 	id I,
 ) (E, error) {
@@ -77,14 +77,14 @@ func (r *Repository[I, E, M]) Get(
 	return r.mapper.FromModel(m.ID, m.Version, m.Value), err
 }
 
-func (r *Repository[I, E, M]) Delete(
+func (r *Repository[I, E, M, V]) Delete(
 	ctx context.Context,
 	id I,
 ) error {
 	return r.collection.Delete(ctx, id.String())
 }
 
-func (r *Repository[I, E, M]) GetList(
+func (r *Repository[I, E, M, V]) GetList(
 	ctx context.Context,
 	filter FilterBuilder,
 	sort *SortBuilder,
@@ -98,7 +98,7 @@ func (r *Repository[I, E, M]) GetList(
 	}
 }
 
-func (r *Repository[I, E, M]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[[]any], error] {
+func (r *Repository[I, E, M, V]) Watch(ctx context.Context, pipeline any, token string) iter.Seq2[Change[[]any], error] {
 	return func(yield func(Change[[]any], error) bool) {
 		rows := r.collection.Watch(ctx, pipeline, token)
 
