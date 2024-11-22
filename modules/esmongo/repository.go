@@ -41,17 +41,28 @@ func (r *Repository[I, E, M, V]) Insert(
 
 func (r *Repository[I, E, M, V]) Replace(
 	ctx context.Context,
-	id I,
+	entity E,
+	events []V,
+) error {
+	return r.collection.Replace(ctx,
+		Filter().
+			Property("_id", entity.ID().String()).
+			Property("version", entity.Version()),
+		r.newModel(entity, events).
+			increment())
+}
+
+func (r *Repository[I, E, M, V]) ReplaceAtVersion(
+	ctx context.Context,
 	version int,
 	entity E,
 	events []V,
 ) error {
 	return r.collection.Replace(ctx,
 		Filter().
-			Property("_id", id.String()).
+			Property("_id", entity.ID().String()).
 			Property("version", version),
-		r.newModel(entity, events).
-			increment())
+		r.newModel(entity, events))
 }
 
 func (r *Repository[I, E, M, V]) newModel(entity E, events []V) *model[M] {
