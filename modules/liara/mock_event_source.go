@@ -115,12 +115,13 @@ func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, ae AppendEvent)
 		AggregateID:   ae.AggregateID,
 		Version:       ae.Version,
 		PartitionID:   ae.PartitionID,
-		UserID:        ae.UserID,
-		CorrelationID: ae.CorrelationID,
-		Time:          ae.Time,
 		AggregateName: ae.AggregateName,
 		Name:          ae.Name,
 		Schema:        ae.Schema,
-		Data:          ae.Data,
+		Metadata: EventMetadata{
+			UserID:        ae.Metadata.UserID,
+			CorrelationID: ae.Metadata.CorrelationID,
+			Time:          ae.Metadata.Time},
+		Data: ae.Data,
 	}
 }

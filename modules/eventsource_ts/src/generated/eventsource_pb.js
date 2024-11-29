@@ -320,12 +320,13 @@ proto.todo.Event.prototype.toObject = function(opt_includeInstance) {
 proto.todo.Event.toObject = function(includeInstance, msg) {
   var f, obj = {
     globalVersion: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    aggregateName: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    id: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    id: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    aggregateName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     aggregateId: jspb.Message.getFieldWithDefault(msg, 4, ""),
     version: jspb.Message.getFieldWithDefault(msg, 5, 0),
     name: jspb.Message.getFieldWithDefault(msg, 6, ""),
     schema: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    partitionId: jspb.Message.getFieldWithDefault(msg, 8, ""),
     metadata: (f = msg.getMetadata()) && proto.todo.EventMetadata.toObject(includeInstance, f),
     data: msg.getData_asB64()
   };
@@ -370,11 +371,11 @@ proto.todo.Event.deserializeBinaryFromReader = function(msg, reader) {
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setAggregateName(value);
+      msg.setId(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setId(value);
+      msg.setAggregateName(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -393,11 +394,15 @@ proto.todo.Event.deserializeBinaryFromReader = function(msg, reader) {
       msg.setSchema(value);
       break;
     case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPartitionId(value);
+      break;
+    case 9:
       var value = new proto.todo.EventMetadata;
       reader.readMessage(value,proto.todo.EventMetadata.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
-    case 9:
+    case 10:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setData(value);
       break;
@@ -437,14 +442,14 @@ proto.todo.Event.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getAggregateName();
+  f = message.getId();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
-  f = message.getId();
+  f = message.getAggregateName();
   if (f.length > 0) {
     writer.writeString(
       3,
@@ -479,10 +484,17 @@ proto.todo.Event.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = message.getPartitionId();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
+      f
+    );
+  }
   f = message.getMetadata();
   if (f != null) {
     writer.writeMessage(
-      8,
+      9,
       f,
       proto.todo.EventMetadata.serializeBinaryToWriter
     );
@@ -490,7 +502,7 @@ proto.todo.Event.serializeBinaryToWriter = function(message, writer) {
   f = message.getData_asU8();
   if (f.length > 0) {
     writer.writeBytes(
-      9,
+      10,
       f
     );
   }
@@ -516,10 +528,10 @@ proto.todo.Event.prototype.setGlobalVersion = function(value) {
 
 
 /**
- * optional string aggregate_name = 2;
+ * optional string id = 2;
  * @return {string}
  */
-proto.todo.Event.prototype.getAggregateName = function() {
+proto.todo.Event.prototype.getId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -528,16 +540,16 @@ proto.todo.Event.prototype.getAggregateName = function() {
  * @param {string} value
  * @return {!proto.todo.Event} returns this
  */
-proto.todo.Event.prototype.setAggregateName = function(value) {
+proto.todo.Event.prototype.setId = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional string id = 3;
+ * optional string aggregate_name = 3;
  * @return {string}
  */
-proto.todo.Event.prototype.getId = function() {
+proto.todo.Event.prototype.getAggregateName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
@@ -546,7 +558,7 @@ proto.todo.Event.prototype.getId = function() {
  * @param {string} value
  * @return {!proto.todo.Event} returns this
  */
-proto.todo.Event.prototype.setId = function(value) {
+proto.todo.Event.prototype.setAggregateName = function(value) {
   return jspb.Message.setProto3StringField(this, 3, value);
 };
 
@@ -624,12 +636,30 @@ proto.todo.Event.prototype.setSchema = function(value) {
 
 
 /**
- * optional EventMetadata metadata = 8;
+ * optional string partition_id = 8;
+ * @return {string}
+ */
+proto.todo.Event.prototype.getPartitionId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.todo.Event} returns this
+ */
+proto.todo.Event.prototype.setPartitionId = function(value) {
+  return jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * optional EventMetadata metadata = 9;
  * @return {?proto.todo.EventMetadata}
  */
 proto.todo.Event.prototype.getMetadata = function() {
   return /** @type{?proto.todo.EventMetadata} */ (
-    jspb.Message.getWrapperField(this, proto.todo.EventMetadata, 8));
+    jspb.Message.getWrapperField(this, proto.todo.EventMetadata, 9));
 };
 
 
@@ -638,7 +668,7 @@ proto.todo.Event.prototype.getMetadata = function() {
  * @return {!proto.todo.Event} returns this
 */
 proto.todo.Event.prototype.setMetadata = function(value) {
-  return jspb.Message.setWrapperField(this, 8, value);
+  return jspb.Message.setWrapperField(this, 9, value);
 };
 
 
@@ -656,21 +686,21 @@ proto.todo.Event.prototype.clearMetadata = function() {
  * @return {boolean}
  */
 proto.todo.Event.prototype.hasMetadata = function() {
-  return jspb.Message.getField(this, 8) != null;
+  return jspb.Message.getField(this, 9) != null;
 };
 
 
 /**
- * optional bytes data = 9;
+ * optional bytes data = 10;
  * @return {!(string|Uint8Array)}
  */
 proto.todo.Event.prototype.getData = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
 };
 
 
 /**
- * optional bytes data = 9;
+ * optional bytes data = 10;
  * This is a type-conversion wrapper around `getData()`
  * @return {string}
  */
@@ -681,7 +711,7 @@ proto.todo.Event.prototype.getData_asB64 = function() {
 
 
 /**
- * optional bytes data = 9;
+ * optional bytes data = 10;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
  * This is a type-conversion wrapper around `getData()`
@@ -698,7 +728,7 @@ proto.todo.Event.prototype.getData_asU8 = function() {
  * @return {!proto.todo.Event} returns this
  */
 proto.todo.Event.prototype.setData = function(value) {
-  return jspb.Message.setProto3BytesField(this, 9, value);
+  return jspb.Message.setProto3BytesField(this, 10, value);
 };
 
 
@@ -951,6 +981,7 @@ proto.todo.AppendEvent.toObject = function(includeInstance, msg) {
     version: jspb.Message.getFieldWithDefault(msg, 4, 0),
     name: jspb.Message.getFieldWithDefault(msg, 5, ""),
     schema: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    partitionId: jspb.Message.getFieldWithDefault(msg, 7, ""),
     metadata: (f = msg.getMetadata()) && proto.todo.EventMetadata.toObject(includeInstance, f),
     data: msg.getData_asB64()
   };
@@ -1014,11 +1045,15 @@ proto.todo.AppendEvent.deserializeBinaryFromReader = function(msg, reader) {
       msg.setSchema(value);
       break;
     case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPartitionId(value);
+      break;
+    case 8:
       var value = new proto.todo.EventMetadata;
       reader.readMessage(value,proto.todo.EventMetadata.deserializeBinaryFromReader);
       msg.setMetadata(value);
       break;
-    case 8:
+    case 9:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setData(value);
       break;
@@ -1093,10 +1128,17 @@ proto.todo.AppendEvent.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
+  f = message.getPartitionId();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
   f = message.getMetadata();
   if (f != null) {
     writer.writeMessage(
-      7,
+      8,
       f,
       proto.todo.EventMetadata.serializeBinaryToWriter
     );
@@ -1104,7 +1146,7 @@ proto.todo.AppendEvent.serializeBinaryToWriter = function(message, writer) {
   f = message.getData_asU8();
   if (f.length > 0) {
     writer.writeBytes(
-      8,
+      9,
       f
     );
   }
@@ -1220,12 +1262,30 @@ proto.todo.AppendEvent.prototype.setSchema = function(value) {
 
 
 /**
- * optional EventMetadata metadata = 7;
+ * optional string partition_id = 7;
+ * @return {string}
+ */
+proto.todo.AppendEvent.prototype.getPartitionId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.todo.AppendEvent} returns this
+ */
+proto.todo.AppendEvent.prototype.setPartitionId = function(value) {
+  return jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional EventMetadata metadata = 8;
  * @return {?proto.todo.EventMetadata}
  */
 proto.todo.AppendEvent.prototype.getMetadata = function() {
   return /** @type{?proto.todo.EventMetadata} */ (
-    jspb.Message.getWrapperField(this, proto.todo.EventMetadata, 7));
+    jspb.Message.getWrapperField(this, proto.todo.EventMetadata, 8));
 };
 
 
@@ -1234,7 +1294,7 @@ proto.todo.AppendEvent.prototype.getMetadata = function() {
  * @return {!proto.todo.AppendEvent} returns this
 */
 proto.todo.AppendEvent.prototype.setMetadata = function(value) {
-  return jspb.Message.setWrapperField(this, 7, value);
+  return jspb.Message.setWrapperField(this, 8, value);
 };
 
 
@@ -1252,21 +1312,21 @@ proto.todo.AppendEvent.prototype.clearMetadata = function() {
  * @return {boolean}
  */
 proto.todo.AppendEvent.prototype.hasMetadata = function() {
-  return jspb.Message.getField(this, 7) != null;
+  return jspb.Message.getField(this, 8) != null;
 };
 
 
 /**
- * optional bytes data = 8;
+ * optional bytes data = 9;
  * @return {!(string|Uint8Array)}
  */
 proto.todo.AppendEvent.prototype.getData = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
 };
 
 
 /**
- * optional bytes data = 8;
+ * optional bytes data = 9;
  * This is a type-conversion wrapper around `getData()`
  * @return {string}
  */
@@ -1277,7 +1337,7 @@ proto.todo.AppendEvent.prototype.getData_asB64 = function() {
 
 
 /**
- * optional bytes data = 8;
+ * optional bytes data = 9;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
  * This is a type-conversion wrapper around `getData()`
@@ -1294,7 +1354,7 @@ proto.todo.AppendEvent.prototype.getData_asU8 = function() {
  * @return {!proto.todo.AppendEvent} returns this
  */
 proto.todo.AppendEvent.prototype.setData = function(value) {
-  return jspb.Message.setProto3BytesField(this, 8, value);
+  return jspb.Message.setProto3BytesField(this, 9, value);
 };
 
 

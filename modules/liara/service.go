@@ -128,10 +128,13 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 		ID:            eo.EventID,
 		AggregateID:   AggregateID(eo.AggregateID),
 		Version:       eo.Version,
-		CorrelationID: eo.CorrelationID,
-		UserID:        eo.UserID,
-		Time:          eo.Time,
+		PartitionID:   "",
 		Schema:        Schema(eo.Data.Schema()),
-		Data:          d,
+		Metadata: EventMetadata{
+			CorrelationID: eo.CorrelationID,
+			UserID:        eo.UserID,
+			Time:          eo.Time,
+		},
+		Data: d,
 	}, nil
 }

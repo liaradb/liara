@@ -16,11 +16,14 @@ func eventToDto(e entity.Event) *pb.Event {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		CorrelationId: e.CorrelationID.String(),
-		UserId:        e.UserID.String(),
-		Time:          timestamppb.New(e.Time),
+		PartitionId:   "",
 		Schema:        e.Schema.String(),
-		Data:          e.Data,
+		Metadata: &pb.EventMetadata{
+			CorrelationId: e.Metadata.CorrelationID.String(),
+			UserId:        e.Metadata.UserID.String(),
+			Time:          timestamppb.New(e.Metadata.Time),
+		},
+		Data: e.Data,
 	}
 }
 
@@ -31,10 +34,12 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 		AggregateID:   value.AggregateID(dto.AggregateId),
 		Version:       value.Version(dto.Version),
 		Name:          value.EventName(dto.Name),
-		CorrelationID: value.CorrelationID(dto.CorrelationId),
-		UserID:        value.UserID(dto.UserId),
-		Time:          dto.Time.AsTime(),
 		Schema:        value.Schema(dto.Schema),
-		Data:          dto.Data,
+		PartitionID:   "",
+		Metadata: entity.EventMetadata{
+			CorrelationID: value.CorrelationID(dto.Metadata.CorrelationId),
+			UserID:        value.UserID(dto.Metadata.UserId),
+			Time:          dto.Metadata.Time.AsTime()},
+		Data: dto.Data,
 	}
 }

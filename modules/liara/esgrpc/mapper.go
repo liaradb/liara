@@ -14,11 +14,13 @@ func DtoToEvent(dto *pb.Event) liara.Event {
 		AggregateID:   liara.AggregateID(dto.AggregateId),
 		Version:       liara.Version(dto.Version),
 		Name:          liara.EventName(dto.Name),
-		CorrelationID: liara.CorrelationID(dto.CorrelationId),
-		UserID:        liara.UserID(dto.UserId),
-		Time:          dto.Time.AsTime(),
+		PartitionID:   "",
 		Schema:        liara.Schema(dto.Schema),
-		Data:          dto.Data,
+		Metadata: liara.EventMetadata{
+			CorrelationID: liara.CorrelationID(dto.Metadata.CorrelationId),
+			UserID:        liara.UserID(dto.Metadata.UserId),
+			Time:          dto.Metadata.Time.AsTime()},
+		Data: dto.Data,
 	}
 }
 
@@ -30,11 +32,13 @@ func EventToDto(e liara.Event) *pb.Event {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		CorrelationId: e.CorrelationID.String(),
-		UserId:        e.UserID.String(),
-		Time:          timestamppb.New(e.Time),
+		PartitionId:   "",
 		Schema:        e.Schema.String(),
-		Data:          e.Data,
+		Metadata: &pb.EventMetadata{
+			CorrelationId: e.Metadata.CorrelationID.String(),
+			UserId:        e.Metadata.UserID.String(),
+			Time:          timestamppb.New(e.Metadata.Time)},
+		Data: e.Data,
 	}
 }
 
@@ -45,11 +49,13 @@ func DtoToAppendEvent(dto *pb.AppendEvent) liara.AppendEvent {
 		AggregateID:   liara.AggregateID(dto.AggregateId),
 		Version:       liara.Version(dto.Version),
 		Name:          liara.EventName(dto.Name),
-		CorrelationID: liara.CorrelationID(dto.CorrelationId),
-		UserID:        liara.UserID(dto.UserId),
-		Time:          dto.Time.AsTime(),
+		PartitionID:   "",
 		Schema:        liara.Schema(dto.Schema),
-		Data:          dto.Data,
+		Metadata: liara.EventMetadata{
+			CorrelationID: liara.CorrelationID(dto.Metadata.CorrelationId),
+			UserID:        liara.UserID(dto.Metadata.UserId),
+			Time:          dto.Metadata.Time.AsTime()},
+		Data: dto.Data,
 	}
 }
 
@@ -60,10 +66,12 @@ func AppendEventToDto(e liara.AppendEvent) *pb.AppendEvent {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		CorrelationId: e.CorrelationID.String(),
-		UserId:        e.UserID.String(),
-		Time:          timestamppb.New(e.Time),
+		PartitionId:   "",
 		Schema:        e.Schema.String(),
-		Data:          e.Data,
+		Metadata: &pb.EventMetadata{
+			CorrelationId: e.Metadata.CorrelationID.String(),
+			UserId:        e.Metadata.UserID.String(),
+			Time:          timestamppb.New(e.Metadata.Time)},
+		Data: e.Data,
 	}
 }

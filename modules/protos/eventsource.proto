@@ -23,11 +23,11 @@ message Event {
   // The global version of the Event
   int64 global_version = 1;
 
-  // The name of the Aggregate
-  string aggregate_name = 2;
-
   // The ID of the Event, used for de-duplication
-  string id = 3;
+  string id = 2;
+
+  // The name of the Aggregate
+  string aggregate_name = 3;
 
   // The ID of the Aggregate to which this Event applies
   string aggregate_id = 4;
@@ -41,11 +41,14 @@ message Event {
   // The Schema for the internal data
   string schema = 7;
 
+  // The ID to partition Events
+  string partition_id = 8;
+
   // The Metadata for the Event
-  EventMetadata metadata = 8;
+  EventMetadata metadata = 9;
 
   // The internal data of the Event
-  bytes data = 9;
+  bytes data = 10;
 }
 
 message EventMetadata {
@@ -82,11 +85,14 @@ message AppendEvent {
   // The Schema for the internal data
   string schema = 6;
 
+  // The ID to partition Events
+  string partition_id = 7;
+
   // The Metadata for the Event
-  EventMetadata metadata = 7;
+  EventMetadata metadata = 8;
 
   // The internal data of the Event
-  bytes data = 8;
+  bytes data = 9;
 }
 
 message AppendRequest {

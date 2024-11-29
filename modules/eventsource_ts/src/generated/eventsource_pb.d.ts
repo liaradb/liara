@@ -10,10 +10,10 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 export class Event extends jspb.Message { 
     getGlobalVersion(): number;
     setGlobalVersion(value: number): Event;
-    getAggregateName(): string;
-    setAggregateName(value: string): Event;
     getId(): string;
     setId(value: string): Event;
+    getAggregateName(): string;
+    setAggregateName(value: string): Event;
     getAggregateId(): string;
     setAggregateId(value: string): Event;
     getVersion(): number;
@@ -22,6 +22,8 @@ export class Event extends jspb.Message {
     setName(value: string): Event;
     getSchema(): string;
     setSchema(value: string): Event;
+    getPartitionId(): string;
+    setPartitionId(value: string): Event;
 
     hasMetadata(): boolean;
     clearMetadata(): void;
@@ -45,12 +47,13 @@ export class Event extends jspb.Message {
 export namespace Event {
     export type AsObject = {
         globalVersion: number,
-        aggregateName: string,
         id: string,
+        aggregateName: string,
         aggregateId: string,
         version: number,
         name: string,
         schema: string,
+        partitionId: string,
         metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
@@ -98,6 +101,8 @@ export class AppendEvent extends jspb.Message {
     setName(value: string): AppendEvent;
     getSchema(): string;
     setSchema(value: string): AppendEvent;
+    getPartitionId(): string;
+    setPartitionId(value: string): AppendEvent;
 
     hasMetadata(): boolean;
     clearMetadata(): void;
@@ -126,6 +131,7 @@ export namespace AppendEvent {
         version: number,
         name: string,
         schema: string,
+        partitionId: string,
         metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
