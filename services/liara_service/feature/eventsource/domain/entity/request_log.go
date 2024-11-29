@@ -7,6 +7,6 @@ import (
 )
 
 type RequestLog struct {
-	ID   value.IdempotenceID
+	ID   value.EventID
 	Time time.Time
 }

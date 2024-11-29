@@ -111,16 +111,15 @@ func (mes *MockEventSource) aggregateVersion(versions map[AggregateID]Version, i
 func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, ae AppendEvent) Event {
 	return Event{
 		GlobalVersion: globalVersion,
-		AggregateName: ae.AggregateName,
 		ID:            ae.ID,
 		AggregateID:   ae.AggregateID,
 		Version:       ae.Version,
-		Name:          ae.Name,
-		CorrelationID: ae.CorrelationID,
-		IdempotenceID: ae.IdempotenceID,
 		PartitionID:   ae.PartitionID,
 		UserID:        ae.UserID,
+		CorrelationID: ae.CorrelationID,
 		Time:          ae.Time,
+		AggregateName: ae.AggregateName,
+		Name:          ae.Name,
 		Schema:        ae.Schema,
 		Data:          ae.Data,
 	}
