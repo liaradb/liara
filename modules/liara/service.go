@@ -26,13 +26,12 @@ type (
 	}
 
 	EventOptions[U ~string] struct {
-		EventID       EventID
-		Time          time.Time
-		AggregateID   U
-		Version       Version
-		CorrelationID CorrelationID
-		UserID        UserID
-		Data          EventData
+		EventID     EventID
+		AggregateID U
+		Version     Version
+		PartitionID PartitionID
+		Metadata    EventMetadata
+		Data        EventData
 	}
 )
 
@@ -118,8 +117,8 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 		eo.EventID = NewEventID()
 	}
 
-	if eo.Time.IsZero() {
-		eo.Time = time.Now()
+	if eo.Metadata.Time.IsZero() {
+		eo.Metadata.Time = time.Now()
 	}
 
 	return AppendEvent{
@@ -128,13 +127,9 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 		ID:            eo.EventID,
 		AggregateID:   AggregateID(eo.AggregateID),
 		Version:       eo.Version,
-		PartitionID:   "",
+		PartitionID:   eo.PartitionID,
 		Schema:        Schema(eo.Data.Schema()),
-		Metadata: EventMetadata{
-			CorrelationID: eo.CorrelationID,
-			UserID:        eo.UserID,
-			Time:          eo.Time,
-		},
-		Data: d,
+		Metadata:      eo.Metadata,
+		Data:          d,
 	}, nil
 }
