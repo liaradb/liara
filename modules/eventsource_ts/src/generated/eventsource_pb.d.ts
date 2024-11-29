@@ -20,17 +20,13 @@ export class Event extends jspb.Message {
     setVersion(value: number): Event;
     getName(): string;
     setName(value: string): Event;
-    getCorrelationId(): string;
-    setCorrelationId(value: string): Event;
-    getUserId(): string;
-    setUserId(value: string): Event;
-
-    hasTime(): boolean;
-    clearTime(): void;
-    getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
-    setTime(value?: google_protobuf_timestamp_pb.Timestamp): Event;
     getSchema(): string;
     setSchema(value: string): Event;
+
+    hasMetadata(): boolean;
+    clearMetadata(): void;
+    getMetadata(): EventMetadata | undefined;
+    setMetadata(value?: EventMetadata): Event;
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
@@ -54,11 +50,38 @@ export namespace Event {
         aggregateId: string,
         version: number,
         name: string,
+        schema: string,
+        metadata?: EventMetadata.AsObject,
+        data: Uint8Array | string,
+    }
+}
+
+export class EventMetadata extends jspb.Message { 
+    getCorrelationId(): string;
+    setCorrelationId(value: string): EventMetadata;
+    getUserId(): string;
+    setUserId(value: string): EventMetadata;
+
+    hasTime(): boolean;
+    clearTime(): void;
+    getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
+    setTime(value?: google_protobuf_timestamp_pb.Timestamp): EventMetadata;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): EventMetadata.AsObject;
+    static toObject(includeInstance: boolean, msg: EventMetadata): EventMetadata.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: EventMetadata, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): EventMetadata;
+    static deserializeBinaryFromReader(message: EventMetadata, reader: jspb.BinaryReader): EventMetadata;
+}
+
+export namespace EventMetadata {
+    export type AsObject = {
         correlationId: string,
         userId: string,
         time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
-        schema: string,
-        data: Uint8Array | string,
     }
 }
 
@@ -73,17 +96,13 @@ export class AppendEvent extends jspb.Message {
     setVersion(value: number): AppendEvent;
     getName(): string;
     setName(value: string): AppendEvent;
-    getCorrelationId(): string;
-    setCorrelationId(value: string): AppendEvent;
-    getUserId(): string;
-    setUserId(value: string): AppendEvent;
-
-    hasTime(): boolean;
-    clearTime(): void;
-    getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
-    setTime(value?: google_protobuf_timestamp_pb.Timestamp): AppendEvent;
     getSchema(): string;
     setSchema(value: string): AppendEvent;
+
+    hasMetadata(): boolean;
+    clearMetadata(): void;
+    getMetadata(): EventMetadata | undefined;
+    setMetadata(value?: EventMetadata): AppendEvent;
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
@@ -106,10 +125,8 @@ export namespace AppendEvent {
         aggregateId: string,
         version: number,
         name: string,
-        correlationId: string,
-        userId: string,
-        time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
         schema: string,
+        metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
 }

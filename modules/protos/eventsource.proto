@@ -26,7 +26,7 @@ message Event {
   // The name of the Aggregate
   string aggregate_name = 2;
 
-  // The unique ID of the Event
+  // The ID of the Event, used for de-duplication
   string id = 3;
 
   // The ID of the Aggregate to which this Event applies
@@ -35,23 +35,28 @@ message Event {
   // The Version of the Aggregate
   int64 version = 5;
 
-  // The unique GetName of the Event
+  // The Name of the Event
   string name = 6;
 
-  // The ID of the entire Command and Event chain
-  string correlation_id = 7;
+  // The Schema for the internal data
+  string schema = 7;
 
-  // The ID of the User issuing the Command
-  string user_id = 8;
-
-  // The Time this Event was created
-  google.protobuf.Timestamp time = 9;
-
-  // The schema for the internal data
-  string schema = 10;
+  // The Metadata for the Event
+  EventMetadata metadata = 8;
 
   // The internal data of the Event
-  bytes data = 11;
+  bytes data = 9;
+}
+
+message EventMetadata {
+  // The ID of the entire Command and Event chain
+  string correlation_id = 1;
+
+  // The ID of the User issuing the Command
+  string user_id = 2;
+
+  // The Time this Event was created
+  google.protobuf.Timestamp time = 3;
 }
 
 // -----------------------------------------------------------------------------
@@ -59,7 +64,7 @@ message Event {
 // -----------------------------------------------------------------------------
 
 message AppendEvent {
-  // The unique ID of the Event
+  // The ID of the Event, used for de-duplication
   string id = 1;
 
   // The name of the Aggregate
@@ -71,23 +76,17 @@ message AppendEvent {
   // The Version of the Aggregate
   int64 version = 4;
 
-  // The unique GetName of the Event
+  // The Name of the Event
   string name = 5;
 
-  // The ID of the entire Command and Event chain
-  string correlation_id = 6;
+  // The Schema for the internal data
+  string schema = 6;
 
-  // The ID of the User issuing the Command
-  string user_id = 7;
-
-  // The Time this Event was created
-  google.protobuf.Timestamp time = 8;
-
-  // The schema for the internal data
-  string schema = 9;
+  // The Metadata for the Event
+  EventMetadata metadata = 7;
 
   // The internal data of the Event
-  bytes data = 10;
+  bytes data = 8;
 }
 
 message AppendRequest {
