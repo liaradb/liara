@@ -222,6 +222,8 @@ export namespace GetByAggregateIDAndNameRequest {
 export class GetAfterGlobalVersionRequest extends jspb.Message { 
     getGlobalVersion(): number;
     setGlobalVersion(value: number): GetAfterGlobalVersionRequest;
+    getPartitionId(): number;
+    setPartitionId(value: number): GetAfterGlobalVersionRequest;
     getLimit(): number;
     setLimit(value: number): GetAfterGlobalVersionRequest;
 
@@ -238,6 +240,7 @@ export class GetAfterGlobalVersionRequest extends jspb.Message {
 export namespace GetAfterGlobalVersionRequest {
     export type AsObject = {
         globalVersion: number,
+        partitionId: number,
         limit: number,
     }
 }

@@ -1942,7 +1942,8 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.toObject = function(opt_includ
 proto.todo.GetAfterGlobalVersionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     globalVersion: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    limit: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    partitionId: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    limit: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -1984,6 +1985,10 @@ proto.todo.GetAfterGlobalVersionRequest.deserializeBinaryFromReader = function(m
       msg.setGlobalVersion(value);
       break;
     case 2:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPartitionId(value);
+      break;
+    case 3:
       var value = /** @type {number} */ (reader.readInt64());
       msg.setLimit(value);
       break;
@@ -2023,10 +2028,17 @@ proto.todo.GetAfterGlobalVersionRequest.serializeBinaryToWriter = function(messa
       f
     );
   }
+  f = message.getPartitionId();
+  if (f !== 0) {
+    writer.writeInt32(
+      2,
+      f
+    );
+  }
   f = message.getLimit();
   if (f !== 0) {
     writer.writeInt64(
-      2,
+      3,
       f
     );
   }
@@ -2052,10 +2064,10 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.setGlobalVersion = function(va
 
 
 /**
- * optional int64 limit = 2;
+ * optional int32 partition_id = 2;
  * @return {number}
  */
-proto.todo.GetAfterGlobalVersionRequest.prototype.getLimit = function() {
+proto.todo.GetAfterGlobalVersionRequest.prototype.getPartitionId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
@@ -2064,8 +2076,26 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.getLimit = function() {
  * @param {number} value
  * @return {!proto.todo.GetAfterGlobalVersionRequest} returns this
  */
-proto.todo.GetAfterGlobalVersionRequest.prototype.setLimit = function(value) {
+proto.todo.GetAfterGlobalVersionRequest.prototype.setPartitionId = function(value) {
   return jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional int64 limit = 3;
+ * @return {number}
+ */
+proto.todo.GetAfterGlobalVersionRequest.prototype.getLimit = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.todo.GetAfterGlobalVersionRequest} returns this
+ */
+proto.todo.GetAfterGlobalVersionRequest.prototype.setLimit = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 

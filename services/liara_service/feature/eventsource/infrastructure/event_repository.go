@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"iter"
+	"strings"
 
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/service"
@@ -96,30 +97,28 @@ INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 func (er EventRepository) GetAfterGlobalVersion(
 	ctx context.Context,
 	globalVersion value.GlobalVersion,
+	partitionID value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[entity.Event, error] {
 	return func(yield func(entity.Event, error) bool) {
 		var rows *sql.Rows
 		var err error
 
-		if limit > 0 {
-			rows, err = er.db.QueryContext(ctx, fmt.Sprintf(`
-SELECT * FROM %v
-WHERE global_version > $1
-ORDER BY global_version LIMIT $2
-`,
-				er.name),
-				globalVersion,
-				limit)
-		} else {
-			rows, err = er.db.QueryContext(ctx, fmt.Sprintf(`
-SELECT * FROM %v
-WHERE global_version > $1
-ORDER BY global_version
-`,
-				er.name),
-				globalVersion)
+		b := strings.Builder{}
+		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.name))
+		b.WriteString("WHERE global_version > $1")
+		if partitionID > 0 {
+			b.WriteString("AND partition_id > $2")
 		}
+		b.WriteString("ORDER BY global_version")
+		if limit > 0 {
+			b.WriteString("LIMIT $3")
+		}
+
+		rows, err = er.db.QueryContext(ctx, b.String(),
+			globalVersion,
+			partitionID,
+			limit)
 		if err != nil {
 			yield(entity.Event{}, err)
 			return

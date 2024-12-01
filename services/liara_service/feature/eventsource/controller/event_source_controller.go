@@ -71,6 +71,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 ) error {
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		value.GlobalVersion(request.GlobalVersion),
+		value.PartitionID(request.PartitionId),
 		value.Limit(request.Limit)) {
 		if err != nil {
 			return err

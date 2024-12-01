@@ -109,11 +109,13 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
 	version liara.GlobalVersion,
+	partitionID liara.PartitionID,
 	limit liara.Limit,
 ) iter.Seq2[liara.Event, error] {
 	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
 			GlobalVersion: int64(version),
+			PartitionId:   partitionID.Value(),
 			Limit:         int64(limit),
 		})
 		if err != nil {
