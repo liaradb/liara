@@ -75,18 +75,19 @@ func (er EventRepository) appendEvent(
 	em service.AppendEvent,
 ) error {
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
-INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
+INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 `,
 		er.name),
 		em.ID,
-		em.AggregateID,
 		em.AggregateName,
+		em.AggregateID,
 		em.Version,
+		em.PartitionID,
 		em.Name,
+		em.Schema,
 		em.Metadata.CorrelationID,
 		em.Metadata.UserID,
 		em.Metadata.Time,
-		em.Schema,
 		em.Data,
 	)
 	return err
@@ -206,14 +207,15 @@ func (er EventRepository) scanRow(row Row) (entity.Event, error) {
 	err := row.Scan(
 		&event.GlobalVersion,
 		&event.ID,
-		&event.AggregateID,
 		&event.AggregateName,
+		&event.AggregateID,
 		&event.Version,
+		&event.PartitionID,
 		&event.Name,
+		&event.Schema,
 		&event.Metadata.CorrelationID,
 		&event.Metadata.UserID,
 		&event.Metadata.Time,
-		&event.Schema,
 		&event.Data,
 	)
 	return event, err
@@ -224,16 +226,17 @@ func (er EventRepository) CreateTable(ctx context.Context) error {
 CREATE TABLE IF NOT EXISTS %v (
 	global_version INTEGER PRIMARY KEY AUTOINCREMENT,
 	id VARCHAR(50) UNIQUE NOT NULL,
-	aggregate_id VARCHAR(50) NOT NULL,
 	aggregate_name VARCHAR(50) NOT NULL,
+	aggregate_id VARCHAR(50) NOT NULL,
 	version BIGINT NOT NULL,
+	partition_id INT NOT NULL,
 	name VARCHAR(50) NOT NULL,
+	schema VARCHAR(50) NOT NULL,
 	correlation_id VARCHAR(50) NOT NULL,
 	user_id VARCHAR(50) NOT NULL,
 	time TIMESTAMP NOT NULL,
-	schema VARCHAR(50) NOT NULL,
 	data BLOB,
-	CONSTRAINT event_version UNIQUE (aggregate_id, aggregate_name, version)
+	CONSTRAINT event_version UNIQUE (aggregate_name, aggregate_id, version)
 );
 `,
 		er.name)

@@ -35,14 +35,14 @@ message Event {
   // The Version of the Aggregate
   int64 version = 5;
 
+  // The ID to partition Events
+  int32 partition_id = 6;
+
   // The Name of the Event
-  string name = 6;
+  string name = 7;
 
   // The Schema for the internal data
-  string schema = 7;
-
-  // The ID to partition Events
-  string partition_id = 8;
+  string schema = 8;
 
   // The Metadata for the Event
   EventMetadata metadata = 9;
@@ -79,14 +79,14 @@ message AppendEvent {
   // The Version of the Aggregate
   int64 version = 4;
 
+  // The ID to partition Events
+  int32 partition_id = 5;
+
   // The Name of the Event
-  string name = 5;
+  string name = 6;
 
   // The Schema for the internal data
-  string schema = 6;
-
-  // The ID to partition Events
-  string partition_id = 7;
+  string schema = 7;
 
   // The Metadata for the Event
   EventMetadata metadata = 8;

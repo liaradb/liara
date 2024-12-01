@@ -1,5 +1,5 @@
 package value
 
-type PartitionID string
+type PartitionID int32
 
-func (p PartitionID) String() string { return string(p) }
+func (p PartitionID) Value() int32 { return int32(p) }

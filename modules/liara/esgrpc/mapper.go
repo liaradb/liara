@@ -32,7 +32,7 @@ func EventToDto(e liara.Event) *pb.Event {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		PartitionId:   e.PartitionID.String(),
+		PartitionId:   e.PartitionID.Value(),
 		Schema:        e.Schema.String(),
 		Metadata: &pb.EventMetadata{
 			CorrelationId: e.Metadata.CorrelationID.String(),
@@ -66,7 +66,7 @@ func AppendEventToDto(e liara.AppendEvent) *pb.AppendEvent {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		PartitionId:   e.PartitionID.String(),
+		PartitionId:   e.PartitionID.Value(),
 		Schema:        e.Schema.String(),
 		Metadata: &pb.EventMetadata{
 			CorrelationId: e.Metadata.CorrelationID.String(),

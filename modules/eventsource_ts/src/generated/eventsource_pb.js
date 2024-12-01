@@ -324,9 +324,9 @@ proto.todo.Event.toObject = function(includeInstance, msg) {
     aggregateName: jspb.Message.getFieldWithDefault(msg, 3, ""),
     aggregateId: jspb.Message.getFieldWithDefault(msg, 4, ""),
     version: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    name: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    schema: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    partitionId: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    partitionId: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    name: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    schema: jspb.Message.getFieldWithDefault(msg, 8, ""),
     metadata: (f = msg.getMetadata()) && proto.todo.EventMetadata.toObject(includeInstance, f),
     data: msg.getData_asB64()
   };
@@ -386,16 +386,16 @@ proto.todo.Event.deserializeBinaryFromReader = function(msg, reader) {
       msg.setVersion(value);
       break;
     case 6:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPartitionId(value);
       break;
     case 7:
       var value = /** @type {string} */ (reader.readString());
-      msg.setSchema(value);
+      msg.setName(value);
       break;
     case 8:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPartitionId(value);
+      msg.setSchema(value);
       break;
     case 9:
       var value = new proto.todo.EventMetadata;
@@ -470,21 +470,21 @@ proto.todo.Event.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getName();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getPartitionId();
+  if (f !== 0) {
+    writer.writeInt32(
       6,
       f
     );
   }
-  f = message.getSchema();
+  f = message.getName();
   if (f.length > 0) {
     writer.writeString(
       7,
       f
     );
   }
-  f = message.getPartitionId();
+  f = message.getSchema();
   if (f.length > 0) {
     writer.writeString(
       8,
@@ -600,28 +600,28 @@ proto.todo.Event.prototype.setVersion = function(value) {
 
 
 /**
- * optional string name = 6;
+ * optional int32 partition_id = 6;
+ * @return {number}
+ */
+proto.todo.Event.prototype.getPartitionId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.todo.Event} returns this
+ */
+proto.todo.Event.prototype.setPartitionId = function(value) {
+  return jspb.Message.setProto3IntField(this, 6, value);
+};
+
+
+/**
+ * optional string name = 7;
  * @return {string}
  */
 proto.todo.Event.prototype.getName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.todo.Event} returns this
- */
-proto.todo.Event.prototype.setName = function(value) {
-  return jspb.Message.setProto3StringField(this, 6, value);
-};
-
-
-/**
- * optional string schema = 7;
- * @return {string}
- */
-proto.todo.Event.prototype.getSchema = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
 };
 
@@ -630,16 +630,16 @@ proto.todo.Event.prototype.getSchema = function() {
  * @param {string} value
  * @return {!proto.todo.Event} returns this
  */
-proto.todo.Event.prototype.setSchema = function(value) {
+proto.todo.Event.prototype.setName = function(value) {
   return jspb.Message.setProto3StringField(this, 7, value);
 };
 
 
 /**
- * optional string partition_id = 8;
+ * optional string schema = 8;
  * @return {string}
  */
-proto.todo.Event.prototype.getPartitionId = function() {
+proto.todo.Event.prototype.getSchema = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
 };
 
@@ -648,7 +648,7 @@ proto.todo.Event.prototype.getPartitionId = function() {
  * @param {string} value
  * @return {!proto.todo.Event} returns this
  */
-proto.todo.Event.prototype.setPartitionId = function(value) {
+proto.todo.Event.prototype.setSchema = function(value) {
   return jspb.Message.setProto3StringField(this, 8, value);
 };
 
@@ -979,9 +979,9 @@ proto.todo.AppendEvent.toObject = function(includeInstance, msg) {
     aggregateName: jspb.Message.getFieldWithDefault(msg, 2, ""),
     aggregateId: jspb.Message.getFieldWithDefault(msg, 3, ""),
     version: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    name: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    schema: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    partitionId: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    partitionId: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    name: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    schema: jspb.Message.getFieldWithDefault(msg, 7, ""),
     metadata: (f = msg.getMetadata()) && proto.todo.EventMetadata.toObject(includeInstance, f),
     data: msg.getData_asB64()
   };
@@ -1037,16 +1037,16 @@ proto.todo.AppendEvent.deserializeBinaryFromReader = function(msg, reader) {
       msg.setVersion(value);
       break;
     case 5:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setName(value);
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPartitionId(value);
       break;
     case 6:
       var value = /** @type {string} */ (reader.readString());
-      msg.setSchema(value);
+      msg.setName(value);
       break;
     case 7:
       var value = /** @type {string} */ (reader.readString());
-      msg.setPartitionId(value);
+      msg.setSchema(value);
       break;
     case 8:
       var value = new proto.todo.EventMetadata;
@@ -1114,21 +1114,21 @@ proto.todo.AppendEvent.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getName();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getPartitionId();
+  if (f !== 0) {
+    writer.writeInt32(
       5,
       f
     );
   }
-  f = message.getSchema();
+  f = message.getName();
   if (f.length > 0) {
     writer.writeString(
       6,
       f
     );
   }
-  f = message.getPartitionId();
+  f = message.getSchema();
   if (f.length > 0) {
     writer.writeString(
       7,
@@ -1226,28 +1226,28 @@ proto.todo.AppendEvent.prototype.setVersion = function(value) {
 
 
 /**
- * optional string name = 5;
+ * optional int32 partition_id = 5;
+ * @return {number}
+ */
+proto.todo.AppendEvent.prototype.getPartitionId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.todo.AppendEvent} returns this
+ */
+proto.todo.AppendEvent.prototype.setPartitionId = function(value) {
+  return jspb.Message.setProto3IntField(this, 5, value);
+};
+
+
+/**
+ * optional string name = 6;
  * @return {string}
  */
 proto.todo.AppendEvent.prototype.getName = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
-};
-
-
-/**
- * @param {string} value
- * @return {!proto.todo.AppendEvent} returns this
- */
-proto.todo.AppendEvent.prototype.setName = function(value) {
-  return jspb.Message.setProto3StringField(this, 5, value);
-};
-
-
-/**
- * optional string schema = 6;
- * @return {string}
- */
-proto.todo.AppendEvent.prototype.getSchema = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
 };
 
@@ -1256,16 +1256,16 @@ proto.todo.AppendEvent.prototype.getSchema = function() {
  * @param {string} value
  * @return {!proto.todo.AppendEvent} returns this
  */
-proto.todo.AppendEvent.prototype.setSchema = function(value) {
+proto.todo.AppendEvent.prototype.setName = function(value) {
   return jspb.Message.setProto3StringField(this, 6, value);
 };
 
 
 /**
- * optional string partition_id = 7;
+ * optional string schema = 7;
  * @return {string}
  */
-proto.todo.AppendEvent.prototype.getPartitionId = function() {
+proto.todo.AppendEvent.prototype.getSchema = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
 };
 
@@ -1274,7 +1274,7 @@ proto.todo.AppendEvent.prototype.getPartitionId = function() {
  * @param {string} value
  * @return {!proto.todo.AppendEvent} returns this
  */
-proto.todo.AppendEvent.prototype.setPartitionId = function(value) {
+proto.todo.AppendEvent.prototype.setSchema = function(value) {
   return jspb.Message.setProto3StringField(this, 7, value);
 };
 

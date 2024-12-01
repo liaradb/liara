@@ -11,12 +11,12 @@ import (
 func eventToDto(e entity.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion),
-		AggregateName: e.AggregateName.String(),
 		Id:            e.ID.String(),
+		AggregateName: e.AggregateName.String(),
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
+		PartitionId:   e.PartitionID.Value(),
 		Name:          e.Name.String(),
-		PartitionId:   e.PartitionID.String(),
 		Schema:        e.Schema.String(),
 		Metadata:      metadataToDto(e.Metadata),
 		Data:          e.Data,
@@ -25,13 +25,13 @@ func eventToDto(e entity.Event) *pb.Event {
 
 func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 	return service.AppendEvent{
-		AggregateName: value.AggregateName(dto.AggregateName),
 		ID:            value.EventID(dto.Id),
+		AggregateName: value.AggregateName(dto.AggregateName),
 		AggregateID:   value.AggregateID(dto.AggregateId),
 		Version:       value.Version(dto.Version),
+		PartitionID:   value.PartitionID(dto.PartitionId),
 		Name:          value.EventName(dto.Name),
 		Schema:        value.Schema(dto.Schema),
-		PartitionID:   value.PartitionID(dto.PartitionId),
 		Metadata:      dtoToMetadata(dto.Metadata),
 		Data:          dto.Data,
 	}

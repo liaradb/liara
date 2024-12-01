@@ -18,12 +18,12 @@ export class Event extends jspb.Message {
     setAggregateId(value: string): Event;
     getVersion(): number;
     setVersion(value: number): Event;
+    getPartitionId(): number;
+    setPartitionId(value: number): Event;
     getName(): string;
     setName(value: string): Event;
     getSchema(): string;
     setSchema(value: string): Event;
-    getPartitionId(): string;
-    setPartitionId(value: string): Event;
 
     hasMetadata(): boolean;
     clearMetadata(): void;
@@ -51,9 +51,9 @@ export namespace Event {
         aggregateName: string,
         aggregateId: string,
         version: number,
+        partitionId: number,
         name: string,
         schema: string,
-        partitionId: string,
         metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
@@ -97,12 +97,12 @@ export class AppendEvent extends jspb.Message {
     setAggregateId(value: string): AppendEvent;
     getVersion(): number;
     setVersion(value: number): AppendEvent;
+    getPartitionId(): number;
+    setPartitionId(value: number): AppendEvent;
     getName(): string;
     setName(value: string): AppendEvent;
     getSchema(): string;
     setSchema(value: string): AppendEvent;
-    getPartitionId(): string;
-    setPartitionId(value: string): AppendEvent;
 
     hasMetadata(): boolean;
     clearMetadata(): void;
@@ -129,9 +129,9 @@ export namespace AppendEvent {
         aggregateName: string,
         aggregateId: string,
         version: number,
+        partitionId: number,
         name: string,
         schema: string,
-        partitionId: string,
         metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
