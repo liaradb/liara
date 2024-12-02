@@ -32,7 +32,7 @@ func (mes *MockEventSource) Get(
 func (mes *MockEventSource) GetAfterGlobalVersion(
 	ctx context.Context,
 	globalVersion GlobalVersion,
-	partitionID PartitionID,
+	partitionID []PartitionID,
 	limit Limit,
 ) iter.Seq2[Event, error] {
 	panic("unimplemented")

@@ -70,9 +70,13 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	request *pb.GetAfterGlobalVersionRequest,
 	stream pb.EventSourceService_GetAfterGlobalVersionServer,
 ) error {
+	pids := make([]value.PartitionID, 0, len(request.PartitionIds))
+	for _, p := range request.PartitionIds {
+		pids = append(pids, value.PartitionID(p))
+	}
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		value.GlobalVersion(request.GlobalVersion),
-		value.PartitionID(request.PartitionId),
+		pids,
 		value.Limit(request.Limit)) {
 		if err != nil {
 			return err

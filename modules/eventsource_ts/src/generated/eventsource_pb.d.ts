@@ -225,8 +225,10 @@ export namespace GetByAggregateIDAndNameRequest {
 export class GetAfterGlobalVersionRequest extends jspb.Message { 
     getGlobalVersion(): number;
     setGlobalVersion(value: number): GetAfterGlobalVersionRequest;
-    getPartitionId(): number;
-    setPartitionId(value: number): GetAfterGlobalVersionRequest;
+    clearPartitionIdsList(): void;
+    getPartitionIdsList(): Array<number>;
+    setPartitionIdsList(value: Array<number>): GetAfterGlobalVersionRequest;
+    addPartitionIds(value: number, index?: number): number;
     getLimit(): number;
     setLimit(value: number): GetAfterGlobalVersionRequest;
 
@@ -243,7 +245,7 @@ export class GetAfterGlobalVersionRequest extends jspb.Message {
 export namespace GetAfterGlobalVersionRequest {
     export type AsObject = {
         globalVersion: number,
-        partitionId: number,
+        partitionIdsList: Array<number>,
         limit: number,
     }
 }
@@ -251,8 +253,10 @@ export namespace GetAfterGlobalVersionRequest {
 export class GetOrCreateOutboxRequest extends jspb.Message { 
     getOutboxId(): string;
     setOutboxId(value: string): GetOrCreateOutboxRequest;
-    getPartitionId(): string;
-    setPartitionId(value: string): GetOrCreateOutboxRequest;
+    clearPartitionIdList(): void;
+    getPartitionIdList(): Array<number>;
+    setPartitionIdList(value: Array<number>): GetOrCreateOutboxRequest;
+    addPartitionId(value: number, index?: number): number;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetOrCreateOutboxRequest.AsObject;
@@ -267,7 +271,7 @@ export class GetOrCreateOutboxRequest extends jspb.Message {
 export namespace GetOrCreateOutboxRequest {
     export type AsObject = {
         outboxId: string,
-        partitionId: string,
+        partitionIdList: Array<number>,
     }
 }
 

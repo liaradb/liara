@@ -35,23 +35,23 @@ func NewOutbox(
 	}
 }
 
-func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, partitionID PartitionID, limit Limit) {
+func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, partitionIDs []PartitionID, limit Limit) {
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
-			o.read(ctx, outboxID, partitionID, limit)
+			o.read(ctx, outboxID, partitionIDs, limit)
 		}
 	}()
 }
 
-func (o *Outbox) read(ctx context.Context, outboxID OutboxID, partitionID PartitionID, limit Limit) error {
-	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID, partitionID)
+func (o *Outbox) read(ctx context.Context, outboxID OutboxID, partitionIDs []PartitionID, limit Limit) error {
+	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID, partitionIDs)
 	if err != nil {
 		return err
 	}
 
 	updatedGlobalVersion := globalVersion
-	for em, err := range o.eventRepository.GetAfterGlobalVersion(ctx, globalVersion, partitionID, limit) {
+	for em, err := range o.eventRepository.GetAfterGlobalVersion(ctx, globalVersion, partitionIDs, limit) {
 		if err != nil {
 			return err
 		}

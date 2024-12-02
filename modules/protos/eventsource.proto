@@ -125,7 +125,7 @@ message GetByAggregateIDAndNameRequest {
 
 message GetAfterGlobalVersionRequest {
   int64 global_version = 1;
-  int32 partition_id = 2;
+  repeated int32 partition_ids = 2;
   int64 limit = 3;
 }
 
@@ -135,7 +135,7 @@ message GetAfterGlobalVersionRequest {
 
 message GetOrCreateOutboxRequest {
   string outbox_id = 1;
-  string partition_id = 2;
+  repeated int32 partition_id = 2;
 }
 
 message GetOrCreateOutboxResponse {

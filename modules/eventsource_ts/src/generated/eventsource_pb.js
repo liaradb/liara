@@ -193,7 +193,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.todo.GetAfterGlobalVersionRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.todo.GetAfterGlobalVersionRequest.repeatedFields_, null);
 };
 goog.inherits(proto.todo.GetAfterGlobalVersionRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -214,7 +214,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.todo.GetOrCreateOutboxRequest = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.todo.GetOrCreateOutboxRequest.repeatedFields_, null);
 };
 goog.inherits(proto.todo.GetOrCreateOutboxRequest, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -1940,6 +1940,13 @@ proto.todo.GetByAggregateIDAndNameRequest.prototype.setName = function(value) {
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.todo.GetAfterGlobalVersionRequest.repeatedFields_ = [2];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -1972,7 +1979,7 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.toObject = function(opt_includ
 proto.todo.GetAfterGlobalVersionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     globalVersion: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    partitionId: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    partitionIdsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
     limit: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
@@ -2015,8 +2022,10 @@ proto.todo.GetAfterGlobalVersionRequest.deserializeBinaryFromReader = function(m
       msg.setGlobalVersion(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readInt32());
-      msg.setPartitionId(value);
+      var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedInt32() : [reader.readInt32()]);
+      for (var i = 0; i < values.length; i++) {
+        msg.addPartitionIds(values[i]);
+      }
       break;
     case 3:
       var value = /** @type {number} */ (reader.readInt64());
@@ -2058,9 +2067,9 @@ proto.todo.GetAfterGlobalVersionRequest.serializeBinaryToWriter = function(messa
       f
     );
   }
-  f = message.getPartitionId();
-  if (f !== 0) {
-    writer.writeInt32(
+  f = message.getPartitionIdsList();
+  if (f.length > 0) {
+    writer.writePackedInt32(
       2,
       f
     );
@@ -2094,20 +2103,39 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.setGlobalVersion = function(va
 
 
 /**
- * optional int32 partition_id = 2;
- * @return {number}
+ * repeated int32 partition_ids = 2;
+ * @return {!Array<number>}
  */
-proto.todo.GetAfterGlobalVersionRequest.prototype.getPartitionId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+proto.todo.GetAfterGlobalVersionRequest.prototype.getPartitionIdsList = function() {
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
+};
+
+
+/**
+ * @param {!Array<number>} value
+ * @return {!proto.todo.GetAfterGlobalVersionRequest} returns this
+ */
+proto.todo.GetAfterGlobalVersionRequest.prototype.setPartitionIdsList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
 };
 
 
 /**
  * @param {number} value
+ * @param {number=} opt_index
  * @return {!proto.todo.GetAfterGlobalVersionRequest} returns this
  */
-proto.todo.GetAfterGlobalVersionRequest.prototype.setPartitionId = function(value) {
-  return jspb.Message.setProto3IntField(this, 2, value);
+proto.todo.GetAfterGlobalVersionRequest.prototype.addPartitionIds = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.todo.GetAfterGlobalVersionRequest} returns this
+ */
+proto.todo.GetAfterGlobalVersionRequest.prototype.clearPartitionIdsList = function() {
+  return this.setPartitionIdsList([]);
 };
 
 
@@ -2129,6 +2157,13 @@ proto.todo.GetAfterGlobalVersionRequest.prototype.setLimit = function(value) {
 };
 
 
+
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.todo.GetOrCreateOutboxRequest.repeatedFields_ = [2];
 
 
 
@@ -2162,7 +2197,7 @@ proto.todo.GetOrCreateOutboxRequest.prototype.toObject = function(opt_includeIns
 proto.todo.GetOrCreateOutboxRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     outboxId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    partitionId: jspb.Message.getFieldWithDefault(msg, 2, "")
+    partitionIdList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -2204,8 +2239,10 @@ proto.todo.GetOrCreateOutboxRequest.deserializeBinaryFromReader = function(msg, 
       msg.setOutboxId(value);
       break;
     case 2:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setPartitionId(value);
+      var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedInt32() : [reader.readInt32()]);
+      for (var i = 0; i < values.length; i++) {
+        msg.addPartitionId(values[i]);
+      }
       break;
     default:
       reader.skipField();
@@ -2243,9 +2280,9 @@ proto.todo.GetOrCreateOutboxRequest.serializeBinaryToWriter = function(message, 
       f
     );
   }
-  f = message.getPartitionId();
+  f = message.getPartitionIdList();
   if (f.length > 0) {
-    writer.writeString(
+    writer.writePackedInt32(
       2,
       f
     );
@@ -2272,20 +2309,39 @@ proto.todo.GetOrCreateOutboxRequest.prototype.setOutboxId = function(value) {
 
 
 /**
- * optional string partition_id = 2;
- * @return {string}
+ * repeated int32 partition_id = 2;
+ * @return {!Array<number>}
  */
-proto.todo.GetOrCreateOutboxRequest.prototype.getPartitionId = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+proto.todo.GetOrCreateOutboxRequest.prototype.getPartitionIdList = function() {
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
 };
 
 
 /**
- * @param {string} value
+ * @param {!Array<number>} value
  * @return {!proto.todo.GetOrCreateOutboxRequest} returns this
  */
-proto.todo.GetOrCreateOutboxRequest.prototype.setPartitionId = function(value) {
-  return jspb.Message.setProto3StringField(this, 2, value);
+proto.todo.GetOrCreateOutboxRequest.prototype.setPartitionIdList = function(value) {
+  return jspb.Message.setField(this, 2, value || []);
+};
+
+
+/**
+ * @param {number} value
+ * @param {number=} opt_index
+ * @return {!proto.todo.GetOrCreateOutboxRequest} returns this
+ */
+proto.todo.GetOrCreateOutboxRequest.prototype.addPartitionId = function(value, opt_index) {
+  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ * @return {!proto.todo.GetOrCreateOutboxRequest} returns this
+ */
+proto.todo.GetOrCreateOutboxRequest.prototype.clearPartitionIdList = function() {
+  return this.setPartitionIdList([]);
 };
 
 

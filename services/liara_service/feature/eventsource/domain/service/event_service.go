@@ -70,10 +70,10 @@ func (es *EventService) GetByAggregateIDAndName(
 func (es *EventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	version value.GlobalVersion,
-	partitionID value.PartitionID,
+	partitionIDs []value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventRepository.GetAfterGlobalVersion(ctx, version, partitionID, limit)
+	return es.eventRepository.GetAfterGlobalVersion(ctx, version, partitionIDs, limit)
 }
 
 func (es *EventService) GetOrCreateOutbox(
