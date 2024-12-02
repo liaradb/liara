@@ -16,21 +16,39 @@ type object string
 type command string
 
 const (
-	objectTenant object  = "tenant"
-	objectEvent  object  = "event"
-	commandList  command = "list"
+	objectTenant      object  = "tenant"
+	objectEvent       object  = "event"
+	commandObjectList command = "list"
+	commandEventList  command = "list"
 )
 
 func main() {
-	cmd := getArgs()
-	switch cmd {
+	obj, cmd := getArgs()
+	switch obj {
 	case objectTenant:
-		listTenants()
+		tenants(cmd)
 	case objectEvent:
+		events(cmd)
+	default:
+		fmt.Println("no object specified")
+	}
+}
+
+func tenants(cmd command) {
+	switch cmd {
+	case commandObjectList:
+		listTenants()
+	default:
+		fmt.Println("no command specified")
+	}
+}
+
+func events(cmd command) {
+	switch cmd {
+	case commandEventList:
 		listEvents()
 	default:
-		fmt.Println("no command")
-		break
+		fmt.Println("no command specified")
 	}
 }
 
@@ -80,14 +98,16 @@ func listEvents() {
 	}
 }
 
-func getArgs() object {
+func getArgs() (object, command) {
 	args := os.Args
 	switch len(args) {
 	case 0:
 		fallthrough
 	case 1:
-		return ""
+		return "", ""
+	case 2:
+		return object(args[1]), ""
 	default:
-		return object(args[1])
+		return object(args[1]), command(args[2])
 	}
 }
