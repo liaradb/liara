@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/cardboardrobots/baseerror"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
 
@@ -52,5 +53,8 @@ func (er SnapshotRepository[U]) scanRow(row Row) (SnapshotModel[U], error) {
 		&snapshot.Schema,
 		&snapshot.Data,
 	)
+	if err == sql.ErrNoRows {
+		err = baseerror.ErrNotFound
+	}
 	return snapshot, err
 }

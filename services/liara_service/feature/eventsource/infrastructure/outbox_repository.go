@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/cardboardrobots/baseerror"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
@@ -40,6 +41,9 @@ WHERE id = $1
 		s.name), outboxID)
 	m, err := s.scanRow(row)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = baseerror.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -75,10 +79,14 @@ WHERE id = $1
 
 func (s *OutboxRepository) scanRow(row Row) (outboxModel, error) {
 	outbox := outboxModel{}
+	var low, high value.PartitionID
 	err := row.Scan(
 		&outbox.ID,
+		&low,
+		&high,
 		&outbox.Position,
 	)
+	outbox.PartitionRange = value.NewPartitionRange(low, high)
 	return outbox, err
 }
 

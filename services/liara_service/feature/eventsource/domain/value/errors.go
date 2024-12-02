@@ -1,9 +1,10 @@
 package value
 
-import "errors"
+import (
+	"github.com/cardboardrobots/baseerror"
+)
 
 var (
-	ErrNotFound                 = errors.New("not found")
-	ErrAggregateVersionInvalid  = errors.New("aggregate version invalid")
-	ErrAggregateVersionMismatch = errors.New("aggregate version mismatch")
+	ErrAggregateVersionInvalid = baseerror.ErrInvalidArgument.Wrap("aggregate version invalid")
+	// ErrAggregateVersionMismatch = errors.New("aggregate version mismatch")
 )

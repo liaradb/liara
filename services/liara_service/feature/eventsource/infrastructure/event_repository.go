@@ -71,17 +71,17 @@ func (er EventRepository) GetAfterGlobalVersion(
 
 		b := strings.Builder{}
 		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.name))
-		b.WriteString("WHERE global_version > $1")
+		b.WriteString(" WHERE global_version > $1")
 		partition0, partition1 := partitionRange.All()
 		if partition0 > 0 {
-			b.WriteString("AND partition_id >= $2")
+			b.WriteString(" AND partition_id >= $2")
 		}
 		if partition1 > partition0 {
-			b.WriteString("AND partition_id <= $3")
+			b.WriteString(" AND partition_id <= $3")
 		}
-		b.WriteString("ORDER BY global_version")
+		b.WriteString(" ORDER BY global_version")
 		if limit > 0 {
-			b.WriteString("LIMIT $4")
+			b.WriteString(" LIMIT $4")
 		}
 
 		rows, err = er.db.QueryContext(ctx, b.String(),
