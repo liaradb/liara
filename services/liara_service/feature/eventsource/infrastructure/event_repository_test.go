@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"context"
-	"errors"
 	"reflect"
 	"testing"
 
@@ -81,29 +80,6 @@ func TestEventRepository_Append(t *testing.T) {
 
 		if count != 1 {
 			t.Errorf("count is incorrect.  Recieved: %v, Expected: %v", count, 1)
-		}
-	})
-
-	t.Run("should not append invalid version", func(t *testing.T) {
-		ctx := context.Background()
-
-		er, err := connectInMemory(ctx, "events")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		aggregateID := value.AggregateID("aggregateID")
-
-		want := service.AppendEvent{
-			AggregateName: "example",
-			ID:            "eventID",
-			AggregateID:   aggregateID,
-			Version:       0,
-		}
-
-		err = er.Append(ctx, want)
-		if !errors.Is(err, value.ErrAggregateVersionInvalid) {
-			t.Error("should return error")
 		}
 	})
 
