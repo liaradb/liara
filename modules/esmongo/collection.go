@@ -21,8 +21,7 @@ func NewCollection[M any](collection *mongo.Collection) *Collection[M] {
 }
 
 func (c *Collection[M]) Insert(ctx context.Context, id string, m *M) error {
-	_, err := c.collection.ReplaceOne(ctx,
-		bson.M{"_id": id},
+	_, err := c.collection.InsertOne(ctx,
 		m)
 	return err
 }
