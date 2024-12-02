@@ -3,9 +3,9 @@ package infrastructure
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
 
@@ -16,8 +16,9 @@ type (
 	}
 
 	outboxModel struct {
-		ID       value.OutboxID
-		Position value.GlobalVersion
+		ID             value.OutboxID
+		PartitionRange value.PartitionRange
+		Position       value.GlobalVersion
 	}
 )
 
@@ -28,38 +29,33 @@ func NewOutboxRepository(db *sql.DB, name string) *OutboxRepository {
 	}
 }
 
-func (s *OutboxRepository) GetOrCreateOutbox(
+func (s *OutboxRepository) GetOutbox(
 	ctx context.Context,
 	outboxID value.OutboxID,
-) (value.GlobalVersion, error) {
-	outbox, err := s.getOutbox(ctx, outboxID)
-	if errors.Is(err, sql.ErrNoRows) {
-		err = s.createOutbox(ctx, outboxID)
-	}
-	return outbox.Position, err
-}
-
-func (s *OutboxRepository) getOutbox(
-	ctx context.Context,
-	outboxID value.OutboxID,
-) (outboxModel, error) {
+) (*entity.Outbox, error) {
 	row := s.db.QueryRowContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v
 WHERE id = $1
 `,
 		s.name), outboxID)
-	return s.scanRow(row)
+	m, err := s.scanRow(row)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity.RestoreOutbox(m.ID, m.PartitionRange, m.Position), nil
 }
 
-func (s *OutboxRepository) createOutbox(
+func (s *OutboxRepository) CreateOutbox(
 	ctx context.Context,
-	outboxID value.OutboxID,
+	outbox *entity.Outbox,
 ) error {
+	low, high := outbox.PartitionRange().All()
 	_, err := s.db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v
-VALUES( $1, $2 )
+VALUES( $1, $2, $3, $4 )
 `,
-		s.name), outboxID, 0)
+		s.name), outbox.ID(), low, high, 0)
 	return err
 }
 
@@ -90,6 +86,8 @@ func (s *OutboxRepository) CreateTable(ctx context.Context) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %v (
 	id VARCHAR(50) PRIMARY KEY NOT NULL,
+	partition_low INT NOT NULL,
+	partition_high INT NOT NULL,
 	position BIGINT NOT NULL
 );
 `,

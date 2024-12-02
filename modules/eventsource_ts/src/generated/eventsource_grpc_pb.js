@@ -27,6 +27,28 @@ function deserialize_todo_AppendResponse(buffer_arg) {
   return eventsource_pb.AppendResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_todo_CreateOutboxRequest(arg) {
+  if (!(arg instanceof eventsource_pb.CreateOutboxRequest)) {
+    throw new Error('Expected argument of type todo.CreateOutboxRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_CreateOutboxRequest(buffer_arg) {
+  return eventsource_pb.CreateOutboxRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_CreateOutboxResponse(arg) {
+  if (!(arg instanceof eventsource_pb.CreateOutboxResponse)) {
+    throw new Error('Expected argument of type todo.CreateOutboxResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_CreateOutboxResponse(buffer_arg) {
+  return eventsource_pb.CreateOutboxResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_todo_Event(arg) {
   if (!(arg instanceof eventsource_pb.Event)) {
     throw new Error('Expected argument of type todo.Event');
@@ -60,26 +82,37 @@ function deserialize_todo_GetByAggregateIDAndNameRequest(buffer_arg) {
   return eventsource_pb.GetByAggregateIDAndNameRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_todo_GetOrCreateOutboxRequest(arg) {
-  if (!(arg instanceof eventsource_pb.GetOrCreateOutboxRequest)) {
-    throw new Error('Expected argument of type todo.GetOrCreateOutboxRequest');
+function serialize_todo_GetByOutboxRequest(arg) {
+  if (!(arg instanceof eventsource_pb.GetByOutboxRequest)) {
+    throw new Error('Expected argument of type todo.GetByOutboxRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_todo_GetOrCreateOutboxRequest(buffer_arg) {
-  return eventsource_pb.GetOrCreateOutboxRequest.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_todo_GetByOutboxRequest(buffer_arg) {
+  return eventsource_pb.GetByOutboxRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_todo_GetOrCreateOutboxResponse(arg) {
-  if (!(arg instanceof eventsource_pb.GetOrCreateOutboxResponse)) {
-    throw new Error('Expected argument of type todo.GetOrCreateOutboxResponse');
+function serialize_todo_GetOutboxRequest(arg) {
+  if (!(arg instanceof eventsource_pb.GetOutboxRequest)) {
+    throw new Error('Expected argument of type todo.GetOutboxRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_todo_GetOrCreateOutboxResponse(buffer_arg) {
-  return eventsource_pb.GetOrCreateOutboxResponse.deserializeBinary(new Uint8Array(buffer_arg));
+function deserialize_todo_GetOutboxRequest(buffer_arg) {
+  return eventsource_pb.GetOutboxRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_GetOutboxResponse(arg) {
+  if (!(arg instanceof eventsource_pb.GetOutboxResponse)) {
+    throw new Error('Expected argument of type todo.GetOutboxResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_GetOutboxResponse(buffer_arg) {
+  return eventsource_pb.GetOutboxResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_todo_GetRequest(arg) {
@@ -161,16 +194,38 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     responseSerialize: serialize_todo_Event,
     responseDeserialize: deserialize_todo_Event,
   },
-  getOrCreateOutbox: {
-    path: '/todo.EventSourceService/GetOrCreateOutbox',
+  getByOutbox: {
+    path: '/todo.EventSourceService/GetByOutbox',
+    requestStream: false,
+    responseStream: true,
+    requestType: eventsource_pb.GetByOutboxRequest,
+    responseType: eventsource_pb.Event,
+    requestSerialize: serialize_todo_GetByOutboxRequest,
+    requestDeserialize: deserialize_todo_GetByOutboxRequest,
+    responseSerialize: serialize_todo_Event,
+    responseDeserialize: deserialize_todo_Event,
+  },
+  createOutbox: {
+    path: '/todo.EventSourceService/CreateOutbox',
     requestStream: false,
     responseStream: false,
-    requestType: eventsource_pb.GetOrCreateOutboxRequest,
-    responseType: eventsource_pb.GetOrCreateOutboxResponse,
-    requestSerialize: serialize_todo_GetOrCreateOutboxRequest,
-    requestDeserialize: deserialize_todo_GetOrCreateOutboxRequest,
-    responseSerialize: serialize_todo_GetOrCreateOutboxResponse,
-    responseDeserialize: deserialize_todo_GetOrCreateOutboxResponse,
+    requestType: eventsource_pb.CreateOutboxRequest,
+    responseType: eventsource_pb.CreateOutboxResponse,
+    requestSerialize: serialize_todo_CreateOutboxRequest,
+    requestDeserialize: deserialize_todo_CreateOutboxRequest,
+    responseSerialize: serialize_todo_CreateOutboxResponse,
+    responseDeserialize: deserialize_todo_CreateOutboxResponse,
+  },
+  getOutbox: {
+    path: '/todo.EventSourceService/GetOutbox',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.GetOutboxRequest,
+    responseType: eventsource_pb.GetOutboxResponse,
+    requestSerialize: serialize_todo_GetOutboxRequest,
+    requestDeserialize: deserialize_todo_GetOutboxRequest,
+    responseSerialize: serialize_todo_GetOutboxResponse,
+    responseDeserialize: deserialize_todo_GetOutboxResponse,
   },
   updateOutboxPosition: {
     path: '/todo.EventSourceService/UpdateOutboxPosition',

@@ -38,6 +38,14 @@ func (mes *MockEventSource) GetAfterGlobalVersion(
 	panic("unimplemented")
 }
 
+func (mes *MockEventSource) GetByOutbox(
+	ctx context.Context,
+	outboxID OutboxID,
+	limit Limit,
+) iter.Seq2[Event, error] {
+	panic("unimplemented")
+}
+
 func (mes *MockEventSource) GetByAggregateIDAndName(
 	ctx context.Context,
 	id AggregateID,

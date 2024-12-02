@@ -2,7 +2,6 @@ package liara
 
 import (
 	"context"
-	"errors"
 	"time"
 )
 
@@ -35,23 +34,23 @@ func NewOutbox(
 	}
 }
 
-func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, partitionIDs []PartitionID, limit Limit) {
+func (o *Outbox) Create(ctx context.Context, outboxID OutboxID, partitionIDs []PartitionID) (OutboxID, error) {
+	return o.outboxRepository.CreateOutbox(ctx, outboxID, partitionIDs)
+}
+
+func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, limit Limit) {
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
-			o.read(ctx, outboxID, partitionIDs, limit)
+			o.read(ctx, outboxID, limit)
 		}
 	}()
 }
 
-func (o *Outbox) read(ctx context.Context, outboxID OutboxID, partitionIDs []PartitionID, limit Limit) error {
-	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID, partitionIDs)
-	if err != nil {
-		return err
-	}
-
-	updatedGlobalVersion := globalVersion
-	for em, err := range o.eventRepository.GetAfterGlobalVersion(ctx, globalVersion, partitionIDs, limit) {
+func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error {
+	update := false
+	var globalVersion GlobalVersion
+	for em, err := range o.eventRepository.GetByOutbox(ctx, outboxID, limit) {
 		if err != nil {
 			return err
 		}
@@ -62,14 +61,14 @@ func (o *Outbox) read(ctx context.Context, outboxID OutboxID, partitionIDs []Par
 				return err
 			}
 		}
-		updatedGlobalVersion = em.GlobalVersion
-	}
-	if updatedGlobalVersion == globalVersion {
-		return err
+		update = true
+		globalVersion = em.GlobalVersion
 	}
 
-	updateErr := o.outboxRepository.UpdateOutboxPosition(ctx, outboxID, updatedGlobalVersion)
-	return errors.Join(err, updateErr)
+	if update {
+		return o.outboxRepository.UpdateOutboxPosition(ctx, outboxID, globalVersion)
+	}
+	return nil
 }
 
 func (o *Outbox) Subscribe(es EventSubscriber) func() {

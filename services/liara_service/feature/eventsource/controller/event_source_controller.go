@@ -83,17 +83,51 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	return nil
 }
 
-func (esc *EventSourceController) GetOrCreateOutbox(
+func (esc *EventSourceController) GetByOutbox(
+	request *pb.GetByOutboxRequest,
+	stream pb.EventSourceService_GetByOutboxServer,
+) error {
+	for row, err := range esc.eventService.GetByOutbox(stream.Context(),
+		value.OutboxID(request.OutboxId),
+		value.Limit(request.Limit)) {
+		if err != nil {
+			return err
+		}
+
+		stream.Send(eventToDto(row))
+	}
+	return nil
+}
+
+func (esc *EventSourceController) CreateOutbox(
 	ctx context.Context,
-	request *pb.GetOrCreateOutboxRequest,
-) (*pb.GetOrCreateOutboxResponse, error) {
-	result, err := esc.eventService.GetOrCreateOutbox(ctx, value.OutboxID(request.OutboxId))
+	request *pb.CreateOutboxRequest,
+) (*pb.CreateOutboxResponse, error) {
+	outboxID, err := esc.eventService.CreateOutbox(ctx,
+		value.OutboxID(request.OutboxId),
+		dtoToPartitionRange(request.PartitionId))
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.GetOrCreateOutboxResponse{
-		GlobalVersion: int64(result),
+	return &pb.CreateOutboxResponse{
+		OutboxId: string(outboxID),
+	}, nil
+}
+
+func (esc *EventSourceController) GetOutbox(
+	ctx context.Context,
+	request *pb.GetOutboxRequest,
+) (*pb.GetOutboxResponse, error) {
+	result, err := esc.eventService.GetOutbox(ctx, value.OutboxID(request.OutboxId))
+	if err != nil {
+		return nil, err
+	}
+	low, high := result.PartitionRange().All()
+
+	return &pb.GetOutboxResponse{
+		GlobalVersion: int64(result.GlobalVersion()),
+		PartitionId:   []int32{low.Value(), high.Value()},
 	}, nil
 }
 

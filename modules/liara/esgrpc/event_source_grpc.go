@@ -145,12 +145,55 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	}
 }
 
-func (es *EventSourceGRPC) GetOrCreateOutbox(
+func (es *EventSourceGRPC) GetByOutbox(ctx context.Context, outboxID liara.OutboxID, limit liara.Limit) iter.Seq2[liara.Event, error] {
+	return func(yield func(liara.Event, error) bool) {
+		stream, err := es.client.GetByOutbox(ctx, &pb.GetByOutboxRequest{
+			OutboxId: outboxID.String(),
+			Limit:    int64(limit),
+		})
+		if err != nil {
+			yield(liara.Event{}, err)
+			return
+		}
+
+		for {
+			e, err := stream.Recv()
+			if err == io.EOF {
+				return
+			}
+
+			if err != nil {
+				yield(liara.Event{}, err)
+				return
+			}
+
+			if !yield(DtoToEvent(e), nil) {
+				return
+			}
+		}
+	}
+}
+
+func (es *EventSourceGRPC) CreateOutbox(
 	ctx context.Context,
 	outboxID liara.OutboxID,
 	partitionIDs []liara.PartitionID,
+) (liara.OutboxID, error) {
+	response, err := es.client.CreateOutbox(ctx, &pb.CreateOutboxRequest{
+		OutboxId: outboxID.String(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return liara.OutboxID(response.OutboxId), nil
+}
+
+func (es *EventSourceGRPC) GetOutbox(
+	ctx context.Context,
+	outboxID liara.OutboxID,
 ) (liara.GlobalVersion, error) {
-	response, err := es.client.GetOrCreateOutbox(ctx, &pb.GetOrCreateOutboxRequest{
+	response, err := es.client.GetOutbox(ctx, &pb.GetOutboxRequest{
 		OutboxId: outboxID.String(),
 	})
 	if err != nil {

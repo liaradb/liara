@@ -250,48 +250,116 @@ export namespace GetAfterGlobalVersionRequest {
     }
 }
 
-export class GetOrCreateOutboxRequest extends jspb.Message { 
+export class GetByOutboxRequest extends jspb.Message { 
     getOutboxId(): string;
-    setOutboxId(value: string): GetOrCreateOutboxRequest;
+    setOutboxId(value: string): GetByOutboxRequest;
+    getLimit(): number;
+    setLimit(value: number): GetByOutboxRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetByOutboxRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetByOutboxRequest): GetByOutboxRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetByOutboxRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetByOutboxRequest;
+    static deserializeBinaryFromReader(message: GetByOutboxRequest, reader: jspb.BinaryReader): GetByOutboxRequest;
+}
+
+export namespace GetByOutboxRequest {
+    export type AsObject = {
+        outboxId: string,
+        limit: number,
+    }
+}
+
+export class CreateOutboxRequest extends jspb.Message { 
+    getOutboxId(): string;
+    setOutboxId(value: string): CreateOutboxRequest;
     clearPartitionIdList(): void;
     getPartitionIdList(): Array<number>;
-    setPartitionIdList(value: Array<number>): GetOrCreateOutboxRequest;
+    setPartitionIdList(value: Array<number>): CreateOutboxRequest;
     addPartitionId(value: number, index?: number): number;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetOrCreateOutboxRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: GetOrCreateOutboxRequest): GetOrCreateOutboxRequest.AsObject;
+    toObject(includeInstance?: boolean): CreateOutboxRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: CreateOutboxRequest): CreateOutboxRequest.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetOrCreateOutboxRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetOrCreateOutboxRequest;
-    static deserializeBinaryFromReader(message: GetOrCreateOutboxRequest, reader: jspb.BinaryReader): GetOrCreateOutboxRequest;
+    static serializeBinaryToWriter(message: CreateOutboxRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CreateOutboxRequest;
+    static deserializeBinaryFromReader(message: CreateOutboxRequest, reader: jspb.BinaryReader): CreateOutboxRequest;
 }
 
-export namespace GetOrCreateOutboxRequest {
+export namespace CreateOutboxRequest {
     export type AsObject = {
         outboxId: string,
         partitionIdList: Array<number>,
     }
 }
 
-export class GetOrCreateOutboxResponse extends jspb.Message { 
-    getGlobalVersion(): number;
-    setGlobalVersion(value: number): GetOrCreateOutboxResponse;
+export class CreateOutboxResponse extends jspb.Message { 
+    getOutboxId(): string;
+    setOutboxId(value: string): CreateOutboxResponse;
 
     serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): GetOrCreateOutboxResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: GetOrCreateOutboxResponse): GetOrCreateOutboxResponse.AsObject;
+    toObject(includeInstance?: boolean): CreateOutboxResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: CreateOutboxResponse): CreateOutboxResponse.AsObject;
     static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
     static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: GetOrCreateOutboxResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): GetOrCreateOutboxResponse;
-    static deserializeBinaryFromReader(message: GetOrCreateOutboxResponse, reader: jspb.BinaryReader): GetOrCreateOutboxResponse;
+    static serializeBinaryToWriter(message: CreateOutboxResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): CreateOutboxResponse;
+    static deserializeBinaryFromReader(message: CreateOutboxResponse, reader: jspb.BinaryReader): CreateOutboxResponse;
 }
 
-export namespace GetOrCreateOutboxResponse {
+export namespace CreateOutboxResponse {
+    export type AsObject = {
+        outboxId: string,
+    }
+}
+
+export class GetOutboxRequest extends jspb.Message { 
+    getOutboxId(): string;
+    setOutboxId(value: string): GetOutboxRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetOutboxRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: GetOutboxRequest): GetOutboxRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetOutboxRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetOutboxRequest;
+    static deserializeBinaryFromReader(message: GetOutboxRequest, reader: jspb.BinaryReader): GetOutboxRequest;
+}
+
+export namespace GetOutboxRequest {
+    export type AsObject = {
+        outboxId: string,
+    }
+}
+
+export class GetOutboxResponse extends jspb.Message { 
+    getGlobalVersion(): number;
+    setGlobalVersion(value: number): GetOutboxResponse;
+    clearPartitionIdList(): void;
+    getPartitionIdList(): Array<number>;
+    setPartitionIdList(value: Array<number>): GetOutboxResponse;
+    addPartitionId(value: number, index?: number): number;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): GetOutboxResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: GetOutboxResponse): GetOutboxResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: GetOutboxResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): GetOutboxResponse;
+    static deserializeBinaryFromReader(message: GetOutboxResponse, reader: jspb.BinaryReader): GetOutboxResponse;
+}
+
+export namespace GetOutboxResponse {
     export type AsObject = {
         globalVersion: number,
+        partitionIdList: Array<number>,
     }
 }
 

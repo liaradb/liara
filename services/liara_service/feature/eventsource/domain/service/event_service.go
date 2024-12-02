@@ -5,6 +5,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
@@ -76,11 +77,34 @@ func (es *EventService) GetAfterGlobalVersion(
 	return es.eventRepository.GetAfterGlobalVersion(ctx, version, partitionRange, limit)
 }
 
-func (es *EventService) GetOrCreateOutbox(
+func (es *EventService) GetByOutbox(
 	ctx context.Context,
 	outboxID value.OutboxID,
-) (value.GlobalVersion, error) {
-	return es.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
+	limit value.Limit,
+) iter.Seq2[entity.Event, error] {
+	outbox, err := es.outboxRepository.GetOutbox(ctx, outboxID)
+	if err != nil {
+		return base.IterError[entity.Event](err)
+	}
+
+	return es.eventRepository.GetAfterGlobalVersion(ctx, outbox.GlobalVersion(), outbox.PartitionRange(), limit)
+}
+
+func (es *EventService) CreateOutbox(
+	ctx context.Context,
+	outboxID value.OutboxID,
+	partitionRange value.PartitionRange,
+) (value.OutboxID, error) {
+	outbox := entity.NewOutbox(outboxID, partitionRange)
+	err := es.outboxRepository.CreateOutbox(ctx, outbox)
+	return outbox.ID(), err
+}
+
+func (es *EventService) GetOutbox(
+	ctx context.Context,
+	outboxID value.OutboxID,
+) (*entity.Outbox, error) {
+	return es.outboxRepository.GetOutbox(ctx, outboxID)
 }
 
 func (es *EventService) UpdateOutboxPosition(

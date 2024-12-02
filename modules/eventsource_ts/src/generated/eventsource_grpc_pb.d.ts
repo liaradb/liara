@@ -13,7 +13,9 @@ interface IEventSourceServiceService extends grpc.ServiceDefinition<grpc.Untyped
     get: IEventSourceServiceService_IGet;
     getByAggregateIDAndName: IEventSourceServiceService_IGetByAggregateIDAndName;
     getAfterGlobalVersion: IEventSourceServiceService_IGetAfterGlobalVersion;
-    getOrCreateOutbox: IEventSourceServiceService_IGetOrCreateOutbox;
+    getByOutbox: IEventSourceServiceService_IGetByOutbox;
+    createOutbox: IEventSourceServiceService_ICreateOutbox;
+    getOutbox: IEventSourceServiceService_IGetOutbox;
     updateOutboxPosition: IEventSourceServiceService_IUpdateOutboxPosition;
 }
 
@@ -53,14 +55,32 @@ interface IEventSourceServiceService_IGetAfterGlobalVersion extends grpc.MethodD
     responseSerialize: grpc.serialize<eventsource_pb.Event>;
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
-interface IEventSourceServiceService_IGetOrCreateOutbox extends grpc.MethodDefinition<eventsource_pb.GetOrCreateOutboxRequest, eventsource_pb.GetOrCreateOutboxResponse> {
-    path: "/todo.EventSourceService/GetOrCreateOutbox";
+interface IEventSourceServiceService_IGetByOutbox extends grpc.MethodDefinition<eventsource_pb.GetByOutboxRequest, eventsource_pb.Event> {
+    path: "/todo.EventSourceService/GetByOutbox";
+    requestStream: false;
+    responseStream: true;
+    requestSerialize: grpc.serialize<eventsource_pb.GetByOutboxRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.GetByOutboxRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.Event>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
+}
+interface IEventSourceServiceService_ICreateOutbox extends grpc.MethodDefinition<eventsource_pb.CreateOutboxRequest, eventsource_pb.CreateOutboxResponse> {
+    path: "/todo.EventSourceService/CreateOutbox";
     requestStream: false;
     responseStream: false;
-    requestSerialize: grpc.serialize<eventsource_pb.GetOrCreateOutboxRequest>;
-    requestDeserialize: grpc.deserialize<eventsource_pb.GetOrCreateOutboxRequest>;
-    responseSerialize: grpc.serialize<eventsource_pb.GetOrCreateOutboxResponse>;
-    responseDeserialize: grpc.deserialize<eventsource_pb.GetOrCreateOutboxResponse>;
+    requestSerialize: grpc.serialize<eventsource_pb.CreateOutboxRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.CreateOutboxRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.CreateOutboxResponse>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.CreateOutboxResponse>;
+}
+interface IEventSourceServiceService_IGetOutbox extends grpc.MethodDefinition<eventsource_pb.GetOutboxRequest, eventsource_pb.GetOutboxResponse> {
+    path: "/todo.EventSourceService/GetOutbox";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventsource_pb.GetOutboxRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.GetOutboxRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.GetOutboxResponse>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.GetOutboxResponse>;
 }
 interface IEventSourceServiceService_IUpdateOutboxPosition extends grpc.MethodDefinition<eventsource_pb.UpdateOutboxPositionRequest, eventsource_pb.UpdateOutboxPositionResponse> {
     path: "/todo.EventSourceService/UpdateOutboxPosition";
@@ -79,7 +99,9 @@ export interface IEventSourceServiceServer extends grpc.UntypedServiceImplementa
     get: grpc.handleServerStreamingCall<eventsource_pb.GetRequest, eventsource_pb.Event>;
     getByAggregateIDAndName: grpc.handleServerStreamingCall<eventsource_pb.GetByAggregateIDAndNameRequest, eventsource_pb.Event>;
     getAfterGlobalVersion: grpc.handleServerStreamingCall<eventsource_pb.GetAfterGlobalVersionRequest, eventsource_pb.Event>;
-    getOrCreateOutbox: grpc.handleUnaryCall<eventsource_pb.GetOrCreateOutboxRequest, eventsource_pb.GetOrCreateOutboxResponse>;
+    getByOutbox: grpc.handleServerStreamingCall<eventsource_pb.GetByOutboxRequest, eventsource_pb.Event>;
+    createOutbox: grpc.handleUnaryCall<eventsource_pb.CreateOutboxRequest, eventsource_pb.CreateOutboxResponse>;
+    getOutbox: grpc.handleUnaryCall<eventsource_pb.GetOutboxRequest, eventsource_pb.GetOutboxResponse>;
     updateOutboxPosition: grpc.handleUnaryCall<eventsource_pb.UpdateOutboxPositionRequest, eventsource_pb.UpdateOutboxPositionResponse>;
 }
 
@@ -93,9 +115,14 @@ export interface IEventSourceServiceClient {
     getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
-    getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
-    getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
-    getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    getByOutbox(request: eventsource_pb.GetByOutboxRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    getByOutbox(request: eventsource_pb.GetByOutboxRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    createOutbox(request: eventsource_pb.CreateOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    createOutbox(request: eventsource_pb.CreateOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    createOutbox(request: eventsource_pb.CreateOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    getOutbox(request: eventsource_pb.GetOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
+    getOutbox(request: eventsource_pb.GetOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
+    getOutbox(request: eventsource_pb.GetOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
@@ -112,9 +139,14 @@ export class EventSourceServiceClient extends grpc.Client implements IEventSourc
     public getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public getAfterGlobalVersion(request: eventsource_pb.GetAfterGlobalVersionRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
-    public getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
-    public getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
-    public getOrCreateOutbox(request: eventsource_pb.GetOrCreateOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOrCreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    public getByOutbox(request: eventsource_pb.GetByOutboxRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    public getByOutbox(request: eventsource_pb.GetByOutboxRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
+    public createOutbox(request: eventsource_pb.CreateOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    public createOutbox(request: eventsource_pb.CreateOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    public createOutbox(request: eventsource_pb.CreateOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.CreateOutboxResponse) => void): grpc.ClientUnaryCall;
+    public getOutbox(request: eventsource_pb.GetOutboxRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
+    public getOutbox(request: eventsource_pb.GetOutboxRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
+    public getOutbox(request: eventsource_pb.GetOutboxRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.GetOutboxResponse) => void): grpc.ClientUnaryCall;
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;

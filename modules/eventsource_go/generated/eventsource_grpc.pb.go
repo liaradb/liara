@@ -26,7 +26,9 @@ type EventSourceServiceClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error)
 	GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error)
 	GetAfterGlobalVersion(ctx context.Context, in *GetAfterGlobalVersionRequest, opts ...grpc.CallOption) (EventSourceService_GetAfterGlobalVersionClient, error)
-	GetOrCreateOutbox(ctx context.Context, in *GetOrCreateOutboxRequest, opts ...grpc.CallOption) (*GetOrCreateOutboxResponse, error)
+	GetByOutbox(ctx context.Context, in *GetByOutboxRequest, opts ...grpc.CallOption) (EventSourceService_GetByOutboxClient, error)
+	CreateOutbox(ctx context.Context, in *CreateOutboxRequest, opts ...grpc.CallOption) (*CreateOutboxResponse, error)
+	GetOutbox(ctx context.Context, in *GetOutboxRequest, opts ...grpc.CallOption) (*GetOutboxResponse, error)
 	UpdateOutboxPosition(ctx context.Context, in *UpdateOutboxPositionRequest, opts ...grpc.CallOption) (*UpdateOutboxPositionResponse, error)
 }
 
@@ -143,9 +145,50 @@ func (x *eventSourceServiceGetAfterGlobalVersionClient) Recv() (*Event, error) {
 	return m, nil
 }
 
-func (c *eventSourceServiceClient) GetOrCreateOutbox(ctx context.Context, in *GetOrCreateOutboxRequest, opts ...grpc.CallOption) (*GetOrCreateOutboxResponse, error) {
-	out := new(GetOrCreateOutboxResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/GetOrCreateOutbox", in, out, opts...)
+func (c *eventSourceServiceClient) GetByOutbox(ctx context.Context, in *GetByOutboxRequest, opts ...grpc.CallOption) (EventSourceService_GetByOutboxClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[3], "/todo.EventSourceService/GetByOutbox", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventSourceServiceGetByOutboxClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventSourceService_GetByOutboxClient interface {
+	Recv() (*Event, error)
+	grpc.ClientStream
+}
+
+type eventSourceServiceGetByOutboxClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventSourceServiceGetByOutboxClient) Recv() (*Event, error) {
+	m := new(Event)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *eventSourceServiceClient) CreateOutbox(ctx context.Context, in *CreateOutboxRequest, opts ...grpc.CallOption) (*CreateOutboxResponse, error) {
+	out := new(CreateOutboxResponse)
+	err := c.cc.Invoke(ctx, "/todo.EventSourceService/CreateOutbox", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventSourceServiceClient) GetOutbox(ctx context.Context, in *GetOutboxRequest, opts ...grpc.CallOption) (*GetOutboxResponse, error) {
+	out := new(GetOutboxResponse)
+	err := c.cc.Invoke(ctx, "/todo.EventSourceService/GetOutbox", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +212,9 @@ type EventSourceServiceServer interface {
 	Get(*GetRequest, EventSourceService_GetServer) error
 	GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error
 	GetAfterGlobalVersion(*GetAfterGlobalVersionRequest, EventSourceService_GetAfterGlobalVersionServer) error
-	GetOrCreateOutbox(context.Context, *GetOrCreateOutboxRequest) (*GetOrCreateOutboxResponse, error)
+	GetByOutbox(*GetByOutboxRequest, EventSourceService_GetByOutboxServer) error
+	CreateOutbox(context.Context, *CreateOutboxRequest) (*CreateOutboxResponse, error)
+	GetOutbox(context.Context, *GetOutboxRequest) (*GetOutboxResponse, error)
 	UpdateOutboxPosition(context.Context, *UpdateOutboxPositionRequest) (*UpdateOutboxPositionResponse, error)
 	mustEmbedUnimplementedEventSourceServiceServer()
 }
@@ -190,8 +235,14 @@ func (UnimplementedEventSourceServiceServer) GetByAggregateIDAndName(*GetByAggre
 func (UnimplementedEventSourceServiceServer) GetAfterGlobalVersion(*GetAfterGlobalVersionRequest, EventSourceService_GetAfterGlobalVersionServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetAfterGlobalVersion not implemented")
 }
-func (UnimplementedEventSourceServiceServer) GetOrCreateOutbox(context.Context, *GetOrCreateOutboxRequest) (*GetOrCreateOutboxResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOrCreateOutbox not implemented")
+func (UnimplementedEventSourceServiceServer) GetByOutbox(*GetByOutboxRequest, EventSourceService_GetByOutboxServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetByOutbox not implemented")
+}
+func (UnimplementedEventSourceServiceServer) CreateOutbox(context.Context, *CreateOutboxRequest) (*CreateOutboxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOutbox not implemented")
+}
+func (UnimplementedEventSourceServiceServer) GetOutbox(context.Context, *GetOutboxRequest) (*GetOutboxResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOutbox not implemented")
 }
 func (UnimplementedEventSourceServiceServer) UpdateOutboxPosition(context.Context, *UpdateOutboxPositionRequest) (*UpdateOutboxPositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOutboxPosition not implemented")
@@ -290,20 +341,59 @@ func (x *eventSourceServiceGetAfterGlobalVersionServer) Send(m *Event) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _EventSourceService_GetOrCreateOutbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOrCreateOutboxRequest)
+func _EventSourceService_GetByOutbox_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetByOutboxRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventSourceServiceServer).GetByOutbox(m, &eventSourceServiceGetByOutboxServer{stream})
+}
+
+type EventSourceService_GetByOutboxServer interface {
+	Send(*Event) error
+	grpc.ServerStream
+}
+
+type eventSourceServiceGetByOutboxServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventSourceServiceGetByOutboxServer) Send(m *Event) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _EventSourceService_CreateOutbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOutboxRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EventSourceServiceServer).GetOrCreateOutbox(ctx, in)
+		return srv.(EventSourceServiceServer).CreateOutbox(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/GetOrCreateOutbox",
+		FullMethod: "/todo.EventSourceService/CreateOutbox",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EventSourceServiceServer).GetOrCreateOutbox(ctx, req.(*GetOrCreateOutboxRequest))
+		return srv.(EventSourceServiceServer).CreateOutbox(ctx, req.(*CreateOutboxRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_GetOutbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOutboxRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).GetOutbox(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/todo.EventSourceService/GetOutbox",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).GetOutbox(ctx, req.(*GetOutboxRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -338,8 +428,12 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EventSourceService_Append_Handler,
 		},
 		{
-			MethodName: "GetOrCreateOutbox",
-			Handler:    _EventSourceService_GetOrCreateOutbox_Handler,
+			MethodName: "CreateOutbox",
+			Handler:    _EventSourceService_CreateOutbox_Handler,
+		},
+		{
+			MethodName: "GetOutbox",
+			Handler:    _EventSourceService_GetOutbox_Handler,
 		},
 		{
 			MethodName: "UpdateOutboxPosition",
@@ -360,6 +454,11 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetAfterGlobalVersion",
 			Handler:       _EventSourceService_GetAfterGlobalVersion_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetByOutbox",
+			Handler:       _EventSourceService_GetByOutbox_Handler,
 			ServerStreams: true,
 		},
 	},
