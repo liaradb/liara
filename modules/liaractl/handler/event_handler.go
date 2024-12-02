@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/cardboardrobots/liara/esgrpc"
 )
@@ -31,8 +30,9 @@ func (eh *eventHandler) listEvents() error {
 
 		var data = make(map[string]any)
 		_ = json.Unmarshal(event.Data, &data)
+		result, _ := json.MarshalIndent(data, "", "    ")
 
-		log.Printf("%v\n", data)
+		fmt.Printf("%v,\n", string(result))
 		count++
 	}
 	if count == 0 {
