@@ -3,11 +3,18 @@ package liara
 import (
 	"context"
 	"iter"
+	"time"
 )
 
 type MockEventSource struct {
+	requests map[RequestID]mockRequest
 	events   []Event
 	versions map[AggregateID]Version
+}
+
+type mockRequest struct {
+	ID   RequestID
+	Time time.Time
 }
 
 var _ EventRepository = &MockEventSource{}
@@ -67,14 +74,24 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 
 func (mes *MockEventSource) Append(
 	ctx context.Context,
+	requestID RequestID,
 	events ...AppendEvent,
 ) error {
+	if mes.requests == nil {
+		mes.requests = make(map[RequestID]mockRequest)
+	}
+
 	if mes.events == nil {
 		mes.events = make([]Event, 0)
 	}
 
 	if mes.versions == nil {
 		mes.versions = make(map[AggregateID]Version)
+	}
+
+	if _, ok := mes.requests[requestID]; ok {
+		// TODO: Should this be nil?
+		return nil
 	}
 
 	// Snapshot versions
@@ -97,6 +114,10 @@ func (mes *MockEventSource) Append(
 	// Apply Snapshot
 	for id, version := range versions {
 		mes.versions[id] = version
+		mes.requests[requestID] = mockRequest{
+			ID:   requestID,
+			Time: time.Now(),
+		}
 	}
 	data := make([]Event, 0, len(events))
 	for _, event := range events {

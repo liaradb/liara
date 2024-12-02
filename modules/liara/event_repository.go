@@ -10,7 +10,7 @@ type EventRepository interface {
 	GetAfterGlobalVersion(context.Context, GlobalVersion, []PartitionID, Limit) iter.Seq2[Event, error]
 	GetByAggregateIDAndName(context.Context, AggregateID, AggregateName) iter.Seq2[Event, error]
 	GetByOutbox(context.Context, OutboxID, Limit) iter.Seq2[Event, error]
-	Append(context.Context, ...AppendEvent) error
+	Append(context.Context, RequestID, ...AppendEvent) error
 }
 
 type AppendEvent struct {

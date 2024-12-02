@@ -16,7 +16,7 @@ func TestService_Append(t *testing.T) {
 	id := exampleID("exampleID")
 	version := Version(1)
 
-	err := se.Append(ctx, EventOptions[exampleID]{
+	err := se.Append(ctx, "requestID", EventOptions[exampleID]{
 		AggregateID: id,
 		Version:     version,
 		Data:        incremented{},

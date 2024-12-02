@@ -29,6 +29,7 @@ func NewEventSourceGRPC(
 
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
+	requestID liara.RequestID,
 	events ...liara.AppendEvent,
 ) error {
 	data := make([]*pb.AppendEvent, 0, len(events))
@@ -37,7 +38,8 @@ func (es *EventSourceGRPC) Append(
 	}
 
 	_, err := es.client.Append(ctx, &pb.AppendRequest{
-		Events: data,
+		RequestId: requestID.String(),
+		Events:    data,
 	})
 	return err
 }

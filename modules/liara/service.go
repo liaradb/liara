@@ -49,6 +49,7 @@ func NewService[T AggregateRoot[U], U ~string, E EventData](
 
 func (s *Service[T, U]) Append(
 	ctx context.Context,
+	requestID RequestID,
 	events ...EventOptions[U],
 ) error {
 	data := make([]AppendEvent, 0, len(events))
@@ -61,7 +62,7 @@ func (s *Service[T, U]) Append(
 		data = append(data, event)
 	}
 
-	return s.eventRepository.Append(ctx, data...)
+	return s.eventRepository.Append(ctx, requestID, data...)
 }
 
 func (s *Service[T, U]) GetByID(
