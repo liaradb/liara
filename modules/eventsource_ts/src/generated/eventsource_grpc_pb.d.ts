@@ -17,6 +17,7 @@ interface IEventSourceServiceService extends grpc.ServiceDefinition<grpc.Untyped
     createOutbox: IEventSourceServiceService_ICreateOutbox;
     getOutbox: IEventSourceServiceService_IGetOutbox;
     updateOutboxPosition: IEventSourceServiceService_IUpdateOutboxPosition;
+    listTenants: IEventSourceServiceService_IListTenants;
 }
 
 interface IEventSourceServiceService_IAppend extends grpc.MethodDefinition<eventsource_pb.AppendRequest, eventsource_pb.AppendResponse> {
@@ -91,6 +92,15 @@ interface IEventSourceServiceService_IUpdateOutboxPosition extends grpc.MethodDe
     responseSerialize: grpc.serialize<eventsource_pb.UpdateOutboxPositionResponse>;
     responseDeserialize: grpc.deserialize<eventsource_pb.UpdateOutboxPositionResponse>;
 }
+interface IEventSourceServiceService_IListTenants extends grpc.MethodDefinition<eventsource_pb.ListTenantsRequest, eventsource_pb.Tenant> {
+    path: "/todo.EventSourceService/ListTenants";
+    requestStream: false;
+    responseStream: true;
+    requestSerialize: grpc.serialize<eventsource_pb.ListTenantsRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.ListTenantsRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.Tenant>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.Tenant>;
+}
 
 export const EventSourceServiceService: IEventSourceServiceService;
 
@@ -103,6 +113,7 @@ export interface IEventSourceServiceServer extends grpc.UntypedServiceImplementa
     createOutbox: grpc.handleUnaryCall<eventsource_pb.CreateOutboxRequest, eventsource_pb.CreateOutboxResponse>;
     getOutbox: grpc.handleUnaryCall<eventsource_pb.GetOutboxRequest, eventsource_pb.GetOutboxResponse>;
     updateOutboxPosition: grpc.handleUnaryCall<eventsource_pb.UpdateOutboxPositionRequest, eventsource_pb.UpdateOutboxPositionResponse>;
+    listTenants: grpc.handleServerStreamingCall<eventsource_pb.ListTenantsRequest, eventsource_pb.Tenant>;
 }
 
 export interface IEventSourceServiceClient {
@@ -126,6 +137,8 @@ export interface IEventSourceServiceClient {
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
+    listTenants(request: eventsource_pb.ListTenantsRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Tenant>;
+    listTenants(request: eventsource_pb.ListTenantsRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Tenant>;
 }
 
 export class EventSourceServiceClient extends grpc.Client implements IEventSourceServiceClient {
@@ -150,4 +163,6 @@ export class EventSourceServiceClient extends grpc.Client implements IEventSourc
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
     public updateOutboxPosition(request: eventsource_pb.UpdateOutboxPositionRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.UpdateOutboxPositionResponse) => void): grpc.ClientUnaryCall;
+    public listTenants(request: eventsource_pb.ListTenantsRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Tenant>;
+    public listTenants(request: eventsource_pb.ListTenantsRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Tenant>;
 }

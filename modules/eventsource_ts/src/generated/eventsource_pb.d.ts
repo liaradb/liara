@@ -402,3 +402,43 @@ export namespace UpdateOutboxPositionResponse {
     export type AsObject = {
     }
 }
+
+export class ListTenantsRequest extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ListTenantsRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: ListTenantsRequest): ListTenantsRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ListTenantsRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ListTenantsRequest;
+    static deserializeBinaryFromReader(message: ListTenantsRequest, reader: jspb.BinaryReader): ListTenantsRequest;
+}
+
+export namespace ListTenantsRequest {
+    export type AsObject = {
+    }
+}
+
+export class Tenant extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): Tenant;
+    getName(): string;
+    setName(value: string): Tenant;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): Tenant.AsObject;
+    static toObject(includeInstance: boolean, msg: Tenant): Tenant.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: Tenant, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): Tenant;
+    static deserializeBinaryFromReader(message: Tenant, reader: jspb.BinaryReader): Tenant;
+}
+
+export namespace Tenant {
+    export type AsObject = {
+        tenantId: string,
+        name: string,
+    }
+}

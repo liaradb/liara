@@ -126,6 +126,28 @@ function deserialize_todo_GetRequest(buffer_arg) {
   return eventsource_pb.GetRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_todo_ListTenantsRequest(arg) {
+  if (!(arg instanceof eventsource_pb.ListTenantsRequest)) {
+    throw new Error('Expected argument of type todo.ListTenantsRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_ListTenantsRequest(buffer_arg) {
+  return eventsource_pb.ListTenantsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_todo_Tenant(arg) {
+  if (!(arg instanceof eventsource_pb.Tenant)) {
+    throw new Error('Expected argument of type todo.Tenant');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_todo_Tenant(buffer_arg) {
+  return eventsource_pb.Tenant.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_todo_UpdateOutboxPositionRequest(arg) {
   if (!(arg instanceof eventsource_pb.UpdateOutboxPositionRequest)) {
     throw new Error('Expected argument of type todo.UpdateOutboxPositionRequest');
@@ -237,6 +259,17 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     requestDeserialize: deserialize_todo_UpdateOutboxPositionRequest,
     responseSerialize: serialize_todo_UpdateOutboxPositionResponse,
     responseDeserialize: deserialize_todo_UpdateOutboxPositionResponse,
+  },
+  listTenants: {
+    path: '/todo.EventSourceService/ListTenants',
+    requestStream: false,
+    responseStream: true,
+    requestType: eventsource_pb.ListTenantsRequest,
+    responseType: eventsource_pb.Tenant,
+    requestSerialize: serialize_todo_ListTenantsRequest,
+    requestDeserialize: deserialize_todo_ListTenantsRequest,
+    responseSerialize: serialize_todo_Tenant,
+    responseDeserialize: deserialize_todo_Tenant,
   },
 };
 

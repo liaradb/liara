@@ -58,6 +58,7 @@ func initService(db *sql.DB) *grpc.Server {
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
 		service.NewEventService(transactionRepository, eventRepository, outboxRepository, requestRepository),
+		service.NewTenantService(infrastructure.NewTenantRepository()),
 	))
 
 	return s

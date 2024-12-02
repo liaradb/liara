@@ -10,14 +10,17 @@ import (
 
 type EventSourceController struct {
 	pb.UnimplementedEventSourceServiceServer
-	eventService *service.EventService
+	eventService  *service.EventService
+	tenantService *service.TenantService
 }
 
 func NewEventSourceController(
 	eventService *service.EventService,
+	tenantService *service.TenantService,
 ) *EventSourceController {
 	return &EventSourceController{
-		eventService: eventService,
+		eventService:  eventService,
+		tenantService: tenantService,
 	}
 }
 
@@ -143,6 +146,20 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	}
 
 	return &pb.UpdateOutboxPositionResponse{}, nil
+}
+
+func (esc *EventSourceController) ListTenants(request *pb.ListTenantsRequest, stream pb.EventSourceService_ListTenantsServer) error {
+	for row, err := range esc.tenantService.List(stream.Context(), 0, 0) {
+		if err != nil {
+			return err
+		}
+
+		stream.Send(&pb.Tenant{
+			TenantId: row.ID().String(),
+			Name:     row.Name().String(),
+		})
+	}
+	return nil
 }
 
 func mapSlice[T any, U any](slice []T, mapper func(T) U) []U {
