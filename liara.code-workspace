@@ -6,6 +6,9 @@
 		{
 			"path": "services/liara_service"
 		},
+		{
+			"path": "modules/liaractl"
+		},
 		// {
 		// 	"path": "modules/eventsource_go"
 		// },

@@ -216,3 +216,27 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 	})
 	return err
 }
+
+func (es *EventSourceGRPC) ListTenants(
+	ctx context.Context,
+) iter.Seq2[*pb.Tenant, error] {
+	return func(yield func(*pb.Tenant, error) bool) {
+		result, err := es.client.ListTenants(ctx, &pb.ListTenantsRequest{})
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		m, err := result.Recv()
+		if err != nil {
+			if err != io.EOF {
+				yield(nil, err)
+			}
+			return
+		}
+
+		if !yield(m, nil) {
+			return
+		}
+	}
+}
