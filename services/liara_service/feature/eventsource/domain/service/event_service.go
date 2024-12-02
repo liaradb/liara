@@ -36,30 +36,67 @@ func (es *EventService) Append(
 	requestID value.RequestID,
 	e ...AppendEvent,
 ) error {
+	if len(e) == 0 {
+		return nil
+	}
+
+	for _, em := range e {
+		if err := em.Valid(); err != nil {
+			return err
+		}
+	}
+
 	if requestID == "" {
-		return es.eventRepository.Append(ctx, e...)
+		return es.appendNoRequestID(ctx, e...)
+	}
+
+	return es.appendRequestID(ctx, requestID, e...)
+}
+
+func (es *EventService) appendNoRequestID(
+	ctx context.Context,
+	e ...AppendEvent,
+) error {
+	if len(e) == 1 {
+		return es.appendEvents(ctx, e...)
 	}
 
 	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
-		ok, err := es.requestRepository.Test(ctx, requestID)
-		if err != nil {
-			return err
-		}
-
-		// TODO: What should this return if requestID is present?
-		if !ok {
-			return nil
-		}
-
-		t := time.Now()
-		err = es.eventRepository.Append(ctx, e...)
-		if err != nil {
-			return err
-		}
-
-		err = es.requestRepository.Insert(ctx, requestID, t)
-		return err
+		return es.appendEvents(ctx, e...)
 	})
+}
+
+func (es *EventService) appendRequestID(
+	ctx context.Context,
+	requestID value.RequestID,
+	e ...AppendEvent,
+) error {
+	t := time.Now()
+	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
+		// TODO: What should this return if requestID is present?
+		if ok, err := es.requestRepository.Test(ctx, requestID); err != nil || !ok {
+			return err
+		}
+
+		if err := es.appendEvents(ctx, e...); err != nil {
+			return err
+		}
+
+		return es.requestRepository.Insert(ctx, requestID, t)
+	})
+}
+
+func (es *EventService) appendEvents(
+	ctx context.Context,
+	e ...AppendEvent,
+) error {
+	for _, em := range e {
+		err := es.eventRepository.Append(ctx, em)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (es *EventService) Get(

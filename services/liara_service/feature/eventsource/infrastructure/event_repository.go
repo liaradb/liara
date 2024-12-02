@@ -36,47 +36,11 @@ func NewEventRepository(
 	}
 }
 
-// TODO: Create transaction wrapper only if not in transaction.
 func (er EventRepository) Append(
 	ctx context.Context,
-	ems ...service.AppendEvent,
-) error {
-	for _, em := range ems {
-		if err := em.Valid(); err != nil {
-			return err
-		}
-	}
-
-	switch len(ems) {
-	case 0:
-		return nil
-	case 1:
-		return er.appendEvent(ctx, er.db, ems[0])
-	default:
-		return er.appendEvents(ctx, ems)
-	}
-}
-
-func (er EventRepository) appendEvents(
-	ctx context.Context,
-	ems []service.AppendEvent,
-) error {
-	return runTx(ctx, er.db, &sql.TxOptions{Isolation: sql.LevelDefault}, func(tx *sql.Tx) error {
-		for _, em := range ems {
-			if err := er.appendEvent(ctx, tx, em); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-}
-
-func (er EventRepository) appendEvent(
-	ctx context.Context,
-	qr queryRunner,
 	em service.AppendEvent,
 ) error {
-	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
+	_, err := er.db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 `,
 		er.name),
