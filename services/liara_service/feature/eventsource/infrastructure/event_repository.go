@@ -97,7 +97,7 @@ INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 func (er EventRepository) GetAfterGlobalVersion(
 	ctx context.Context,
 	globalVersion value.GlobalVersion,
-	partitionIDs []value.PartitionID,
+	partitionRange value.PartitionRange,
 	limit value.Limit,
 ) iter.Seq2[entity.Event, error] {
 	return func(yield func(entity.Event, error) bool) {
@@ -107,7 +107,7 @@ func (er EventRepository) GetAfterGlobalVersion(
 		b := strings.Builder{}
 		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.name))
 		b.WriteString("WHERE global_version > $1")
-		partition0, partition1 := getSortedPartition(partitionIDs)
+		partition0, partition1 := partitionRange.All()
 		if partition0 > 0 {
 			b.WriteString("AND partition_id >= $2")
 		}
@@ -136,26 +136,6 @@ func (er EventRepository) GetAfterGlobalVersion(
 				return
 			}
 		}
-	}
-}
-
-func getPartition(partitionIDs []value.PartitionID) (value.PartitionID, value.PartitionID) {
-	switch len(partitionIDs) {
-	case 0:
-		return 0, 0
-	case 1:
-		return partitionIDs[0], partitionIDs[0]
-	default:
-		return partitionIDs[0], partitionIDs[1]
-	}
-}
-
-func getSortedPartition(partitionIDs []value.PartitionID) (value.PartitionID, value.PartitionID) {
-	a, b := getPartition(partitionIDs)
-	if a <= b {
-		return a, b
-	} else {
-		return b, a
 	}
 }
 

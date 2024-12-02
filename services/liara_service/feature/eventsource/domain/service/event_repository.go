@@ -10,7 +10,7 @@ import (
 
 type EventRepository interface {
 	Get(context.Context, value.AggregateID) iter.Seq2[entity.Event, error]
-	GetAfterGlobalVersion(context.Context, value.GlobalVersion, []value.PartitionID, value.Limit) iter.Seq2[entity.Event, error]
+	GetAfterGlobalVersion(context.Context, value.GlobalVersion, value.PartitionRange, value.Limit) iter.Seq2[entity.Event, error]
 	GetByAggregateIDAndName(context.Context, value.AggregateID, value.AggregateName) iter.Seq2[entity.Event, error]
 	Append(context.Context, ...AppendEvent) error
 }

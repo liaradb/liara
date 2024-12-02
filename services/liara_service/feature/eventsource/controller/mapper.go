@@ -54,3 +54,11 @@ func dtoToMetadata(dto *pb.EventMetadata) entity.EventMetadata {
 		UserID:        value.UserID(dto.UserId),
 		Time:          dto.Time.AsTime()}
 }
+
+func dtoToPartitionRange(partitionIDs []int32) value.PartitionRange {
+	pids := make([]value.PartitionID, 0, len(partitionIDs))
+	for _, p := range partitionIDs {
+		pids = append(pids, value.PartitionID(p))
+	}
+	return value.NewPartitionRange(pids...)
+}
