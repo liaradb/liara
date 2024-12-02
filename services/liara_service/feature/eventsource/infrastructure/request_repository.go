@@ -45,7 +45,7 @@ time <= $1
 	return err
 }
 
-func (r *RequestRepository) Test(ctx context.Context, requestID value.RequestID) error {
+func (r *RequestRepository) Test(ctx context.Context, requestID value.RequestID) (bool, error) {
 	row := r.db.QueryRowContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v WHERE
 id = $1
@@ -53,9 +53,10 @@ id = $1
 		r.name), requestID)
 	_, err := r.scanRow(row)
 	if err == sql.ErrNoRows {
-		err = nil
+		return true, nil
 	}
-	return err
+
+	return false, err
 }
 
 func (r RequestRepository) insertRow(

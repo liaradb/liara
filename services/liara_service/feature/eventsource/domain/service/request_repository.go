@@ -8,7 +8,7 @@ import (
 )
 
 type RequestRepository interface {
-	Test(context.Context, value.RequestID) error
+	Test(context.Context, value.RequestID) (bool, error)
 	Insert(context.Context, value.RequestID, time.Time) error
 	Purge(context.Context, time.Time) error
 }
