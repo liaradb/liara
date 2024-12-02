@@ -43,7 +43,7 @@ func NewEventSourceServiceClient(cc grpc.ClientConnInterface) EventSourceService
 
 func (c *eventSourceServiceClient) Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error) {
 	out := new(AppendResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/Append", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/Append", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *eventSourceServiceClient) Append(ctx context.Context, in *AppendRequest
 }
 
 func (c *eventSourceServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[0], "/todo.EventSourceService/Get", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[0], "/liara.EventSourceService/Get", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (x *eventSourceServiceGetClient) Recv() (*Event, error) {
 }
 
 func (c *eventSourceServiceClient) GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[1], "/todo.EventSourceService/GetByAggregateIDAndName", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[1], "/liara.EventSourceService/GetByAggregateIDAndName", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (x *eventSourceServiceGetByAggregateIDAndNameClient) Recv() (*Event, error)
 }
 
 func (c *eventSourceServiceClient) GetAfterGlobalVersion(ctx context.Context, in *GetAfterGlobalVersionRequest, opts ...grpc.CallOption) (EventSourceService_GetAfterGlobalVersionClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[2], "/todo.EventSourceService/GetAfterGlobalVersion", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[2], "/liara.EventSourceService/GetAfterGlobalVersion", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,7 +147,7 @@ func (x *eventSourceServiceGetAfterGlobalVersionClient) Recv() (*Event, error) {
 }
 
 func (c *eventSourceServiceClient) GetByOutbox(ctx context.Context, in *GetByOutboxRequest, opts ...grpc.CallOption) (EventSourceService_GetByOutboxClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[3], "/todo.EventSourceService/GetByOutbox", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[3], "/liara.EventSourceService/GetByOutbox", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (x *eventSourceServiceGetByOutboxClient) Recv() (*Event, error) {
 
 func (c *eventSourceServiceClient) CreateOutbox(ctx context.Context, in *CreateOutboxRequest, opts ...grpc.CallOption) (*CreateOutboxResponse, error) {
 	out := new(CreateOutboxResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/CreateOutbox", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/CreateOutbox", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +189,7 @@ func (c *eventSourceServiceClient) CreateOutbox(ctx context.Context, in *CreateO
 
 func (c *eventSourceServiceClient) GetOutbox(ctx context.Context, in *GetOutboxRequest, opts ...grpc.CallOption) (*GetOutboxResponse, error) {
 	out := new(GetOutboxResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/GetOutbox", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/GetOutbox", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (c *eventSourceServiceClient) GetOutbox(ctx context.Context, in *GetOutboxR
 
 func (c *eventSourceServiceClient) UpdateOutboxPosition(ctx context.Context, in *UpdateOutboxPositionRequest, opts ...grpc.CallOption) (*UpdateOutboxPositionResponse, error) {
 	out := new(UpdateOutboxPositionResponse)
-	err := c.cc.Invoke(ctx, "/todo.EventSourceService/UpdateOutboxPosition", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/UpdateOutboxPosition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (c *eventSourceServiceClient) UpdateOutboxPosition(ctx context.Context, in 
 }
 
 func (c *eventSourceServiceClient) ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (EventSourceService_ListTenantsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[4], "/todo.EventSourceService/ListTenants", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[4], "/liara.EventSourceService/ListTenants", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +307,7 @@ func _EventSourceService_Append_Handler(srv interface{}, ctx context.Context, de
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/Append",
+		FullMethod: "/liara.EventSourceService/Append",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventSourceServiceServer).Append(ctx, req.(*AppendRequest))
@@ -409,7 +409,7 @@ func _EventSourceService_CreateOutbox_Handler(srv interface{}, ctx context.Conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/CreateOutbox",
+		FullMethod: "/liara.EventSourceService/CreateOutbox",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventSourceServiceServer).CreateOutbox(ctx, req.(*CreateOutboxRequest))
@@ -427,7 +427,7 @@ func _EventSourceService_GetOutbox_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/GetOutbox",
+		FullMethod: "/liara.EventSourceService/GetOutbox",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventSourceServiceServer).GetOutbox(ctx, req.(*GetOutboxRequest))
@@ -445,7 +445,7 @@ func _EventSourceService_UpdateOutboxPosition_Handler(srv interface{}, ctx conte
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/todo.EventSourceService/UpdateOutboxPosition",
+		FullMethod: "/liara.EventSourceService/UpdateOutboxPosition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventSourceServiceServer).UpdateOutboxPosition(ctx, req.(*UpdateOutboxPositionRequest))
@@ -478,7 +478,7 @@ func (x *eventSourceServiceListTenantsServer) Send(m *Tenant) error {
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var EventSourceService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "todo.EventSourceService",
+	ServiceName: "liara.EventSourceService",
 	HandlerType: (*EventSourceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

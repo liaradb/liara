@@ -1,4 +1,4 @@
-// package: todo
+// package: liara
 // file: eventsource.proto
 
 /* tslint:disable */

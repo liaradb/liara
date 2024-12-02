@@ -1,4 +1,4 @@
-// package: todo
+// package: liara
 // file: eventsource.proto
 
 /* tslint:disable */
@@ -21,7 +21,7 @@ interface IEventSourceServiceService extends grpc.ServiceDefinition<grpc.Untyped
 }
 
 interface IEventSourceServiceService_IAppend extends grpc.MethodDefinition<eventsource_pb.AppendRequest, eventsource_pb.AppendResponse> {
-    path: "/todo.EventSourceService/Append";
+    path: "/liara.EventSourceService/Append";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<eventsource_pb.AppendRequest>;
@@ -30,7 +30,7 @@ interface IEventSourceServiceService_IAppend extends grpc.MethodDefinition<event
     responseDeserialize: grpc.deserialize<eventsource_pb.AppendResponse>;
 }
 interface IEventSourceServiceService_IGet extends grpc.MethodDefinition<eventsource_pb.GetRequest, eventsource_pb.Event> {
-    path: "/todo.EventSourceService/Get";
+    path: "/liara.EventSourceService/Get";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<eventsource_pb.GetRequest>;
@@ -39,7 +39,7 @@ interface IEventSourceServiceService_IGet extends grpc.MethodDefinition<eventsou
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
 interface IEventSourceServiceService_IGetByAggregateIDAndName extends grpc.MethodDefinition<eventsource_pb.GetByAggregateIDAndNameRequest, eventsource_pb.Event> {
-    path: "/todo.EventSourceService/GetByAggregateIDAndName";
+    path: "/liara.EventSourceService/GetByAggregateIDAndName";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<eventsource_pb.GetByAggregateIDAndNameRequest>;
@@ -48,7 +48,7 @@ interface IEventSourceServiceService_IGetByAggregateIDAndName extends grpc.Metho
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
 interface IEventSourceServiceService_IGetAfterGlobalVersion extends grpc.MethodDefinition<eventsource_pb.GetAfterGlobalVersionRequest, eventsource_pb.Event> {
-    path: "/todo.EventSourceService/GetAfterGlobalVersion";
+    path: "/liara.EventSourceService/GetAfterGlobalVersion";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<eventsource_pb.GetAfterGlobalVersionRequest>;
@@ -57,7 +57,7 @@ interface IEventSourceServiceService_IGetAfterGlobalVersion extends grpc.MethodD
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
 interface IEventSourceServiceService_IGetByOutbox extends grpc.MethodDefinition<eventsource_pb.GetByOutboxRequest, eventsource_pb.Event> {
-    path: "/todo.EventSourceService/GetByOutbox";
+    path: "/liara.EventSourceService/GetByOutbox";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<eventsource_pb.GetByOutboxRequest>;
@@ -66,7 +66,7 @@ interface IEventSourceServiceService_IGetByOutbox extends grpc.MethodDefinition<
     responseDeserialize: grpc.deserialize<eventsource_pb.Event>;
 }
 interface IEventSourceServiceService_ICreateOutbox extends grpc.MethodDefinition<eventsource_pb.CreateOutboxRequest, eventsource_pb.CreateOutboxResponse> {
-    path: "/todo.EventSourceService/CreateOutbox";
+    path: "/liara.EventSourceService/CreateOutbox";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<eventsource_pb.CreateOutboxRequest>;
@@ -75,7 +75,7 @@ interface IEventSourceServiceService_ICreateOutbox extends grpc.MethodDefinition
     responseDeserialize: grpc.deserialize<eventsource_pb.CreateOutboxResponse>;
 }
 interface IEventSourceServiceService_IGetOutbox extends grpc.MethodDefinition<eventsource_pb.GetOutboxRequest, eventsource_pb.GetOutboxResponse> {
-    path: "/todo.EventSourceService/GetOutbox";
+    path: "/liara.EventSourceService/GetOutbox";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<eventsource_pb.GetOutboxRequest>;
@@ -84,7 +84,7 @@ interface IEventSourceServiceService_IGetOutbox extends grpc.MethodDefinition<ev
     responseDeserialize: grpc.deserialize<eventsource_pb.GetOutboxResponse>;
 }
 interface IEventSourceServiceService_IUpdateOutboxPosition extends grpc.MethodDefinition<eventsource_pb.UpdateOutboxPositionRequest, eventsource_pb.UpdateOutboxPositionResponse> {
-    path: "/todo.EventSourceService/UpdateOutboxPosition";
+    path: "/liara.EventSourceService/UpdateOutboxPosition";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<eventsource_pb.UpdateOutboxPositionRequest>;
@@ -93,7 +93,7 @@ interface IEventSourceServiceService_IUpdateOutboxPosition extends grpc.MethodDe
     responseDeserialize: grpc.deserialize<eventsource_pb.UpdateOutboxPositionResponse>;
 }
 interface IEventSourceServiceService_IListTenants extends grpc.MethodDefinition<eventsource_pb.ListTenantsRequest, eventsource_pb.Tenant> {
-    path: "/todo.EventSourceService/ListTenants";
+    path: "/liara.EventSourceService/ListTenants";
     requestStream: false;
     responseStream: true;
     requestSerialize: grpc.serialize<eventsource_pb.ListTenantsRequest>;
