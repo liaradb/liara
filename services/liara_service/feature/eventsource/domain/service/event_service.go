@@ -36,6 +36,10 @@ func (es *EventService) Append(
 	requestID value.RequestID,
 	e ...AppendEvent,
 ) error {
+	if requestID == "" {
+		return es.eventRepository.Append(ctx, e...)
+	}
+
 	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
 		// TODO: What should this return if requestID is present?
 		err := es.requestRepository.Test(ctx, requestID)

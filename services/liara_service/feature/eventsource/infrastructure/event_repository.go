@@ -36,6 +36,7 @@ func NewEventRepository(
 	}
 }
 
+// TODO: Create transaction wrapper only if not in transaction.
 func (er EventRepository) Append(
 	ctx context.Context,
 	ems ...service.AppendEvent,
