@@ -138,6 +138,8 @@ export namespace AppendEvent {
 }
 
 export class AppendRequest extends jspb.Message { 
+    getRequestId(): string;
+    setRequestId(value: string): AppendRequest;
     clearEventsList(): void;
     getEventsList(): Array<AppendEvent>;
     setEventsList(value: Array<AppendEvent>): AppendRequest;
@@ -155,6 +157,7 @@ export class AppendRequest extends jspb.Message {
 
 export namespace AppendRequest {
     export type AsObject = {
+        requestId: string,
         eventsList: Array<AppendEvent.AsObject>,
     }
 }
@@ -248,6 +251,8 @@ export namespace GetAfterGlobalVersionRequest {
 export class GetOrCreateOutboxRequest extends jspb.Message { 
     getOutboxId(): string;
     setOutboxId(value: string): GetOrCreateOutboxRequest;
+    getPartitionId(): string;
+    setPartitionId(value: string): GetOrCreateOutboxRequest;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): GetOrCreateOutboxRequest.AsObject;
@@ -262,6 +267,7 @@ export class GetOrCreateOutboxRequest extends jspb.Message {
 export namespace GetOrCreateOutboxRequest {
     export type AsObject = {
         outboxId: string,
+        partitionId: string,
     }
 }
 

@@ -144,6 +144,7 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 func (es *EventSourceGRPC) GetOrCreateOutbox(
 	ctx context.Context,
 	outboxID liara.OutboxID,
+	partitionID liara.PartitionID,
 ) (liara.GlobalVersion, error) {
 	response, err := es.client.GetOrCreateOutbox(ctx, &pb.GetOrCreateOutboxRequest{
 		OutboxId: outboxID.String(),

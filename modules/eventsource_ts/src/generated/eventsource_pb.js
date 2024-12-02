@@ -1364,7 +1364,7 @@ proto.todo.AppendEvent.prototype.setData = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.todo.AppendRequest.repeatedFields_ = [1];
+proto.todo.AppendRequest.repeatedFields_ = [2];
 
 
 
@@ -1397,6 +1397,7 @@ proto.todo.AppendRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.todo.AppendRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
+    requestId: jspb.Message.getFieldWithDefault(msg, 1, ""),
     eventsList: jspb.Message.toObjectList(msg.getEventsList(),
     proto.todo.AppendEvent.toObject, includeInstance)
   };
@@ -1436,6 +1437,10 @@ proto.todo.AppendRequest.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRequestId(value);
+      break;
+    case 2:
       var value = new proto.todo.AppendEvent;
       reader.readMessage(value,proto.todo.AppendEvent.deserializeBinaryFromReader);
       msg.addEvents(value);
@@ -1469,10 +1474,17 @@ proto.todo.AppendRequest.prototype.serializeBinary = function() {
  */
 proto.todo.AppendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getRequestId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
   f = message.getEventsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      1,
+      2,
       f,
       proto.todo.AppendEvent.serializeBinaryToWriter
     );
@@ -1481,12 +1493,30 @@ proto.todo.AppendRequest.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * repeated AppendEvent events = 1;
+ * optional string request_id = 1;
+ * @return {string}
+ */
+proto.todo.AppendRequest.prototype.getRequestId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.todo.AppendRequest} returns this
+ */
+proto.todo.AppendRequest.prototype.setRequestId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * repeated AppendEvent events = 2;
  * @return {!Array<!proto.todo.AppendEvent>}
  */
 proto.todo.AppendRequest.prototype.getEventsList = function() {
   return /** @type{!Array<!proto.todo.AppendEvent>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.todo.AppendEvent, 1));
+    jspb.Message.getRepeatedWrapperField(this, proto.todo.AppendEvent, 2));
 };
 
 
@@ -1495,7 +1525,7 @@ proto.todo.AppendRequest.prototype.getEventsList = function() {
  * @return {!proto.todo.AppendRequest} returns this
 */
 proto.todo.AppendRequest.prototype.setEventsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 1, value);
+  return jspb.Message.setRepeatedWrapperField(this, 2, value);
 };
 
 
@@ -1505,7 +1535,7 @@ proto.todo.AppendRequest.prototype.setEventsList = function(value) {
  * @return {!proto.todo.AppendEvent}
  */
 proto.todo.AppendRequest.prototype.addEvents = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 1, opt_value, proto.todo.AppendEvent, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.todo.AppendEvent, opt_index);
 };
 
 
@@ -2131,7 +2161,8 @@ proto.todo.GetOrCreateOutboxRequest.prototype.toObject = function(opt_includeIns
  */
 proto.todo.GetOrCreateOutboxRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    outboxId: jspb.Message.getFieldWithDefault(msg, 1, "")
+    outboxId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    partitionId: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2172,6 +2203,10 @@ proto.todo.GetOrCreateOutboxRequest.deserializeBinaryFromReader = function(msg, 
       var value = /** @type {string} */ (reader.readString());
       msg.setOutboxId(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPartitionId(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2208,6 +2243,13 @@ proto.todo.GetOrCreateOutboxRequest.serializeBinaryToWriter = function(message, 
       f
     );
   }
+  f = message.getPartitionId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -2226,6 +2268,24 @@ proto.todo.GetOrCreateOutboxRequest.prototype.getOutboxId = function() {
  */
 proto.todo.GetOrCreateOutboxRequest.prototype.setOutboxId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string partition_id = 2;
+ * @return {string}
+ */
+proto.todo.GetOrCreateOutboxRequest.prototype.getPartitionId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.todo.GetOrCreateOutboxRequest} returns this
+ */
+proto.todo.GetOrCreateOutboxRequest.prototype.setPartitionId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

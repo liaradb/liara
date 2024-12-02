@@ -3,31 +3,53 @@ package service
 import (
 	"context"
 	"iter"
+	"time"
 
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
 )
 
 type EventService struct {
-	eventRepository  EventRepository
-	outboxRepository OutboxRepository
+	transactionRepository TransactionRepository
+	eventRepository       EventRepository
+	outboxRepository      OutboxRepository
+	requestRepository     RequestRepository
 }
 
 func NewEventService(
+	transactionRepository TransactionRepository,
 	eventRepository EventRepository,
 	outboxRepository OutboxRepository,
+	requestRepository RequestRepository,
 ) *EventService {
 	return &EventService{
-		eventRepository:  eventRepository,
-		outboxRepository: outboxRepository,
+		transactionRepository: transactionRepository,
+		eventRepository:       eventRepository,
+		outboxRepository:      outboxRepository,
+		requestRepository:     requestRepository,
 	}
 }
 
 func (es *EventService) Append(
 	ctx context.Context,
+	requestID value.RequestID,
 	e ...AppendEvent,
 ) error {
-	return es.eventRepository.Append(ctx, e...)
+	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
+		err := es.requestRepository.Test(ctx, requestID)
+		if err != nil {
+			return err
+		}
+
+		t := time.Now()
+		err = es.eventRepository.Append(ctx, e...)
+		if err != nil {
+			return err
+		}
+
+		err = es.requestRepository.Insert(ctx, requestID, t)
+		return err
+	})
 }
 
 func (es *EventService) Get(

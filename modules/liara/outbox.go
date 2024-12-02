@@ -45,7 +45,7 @@ func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Durat
 }
 
 func (o *Outbox) read(ctx context.Context, outboxID OutboxID, partitionID PartitionID, limit Limit) error {
-	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID)
+	globalVersion, err := o.outboxRepository.GetOrCreateOutbox(ctx, outboxID, partitionID)
 	if err != nil {
 		return err
 	}

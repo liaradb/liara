@@ -51,37 +51,46 @@ func initService(db *sql.DB) *grpc.Server {
 		Build()
 
 	ctx := context.Background()
-	eventRepository, outboxRepository, err := createTable(ctx, db)
+	transactionRepository, eventRepository, outboxRepository, requestRepository, err := createTable(ctx, db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		service.NewEventService(eventRepository, outboxRepository),
+		service.NewEventService(transactionRepository, eventRepository, outboxRepository, requestRepository),
 	))
 
 	return s
 }
 
-func createTable(ctx context.Context, db *sql.DB) (*infrastructure.EventRepository, *infrastructure.OutboxRepository, error) {
+func createTable(ctx context.Context, db *sql.DB) (
+	*infrastructure.TransactionRepository,
+	*infrastructure.EventRepository,
+	*infrastructure.OutboxRepository,
+	*infrastructure.RequestRepository,
+	error) {
+	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelDefault})
+
 	eventRepository := infrastructure.NewEventRepository(db, "events")
 	err := eventRepository.CreateTable(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	err = eventRepository.CreateIndex(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	outboxRepository := infrastructure.NewOutboxRepository(db, "outbox")
 	err = outboxRepository.CreateTable(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
-	return &eventRepository, outboxRepository, nil
+	requestRepository := infrastructure.NewRequestRepository(db, "requests")
+
+	return transactionRepository, &eventRepository, outboxRepository, requestRepository, nil
 }
 
 func ConnectPostgresDB(uri string) (*sql.DB, error) {

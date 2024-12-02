@@ -96,7 +96,8 @@ message AppendEvent {
 }
 
 message AppendRequest {
-  repeated AppendEvent events = 1;
+  string request_id = 1;
+  repeated AppendEvent events = 2;
 }
 
 message AppendResponse {}
@@ -134,6 +135,7 @@ message GetAfterGlobalVersionRequest {
 
 message GetOrCreateOutboxRequest {
   string outbox_id = 1;
+  string partition_id = 2;
 }
 
 message GetOrCreateOutboxResponse {
