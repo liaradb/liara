@@ -70,7 +70,7 @@ func createTable(ctx context.Context, db *sql.DB) (
 	*infrastructure.OutboxRepository,
 	*infrastructure.RequestRepository,
 	error) {
-	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelDefault})
+	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelSerializable})
 
 	eventRepository := infrastructure.NewEventRepository(db, "events")
 	err := eventRepository.CreateTable(ctx)
