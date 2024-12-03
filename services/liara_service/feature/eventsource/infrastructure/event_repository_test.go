@@ -17,19 +17,19 @@ func connectSqliteDB(uri string) (*sql.DB, error) {
 	return sql.Open("sqlite", uri)
 }
 
-func connectInMemory(ctx context.Context, name string) (*EventRepository, error) {
+func connectInMemory(ctx context.Context, tenantID value.TenantID) (*EventRepository, error) {
 	db, err := connectSqliteDB(":memory:")
 	if err != nil {
 		return nil, err
 	}
 
-	er := NewEventRepository(db, name)
+	er := NewEventRepository(db, tenantID)
 
-	if err = er.CreateTable(ctx); err != nil {
+	if err = er.CreateTable(ctx, tenantID); err != nil {
 		return nil, err
 	}
 
-	if err = er.CreateIndex(ctx); err != nil {
+	if err = er.CreateIndex(ctx, tenantID); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +40,7 @@ func TestEventRepository_Append(t *testing.T) {
 	t.Run("should append event", func(t *testing.T) {
 		ctx := context.Background()
 
-		er, err := connectInMemory(ctx, "events")
+		er, err := connectInMemory(ctx, "")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -86,7 +86,7 @@ func TestEventRepository_Append(t *testing.T) {
 	t.Run("should not append existing version", func(t *testing.T) {
 		ctx := context.Background()
 
-		er, err := connectInMemory(ctx, "events")
+		er, err := connectInMemory(ctx, "")
 		if err != nil {
 			t.Fatal(err)
 		}

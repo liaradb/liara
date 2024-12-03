@@ -8,6 +8,7 @@ import (
 )
 
 type OutboxRepository interface {
+	CreateTable(context.Context, value.TenantID) error
 	CreateOutbox(context.Context, *entity.Outbox) error
 	GetOutbox(context.Context, value.OutboxID) (*entity.Outbox, error)
 	UpdateOutboxPosition(context.Context, value.OutboxID, value.GlobalVersion) error

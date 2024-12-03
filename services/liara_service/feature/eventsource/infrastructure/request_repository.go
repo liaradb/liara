@@ -13,8 +13,8 @@ import (
 
 type (
 	RequestRepository struct {
-		db   *sql.DB
-		name string
+		db       *sql.DB
+		tenantID value.TenantID
 	}
 
 	requestModel struct {
@@ -25,11 +25,19 @@ type (
 
 var _ service.RequestRepository = &RequestRepository{}
 
-func NewRequestRepository(db *sql.DB, name string) *RequestRepository {
+func NewRequestRepository(db *sql.DB, tenantID value.TenantID) *RequestRepository {
 	return &RequestRepository{
 		db,
-		name,
+		tenantID,
 	}
+}
+
+func (*RequestRepository) getName(tenantID value.TenantID) string {
+	n := tenantID.String()
+	if n == "" {
+		n = "default"
+	}
+	return fmt.Sprintf("__%v__requests", n)
 }
 
 func (r *RequestRepository) Insert(ctx context.Context, requestID value.RequestID, time time.Time) error {
@@ -41,7 +49,7 @@ func (r *RequestRepository) Purge(ctx context.Context, time time.Time) error {
 DELETE FROM %v WHERE
 time <= $1
 `,
-		r.name), time)
+		r.getName(r.tenantID)), time)
 	return err
 }
 
@@ -50,7 +58,7 @@ func (r *RequestRepository) Test(ctx context.Context, requestID value.RequestID)
 SELECT * FROM %v WHERE
 id = $1
 `,
-		r.name), requestID)
+		r.getName(r.tenantID)), requestID)
 	_, err := r.scanRow(row)
 	if err == sql.ErrNoRows {
 		return true, nil
@@ -67,7 +75,7 @@ func (r RequestRepository) insertRow(
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( $1, $2 )
 `,
-		r.name),
+		r.getName(r.tenantID)),
 		request.ID,
 		request.Time,
 	)
@@ -83,14 +91,14 @@ func (r RequestRepository) scanRow(row Row) (entity.RequestLog, error) {
 	return request, err
 }
 
-func (r *RequestRepository) CreateTable(ctx context.Context) error {
+func (r *RequestRepository) CreateTable(ctx context.Context, tenantID value.TenantID) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %v (
 	id VARCHAR(50) PRIMARY KEY NOT NULL,
 	time TIMESTAMP NOT NULL,
 );
 `,
-		r.name)
+		r.getName(tenantID))
 	_, err := r.db.ExecContext(ctx, query)
 	return err
 }

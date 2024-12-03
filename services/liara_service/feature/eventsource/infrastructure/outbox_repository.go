@@ -12,8 +12,8 @@ import (
 
 type (
 	OutboxRepository struct {
-		db   *sql.DB
-		name string
+		db       *sql.DB
+		tenantID value.TenantID
 	}
 
 	outboxModel struct {
@@ -23,11 +23,19 @@ type (
 	}
 )
 
-func NewOutboxRepository(db *sql.DB, name string) *OutboxRepository {
+func NewOutboxRepository(db *sql.DB, tenantID value.TenantID) *OutboxRepository {
 	return &OutboxRepository{
 		db,
-		name,
+		tenantID,
 	}
+}
+
+func (*OutboxRepository) getName(tenantID value.TenantID) string {
+	n := tenantID.String()
+	if n == "" {
+		n = "default"
+	}
+	return fmt.Sprintf("__%v__outboxes", n)
 }
 
 func (s *OutboxRepository) GetOutbox(
@@ -38,7 +46,7 @@ func (s *OutboxRepository) GetOutbox(
 SELECT * FROM %v
 WHERE id = $1
 `,
-		s.name), outboxID)
+		s.getName(s.tenantID)), outboxID)
 	m, err := s.scanRow(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -59,7 +67,7 @@ func (s *OutboxRepository) CreateOutbox(
 INSERT INTO %v
 VALUES( $1, $2, $3, $4 )
 `,
-		s.name), outbox.ID(), low, high, 0)
+		s.tenantID), outbox.ID(), low, high, 0)
 	return err
 }
 
@@ -73,7 +81,7 @@ UPDATE %v
 SET position = $2
 WHERE id = $1
 `,
-		s.name), outboxID, position)
+		s.tenantID), outboxID, position)
 	return err
 }
 
@@ -90,7 +98,7 @@ func (s *OutboxRepository) scanRow(row Row) (outboxModel, error) {
 	return outbox, err
 }
 
-func (s *OutboxRepository) CreateTable(ctx context.Context) error {
+func (s *OutboxRepository) CreateTable(ctx context.Context, tenantID value.TenantID) error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %v (
 	id VARCHAR(50) PRIMARY KEY NOT NULL,
@@ -99,7 +107,7 @@ CREATE TABLE IF NOT EXISTS %v (
 	position BIGINT NOT NULL
 );
 `,
-		s.name)
+		s.getName(tenantID))
 	_, err := s.db.ExecContext(ctx, query)
 	return err
 }

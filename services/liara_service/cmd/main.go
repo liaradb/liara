@@ -51,47 +51,70 @@ func initService(db *sql.DB) *grpc.Server {
 		Build()
 
 	ctx := context.Background()
-	transactionRepository, eventRepository, outboxRepository, requestRepository, err := createTable(ctx, db)
+	r, err := createRepositories(ctx, db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		service.NewEventService(transactionRepository, eventRepository, outboxRepository, requestRepository),
-		service.NewTenantService(infrastructure.NewTenantRepository()),
+		service.NewEventService(
+			r.transactionRepository,
+			r.eventRepository,
+			r.outboxRepository,
+			r.requestRepository),
+		service.NewTenantService(
+			r.transactionRepository,
+			r.eventRepository,
+			r.outboxRepository,
+			r.requestRepository,
+			r.tenantRepository),
 	))
 
 	return s
 }
 
-func createTable(ctx context.Context, db *sql.DB) (
-	*infrastructure.TransactionRepository,
-	*infrastructure.EventRepository,
-	*infrastructure.OutboxRepository,
-	*infrastructure.RequestRepository,
-	error) {
+type repositories struct {
+	transactionRepository *infrastructure.TransactionRepository
+	eventRepository       *infrastructure.EventRepository
+	outboxRepository      *infrastructure.OutboxRepository
+	requestRepository     *infrastructure.RequestRepository
+	tenantRepository      *infrastructure.TenantRepository
+}
+
+func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) {
 	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelSerializable})
 
-	eventRepository := infrastructure.NewEventRepository(db, "events")
-	err := eventRepository.CreateTable(ctx)
+	eventRepository := infrastructure.NewEventRepository(db, "")
+	err := eventRepository.CreateTable(ctx, "")
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, err
 	}
 
-	err = eventRepository.CreateIndex(ctx)
+	err = eventRepository.CreateIndex(ctx, "")
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, err
 	}
 
-	outboxRepository := infrastructure.NewOutboxRepository(db, "outbox")
-	err = outboxRepository.CreateTable(ctx)
+	outboxRepository := infrastructure.NewOutboxRepository(db, "")
+	err = outboxRepository.CreateTable(ctx, "")
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, err
 	}
 
-	requestRepository := infrastructure.NewRequestRepository(db, "requests")
+	requestRepository := infrastructure.NewRequestRepository(db, "")
+	err = requestRepository.CreateTable(ctx, "")
+	if err != nil {
+		return nil, err
+	}
 
-	return transactionRepository, &eventRepository, outboxRepository, requestRepository, nil
+	tenantRepository := infrastructure.NewTenantRepository()
+	return &repositories{
+		transactionRepository: transactionRepository,
+		eventRepository:       &eventRepository,
+		outboxRepository:      outboxRepository,
+		requestRepository:     requestRepository,
+		tenantRepository:      tenantRepository,
+	}, nil
 }
 
 func ConnectPostgresDB(uri string) (*sql.DB, error) {
