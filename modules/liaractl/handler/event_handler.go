@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/cardboardrobots/liara"
@@ -24,15 +25,15 @@ func (eh *eventHandler) handle(cmd command) error {
 }
 
 func (eh *eventHandler) listEvents() error {
+	w := json.NewEncoder(os.Stdout)
+	w.SetIndent("", "  ")
 	count := 0
 	for event, err := range eh.es.GetAfterGlobalVersion(context.Background(), 0, nil, 0) {
 		if err != nil {
 			return err
 		}
 
-		result, _ := json.MarshalIndent(eventToRecord(event), "", "    ")
-
-		fmt.Printf("%v,\n", string(result))
+		w.Encode(eventToRecord(event))
 		count++
 	}
 	if count == 0 {
