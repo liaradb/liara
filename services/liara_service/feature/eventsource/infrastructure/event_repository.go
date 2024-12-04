@@ -14,8 +14,7 @@ import (
 
 type (
 	EventRepository struct {
-		db       *sql.DB
-		tenantID value.TenantID
+		db *sql.DB
 	}
 
 	queryRunner interface {
@@ -28,11 +27,9 @@ var _ service.EventRepository = EventRepository{}
 // TODO: Change to pointer
 func NewEventRepository(
 	db *sql.DB,
-	tenantID value.TenantID,
 ) EventRepository {
 	return EventRepository{
 		db,
-		tenantID,
 	}
 }
 
@@ -52,7 +49,7 @@ func (er EventRepository) Append(
 	_, err := er.db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 `,
-		er.getName(er.tenantID)),
+		er.getName(tenantID)),
 		em.ID,
 		em.AggregateName,
 		em.AggregateID,
@@ -80,7 +77,7 @@ func (er EventRepository) GetAfterGlobalVersion(
 		var err error
 
 		b := strings.Builder{}
-		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.getName(er.tenantID)))
+		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.getName(tenantID)))
 		b.WriteString(" WHERE global_version > $1")
 		partition0, partition1 := partitionRange.All()
 		if partition0 > 0 {
@@ -125,7 +122,7 @@ SELECT * FROM %v WHERE
 aggregate_id = $1
 ORDER BY global_version
 `,
-			er.getName(er.tenantID)), aggregateID)
+			er.getName(tenantID)), aggregateID)
 		if err != nil {
 			yield(entity.Event{}, err)
 			return
@@ -154,7 +151,7 @@ WHERE aggregate_id = $1
 AND aggregate_name = $2
 ORDER BY global_version
 `,
-			er.getName(er.tenantID)), aggregateID, name)
+			er.getName(tenantID)), aggregateID, name)
 		if err != nil {
 			yield(entity.Event{}, err)
 			return
@@ -172,13 +169,14 @@ ORDER BY global_version
 
 func (er EventRepository) Rollback(
 	ctx context.Context,
+	tenantID value.TenantID,
 	gv value.GlobalVersion,
 ) error {
 	q := fmt.Sprintf(`
 DELETE FROM %v
 WHERE global_version > $1
 `,
-		er.getName(er.tenantID))
+		er.getName(tenantID))
 	_, err := er.db.ExecContext(ctx, q, gv)
 	return err
 }

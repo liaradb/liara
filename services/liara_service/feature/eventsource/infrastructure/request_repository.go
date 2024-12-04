@@ -13,8 +13,7 @@ import (
 
 type (
 	RequestRepository struct {
-		db       *sql.DB
-		tenantID value.TenantID
+		db *sql.DB
 	}
 
 	requestModel struct {
@@ -25,10 +24,11 @@ type (
 
 var _ service.RequestRepository = &RequestRepository{}
 
-func NewRequestRepository(db *sql.DB, tenantID value.TenantID) *RequestRepository {
+func NewRequestRepository(
+	db *sql.DB,
+) *RequestRepository {
 	return &RequestRepository{
 		db,
-		tenantID,
 	}
 }
 
@@ -46,7 +46,7 @@ func (r *RequestRepository) Insert(
 	requestID value.RequestID,
 	time time.Time,
 ) error {
-	return r.insertRow(ctx, r.db, entity.RequestLog{ID: requestID, Time: time})
+	return r.insertRow(ctx, tenantID, r.db, entity.RequestLog{ID: requestID, Time: time})
 }
 
 func (r *RequestRepository) Purge(
@@ -58,7 +58,7 @@ func (r *RequestRepository) Purge(
 DELETE FROM %v WHERE
 time <= $1
 `,
-		r.getName(r.tenantID)), time)
+		r.getName(tenantID)), time)
 	return err
 }
 
@@ -71,7 +71,7 @@ func (r *RequestRepository) Test(
 SELECT * FROM %v WHERE
 id = $1
 `,
-		r.getName(r.tenantID)), requestID)
+		r.getName(tenantID)), requestID)
 	_, err := r.scanRow(row)
 	if err == sql.ErrNoRows {
 		return true, nil
@@ -82,13 +82,14 @@ id = $1
 
 func (r RequestRepository) insertRow(
 	ctx context.Context,
+	tenantID value.TenantID,
 	qr queryRunner,
 	request entity.RequestLog,
 ) error {
 	_, err := qr.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( $1, $2 )
 `,
-		r.getName(r.tenantID)),
+		r.getName(tenantID)),
 		request.ID,
 		request.Time,
 	)

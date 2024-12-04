@@ -12,8 +12,7 @@ import (
 
 type (
 	OutboxRepository struct {
-		db       *sql.DB
-		tenantID value.TenantID
+		db *sql.DB
 	}
 
 	outboxModel struct {
@@ -23,10 +22,11 @@ type (
 	}
 )
 
-func NewOutboxRepository(db *sql.DB, tenantID value.TenantID) *OutboxRepository {
+func NewOutboxRepository(
+	db *sql.DB,
+) *OutboxRepository {
 	return &OutboxRepository{
 		db,
-		tenantID,
 	}
 }
 
@@ -47,7 +47,7 @@ func (s *OutboxRepository) GetOutbox(
 SELECT * FROM %v
 WHERE id = $1
 `,
-		s.getName(s.tenantID)), outboxID)
+		s.getName(tenantID)), outboxID)
 	m, err := s.scanRow(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -69,7 +69,7 @@ func (s *OutboxRepository) CreateOutbox(
 INSERT INTO %v
 VALUES( $1, $2, $3, $4 )
 `,
-		s.getName(s.tenantID)), outbox.ID(), low, high, 0)
+		s.getName(tenantID)), outbox.ID(), low, high, 0)
 	return err
 }
 
@@ -84,7 +84,7 @@ UPDATE %v
 SET position = $2
 WHERE id = $1
 `,
-		s.getName(s.tenantID)), outboxID, position)
+		s.getName(tenantID)), outboxID, position)
 	return err
 }
 

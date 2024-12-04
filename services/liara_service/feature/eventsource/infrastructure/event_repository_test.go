@@ -23,7 +23,7 @@ func connectInMemory(ctx context.Context, tenantID value.TenantID) (*EventReposi
 		return nil, err
 	}
 
-	er := NewEventRepository(db, tenantID)
+	er := NewEventRepository(db)
 
 	if err = er.CreateTable(ctx, tenantID); err != nil {
 		return nil, err

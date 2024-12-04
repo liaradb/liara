@@ -84,7 +84,7 @@ type repositories struct {
 func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) {
 	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelSerializable})
 
-	eventRepository := infrastructure.NewEventRepository(db, "")
+	eventRepository := infrastructure.NewEventRepository(db)
 	err := eventRepository.CreateTable(ctx, "")
 	if err != nil {
 		return nil, err
@@ -95,13 +95,13 @@ func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) 
 		return nil, err
 	}
 
-	outboxRepository := infrastructure.NewOutboxRepository(db, "")
+	outboxRepository := infrastructure.NewOutboxRepository(db)
 	err = outboxRepository.CreateTable(ctx, "")
 	if err != nil {
 		return nil, err
 	}
 
-	requestRepository := infrastructure.NewRequestRepository(db, "")
+	requestRepository := infrastructure.NewRequestRepository(db)
 	err = requestRepository.CreateTable(ctx, "")
 	if err != nil {
 		return nil, err
