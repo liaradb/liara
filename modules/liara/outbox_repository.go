@@ -5,7 +5,7 @@ import (
 )
 
 type OutboxRepository interface {
-	CreateOutbox(context.Context, OutboxID, []PartitionID) (OutboxID, error)
-	GetOutbox(context.Context, OutboxID) (GlobalVersion, error)
-	UpdateOutboxPosition(context.Context, OutboxID, GlobalVersion) error
+	CreateOutbox(context.Context, TenantID, OutboxID, []PartitionID) (OutboxID, error)
+	GetOutbox(context.Context, TenantID, OutboxID) (GlobalVersion, error)
+	UpdateOutboxPosition(context.Context, TenantID, OutboxID, GlobalVersion) error
 }

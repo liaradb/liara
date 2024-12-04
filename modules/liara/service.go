@@ -9,6 +9,7 @@ import (
 
 type (
 	Service[T AggregateRoot[U], U ~string] struct {
+		tenantID        TenantID
 		eventRepository EventRepository
 		fromEvent       func(name string, data []byte) (any, error)
 		init            func() T
@@ -62,7 +63,7 @@ func (s *Service[T, U]) Append(
 		data = append(data, event)
 	}
 
-	return s.eventRepository.Append(ctx, requestID, data...)
+	return s.eventRepository.Append(ctx, s.tenantID, requestID, data...)
 }
 
 func (s *Service[T, U]) GetByID(
@@ -70,6 +71,7 @@ func (s *Service[T, U]) GetByID(
 	id U,
 ) (T, Version, error) {
 	return s.apply(s.eventRepository.Get(ctx,
+		s.tenantID,
 		AggregateID(id)))
 }
 
@@ -79,6 +81,7 @@ func (s *Service[T, U]) GetByIDAndName(
 	name AggregateName,
 ) (T, Version, error) {
 	return s.apply(s.eventRepository.GetByAggregateIDAndName(ctx,
+		s.tenantID,
 		AggregateID(id),
 		name))
 }

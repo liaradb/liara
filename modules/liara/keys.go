@@ -9,6 +9,7 @@ type (
 	OutboxID      string
 	RequestID     string
 	PartitionID   int32
+	TenantID      string
 	UserID        string
 )
 
@@ -18,6 +19,7 @@ func (e EventID) String() string       { return string(e) }
 func (o OutboxID) String() string      { return string(o) }
 func (r RequestID) String() string     { return string(r) }
 func (p PartitionID) Value() int32     { return int32(p) }
+func (t TenantID) String() string      { return string(t) }
 func (u UserID) String() string        { return string(u) }
 
 func NewAggregateID() AggregateID {

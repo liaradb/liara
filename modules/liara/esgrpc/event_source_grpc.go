@@ -29,6 +29,7 @@ func NewEventSourceGRPC(
 
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	requestID liara.RequestID,
 	events ...liara.AppendEvent,
 ) error {
@@ -38,6 +39,7 @@ func (es *EventSourceGRPC) Append(
 	}
 
 	_, err := es.client.Append(ctx, &pb.AppendRequest{
+		TenantId:  tenantID.String(),
 		RequestId: requestID.String(),
 		Events:    data,
 	})
@@ -46,10 +48,12 @@ func (es *EventSourceGRPC) Append(
 
 func (es *EventSourceGRPC) Get(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	id liara.AggregateID,
 ) iter.Seq2[liara.Event, error] {
 	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.Get(ctx, &pb.GetRequest{
+			TenantId:    tenantID.String(),
 			AggregateId: id.String(),
 		})
 		if err != nil {
@@ -77,11 +81,13 @@ func (es *EventSourceGRPC) Get(
 
 func (es *EventSourceGRPC) GetByAggregateIDAndName(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	id liara.AggregateID,
 	name liara.AggregateName,
 ) iter.Seq2[liara.Event, error] {
 	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.GetByAggregateIDAndName(ctx, &pb.GetByAggregateIDAndNameRequest{
+			TenantId:    tenantID.String(),
 			AggregateId: id.String(),
 			Name:        name.String(),
 		})
@@ -110,6 +116,7 @@ func (es *EventSourceGRPC) GetByAggregateIDAndName(
 
 func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	version liara.GlobalVersion,
 	partitionIDs []liara.PartitionID,
 	limit liara.Limit,
@@ -120,6 +127,7 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 			pids = append(pids, p.Value())
 		}
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
+			TenantId:      tenantID.String(),
 			GlobalVersion: int64(version),
 			PartitionIds:  pids,
 			Limit:         int64(limit),
@@ -147,9 +155,15 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	}
 }
 
-func (es *EventSourceGRPC) GetByOutbox(ctx context.Context, outboxID liara.OutboxID, limit liara.Limit) iter.Seq2[liara.Event, error] {
+func (es *EventSourceGRPC) GetByOutbox(
+	ctx context.Context,
+	tenantID liara.TenantID,
+	outboxID liara.OutboxID,
+	limit liara.Limit,
+) iter.Seq2[liara.Event, error] {
 	return func(yield func(liara.Event, error) bool) {
 		stream, err := es.client.GetByOutbox(ctx, &pb.GetByOutboxRequest{
+			TenantId: tenantID.String(),
 			OutboxId: outboxID.String(),
 			Limit:    int64(limit),
 		})
@@ -178,10 +192,12 @@ func (es *EventSourceGRPC) GetByOutbox(ctx context.Context, outboxID liara.Outbo
 
 func (es *EventSourceGRPC) CreateOutbox(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	outboxID liara.OutboxID,
 	partitionIDs []liara.PartitionID,
 ) (liara.OutboxID, error) {
 	response, err := es.client.CreateOutbox(ctx, &pb.CreateOutboxRequest{
+		TenantId: tenantID.String(),
 		OutboxId: outboxID.String(),
 	})
 	if err != nil {
@@ -193,9 +209,11 @@ func (es *EventSourceGRPC) CreateOutbox(
 
 func (es *EventSourceGRPC) GetOutbox(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	outboxID liara.OutboxID,
 ) (liara.GlobalVersion, error) {
 	response, err := es.client.GetOutbox(ctx, &pb.GetOutboxRequest{
+		TenantId: tenantID.String(),
 		OutboxId: outboxID.String(),
 	})
 	if err != nil {
@@ -207,10 +225,12 @@ func (es *EventSourceGRPC) GetOutbox(
 
 func (es *EventSourceGRPC) UpdateOutboxPosition(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	outboxID liara.OutboxID,
 	globalVersion liara.GlobalVersion,
 ) error {
 	_, err := es.client.UpdateOutboxPosition(ctx, &pb.UpdateOutboxPositionRequest{
+		TenantId:      tenantID.String(),
 		OutboxId:      outboxID.String(),
 		GlobalVersion: int64(globalVersion),
 	})

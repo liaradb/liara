@@ -7,6 +7,7 @@ import (
 
 type (
 	Outbox struct {
+		tenantID         TenantID
 		outboxRepository OutboxRepository
 		eventRepository  EventRepository
 		subscriptions    []EventSubscriber
@@ -28,14 +29,15 @@ func NewOutbox(
 	eventRepository EventRepository,
 ) Outbox {
 	return Outbox{
-		outboxRepository,
-		eventRepository,
-		nil,
+		tenantID:         "",
+		outboxRepository: outboxRepository,
+		eventRepository:  eventRepository,
+		subscriptions:    nil,
 	}
 }
 
 func (o *Outbox) Create(ctx context.Context, outboxID OutboxID, partitionIDs []PartitionID) (OutboxID, error) {
-	return o.outboxRepository.CreateOutbox(ctx, outboxID, partitionIDs)
+	return o.outboxRepository.CreateOutbox(ctx, o.tenantID, outboxID, partitionIDs)
 }
 
 func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, limit Limit) {
@@ -50,7 +52,7 @@ func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Durat
 func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error {
 	update := false
 	var globalVersion GlobalVersion
-	for em, err := range o.eventRepository.GetByOutbox(ctx, outboxID, limit) {
+	for em, err := range o.eventRepository.GetByOutbox(ctx, o.tenantID, outboxID, limit) {
 		if err != nil {
 			return err
 		}
@@ -66,7 +68,7 @@ func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error
 	}
 
 	if update {
-		return o.outboxRepository.UpdateOutboxPosition(ctx, outboxID, globalVersion)
+		return o.outboxRepository.UpdateOutboxPosition(ctx, o.tenantID, outboxID, globalVersion)
 	}
 	return nil
 }

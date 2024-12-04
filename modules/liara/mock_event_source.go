@@ -21,6 +21,7 @@ var _ EventRepository = &MockEventSource{}
 
 func (mes *MockEventSource) Get(
 	ctx context.Context,
+	tenantID TenantID,
 	id AggregateID,
 ) iter.Seq2[Event, error] {
 	return func(yield func(Event, error) bool) {
@@ -38,6 +39,7 @@ func (mes *MockEventSource) Get(
 
 func (mes *MockEventSource) GetAfterGlobalVersion(
 	ctx context.Context,
+	tenantID TenantID,
 	globalVersion GlobalVersion,
 	partitionID []PartitionID,
 	limit Limit,
@@ -47,6 +49,7 @@ func (mes *MockEventSource) GetAfterGlobalVersion(
 
 func (mes *MockEventSource) GetByOutbox(
 	ctx context.Context,
+	tenantID TenantID,
 	outboxID OutboxID,
 	limit Limit,
 ) iter.Seq2[Event, error] {
@@ -55,6 +58,7 @@ func (mes *MockEventSource) GetByOutbox(
 
 func (mes *MockEventSource) GetByAggregateIDAndName(
 	ctx context.Context,
+	tenantID TenantID,
 	id AggregateID,
 	name AggregateName,
 ) iter.Seq2[Event, error] {
@@ -74,6 +78,7 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 
 func (mes *MockEventSource) Append(
 	ctx context.Context,
+	tenantID TenantID,
 	requestID RequestID,
 	events ...AppendEvent,
 ) error {

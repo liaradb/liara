@@ -6,11 +6,11 @@ import (
 )
 
 type EventRepository interface {
-	Get(context.Context, AggregateID) iter.Seq2[Event, error]
-	GetAfterGlobalVersion(context.Context, GlobalVersion, []PartitionID, Limit) iter.Seq2[Event, error]
-	GetByAggregateIDAndName(context.Context, AggregateID, AggregateName) iter.Seq2[Event, error]
-	GetByOutbox(context.Context, OutboxID, Limit) iter.Seq2[Event, error]
-	Append(context.Context, RequestID, ...AppendEvent) error
+	Get(context.Context, TenantID, AggregateID) iter.Seq2[Event, error]
+	GetAfterGlobalVersion(context.Context, TenantID, GlobalVersion, []PartitionID, Limit) iter.Seq2[Event, error]
+	GetByAggregateIDAndName(context.Context, TenantID, AggregateID, AggregateName) iter.Seq2[Event, error]
+	GetByOutbox(context.Context, TenantID, OutboxID, Limit) iter.Seq2[Event, error]
+	Append(context.Context, TenantID, RequestID, ...AppendEvent) error
 }
 
 type AppendEvent struct {
