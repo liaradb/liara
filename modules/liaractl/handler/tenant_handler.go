@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/cardboardrobots/liara"
@@ -18,6 +19,8 @@ func (th *tenantHandler) handle(cmd command, args []string) error {
 		return th.listTenants()
 	case commandTenantCreate:
 		return th.createTenant(args)
+	case commandTenantDelete:
+		return th.deleteTenant(args)
 	default:
 		return errNoCommand
 	}
@@ -46,4 +49,12 @@ func (th *tenantHandler) createTenant(args []string) error {
 	}
 	_, err := th.es.CreateTenant(context.Background(), liara.TenantName(name))
 	return err
+}
+
+func (th *tenantHandler) deleteTenant(args []string) error {
+	if len(args) == 0 {
+		return errors.New("no tenantID")
+	}
+	id := args[0]
+	return th.es.DeleteTenant(context.Background(), liara.TenantID(id))
 }

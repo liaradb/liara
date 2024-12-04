@@ -116,3 +116,12 @@ CREATE TABLE IF NOT EXISTS %v (
 	_, err := s.db.ExecContext(ctx, query)
 	return err
 }
+
+func (or *OutboxRepository) DropTable(ctx context.Context, tenantID value.TenantID) error {
+	query := fmt.Sprintf(`
+DROP TABLE %v;
+`,
+		or.getName(tenantID))
+	_, err := or.db.ExecContext(ctx, query)
+	return err
+}

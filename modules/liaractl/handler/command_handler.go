@@ -16,6 +16,7 @@ const (
 	objectEvent         object  = "event"
 	commandTenantList   command = "list"
 	commandTenantCreate command = "create"
+	commandTenantDelete command = "delete"
 	commandEventList    command = "list"
 )
 

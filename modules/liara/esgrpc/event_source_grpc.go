@@ -251,6 +251,16 @@ func (es *EventSourceGRPC) CreateTenant(
 	return liara.TenantID(response.TenantId), nil
 }
 
+func (es *EventSourceGRPC) DeleteTenant(
+	ctx context.Context,
+	tenantID liara.TenantID,
+) error {
+	_, err := es.client.DeleteTenant(ctx, &pb.DeleteTenantRequest{
+		TenantId: tenantID.String(),
+	})
+	return err
+}
+
 func (es *EventSourceGRPC) ListTenants(
 	ctx context.Context,
 ) iter.Seq2[*pb.Tenant, error] {
@@ -261,16 +271,18 @@ func (es *EventSourceGRPC) ListTenants(
 			return
 		}
 
-		m, err := result.Recv()
-		if err != nil {
-			if err != io.EOF {
-				yield(nil, err)
+		for {
+			m, err := result.Recv()
+			if err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
+				return
 			}
-			return
-		}
 
-		if !yield(m, nil) {
-			return
+			if !yield(m, nil) {
+				return
+			}
 		}
 	}
 }

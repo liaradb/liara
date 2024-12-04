@@ -233,3 +233,12 @@ ON %v (aggregate_id, aggregate_name);
 	_, err := er.db.ExecContext(ctx, query)
 	return err
 }
+
+func (er EventRepository) DropTable(ctx context.Context, tenantID value.TenantID) error {
+	query := fmt.Sprintf(`
+DROP TABLE  %v;
+`,
+		er.getName(tenantID))
+	_, err := er.db.ExecContext(ctx, query)
+	return err
+}

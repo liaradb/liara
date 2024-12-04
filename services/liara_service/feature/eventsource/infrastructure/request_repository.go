@@ -118,3 +118,12 @@ CREATE TABLE IF NOT EXISTS %v (
 	_, err := r.db.ExecContext(ctx, query)
 	return err
 }
+
+func (rr *RequestRepository) DropTable(ctx context.Context, tenantID value.TenantID) error {
+	query := fmt.Sprintf(`
+DROP TABLE %v;
+`,
+		rr.getName(tenantID))
+	_, err := rr.db.ExecContext(ctx, query)
+	return err
+}

@@ -78,7 +78,21 @@ type DeleteTenantCommand struct {
 }
 
 func (ts *TenantService) Delete(ctx context.Context, cmd DeleteTenantCommand) error {
-	return ts.tenantRepository.Delete(ctx, cmd.TenantID)
+	return ts.transactionRepository.Run(ctx, func(tx Transaction) error {
+		if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
+			return nil
+		}
+
+		if err := ts.outboxRepository.DropTable(ctx, cmd.TenantID); err != nil {
+			return nil
+		}
+
+		if err := ts.requestRepository.DropTable(ctx, cmd.TenantID); err != nil {
+			return nil
+		}
+
+		return ts.tenantRepository.Delete(ctx, cmd.TenantID)
+	})
 }
 
 type RenameTenantCommand struct {
