@@ -41,11 +41,12 @@ func NewTenantService(
 }
 
 type CreateTenantCommand struct {
+	TenantID   value.TenantID
 	TenantName value.TenantName
 }
 
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
-	id := value.NewTenantID()
+	id := cmd.TenantID.NewIfEmpty()
 	tenant := entity.NewTenant(id, cmd.TenantName)
 
 	if err := ts.transactionRepository.Run(ctx, func(tx Transaction) error {

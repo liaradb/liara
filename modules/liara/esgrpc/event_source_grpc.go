@@ -239,10 +239,12 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 
 func (es *EventSourceGRPC) CreateTenant(
 	ctx context.Context,
+	tenantID liara.TenantID,
 	tenantName liara.TenantName,
 ) (liara.TenantID, error) {
 	response, err := es.client.CreateTenant(ctx, &pb.CreateTenantRequest{
-		Name: tenantName.String(),
+		TenantId: tenantID.String(),
+		Name:     tenantName.String(),
 	})
 	if err != nil {
 		return "", err

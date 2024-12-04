@@ -43,12 +43,26 @@ func (th *tenantHandler) listTenants() error {
 }
 
 func (th *tenantHandler) createTenant(args []string) error {
-	name := ""
-	if len(args) > 0 {
-		name = args[0]
+	id, name := "", ""
+	switch len(args) {
+	case 0:
+		break
+	case 1:
+		id = args[0]
+	default:
+		id, name = args[0], args[1]
 	}
-	_, err := th.es.CreateTenant(context.Background(), liara.TenantName(name))
-	return err
+
+	tenantID, err := th.es.CreateTenant(context.Background(),
+		liara.TenantID(id),
+		liara.TenantName(name))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(tenantID.String())
+
+	return nil
 }
 
 func (th *tenantHandler) deleteTenant(args []string) error {

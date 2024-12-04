@@ -1,6 +1,8 @@
 package entity
 
-import "github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+import (
+	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+)
 
 type Tenant struct {
 	id      value.TenantID
@@ -16,6 +18,14 @@ func NewTenant(
 	id value.TenantID,
 	name value.TenantName,
 ) *Tenant {
+	if !id.IsEmpty() {
+		if name.IsEmpty() {
+			name = value.TenantName(id.Trim())
+		}
+	} else {
+		id = value.NewTenantID()
+	}
+
 	return &Tenant{
 		id:      id,
 		version: 0,

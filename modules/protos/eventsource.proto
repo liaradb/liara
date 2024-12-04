@@ -194,7 +194,8 @@ message UpdateOutboxPositionResponse {}
 // -----------------------------------------------------------------------------
 
 message CreateTenantRequest {
-  string name = 1;
+  string tenant_id = 1;
+  string name = 2;
 }
 
 message CreateTenantReponse {
