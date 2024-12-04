@@ -95,7 +95,7 @@ func (r *RequestRepository) CreateTable(ctx context.Context, tenantID value.Tena
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %v (
 	id VARCHAR(50) PRIMARY KEY NOT NULL,
-	time TIMESTAMP NOT NULL,
+	time TIMESTAMP NOT NULL
 );
 `,
 		r.getName(tenantID))

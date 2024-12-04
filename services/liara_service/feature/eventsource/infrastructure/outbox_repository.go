@@ -67,7 +67,7 @@ func (s *OutboxRepository) CreateOutbox(
 INSERT INTO %v
 VALUES( $1, $2, $3, $4 )
 `,
-		s.tenantID), outbox.ID(), low, high, 0)
+		s.getName(s.tenantID)), outbox.ID(), low, high, 0)
 	return err
 }
 
@@ -81,7 +81,7 @@ UPDATE %v
 SET position = $2
 WHERE id = $1
 `,
-		s.tenantID), outboxID, position)
+		s.getName(s.tenantID)), outboxID, position)
 	return err
 }
 
