@@ -22,11 +22,12 @@ func (th *tenantHandler) handle(cmd command) error {
 
 func (th *tenantHandler) listTenants() error {
 	count := 0
-	for _, err := range th.es.ListTenants(context.Background()) {
+	for t, err := range th.es.ListTenants(context.Background()) {
 		if err != nil {
 			return err
 		}
 
+		fmt.Printf("%v\t%v\n", t.TenantId, t.Name)
 		count++
 	}
 	if count == 0 {

@@ -237,6 +237,20 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 	return err
 }
 
+func (es *EventSourceGRPC) CreateTenant(
+	ctx context.Context,
+	tenantName liara.TenantName,
+) (liara.TenantID, error) {
+	response, err := es.client.CreateTenant(ctx, &pb.CreateTenantRequest{
+		Name: tenantName.String(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return liara.TenantID(response.TenantId), nil
+}
+
 func (es *EventSourceGRPC) ListTenants(
 	ctx context.Context,
 ) iter.Seq2[*pb.Tenant, error] {
