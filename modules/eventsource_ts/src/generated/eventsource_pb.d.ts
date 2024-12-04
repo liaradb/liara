@@ -138,6 +138,8 @@ export namespace AppendEvent {
 }
 
 export class AppendRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): AppendRequest;
     getRequestId(): string;
     setRequestId(value: string): AppendRequest;
     clearEventsList(): void;
@@ -157,6 +159,7 @@ export class AppendRequest extends jspb.Message {
 
 export namespace AppendRequest {
     export type AsObject = {
+        tenantId: string,
         requestId: string,
         eventsList: Array<AppendEvent.AsObject>,
     }
@@ -180,6 +183,8 @@ export namespace AppendResponse {
 }
 
 export class GetRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): GetRequest;
     getAggregateId(): string;
     setAggregateId(value: string): GetRequest;
 
@@ -195,11 +200,14 @@ export class GetRequest extends jspb.Message {
 
 export namespace GetRequest {
     export type AsObject = {
+        tenantId: string,
         aggregateId: string,
     }
 }
 
 export class GetByAggregateIDAndNameRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): GetByAggregateIDAndNameRequest;
     getAggregateId(): string;
     setAggregateId(value: string): GetByAggregateIDAndNameRequest;
     getName(): string;
@@ -217,12 +225,15 @@ export class GetByAggregateIDAndNameRequest extends jspb.Message {
 
 export namespace GetByAggregateIDAndNameRequest {
     export type AsObject = {
+        tenantId: string,
         aggregateId: string,
         name: string,
     }
 }
 
 export class GetAfterGlobalVersionRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): GetAfterGlobalVersionRequest;
     getGlobalVersion(): number;
     setGlobalVersion(value: number): GetAfterGlobalVersionRequest;
     clearPartitionIdsList(): void;
@@ -244,6 +255,7 @@ export class GetAfterGlobalVersionRequest extends jspb.Message {
 
 export namespace GetAfterGlobalVersionRequest {
     export type AsObject = {
+        tenantId: string,
         globalVersion: number,
         partitionIdsList: Array<number>,
         limit: number,
@@ -251,6 +263,8 @@ export namespace GetAfterGlobalVersionRequest {
 }
 
 export class GetByOutboxRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): GetByOutboxRequest;
     getOutboxId(): string;
     setOutboxId(value: string): GetByOutboxRequest;
     getLimit(): number;
@@ -268,12 +282,15 @@ export class GetByOutboxRequest extends jspb.Message {
 
 export namespace GetByOutboxRequest {
     export type AsObject = {
+        tenantId: string,
         outboxId: string,
         limit: number,
     }
 }
 
 export class CreateOutboxRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): CreateOutboxRequest;
     getOutboxId(): string;
     setOutboxId(value: string): CreateOutboxRequest;
     clearPartitionIdList(): void;
@@ -293,6 +310,7 @@ export class CreateOutboxRequest extends jspb.Message {
 
 export namespace CreateOutboxRequest {
     export type AsObject = {
+        tenantId: string,
         outboxId: string,
         partitionIdList: Array<number>,
     }
@@ -319,6 +337,8 @@ export namespace CreateOutboxResponse {
 }
 
 export class GetOutboxRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): GetOutboxRequest;
     getOutboxId(): string;
     setOutboxId(value: string): GetOutboxRequest;
 
@@ -334,6 +354,7 @@ export class GetOutboxRequest extends jspb.Message {
 
 export namespace GetOutboxRequest {
     export type AsObject = {
+        tenantId: string,
         outboxId: string,
     }
 }
@@ -364,6 +385,8 @@ export namespace GetOutboxResponse {
 }
 
 export class UpdateOutboxPositionRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): UpdateOutboxPositionRequest;
     getOutboxId(): string;
     setOutboxId(value: string): UpdateOutboxPositionRequest;
     getGlobalVersion(): number;
@@ -381,6 +404,7 @@ export class UpdateOutboxPositionRequest extends jspb.Message {
 
 export namespace UpdateOutboxPositionRequest {
     export type AsObject = {
+        tenantId: string,
         outboxId: string,
         globalVersion: number,
     }

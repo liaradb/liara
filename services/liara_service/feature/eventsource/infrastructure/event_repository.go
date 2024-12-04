@@ -46,6 +46,7 @@ func (*EventRepository) getName(tenantID value.TenantID) string {
 
 func (er EventRepository) Append(
 	ctx context.Context,
+	tenantID value.TenantID,
 	em service.AppendEvent,
 ) error {
 	_, err := er.db.ExecContext(ctx, fmt.Sprintf(`
@@ -69,6 +70,7 @@ INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 
 func (er EventRepository) GetAfterGlobalVersion(
 	ctx context.Context,
+	tenantID value.TenantID,
 	globalVersion value.GlobalVersion,
 	partitionRange value.PartitionRange,
 	limit value.Limit,
@@ -114,6 +116,7 @@ func (er EventRepository) GetAfterGlobalVersion(
 
 func (er EventRepository) Get(
 	ctx context.Context,
+	tenantID value.TenantID,
 	aggregateID value.AggregateID,
 ) iter.Seq2[entity.Event, error] {
 	return func(yield func(entity.Event, error) bool) {
@@ -140,6 +143,7 @@ ORDER BY global_version
 
 func (er EventRepository) GetByAggregateIDAndName(
 	ctx context.Context,
+	tenantID value.TenantID,
 	aggregateID value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[entity.Event, error] {

@@ -55,7 +55,7 @@ func TestEventRepository_Append(t *testing.T) {
 			Version:       1,
 		}
 
-		err = er.Append(ctx, service.AppendEvent{
+		err = er.Append(ctx, "", service.AppendEvent{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
@@ -65,7 +65,7 @@ func TestEventRepository_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		rows := er.Get(ctx, aggregateID)
+		rows := er.Get(ctx, "", aggregateID)
 		count := 0
 		for e, err := range rows {
 			if err != nil {
@@ -100,12 +100,12 @@ func TestEventRepository_Append(t *testing.T) {
 			Version:       1,
 		}
 
-		err = er.Append(ctx, want)
+		err = er.Append(ctx, "", want)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = er.Append(ctx, want)
+		err = er.Append(ctx, "", want)
 		if err == nil {
 			t.Error("should return error")
 		}

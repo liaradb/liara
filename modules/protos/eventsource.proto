@@ -98,8 +98,9 @@ message AppendEvent {
 }
 
 message AppendRequest {
-  string request_id = 1;
-  repeated AppendEvent events = 2;
+  string tenant_id = 1;
+  string request_id = 2;
+  repeated AppendEvent events = 3;
 }
 
 message AppendResponse {}
@@ -109,7 +110,8 @@ message AppendResponse {}
 // -----------------------------------------------------------------------------
 
 message GetRequest {
-  string aggregate_id = 1;
+  string tenant_id = 1;
+  string aggregate_id = 2;
 }
 
 // -----------------------------------------------------------------------------
@@ -117,8 +119,9 @@ message GetRequest {
 // -----------------------------------------------------------------------------
 
 message GetByAggregateIDAndNameRequest {
-  string aggregate_id = 1;
-  string name = 2;
+  string tenant_id = 1;
+  string aggregate_id = 2;
+  string name = 3;
 }
 
 // -----------------------------------------------------------------------------
@@ -126,9 +129,10 @@ message GetByAggregateIDAndNameRequest {
 // -----------------------------------------------------------------------------
 
 message GetAfterGlobalVersionRequest {
-  int64 global_version = 1;
-  repeated int32 partition_ids = 2;
-  int64 limit = 3;
+  string tenant_id = 1;
+  int64 global_version = 2;
+  repeated int32 partition_ids = 3;
+  int64 limit = 4;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,8 +140,9 @@ message GetAfterGlobalVersionRequest {
 // -----------------------------------------------------------------------------
 
 message GetByOutboxRequest {
-  string outbox_id = 1;
-  int64 limit = 2;
+  string tenant_id = 1;
+  string outbox_id = 2;
+  int64 limit = 3;
 }
 
 // -----------------------------------------------------------------------------
@@ -145,8 +150,9 @@ message GetByOutboxRequest {
 // -----------------------------------------------------------------------------
 
 message CreateOutboxRequest {
-  string outbox_id = 1;
-  repeated int32 partition_id = 2;
+  string tenant_id = 1;
+  string outbox_id = 2;
+  repeated int32 partition_id = 3;
 }
 
 message CreateOutboxResponse {
@@ -158,7 +164,8 @@ message CreateOutboxResponse {
 // -----------------------------------------------------------------------------
 
 message GetOutboxRequest {
-  string outbox_id = 1;
+  string tenant_id = 1;
+  string outbox_id = 2;
 }
 
 message GetOutboxResponse {
@@ -171,8 +178,9 @@ message GetOutboxResponse {
 // -----------------------------------------------------------------------------
 
 message UpdateOutboxPositionRequest {
-  string outbox_id = 1;
-  int64 global_version = 2;
+  string tenant_id = 1;
+  string outbox_id = 2;
+  int64 global_version = 3;
 }
 
 message UpdateOutboxPositionResponse {}

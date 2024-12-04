@@ -1474,7 +1474,7 @@ proto.liara.AppendEvent.prototype.setData = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.liara.AppendRequest.repeatedFields_ = [2];
+proto.liara.AppendRequest.repeatedFields_ = [3];
 
 
 
@@ -1507,7 +1507,8 @@ proto.liara.AppendRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.liara.AppendRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    requestId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    requestId: jspb.Message.getFieldWithDefault(msg, 2, ""),
     eventsList: jspb.Message.toObjectList(msg.getEventsList(),
     proto.liara.AppendEvent.toObject, includeInstance)
   };
@@ -1548,9 +1549,13 @@ proto.liara.AppendRequest.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setRequestId(value);
+      msg.setTenantId(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRequestId(value);
+      break;
+    case 3:
       var value = new proto.liara.AppendEvent;
       reader.readMessage(value,proto.liara.AppendEvent.deserializeBinaryFromReader);
       msg.addEvents(value);
@@ -1584,17 +1589,24 @@ proto.liara.AppendRequest.prototype.serializeBinary = function() {
  */
 proto.liara.AppendRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getRequestId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
+  f = message.getRequestId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getEventsList();
   if (f.length > 0) {
     writer.writeRepeatedMessage(
-      2,
+      3,
       f,
       proto.liara.AppendEvent.serializeBinaryToWriter
     );
@@ -1603,10 +1615,10 @@ proto.liara.AppendRequest.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional string request_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.AppendRequest.prototype.getRequestId = function() {
+proto.liara.AppendRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1615,18 +1627,36 @@ proto.liara.AppendRequest.prototype.getRequestId = function() {
  * @param {string} value
  * @return {!proto.liara.AppendRequest} returns this
  */
-proto.liara.AppendRequest.prototype.setRequestId = function(value) {
+proto.liara.AppendRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * repeated AppendEvent events = 2;
+ * optional string request_id = 2;
+ * @return {string}
+ */
+proto.liara.AppendRequest.prototype.getRequestId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.AppendRequest} returns this
+ */
+proto.liara.AppendRequest.prototype.setRequestId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated AppendEvent events = 3;
  * @return {!Array<!proto.liara.AppendEvent>}
  */
 proto.liara.AppendRequest.prototype.getEventsList = function() {
   return /** @type{!Array<!proto.liara.AppendEvent>} */ (
-    jspb.Message.getRepeatedWrapperField(this, proto.liara.AppendEvent, 2));
+    jspb.Message.getRepeatedWrapperField(this, proto.liara.AppendEvent, 3));
 };
 
 
@@ -1635,7 +1665,7 @@ proto.liara.AppendRequest.prototype.getEventsList = function() {
  * @return {!proto.liara.AppendRequest} returns this
 */
 proto.liara.AppendRequest.prototype.setEventsList = function(value) {
-  return jspb.Message.setRepeatedWrapperField(this, 2, value);
+  return jspb.Message.setRepeatedWrapperField(this, 3, value);
 };
 
 
@@ -1645,7 +1675,7 @@ proto.liara.AppendRequest.prototype.setEventsList = function(value) {
  * @return {!proto.liara.AppendEvent}
  */
 proto.liara.AppendRequest.prototype.addEvents = function(opt_value, opt_index) {
-  return jspb.Message.addToRepeatedWrapperField(this, 2, opt_value, proto.liara.AppendEvent, opt_index);
+  return jspb.Message.addToRepeatedWrapperField(this, 3, opt_value, proto.liara.AppendEvent, opt_index);
 };
 
 
@@ -1791,7 +1821,8 @@ proto.liara.GetRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.liara.GetRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    aggregateId: jspb.Message.getFieldWithDefault(msg, 1, "")
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    aggregateId: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -1830,6 +1861,10 @@ proto.liara.GetRequest.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
+      msg.setTenantId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
       msg.setAggregateId(value);
       break;
     default:
@@ -1861,10 +1896,17 @@ proto.liara.GetRequest.prototype.serializeBinary = function() {
  */
 proto.liara.GetRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getAggregateId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
+      f
+    );
+  }
+  f = message.getAggregateId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
       f
     );
   }
@@ -1872,10 +1914,10 @@ proto.liara.GetRequest.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional string aggregate_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.GetRequest.prototype.getAggregateId = function() {
+proto.liara.GetRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -1884,8 +1926,26 @@ proto.liara.GetRequest.prototype.getAggregateId = function() {
  * @param {string} value
  * @return {!proto.liara.GetRequest} returns this
  */
-proto.liara.GetRequest.prototype.setAggregateId = function(value) {
+proto.liara.GetRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string aggregate_id = 2;
+ * @return {string}
+ */
+proto.liara.GetRequest.prototype.getAggregateId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.GetRequest} returns this
+ */
+proto.liara.GetRequest.prototype.setAggregateId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -1921,8 +1981,9 @@ proto.liara.GetByAggregateIDAndNameRequest.prototype.toObject = function(opt_inc
  */
 proto.liara.GetByAggregateIDAndNameRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    aggregateId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    name: jspb.Message.getFieldWithDefault(msg, 2, "")
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    aggregateId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    name: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1961,9 +2022,13 @@ proto.liara.GetByAggregateIDAndNameRequest.deserializeBinaryFromReader = functio
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setAggregateId(value);
+      msg.setTenantId(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAggregateId(value);
+      break;
+    case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setName(value);
       break;
@@ -1996,17 +2061,24 @@ proto.liara.GetByAggregateIDAndNameRequest.prototype.serializeBinary = function(
  */
 proto.liara.GetByAggregateIDAndNameRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getAggregateId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getName();
+  f = message.getAggregateId();
   if (f.length > 0) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = message.getName();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -2014,10 +2086,10 @@ proto.liara.GetByAggregateIDAndNameRequest.serializeBinaryToWriter = function(me
 
 
 /**
- * optional string aggregate_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.GetByAggregateIDAndNameRequest.prototype.getAggregateId = function() {
+proto.liara.GetByAggregateIDAndNameRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2026,16 +2098,16 @@ proto.liara.GetByAggregateIDAndNameRequest.prototype.getAggregateId = function()
  * @param {string} value
  * @return {!proto.liara.GetByAggregateIDAndNameRequest} returns this
  */
-proto.liara.GetByAggregateIDAndNameRequest.prototype.setAggregateId = function(value) {
+proto.liara.GetByAggregateIDAndNameRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string name = 2;
+ * optional string aggregate_id = 2;
  * @return {string}
  */
-proto.liara.GetByAggregateIDAndNameRequest.prototype.getName = function() {
+proto.liara.GetByAggregateIDAndNameRequest.prototype.getAggregateId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
@@ -2044,8 +2116,26 @@ proto.liara.GetByAggregateIDAndNameRequest.prototype.getName = function() {
  * @param {string} value
  * @return {!proto.liara.GetByAggregateIDAndNameRequest} returns this
  */
-proto.liara.GetByAggregateIDAndNameRequest.prototype.setName = function(value) {
+proto.liara.GetByAggregateIDAndNameRequest.prototype.setAggregateId = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string name = 3;
+ * @return {string}
+ */
+proto.liara.GetByAggregateIDAndNameRequest.prototype.getName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.GetByAggregateIDAndNameRequest} returns this
+ */
+proto.liara.GetByAggregateIDAndNameRequest.prototype.setName = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
@@ -2055,7 +2145,7 @@ proto.liara.GetByAggregateIDAndNameRequest.prototype.setName = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.liara.GetAfterGlobalVersionRequest.repeatedFields_ = [2];
+proto.liara.GetAfterGlobalVersionRequest.repeatedFields_ = [3];
 
 
 
@@ -2088,9 +2178,10 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.toObject = function(opt_inclu
  */
 proto.liara.GetAfterGlobalVersionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    globalVersion: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    partitionIdsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    limit: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    globalVersion: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    partitionIdsList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f,
+    limit: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -2128,16 +2219,20 @@ proto.liara.GetAfterGlobalVersionRequest.deserializeBinaryFromReader = function(
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTenantId(value);
+      break;
+    case 2:
       var value = /** @type {number} */ (reader.readInt64());
       msg.setGlobalVersion(value);
       break;
-    case 2:
+    case 3:
       var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedInt32() : [reader.readInt32()]);
       for (var i = 0; i < values.length; i++) {
         msg.addPartitionIds(values[i]);
       }
       break;
-    case 3:
+    case 4:
       var value = /** @type {number} */ (reader.readInt64());
       msg.setLimit(value);
       break;
@@ -2170,24 +2265,31 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.serializeBinary = function() 
  */
 proto.liara.GetAfterGlobalVersionRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
+  f = message.getTenantId();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
   f = message.getGlobalVersion();
   if (f !== 0) {
     writer.writeInt64(
-      1,
+      2,
       f
     );
   }
   f = message.getPartitionIdsList();
   if (f.length > 0) {
     writer.writePackedInt32(
-      2,
+      3,
       f
     );
   }
   f = message.getLimit();
   if (f !== 0) {
     writer.writeInt64(
-      3,
+      4,
       f
     );
   }
@@ -2195,11 +2297,29 @@ proto.liara.GetAfterGlobalVersionRequest.serializeBinaryToWriter = function(mess
 
 
 /**
- * optional int64 global_version = 1;
+ * optional string tenant_id = 1;
+ * @return {string}
+ */
+proto.liara.GetAfterGlobalVersionRequest.prototype.getTenantId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.GetAfterGlobalVersionRequest} returns this
+ */
+proto.liara.GetAfterGlobalVersionRequest.prototype.setTenantId = function(value) {
+  return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional int64 global_version = 2;
  * @return {number}
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.getGlobalVersion = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
 
@@ -2208,16 +2328,16 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.getGlobalVersion = function()
  * @return {!proto.liara.GetAfterGlobalVersionRequest} returns this
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.setGlobalVersion = function(value) {
-  return jspb.Message.setProto3IntField(this, 1, value);
+  return jspb.Message.setProto3IntField(this, 2, value);
 };
 
 
 /**
- * repeated int32 partition_ids = 2;
+ * repeated int32 partition_ids = 3;
  * @return {!Array<number>}
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.getPartitionIdsList = function() {
-  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 3));
 };
 
 
@@ -2226,7 +2346,7 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.getPartitionIdsList = functio
  * @return {!proto.liara.GetAfterGlobalVersionRequest} returns this
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.setPartitionIdsList = function(value) {
-  return jspb.Message.setField(this, 2, value || []);
+  return jspb.Message.setField(this, 3, value || []);
 };
 
 
@@ -2236,7 +2356,7 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.setPartitionIdsList = functio
  * @return {!proto.liara.GetAfterGlobalVersionRequest} returns this
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.addPartitionIds = function(value, opt_index) {
-  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+  return jspb.Message.addToRepeatedField(this, 3, value, opt_index);
 };
 
 
@@ -2250,11 +2370,11 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.clearPartitionIdsList = funct
 
 
 /**
- * optional int64 limit = 3;
+ * optional int64 limit = 4;
  * @return {number}
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.getLimit = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
 };
 
 
@@ -2263,7 +2383,7 @@ proto.liara.GetAfterGlobalVersionRequest.prototype.getLimit = function() {
  * @return {!proto.liara.GetAfterGlobalVersionRequest} returns this
  */
 proto.liara.GetAfterGlobalVersionRequest.prototype.setLimit = function(value) {
-  return jspb.Message.setProto3IntField(this, 3, value);
+  return jspb.Message.setProto3IntField(this, 4, value);
 };
 
 
@@ -2299,8 +2419,9 @@ proto.liara.GetByOutboxRequest.prototype.toObject = function(opt_includeInstance
  */
 proto.liara.GetByOutboxRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    outboxId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    limit: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outboxId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    limit: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -2339,9 +2460,13 @@ proto.liara.GetByOutboxRequest.deserializeBinaryFromReader = function(msg, reade
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setOutboxId(value);
+      msg.setTenantId(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setOutboxId(value);
+      break;
+    case 3:
       var value = /** @type {number} */ (reader.readInt64());
       msg.setLimit(value);
       break;
@@ -2374,17 +2499,24 @@ proto.liara.GetByOutboxRequest.prototype.serializeBinary = function() {
  */
 proto.liara.GetByOutboxRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getOutboxId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
+  f = message.getOutboxId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getLimit();
   if (f !== 0) {
     writer.writeInt64(
-      2,
+      3,
       f
     );
   }
@@ -2392,10 +2524,10 @@ proto.liara.GetByOutboxRequest.serializeBinaryToWriter = function(message, write
 
 
 /**
- * optional string outbox_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.GetByOutboxRequest.prototype.getOutboxId = function() {
+proto.liara.GetByOutboxRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2404,17 +2536,35 @@ proto.liara.GetByOutboxRequest.prototype.getOutboxId = function() {
  * @param {string} value
  * @return {!proto.liara.GetByOutboxRequest} returns this
  */
-proto.liara.GetByOutboxRequest.prototype.setOutboxId = function(value) {
+proto.liara.GetByOutboxRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional int64 limit = 2;
+ * optional string outbox_id = 2;
+ * @return {string}
+ */
+proto.liara.GetByOutboxRequest.prototype.getOutboxId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.GetByOutboxRequest} returns this
+ */
+proto.liara.GetByOutboxRequest.prototype.setOutboxId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional int64 limit = 3;
  * @return {number}
  */
 proto.liara.GetByOutboxRequest.prototype.getLimit = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
 };
 
 
@@ -2423,7 +2573,7 @@ proto.liara.GetByOutboxRequest.prototype.getLimit = function() {
  * @return {!proto.liara.GetByOutboxRequest} returns this
  */
 proto.liara.GetByOutboxRequest.prototype.setLimit = function(value) {
-  return jspb.Message.setProto3IntField(this, 2, value);
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 
@@ -2433,7 +2583,7 @@ proto.liara.GetByOutboxRequest.prototype.setLimit = function(value) {
  * @private {!Array<number>}
  * @const
  */
-proto.liara.CreateOutboxRequest.repeatedFields_ = [2];
+proto.liara.CreateOutboxRequest.repeatedFields_ = [3];
 
 
 
@@ -2466,8 +2616,9 @@ proto.liara.CreateOutboxRequest.prototype.toObject = function(opt_includeInstanc
  */
 proto.liara.CreateOutboxRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    outboxId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    partitionIdList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outboxId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    partitionIdList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -2506,9 +2657,13 @@ proto.liara.CreateOutboxRequest.deserializeBinaryFromReader = function(msg, read
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setOutboxId(value);
+      msg.setTenantId(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setOutboxId(value);
+      break;
+    case 3:
       var values = /** @type {!Array<number>} */ (reader.isDelimited() ? reader.readPackedInt32() : [reader.readInt32()]);
       for (var i = 0; i < values.length; i++) {
         msg.addPartitionId(values[i]);
@@ -2543,17 +2698,24 @@ proto.liara.CreateOutboxRequest.prototype.serializeBinary = function() {
  */
 proto.liara.CreateOutboxRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getOutboxId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
+  f = message.getOutboxId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getPartitionIdList();
   if (f.length > 0) {
     writer.writePackedInt32(
-      2,
+      3,
       f
     );
   }
@@ -2561,10 +2723,10 @@ proto.liara.CreateOutboxRequest.serializeBinaryToWriter = function(message, writ
 
 
 /**
- * optional string outbox_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.CreateOutboxRequest.prototype.getOutboxId = function() {
+proto.liara.CreateOutboxRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2573,17 +2735,35 @@ proto.liara.CreateOutboxRequest.prototype.getOutboxId = function() {
  * @param {string} value
  * @return {!proto.liara.CreateOutboxRequest} returns this
  */
-proto.liara.CreateOutboxRequest.prototype.setOutboxId = function(value) {
+proto.liara.CreateOutboxRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * repeated int32 partition_id = 2;
+ * optional string outbox_id = 2;
+ * @return {string}
+ */
+proto.liara.CreateOutboxRequest.prototype.getOutboxId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.CreateOutboxRequest} returns this
+ */
+proto.liara.CreateOutboxRequest.prototype.setOutboxId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * repeated int32 partition_id = 3;
  * @return {!Array<number>}
  */
 proto.liara.CreateOutboxRequest.prototype.getPartitionIdList = function() {
-  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 2));
+  return /** @type {!Array<number>} */ (jspb.Message.getRepeatedField(this, 3));
 };
 
 
@@ -2592,7 +2772,7 @@ proto.liara.CreateOutboxRequest.prototype.getPartitionIdList = function() {
  * @return {!proto.liara.CreateOutboxRequest} returns this
  */
 proto.liara.CreateOutboxRequest.prototype.setPartitionIdList = function(value) {
-  return jspb.Message.setField(this, 2, value || []);
+  return jspb.Message.setField(this, 3, value || []);
 };
 
 
@@ -2602,7 +2782,7 @@ proto.liara.CreateOutboxRequest.prototype.setPartitionIdList = function(value) {
  * @return {!proto.liara.CreateOutboxRequest} returns this
  */
 proto.liara.CreateOutboxRequest.prototype.addPartitionId = function(value, opt_index) {
-  return jspb.Message.addToRepeatedField(this, 2, value, opt_index);
+  return jspb.Message.addToRepeatedField(this, 3, value, opt_index);
 };
 
 
@@ -2777,7 +2957,8 @@ proto.liara.GetOutboxRequest.prototype.toObject = function(opt_includeInstance) 
  */
 proto.liara.GetOutboxRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    outboxId: jspb.Message.getFieldWithDefault(msg, 1, "")
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outboxId: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -2816,6 +2997,10 @@ proto.liara.GetOutboxRequest.deserializeBinaryFromReader = function(msg, reader)
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
+      msg.setTenantId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
       msg.setOutboxId(value);
       break;
     default:
@@ -2847,10 +3032,17 @@ proto.liara.GetOutboxRequest.prototype.serializeBinary = function() {
  */
 proto.liara.GetOutboxRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getOutboxId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
+      f
+    );
+  }
+  f = message.getOutboxId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
       f
     );
   }
@@ -2858,10 +3050,10 @@ proto.liara.GetOutboxRequest.serializeBinaryToWriter = function(message, writer)
 
 
 /**
- * optional string outbox_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.GetOutboxRequest.prototype.getOutboxId = function() {
+proto.liara.GetOutboxRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -2870,8 +3062,26 @@ proto.liara.GetOutboxRequest.prototype.getOutboxId = function() {
  * @param {string} value
  * @return {!proto.liara.GetOutboxRequest} returns this
  */
-proto.liara.GetOutboxRequest.prototype.setOutboxId = function(value) {
+proto.liara.GetOutboxRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string outbox_id = 2;
+ * @return {string}
+ */
+proto.liara.GetOutboxRequest.prototype.getOutboxId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.GetOutboxRequest} returns this
+ */
+proto.liara.GetOutboxRequest.prototype.setOutboxId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
@@ -3095,8 +3305,9 @@ proto.liara.UpdateOutboxPositionRequest.prototype.toObject = function(opt_includ
  */
 proto.liara.UpdateOutboxPositionRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    outboxId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    globalVersion: jspb.Message.getFieldWithDefault(msg, 2, 0)
+    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    outboxId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    globalVersion: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -3135,9 +3346,13 @@ proto.liara.UpdateOutboxPositionRequest.deserializeBinaryFromReader = function(m
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setOutboxId(value);
+      msg.setTenantId(value);
       break;
     case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setOutboxId(value);
+      break;
+    case 3:
       var value = /** @type {number} */ (reader.readInt64());
       msg.setGlobalVersion(value);
       break;
@@ -3170,17 +3385,24 @@ proto.liara.UpdateOutboxPositionRequest.prototype.serializeBinary = function() {
  */
 proto.liara.UpdateOutboxPositionRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getOutboxId();
+  f = message.getTenantId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
+  f = message.getOutboxId();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
   f = message.getGlobalVersion();
   if (f !== 0) {
     writer.writeInt64(
-      2,
+      3,
       f
     );
   }
@@ -3188,10 +3410,10 @@ proto.liara.UpdateOutboxPositionRequest.serializeBinaryToWriter = function(messa
 
 
 /**
- * optional string outbox_id = 1;
+ * optional string tenant_id = 1;
  * @return {string}
  */
-proto.liara.UpdateOutboxPositionRequest.prototype.getOutboxId = function() {
+proto.liara.UpdateOutboxPositionRequest.prototype.getTenantId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
@@ -3200,17 +3422,35 @@ proto.liara.UpdateOutboxPositionRequest.prototype.getOutboxId = function() {
  * @param {string} value
  * @return {!proto.liara.UpdateOutboxPositionRequest} returns this
  */
-proto.liara.UpdateOutboxPositionRequest.prototype.setOutboxId = function(value) {
+proto.liara.UpdateOutboxPositionRequest.prototype.setTenantId = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional int64 global_version = 2;
+ * optional string outbox_id = 2;
+ * @return {string}
+ */
+proto.liara.UpdateOutboxPositionRequest.prototype.getOutboxId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.liara.UpdateOutboxPositionRequest} returns this
+ */
+proto.liara.UpdateOutboxPositionRequest.prototype.setOutboxId = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional int64 global_version = 3;
  * @return {number}
  */
 proto.liara.UpdateOutboxPositionRequest.prototype.getGlobalVersion = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
 };
 
 
@@ -3219,7 +3459,7 @@ proto.liara.UpdateOutboxPositionRequest.prototype.getGlobalVersion = function() 
  * @return {!proto.liara.UpdateOutboxPositionRequest} returns this
  */
 proto.liara.UpdateOutboxPositionRequest.prototype.setGlobalVersion = function(value) {
-  return jspb.Message.setProto3IntField(this, 2, value);
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 

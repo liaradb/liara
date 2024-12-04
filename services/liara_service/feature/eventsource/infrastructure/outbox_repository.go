@@ -40,6 +40,7 @@ func (*OutboxRepository) getName(tenantID value.TenantID) string {
 
 func (s *OutboxRepository) GetOutbox(
 	ctx context.Context,
+	tenantID value.TenantID,
 	outboxID value.OutboxID,
 ) (*entity.Outbox, error) {
 	row := s.db.QueryRowContext(ctx, fmt.Sprintf(`
@@ -60,6 +61,7 @@ WHERE id = $1
 
 func (s *OutboxRepository) CreateOutbox(
 	ctx context.Context,
+	tenantID value.TenantID,
 	outbox *entity.Outbox,
 ) error {
 	low, high := outbox.PartitionRange().All()
@@ -73,6 +75,7 @@ VALUES( $1, $2, $3, $4 )
 
 func (s *OutboxRepository) UpdateOutboxPosition(
 	ctx context.Context,
+	tenantID value.TenantID,
 	outboxID value.OutboxID,
 	position value.GlobalVersion,
 ) error {

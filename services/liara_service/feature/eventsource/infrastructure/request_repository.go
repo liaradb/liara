@@ -40,11 +40,20 @@ func (*RequestRepository) getName(tenantID value.TenantID) string {
 	return fmt.Sprintf("__%v__requests", n)
 }
 
-func (r *RequestRepository) Insert(ctx context.Context, requestID value.RequestID, time time.Time) error {
+func (r *RequestRepository) Insert(
+	ctx context.Context,
+	tenantID value.TenantID,
+	requestID value.RequestID,
+	time time.Time,
+) error {
 	return r.insertRow(ctx, r.db, entity.RequestLog{ID: requestID, Time: time})
 }
 
-func (r *RequestRepository) Purge(ctx context.Context, time time.Time) error {
+func (r *RequestRepository) Purge(
+	ctx context.Context,
+	tenantID value.TenantID,
+	time time.Time,
+) error {
 	_, err := r.db.ExecContext(ctx, fmt.Sprintf(`
 DELETE FROM %v WHERE
 time <= $1
@@ -53,7 +62,11 @@ time <= $1
 	return err
 }
 
-func (r *RequestRepository) Test(ctx context.Context, requestID value.RequestID) (bool, error) {
+func (r *RequestRepository) Test(
+	ctx context.Context,
+	tenantID value.TenantID,
+	requestID value.RequestID,
+) (bool, error) {
 	row := r.db.QueryRowContext(ctx, fmt.Sprintf(`
 SELECT * FROM %v WHERE
 id = $1

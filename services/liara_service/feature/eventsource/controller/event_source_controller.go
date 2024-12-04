@@ -29,6 +29,7 @@ func (esc *EventSourceController) Append(
 	request *pb.AppendRequest,
 ) (*pb.AppendResponse, error) {
 	err := esc.eventService.Append(ctx,
+		value.TenantID(request.TenantId),
 		value.RequestID(request.RequestId),
 		mapSlice(request.Events, dtoToAppendEvent)...)
 	if err != nil {
@@ -43,6 +44,7 @@ func (esc *EventSourceController) Get(
 	stream pb.EventSourceService_GetServer,
 ) error {
 	for row, err := range esc.eventService.Get(stream.Context(),
+		value.TenantID(request.TenantId),
 		value.AggregateID(request.AggregateId)) {
 		if err != nil {
 			return err
@@ -58,6 +60,7 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 	stream pb.EventSourceService_GetByAggregateIDAndNameServer,
 ) error {
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
+		value.TenantID(request.TenantId),
 		value.AggregateID(request.AggregateId),
 		value.AggregateName(request.Name)) {
 		if err != nil {
@@ -74,6 +77,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	stream pb.EventSourceService_GetAfterGlobalVersionServer,
 ) error {
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
+		value.TenantID(request.TenantId),
 		value.GlobalVersion(request.GlobalVersion),
 		dtoToPartitionRange(request.PartitionIds),
 		value.Limit(request.Limit)) {
@@ -91,6 +95,7 @@ func (esc *EventSourceController) GetByOutbox(
 	stream pb.EventSourceService_GetByOutboxServer,
 ) error {
 	for row, err := range esc.eventService.GetByOutbox(stream.Context(),
+		value.TenantID(request.TenantId),
 		value.OutboxID(request.OutboxId),
 		value.Limit(request.Limit)) {
 		if err != nil {
@@ -107,6 +112,7 @@ func (esc *EventSourceController) CreateOutbox(
 	request *pb.CreateOutboxRequest,
 ) (*pb.CreateOutboxResponse, error) {
 	outboxID, err := esc.eventService.CreateOutbox(ctx,
+		value.TenantID(request.TenantId),
 		value.OutboxID(request.OutboxId),
 		dtoToPartitionRange(request.PartitionId))
 	if err != nil {
@@ -122,7 +128,9 @@ func (esc *EventSourceController) GetOutbox(
 	ctx context.Context,
 	request *pb.GetOutboxRequest,
 ) (*pb.GetOutboxResponse, error) {
-	result, err := esc.eventService.GetOutbox(ctx, value.OutboxID(request.OutboxId))
+	result, err := esc.eventService.GetOutbox(ctx,
+		value.TenantID(request.TenantId),
+		value.OutboxID(request.OutboxId))
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +147,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	request *pb.UpdateOutboxPositionRequest,
 ) (*pb.UpdateOutboxPositionResponse, error) {
 	err := esc.eventService.UpdateOutboxPosition(ctx,
+		value.TenantID(request.TenantId),
 		value.OutboxID(request.OutboxId),
 		value.GlobalVersion(request.GlobalVersion))
 	if err != nil {
