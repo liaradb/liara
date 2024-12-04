@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
@@ -37,6 +38,7 @@ func (*RequestRepository) getName(tenantID value.TenantID) string {
 	if n == "" {
 		n = "default"
 	}
+	n = strings.ReplaceAll(n, "-", "_")
 	return fmt.Sprintf("__%v__requests", n)
 }
 

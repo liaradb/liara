@@ -157,15 +157,64 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	return &pb.UpdateOutboxPositionResponse{}, nil
 }
 
+func (esc *EventSourceController) CreateTenant(ctx context.Context, request *pb.CreateTenantRequest) (*pb.CreateTenantReponse, error) {
+	id, err := esc.tenantService.Create(ctx, service.CreateTenantCommand{
+		TenantName: value.TenantName(request.Name),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.CreateTenantReponse{
+		TenantId: id.String(),
+	}, nil
+}
+
+func (esc *EventSourceController) DeleteTenant(ctx context.Context, request *pb.DeleteTenantRequest) (*pb.DeleteTenantResponse, error) {
+	err := esc.tenantService.Delete(ctx, service.DeleteTenantCommand{
+		TenantID: value.TenantID(request.TenantId),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteTenantResponse{}, nil
+}
+
+func (esc *EventSourceController) RenameTenant(ctx context.Context, request *pb.RenameTenantRequest) (*pb.RenameTenantResponse, error) {
+	err := esc.tenantService.Rename(ctx, service.RenameTenantCommand{
+		TenantName: value.TenantName(request.Name),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.RenameTenantResponse{}, nil
+}
+
+func (esc *EventSourceController) GetTenant(ctx context.Context, request *pb.GetTenantRequest) (*pb.GetTenantResponse, error) {
+	t, err := esc.tenantService.Get(ctx, value.TenantID(request.TenantId))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetTenantResponse{
+		Tenant: &pb.Tenant{
+			TenantId: t.ID().String(),
+			Name:     t.Name().String(),
+		},
+	}, nil
+}
+
 func (esc *EventSourceController) ListTenants(request *pb.ListTenantsRequest, stream pb.EventSourceService_ListTenantsServer) error {
-	for row, err := range esc.tenantService.List(stream.Context(), 0, 0) {
+	for t, err := range esc.tenantService.List(stream.Context(), 0, 0) {
 		if err != nil {
 			return err
 		}
 
 		stream.Send(&pb.Tenant{
-			TenantId: row.ID().String(),
-			Name:     row.Name().String(),
+			TenantId: t.ID().String(),
+			Name:     t.Name().String(),
 		})
 	}
 	return nil

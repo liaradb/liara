@@ -107,7 +107,12 @@ func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) 
 		return nil, err
 	}
 
-	tenantRepository := infrastructure.NewTenantRepository()
+	tenantRepository := infrastructure.NewTenantRepository(db)
+	err = tenantRepository.CreateTable(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return &repositories{
 		transactionRepository: transactionRepository,
 		eventRepository:       &eventRepository,

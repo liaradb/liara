@@ -49,6 +49,50 @@ function deserialize_liara_CreateOutboxResponse(buffer_arg) {
   return eventsource_pb.CreateOutboxResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_liara_CreateTenantReponse(arg) {
+  if (!(arg instanceof eventsource_pb.CreateTenantReponse)) {
+    throw new Error('Expected argument of type liara.CreateTenantReponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_CreateTenantReponse(buffer_arg) {
+  return eventsource_pb.CreateTenantReponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_CreateTenantRequest(arg) {
+  if (!(arg instanceof eventsource_pb.CreateTenantRequest)) {
+    throw new Error('Expected argument of type liara.CreateTenantRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_CreateTenantRequest(buffer_arg) {
+  return eventsource_pb.CreateTenantRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_DeleteTenantRequest(arg) {
+  if (!(arg instanceof eventsource_pb.DeleteTenantRequest)) {
+    throw new Error('Expected argument of type liara.DeleteTenantRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_DeleteTenantRequest(buffer_arg) {
+  return eventsource_pb.DeleteTenantRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_DeleteTenantResponse(arg) {
+  if (!(arg instanceof eventsource_pb.DeleteTenantResponse)) {
+    throw new Error('Expected argument of type liara.DeleteTenantResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_DeleteTenantResponse(buffer_arg) {
+  return eventsource_pb.DeleteTenantResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_liara_Event(arg) {
   if (!(arg instanceof eventsource_pb.Event)) {
     throw new Error('Expected argument of type liara.Event');
@@ -126,6 +170,28 @@ function deserialize_liara_GetRequest(buffer_arg) {
   return eventsource_pb.GetRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_liara_GetTenantRequest(arg) {
+  if (!(arg instanceof eventsource_pb.GetTenantRequest)) {
+    throw new Error('Expected argument of type liara.GetTenantRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_GetTenantRequest(buffer_arg) {
+  return eventsource_pb.GetTenantRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_GetTenantResponse(arg) {
+  if (!(arg instanceof eventsource_pb.GetTenantResponse)) {
+    throw new Error('Expected argument of type liara.GetTenantResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_GetTenantResponse(buffer_arg) {
+  return eventsource_pb.GetTenantResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_liara_ListTenantsRequest(arg) {
   if (!(arg instanceof eventsource_pb.ListTenantsRequest)) {
     throw new Error('Expected argument of type liara.ListTenantsRequest');
@@ -135,6 +201,28 @@ function serialize_liara_ListTenantsRequest(arg) {
 
 function deserialize_liara_ListTenantsRequest(buffer_arg) {
   return eventsource_pb.ListTenantsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_RenameTenantRequest(arg) {
+  if (!(arg instanceof eventsource_pb.RenameTenantRequest)) {
+    throw new Error('Expected argument of type liara.RenameTenantRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_RenameTenantRequest(buffer_arg) {
+  return eventsource_pb.RenameTenantRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_RenameTenantResponse(arg) {
+  if (!(arg instanceof eventsource_pb.RenameTenantResponse)) {
+    throw new Error('Expected argument of type liara.RenameTenantResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_RenameTenantResponse(buffer_arg) {
+  return eventsource_pb.RenameTenantResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_liara_Tenant(arg) {
@@ -259,6 +347,50 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     requestDeserialize: deserialize_liara_UpdateOutboxPositionRequest,
     responseSerialize: serialize_liara_UpdateOutboxPositionResponse,
     responseDeserialize: deserialize_liara_UpdateOutboxPositionResponse,
+  },
+  createTenant: {
+    path: '/liara.EventSourceService/CreateTenant',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.CreateTenantRequest,
+    responseType: eventsource_pb.CreateTenantReponse,
+    requestSerialize: serialize_liara_CreateTenantRequest,
+    requestDeserialize: deserialize_liara_CreateTenantRequest,
+    responseSerialize: serialize_liara_CreateTenantReponse,
+    responseDeserialize: deserialize_liara_CreateTenantReponse,
+  },
+  deleteTenant: {
+    path: '/liara.EventSourceService/DeleteTenant',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.DeleteTenantRequest,
+    responseType: eventsource_pb.DeleteTenantResponse,
+    requestSerialize: serialize_liara_DeleteTenantRequest,
+    requestDeserialize: deserialize_liara_DeleteTenantRequest,
+    responseSerialize: serialize_liara_DeleteTenantResponse,
+    responseDeserialize: deserialize_liara_DeleteTenantResponse,
+  },
+  renameTenant: {
+    path: '/liara.EventSourceService/RenameTenant',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.RenameTenantRequest,
+    responseType: eventsource_pb.RenameTenantResponse,
+    requestSerialize: serialize_liara_RenameTenantRequest,
+    requestDeserialize: deserialize_liara_RenameTenantRequest,
+    responseSerialize: serialize_liara_RenameTenantResponse,
+    responseDeserialize: deserialize_liara_RenameTenantResponse,
+  },
+  getTenant: {
+    path: '/liara.EventSourceService/GetTenant',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.GetTenantRequest,
+    responseType: eventsource_pb.GetTenantResponse,
+    requestSerialize: serialize_liara_GetTenantRequest,
+    requestDeserialize: deserialize_liara_GetTenantRequest,
+    responseSerialize: serialize_liara_GetTenantResponse,
+    responseDeserialize: deserialize_liara_GetTenantResponse,
   },
   listTenants: {
     path: '/liara.EventSourceService/ListTenants',

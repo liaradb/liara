@@ -18,6 +18,10 @@ service EventSourceService {
   rpc GetOutbox(GetOutboxRequest) returns (GetOutboxResponse) {}
   rpc UpdateOutboxPosition(UpdateOutboxPositionRequest)
       returns (UpdateOutboxPositionResponse) {}
+  rpc CreateTenant(CreateTenantRequest) returns (CreateTenantReponse) {}
+  rpc DeleteTenant(DeleteTenantRequest) returns (DeleteTenantResponse) {}
+  rpc RenameTenant(RenameTenantRequest) returns (RenameTenantResponse) {}
+  rpc GetTenant(GetTenantRequest) returns (GetTenantResponse) {}
   rpc ListTenants(ListTenantsRequest) returns (stream Tenant) {}
 }
 
@@ -184,6 +188,51 @@ message UpdateOutboxPositionRequest {
 }
 
 message UpdateOutboxPositionResponse {}
+
+// -----------------------------------------------------------------------------
+// Create Tenant
+// -----------------------------------------------------------------------------
+
+message CreateTenantRequest {
+  string name = 1;
+}
+
+message CreateTenantReponse {
+  string tenant_id = 1;
+}
+
+// -----------------------------------------------------------------------------
+// Delete Tenant
+// -----------------------------------------------------------------------------
+
+message DeleteTenantRequest {
+  string tenant_id = 1;
+}
+
+message DeleteTenantResponse {}
+
+// -----------------------------------------------------------------------------
+// Rename Tenant
+// -----------------------------------------------------------------------------
+
+message RenameTenantRequest {
+  string tenant_id = 1;
+  string name = 2;
+}
+
+message RenameTenantResponse {}
+
+// -----------------------------------------------------------------------------
+// Get Tenant
+// -----------------------------------------------------------------------------
+
+message GetTenantRequest {
+  string tenant_id = 1;
+}
+
+message GetTenantResponse {
+  Tenant tenant = 1;
+}
 
 // -----------------------------------------------------------------------------
 // List Tenants

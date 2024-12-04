@@ -34,3 +34,8 @@ func RestoreTenant(
 		name:    name,
 	}
 }
+
+func (t *Tenant) Rename(name value.TenantName) error {
+	t.name = name
+	return nil
+}

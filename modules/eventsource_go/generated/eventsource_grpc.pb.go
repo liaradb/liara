@@ -30,6 +30,10 @@ type EventSourceServiceClient interface {
 	CreateOutbox(ctx context.Context, in *CreateOutboxRequest, opts ...grpc.CallOption) (*CreateOutboxResponse, error)
 	GetOutbox(ctx context.Context, in *GetOutboxRequest, opts ...grpc.CallOption) (*GetOutboxResponse, error)
 	UpdateOutboxPosition(ctx context.Context, in *UpdateOutboxPositionRequest, opts ...grpc.CallOption) (*UpdateOutboxPositionResponse, error)
+	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantReponse, error)
+	DeleteTenant(ctx context.Context, in *DeleteTenantRequest, opts ...grpc.CallOption) (*DeleteTenantResponse, error)
+	RenameTenant(ctx context.Context, in *RenameTenantRequest, opts ...grpc.CallOption) (*RenameTenantResponse, error)
+	GetTenant(ctx context.Context, in *GetTenantRequest, opts ...grpc.CallOption) (*GetTenantResponse, error)
 	ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (EventSourceService_ListTenantsClient, error)
 }
 
@@ -205,6 +209,42 @@ func (c *eventSourceServiceClient) UpdateOutboxPosition(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *eventSourceServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantReponse, error) {
+	out := new(CreateTenantReponse)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/CreateTenant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventSourceServiceClient) DeleteTenant(ctx context.Context, in *DeleteTenantRequest, opts ...grpc.CallOption) (*DeleteTenantResponse, error) {
+	out := new(DeleteTenantResponse)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/DeleteTenant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventSourceServiceClient) RenameTenant(ctx context.Context, in *RenameTenantRequest, opts ...grpc.CallOption) (*RenameTenantResponse, error) {
+	out := new(RenameTenantResponse)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/RenameTenant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventSourceServiceClient) GetTenant(ctx context.Context, in *GetTenantRequest, opts ...grpc.CallOption) (*GetTenantResponse, error) {
+	out := new(GetTenantResponse)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/GetTenant", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *eventSourceServiceClient) ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (EventSourceService_ListTenantsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[4], "/liara.EventSourceService/ListTenants", opts...)
 	if err != nil {
@@ -249,6 +289,10 @@ type EventSourceServiceServer interface {
 	CreateOutbox(context.Context, *CreateOutboxRequest) (*CreateOutboxResponse, error)
 	GetOutbox(context.Context, *GetOutboxRequest) (*GetOutboxResponse, error)
 	UpdateOutboxPosition(context.Context, *UpdateOutboxPositionRequest) (*UpdateOutboxPositionResponse, error)
+	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantReponse, error)
+	DeleteTenant(context.Context, *DeleteTenantRequest) (*DeleteTenantResponse, error)
+	RenameTenant(context.Context, *RenameTenantRequest) (*RenameTenantResponse, error)
+	GetTenant(context.Context, *GetTenantRequest) (*GetTenantResponse, error)
 	ListTenants(*ListTenantsRequest, EventSourceService_ListTenantsServer) error
 	mustEmbedUnimplementedEventSourceServiceServer()
 }
@@ -280,6 +324,18 @@ func (UnimplementedEventSourceServiceServer) GetOutbox(context.Context, *GetOutb
 }
 func (UnimplementedEventSourceServiceServer) UpdateOutboxPosition(context.Context, *UpdateOutboxPositionRequest) (*UpdateOutboxPositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOutboxPosition not implemented")
+}
+func (UnimplementedEventSourceServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantReponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
+}
+func (UnimplementedEventSourceServiceServer) DeleteTenant(context.Context, *DeleteTenantRequest) (*DeleteTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTenant not implemented")
+}
+func (UnimplementedEventSourceServiceServer) RenameTenant(context.Context, *RenameTenantRequest) (*RenameTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RenameTenant not implemented")
+}
+func (UnimplementedEventSourceServiceServer) GetTenant(context.Context, *GetTenantRequest) (*GetTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTenant not implemented")
 }
 func (UnimplementedEventSourceServiceServer) ListTenants(*ListTenantsRequest, EventSourceService_ListTenantsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListTenants not implemented")
@@ -453,6 +509,78 @@ func _EventSourceService_UpdateOutboxPosition_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventSourceService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).CreateTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/liara.EventSourceService/CreateTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_DeleteTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).DeleteTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/liara.EventSourceService/DeleteTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).DeleteTenant(ctx, req.(*DeleteTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_RenameTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RenameTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).RenameTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/liara.EventSourceService/RenameTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).RenameTenant(ctx, req.(*RenameTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_GetTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).GetTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/liara.EventSourceService/GetTenant",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).GetTenant(ctx, req.(*GetTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EventSourceService_ListTenants_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ListTenantsRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -496,6 +624,22 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateOutboxPosition",
 			Handler:    _EventSourceService_UpdateOutboxPosition_Handler,
+		},
+		{
+			MethodName: "CreateTenant",
+			Handler:    _EventSourceService_CreateTenant_Handler,
+		},
+		{
+			MethodName: "DeleteTenant",
+			Handler:    _EventSourceService_DeleteTenant_Handler,
+		},
+		{
+			MethodName: "RenameTenant",
+			Handler:    _EventSourceService_RenameTenant_Handler,
+		},
+		{
+			MethodName: "GetTenant",
+			Handler:    _EventSourceService_GetTenant_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

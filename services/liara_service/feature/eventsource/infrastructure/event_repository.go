@@ -38,6 +38,7 @@ func (*EventRepository) getName(tenantID value.TenantID) string {
 	if n == "" {
 		n = "default"
 	}
+	n = strings.ReplaceAll(n, "-", "_")
 	return fmt.Sprintf("__%v__events", n)
 }
 

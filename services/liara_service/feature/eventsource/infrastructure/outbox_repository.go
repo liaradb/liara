@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/cardboardrobots/baseerror"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
@@ -35,6 +36,7 @@ func (*OutboxRepository) getName(tenantID value.TenantID) string {
 	if n == "" {
 		n = "default"
 	}
+	n = strings.ReplaceAll(n, "-", "_")
 	return fmt.Sprintf("__%v__outboxes", n)
 }
 
