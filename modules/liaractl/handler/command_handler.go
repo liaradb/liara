@@ -12,10 +12,11 @@ type object string
 type command string
 
 const (
-	objectTenant      object  = "tenant"
-	objectEvent       object  = "event"
-	commandObjectList command = "list"
-	commandEventList  command = "list"
+	objectTenant        object  = "tenant"
+	objectEvent         object  = "event"
+	commandTenantList   command = "list"
+	commandTenantCreate command = "create"
+	commandEventList    command = "list"
 )
 
 var (
@@ -45,10 +46,10 @@ func NewCommandHandler(url string) (*commandHandler, error) {
 }
 
 func (ch *commandHandler) Handle(args []string) error {
-	obj, cmd := ch.getArgs(args)
+	obj, cmd, args := ch.getArgs(args)
 	switch obj {
 	case objectTenant:
-		return ch.tenantHandler.handle(cmd)
+		return ch.tenantHandler.handle(cmd, args)
 	case objectEvent:
 		return ch.eventHandler.handle(cmd)
 	default:
@@ -56,15 +57,15 @@ func (ch *commandHandler) Handle(args []string) error {
 	}
 }
 
-func (ch *commandHandler) getArgs(args []string) (object, command) {
+func (ch *commandHandler) getArgs(args []string) (object, command, []string) {
 	switch len(args) {
 	case 0:
 		fallthrough
 	case 1:
-		return "", ""
+		return "", "", nil
 	case 2:
-		return object(args[1]), ""
+		return object(args[1]), "", nil
 	default:
-		return object(args[1]), command(args[2])
+		return object(args[1]), command(args[2]), args[3:]
 	}
 }
