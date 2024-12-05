@@ -47,6 +47,15 @@
 				"driver": "SQLite",
 				"name": "local",
 				"database": "${workspaceFolder:liara_service}/test.db"
+			},
+			{
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 5432,
+				"driver": "PostgreSQL",
+				"name": "postgres",
+				"username": "postgres",
+				"database": "liara"
 			}
 		],
 	}
