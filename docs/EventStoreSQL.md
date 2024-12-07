@@ -1,8 +1,14 @@
 # Event Store SQL
 
+SQL works well for Event storage.  It is easy to append Events, and query Aggregate Streams in order.  However, there are specific limitations with replaying the Events.
+
 ## Race condition
 
-SQL works well for Event storage, but not Event replay.  There is no default way to ensure Event order.  More importantly, there is a race condition in writing and reading Events.
+For Event Sourcing, we want to read the most recent Events so that we can react to them.  This is similar to a Transactional Outbox, where we query unread events so that we can react to them.  We track our current position in the Event log, and query for Events after that position.
+
+However, there is a race condition in writing and reading Events.  While SQL provides ordering for Events after they are written, it does not guarantee ordering while they are being written.  Due to concurrency, a later Event may be written before an earlier Event.  After they are both written, the order will be correct, but there is a small window of time where this may not be the case.
+
+### Example
 
 Let's say we have three processes, two writers: `W1` and `W2`, and one reader: `R`.
 
