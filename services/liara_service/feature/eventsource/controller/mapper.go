@@ -32,8 +32,20 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 		PartitionID:   value.PartitionID(dto.PartitionId),
 		Name:          value.EventName(dto.Name),
 		Schema:        value.Schema(dto.Schema),
-		Metadata:      dtoToMetadata(dto.Metadata),
 		Data:          dto.Data,
+	}
+}
+
+func dtoToAppendOptions(dto *pb.AppendOptions) service.AppendOptions {
+	if dto == nil {
+		return service.AppendOptions{}
+	}
+
+	return service.AppendOptions{
+		RequestID:     value.RequestID(dto.RequestId),
+		CorrelationID: value.CorrelationID(dto.CorrelationId),
+		UserID:        value.UserID(dto.UserId),
+		Time:          dto.Time.AsTime(),
 	}
 }
 

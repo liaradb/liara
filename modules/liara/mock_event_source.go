@@ -79,7 +79,7 @@ func (mes *MockEventSource) GetByAggregateIDAndName(
 func (mes *MockEventSource) Append(
 	ctx context.Context,
 	tenantID TenantID,
-	requestID RequestID,
+	options AppendOptions,
 	events ...AppendEvent,
 ) error {
 	if mes.requests == nil {
@@ -94,7 +94,7 @@ func (mes *MockEventSource) Append(
 		mes.versions = make(map[AggregateID]Version)
 	}
 
-	if _, ok := mes.requests[requestID]; ok {
+	if _, ok := mes.requests[options.RequestID]; ok {
 		// TODO: Should this be nil?
 		return nil
 	}
@@ -119,15 +119,15 @@ func (mes *MockEventSource) Append(
 	// Apply Snapshot
 	for id, version := range versions {
 		mes.versions[id] = version
-		mes.requests[requestID] = mockRequest{
-			ID:   requestID,
+		mes.requests[options.RequestID] = mockRequest{
+			ID:   options.RequestID,
 			Time: time.Now(),
 		}
 	}
 	data := make([]Event, 0, len(events))
 	for _, event := range events {
 		globalVersion++
-		data = append(data, mes.toEvent(GlobalVersion(globalVersion), event))
+		data = append(data, mes.toEvent(GlobalVersion(globalVersion), options, event))
 	}
 	mes.events = append(mes.events, data...)
 
@@ -143,7 +143,7 @@ func (mes *MockEventSource) aggregateVersion(versions map[AggregateID]Version, i
 	return b
 }
 
-func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, ae AppendEvent) Event {
+func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, o AppendOptions, ae AppendEvent) Event {
 	return Event{
 		GlobalVersion: globalVersion,
 		ID:            ae.ID,
@@ -154,9 +154,9 @@ func (mes *MockEventSource) toEvent(globalVersion GlobalVersion, ae AppendEvent)
 		Name:          ae.Name,
 		Schema:        ae.Schema,
 		Metadata: EventMetadata{
-			UserID:        ae.Metadata.UserID,
-			CorrelationID: ae.Metadata.CorrelationID,
-			Time:          ae.Metadata.Time},
+			UserID:        o.UserID,
+			CorrelationID: o.CorrelationID,
+			Time:          o.Time},
 		Data: ae.Data,
 	}
 }

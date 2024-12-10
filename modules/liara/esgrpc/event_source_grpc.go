@@ -30,18 +30,18 @@ func NewEventSourceGRPC(
 func (es *EventSourceGRPC) Append(
 	ctx context.Context,
 	tenantID liara.TenantID,
-	requestID liara.RequestID,
+	options liara.AppendOptions,
 	events ...liara.AppendEvent,
 ) error {
 	data := make([]*pb.AppendEvent, 0, len(events))
 	for _, event := range events {
-		data = append(data, AppendEventToDto(event))
+		data = append(data, appendEventToDto(event))
 	}
 
 	_, err := es.client.Append(ctx, &pb.AppendRequest{
-		TenantId:  tenantID.String(),
-		RequestId: requestID.String(),
-		Events:    data,
+		TenantId: tenantID.String(),
+		Options:  appendOptionsToDto(options),
+		Events:   data,
 	})
 	return err
 }

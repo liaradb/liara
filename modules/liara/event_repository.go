@@ -10,7 +10,7 @@ type EventRepository interface {
 	GetAfterGlobalVersion(context.Context, TenantID, GlobalVersion, []PartitionID, Limit) iter.Seq2[Event, error]
 	GetByAggregateIDAndName(context.Context, TenantID, AggregateID, AggregateName) iter.Seq2[Event, error]
 	GetByOutbox(context.Context, TenantID, OutboxID, Limit) iter.Seq2[Event, error]
-	Append(context.Context, TenantID, RequestID, ...AppendEvent) error
+	Append(context.Context, TenantID, AppendOptions, ...AppendEvent) error
 }
 
 type AppendEvent struct {
@@ -21,7 +21,6 @@ type AppendEvent struct {
 	AggregateName AggregateName // The Name of the Aggregate
 	Name          EventName     // The Name of the Event
 	Schema        Schema        // The Schema for the internal data
-	Metadata      EventMetadata // The Metadata of the Event
 	Data          []byte        // The internal data of the Event
 }
 

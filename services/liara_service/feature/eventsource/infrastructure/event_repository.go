@@ -45,23 +45,23 @@ func (*EventRepository) getName(tenantID value.TenantID) string {
 func (er EventRepository) Append(
 	ctx context.Context,
 	tenantID value.TenantID,
-	em service.AppendEvent,
+	e entity.Event,
 ) error {
 	_, err := er.db.ExecContext(ctx, fmt.Sprintf(`
 INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 `,
 		er.getName(tenantID)),
-		em.ID,
-		em.AggregateName,
-		em.AggregateID,
-		em.Version,
-		em.PartitionID,
-		em.Name,
-		em.Schema,
-		em.Metadata.CorrelationID,
-		em.Metadata.UserID,
-		em.Metadata.Time,
-		em.Data,
+		e.ID,
+		e.AggregateName,
+		e.AggregateID,
+		e.Version,
+		e.PartitionID,
+		e.Name,
+		e.Schema,
+		e.Metadata.CorrelationID,
+		e.Metadata.UserID,
+		e.Metadata.Time,
+		e.Data,
 	)
 	return err
 }

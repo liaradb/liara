@@ -72,6 +72,20 @@ message EventMetadata {
 // Append
 // -----------------------------------------------------------------------------
 
+message AppendOptions {
+  // The ID of the Request, for idempotency
+  string request_id = 1;
+
+  // The ID of the entire Command and Event chain
+  string correlation_id = 2;
+
+  // The ID of the User issuing the Command
+  string user_id = 3;
+
+  // The Time this Event was created
+  google.protobuf.Timestamp time = 4;
+}
+
 message AppendEvent {
   // The ID of the Event, used for de-duplication
   string id = 1;
@@ -94,16 +108,13 @@ message AppendEvent {
   // The Schema for the internal data
   string schema = 7;
 
-  // The Metadata for the Event
-  EventMetadata metadata = 8;
-
   // The internal data of the Event
   bytes data = 9;
 }
 
 message AppendRequest {
   string tenant_id = 1;
-  string request_id = 2;
+  AppendOptions options = 2;
   repeated AppendEvent events = 3;
 }
 

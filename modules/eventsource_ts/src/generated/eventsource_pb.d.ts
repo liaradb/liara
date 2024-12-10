@@ -88,6 +88,38 @@ export namespace EventMetadata {
     }
 }
 
+export class AppendOptions extends jspb.Message { 
+    getRequestId(): string;
+    setRequestId(value: string): AppendOptions;
+    getCorrelationId(): string;
+    setCorrelationId(value: string): AppendOptions;
+    getUserId(): string;
+    setUserId(value: string): AppendOptions;
+
+    hasTime(): boolean;
+    clearTime(): void;
+    getTime(): google_protobuf_timestamp_pb.Timestamp | undefined;
+    setTime(value?: google_protobuf_timestamp_pb.Timestamp): AppendOptions;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): AppendOptions.AsObject;
+    static toObject(includeInstance: boolean, msg: AppendOptions): AppendOptions.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: AppendOptions, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): AppendOptions;
+    static deserializeBinaryFromReader(message: AppendOptions, reader: jspb.BinaryReader): AppendOptions;
+}
+
+export namespace AppendOptions {
+    export type AsObject = {
+        requestId: string,
+        correlationId: string,
+        userId: string,
+        time?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    }
+}
+
 export class AppendEvent extends jspb.Message { 
     getId(): string;
     setId(value: string): AppendEvent;
@@ -103,11 +135,6 @@ export class AppendEvent extends jspb.Message {
     setName(value: string): AppendEvent;
     getSchema(): string;
     setSchema(value: string): AppendEvent;
-
-    hasMetadata(): boolean;
-    clearMetadata(): void;
-    getMetadata(): EventMetadata | undefined;
-    setMetadata(value?: EventMetadata): AppendEvent;
     getData(): Uint8Array | string;
     getData_asU8(): Uint8Array;
     getData_asB64(): string;
@@ -132,7 +159,6 @@ export namespace AppendEvent {
         partitionId: number,
         name: string,
         schema: string,
-        metadata?: EventMetadata.AsObject,
         data: Uint8Array | string,
     }
 }
@@ -140,8 +166,11 @@ export namespace AppendEvent {
 export class AppendRequest extends jspb.Message { 
     getTenantId(): string;
     setTenantId(value: string): AppendRequest;
-    getRequestId(): string;
-    setRequestId(value: string): AppendRequest;
+
+    hasOptions(): boolean;
+    clearOptions(): void;
+    getOptions(): AppendOptions | undefined;
+    setOptions(value?: AppendOptions): AppendRequest;
     clearEventsList(): void;
     getEventsList(): Array<AppendEvent>;
     setEventsList(value: Array<AppendEvent>): AppendRequest;
@@ -160,7 +189,7 @@ export class AppendRequest extends jspb.Message {
 export namespace AppendRequest {
     export type AsObject = {
         tenantId: string,
-        requestId: string,
+        options?: AppendOptions.AsObject,
         eventsList: Array<AppendEvent.AsObject>,
     }
 }

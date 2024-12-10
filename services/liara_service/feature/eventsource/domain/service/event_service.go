@@ -31,10 +31,64 @@ func NewEventService(
 	}
 }
 
+type AppendOptions struct {
+	RequestID     value.RequestID     // The ID of the Request, for idempotency
+	CorrelationID value.CorrelationID // The ID of the entire Command and Event chain
+	UserID        value.UserID        // The ID of the User issuing the Command
+	Time          time.Time           // The Time this Event was created
+}
+
+func (ao *AppendOptions) toEventMetadata() entity.EventMetadata {
+	return entity.EventMetadata{
+		UserID:        ao.UserID,
+		CorrelationID: ao.CorrelationID,
+		Time:          ao.Time,
+	}
+}
+
+type AppendEvent struct {
+	ID            value.EventID       // The ID of the Event, used for de-duplication
+	AggregateName value.AggregateName // The Name of the Aggregate
+	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
+	Version       value.Version       // The Version of the Aggregate
+	PartitionID   value.PartitionID   // The ID to partition Events
+	Name          value.EventName     // The Name of the Event
+	Schema        value.Schema        // The Schema for the internal data
+	Data          []byte              // The internal data of the Event
+}
+
+func (ae *AppendEvent) Valid() error {
+	if ae.Version < 1 {
+		return value.ErrAggregateVersionInvalid
+	}
+
+	return nil
+}
+
+func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
+	id := ae.ID
+	if id == "" {
+		id = value.NewEventID()
+	}
+
+	return entity.Event{
+		GlobalVersion: 0,
+		ID:            id,
+		AggregateName: ae.AggregateName,
+		AggregateID:   ae.AggregateID,
+		Version:       ae.Version,
+		PartitionID:   ae.PartitionID,
+		Name:          ae.Name,
+		Schema:        ae.Schema,
+		Metadata:      options.toEventMetadata(),
+		Data:          ae.Data,
+	}
+}
+
 func (es *EventService) Append(
 	ctx context.Context,
 	tenantID value.TenantID,
-	requestID value.RequestID,
+	options AppendOptions,
 	e ...AppendEvent,
 ) error {
 	if len(e) == 0 {
@@ -47,55 +101,61 @@ func (es *EventService) Append(
 		}
 	}
 
-	if requestID == "" {
-		return es.appendNoRequestID(ctx, tenantID, e...)
+	if options.RequestID == "" {
+		return es.appendNoRequestID(ctx, tenantID, options, e...)
 	}
 
-	return es.appendRequestID(ctx, tenantID, requestID, e...)
+	return es.appendRequestID(ctx, tenantID, options, e...)
 }
 
 func (es *EventService) appendNoRequestID(
 	ctx context.Context,
 	tenantID value.TenantID,
+	options AppendOptions,
 	e ...AppendEvent,
 ) error {
 	if len(e) == 1 {
-		return es.appendEvents(ctx, tenantID, e...)
+		return es.appendEvents(ctx, tenantID, options, e...)
 	}
 
 	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
-		return es.appendEvents(ctx, tenantID, e...)
+		return es.appendEvents(ctx, tenantID, options, e...)
 	})
 }
 
 func (es *EventService) appendRequestID(
 	ctx context.Context,
 	tenantID value.TenantID,
-	requestID value.RequestID,
+	options AppendOptions,
 	e ...AppendEvent,
 ) error {
 	t := time.Now()
 	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
 		// TODO: What should this return if requestID is present?
-		if ok, err := es.requestRepository.Test(ctx, tenantID, requestID); err != nil || !ok {
+		if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
 			return err
 		}
 
-		if err := es.appendEvents(ctx, tenantID, e...); err != nil {
+		if err := es.appendEvents(ctx, tenantID, options, e...); err != nil {
 			return err
 		}
 
-		return es.requestRepository.Insert(ctx, tenantID, requestID, t)
+		return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
 	})
 }
 
 func (es *EventService) appendEvents(
 	ctx context.Context,
 	tenantID value.TenantID,
+	options AppendOptions,
 	e ...AppendEvent,
 ) error {
+	if options.Time.IsZero() {
+		options.Time = time.Now()
+	}
+
 	for _, em := range e {
-		err := es.eventRepository.Append(ctx, tenantID, em)
+		err := es.eventRepository.Append(ctx, tenantID, em.toEvent(options))
 		if err != nil {
 			return err
 		}

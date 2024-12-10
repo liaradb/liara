@@ -30,7 +30,7 @@ func (esc *EventSourceController) Append(
 ) (*pb.AppendResponse, error) {
 	err := esc.eventService.Append(ctx,
 		value.TenantID(request.TenantId),
-		value.RequestID(request.RequestId),
+		dtoToAppendOptions(request.Options),
 		mapSlice(request.Events, dtoToAppendEvent)...)
 	if err != nil {
 		return nil, err

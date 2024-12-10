@@ -20,6 +20,13 @@ type (
 		Apply(any) // The method to project an Event onto the Aggregate
 	}
 
+	AppendOptions struct {
+		RequestID     RequestID     // The ID of the Request, for idempotency
+		UserID        UserID        // The ID of the User issuing the Command
+		CorrelationID CorrelationID // The ID of the entire Command and Event chain
+		Time          time.Time     // The Time this Event was created
+	}
+
 	EventData interface {
 		EventName() string
 		AggregateName() string
@@ -31,7 +38,6 @@ type (
 		AggregateID U
 		Version     Version
 		PartitionID PartitionID
-		Metadata    EventMetadata
 		Data        EventData
 	}
 )
@@ -50,7 +56,7 @@ func NewService[T AggregateRoot[U], U ~string, E EventData](
 
 func (s *Service[T, U]) Append(
 	ctx context.Context,
-	requestID RequestID,
+	options AppendOptions,
 	events ...EventOptions[U],
 ) error {
 	data := make([]AppendEvent, 0, len(events))
@@ -63,7 +69,7 @@ func (s *Service[T, U]) Append(
 		data = append(data, event)
 	}
 
-	return s.eventRepository.Append(ctx, s.tenantID, requestID, data...)
+	return s.eventRepository.Append(ctx, s.tenantID, options, data...)
 }
 
 func (s *Service[T, U]) GetByID(
@@ -117,14 +123,6 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 		return AppendEvent{}, err
 	}
 
-	if eo.EventID == "" {
-		eo.EventID = NewEventID()
-	}
-
-	if eo.Metadata.Time.IsZero() {
-		eo.Metadata.Time = time.Now()
-	}
-
 	return AppendEvent{
 		AggregateName: AggregateName(eo.Data.AggregateName()),
 		Name:          EventName(eo.Data.EventName()),
@@ -133,7 +131,6 @@ func (eo EventOptions[U]) toAppendEvent() (AppendEvent, error) {
 		Version:       eo.Version,
 		PartitionID:   eo.PartitionID,
 		Schema:        Schema(eo.Data.Schema()),
-		Metadata:      eo.Metadata,
 		Data:          d,
 	}, nil
 }
