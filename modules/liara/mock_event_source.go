@@ -94,7 +94,7 @@ func (mes *MockEventSource) Append(
 		mes.versions = make(map[AggregateID]Version)
 	}
 
-	if _, ok := mes.requests[options.RequestID]; ok {
+	if !mes.isNewRequest(options.RequestID) {
 		// TODO: Should this be nil?
 		return nil
 	}
@@ -119,10 +119,7 @@ func (mes *MockEventSource) Append(
 	// Apply Snapshot
 	for id, version := range versions {
 		mes.versions[id] = version
-		mes.requests[options.RequestID] = mockRequest{
-			ID:   options.RequestID,
-			Time: time.Now(),
-		}
+		mes.addRequest(options.RequestID)
 	}
 	data := make([]Event, 0, len(events))
 	for _, event := range events {
@@ -132,6 +129,30 @@ func (mes *MockEventSource) Append(
 	mes.events = append(mes.events, data...)
 
 	return nil
+}
+
+func (mes *MockEventSource) isNewRequest(requestID RequestID) bool {
+	if requestID == "" {
+		return true
+	}
+
+	_, ok := mes.requests[requestID]
+	return !ok
+}
+
+func (mes *MockEventSource) addRequest(requestID RequestID) {
+	if requestID == "" {
+		return
+	}
+
+	if mes.requests == nil {
+		mes.requests = make(map[RequestID]mockRequest)
+	}
+
+	mes.requests[requestID] = mockRequest{
+		ID:   requestID,
+		Time: time.Now(),
+	}
 }
 
 func (mes *MockEventSource) aggregateVersion(versions map[AggregateID]Version, id AggregateID) (version Version) {
