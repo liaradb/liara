@@ -86,7 +86,7 @@ func (c *Collection[M]) GetList(ctx context.Context, filter FilterBuilder, sort 
 				return
 			}
 
-			if yield(&m, nil) {
+			if !yield(&m, nil) {
 				return
 			}
 		}
