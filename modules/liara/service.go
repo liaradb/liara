@@ -104,6 +104,7 @@ func (s *Service[T, U]) apply(
 ) (T, Version, error) {
 	t := s.init()
 	var version Version
+	count := 0
 
 	for e, err := range events {
 		if err != nil {
@@ -118,7 +119,12 @@ func (s *Service[T, U]) apply(
 		if version < e.Version {
 			version = e.Version
 		}
+		count++
 		t.Apply(data)
+	}
+
+	if count == 0 {
+		return t, version, ErrNotFound
 	}
 
 	return t, version, nil
