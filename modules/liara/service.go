@@ -72,6 +72,13 @@ func (s *Service[T, U]) Append(
 	return s.eventRepository.Append(ctx, s.tenantID, options, data...)
 }
 
+func (s *Service[T, U]) TestIdempotency(
+	ctx context.Context,
+	requestID RequestID,
+) (bool, error) {
+	return s.eventRepository.TestIdempotency(ctx, s.tenantID, requestID)
+}
+
 func (s *Service[T, U]) GetByID(
 	ctx context.Context,
 	id U,

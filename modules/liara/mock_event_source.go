@@ -19,6 +19,14 @@ type mockRequest struct {
 
 var _ EventRepository = &MockEventSource{}
 
+func (mes *MockEventSource) TestIdempotency(
+	ctx context.Context,
+	tenantID TenantID,
+	requestID RequestID,
+) (bool, error) {
+	panic("unimplemented")
+}
+
 func (mes *MockEventSource) Get(
 	ctx context.Context,
 	tenantID TenantID,

@@ -236,6 +236,28 @@ function deserialize_liara_Tenant(buffer_arg) {
   return eventsource_pb.Tenant.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_liara_TestIdempotencyRequest(arg) {
+  if (!(arg instanceof eventsource_pb.TestIdempotencyRequest)) {
+    throw new Error('Expected argument of type liara.TestIdempotencyRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_TestIdempotencyRequest(buffer_arg) {
+  return eventsource_pb.TestIdempotencyRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_liara_TestIdempotencyResponse(arg) {
+  if (!(arg instanceof eventsource_pb.TestIdempotencyResponse)) {
+    throw new Error('Expected argument of type liara.TestIdempotencyResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_liara_TestIdempotencyResponse(buffer_arg) {
+  return eventsource_pb.TestIdempotencyResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_liara_UpdateOutboxPositionRequest(arg) {
   if (!(arg instanceof eventsource_pb.UpdateOutboxPositionRequest)) {
     throw new Error('Expected argument of type liara.UpdateOutboxPositionRequest');
@@ -270,6 +292,17 @@ var EventSourceServiceService = exports.EventSourceServiceService = {
     requestDeserialize: deserialize_liara_AppendRequest,
     responseSerialize: serialize_liara_AppendResponse,
     responseDeserialize: deserialize_liara_AppendResponse,
+  },
+  testIdempotency: {
+    path: '/liara.EventSourceService/TestIdempotency',
+    requestStream: false,
+    responseStream: false,
+    requestType: eventsource_pb.TestIdempotencyRequest,
+    responseType: eventsource_pb.TestIdempotencyResponse,
+    requestSerialize: serialize_liara_TestIdempotencyRequest,
+    requestDeserialize: deserialize_liara_TestIdempotencyRequest,
+    responseSerialize: serialize_liara_TestIdempotencyResponse,
+    responseDeserialize: deserialize_liara_TestIdempotencyResponse,
   },
   get: {
     path: '/liara.EventSourceService/Get',

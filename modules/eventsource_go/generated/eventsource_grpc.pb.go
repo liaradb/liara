@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventSourceServiceClient interface {
 	Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error)
+	TestIdempotency(ctx context.Context, in *TestIdempotencyRequest, opts ...grpc.CallOption) (*TestIdempotencyResponse, error)
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (EventSourceService_GetClient, error)
 	GetByAggregateIDAndName(ctx context.Context, in *GetByAggregateIDAndNameRequest, opts ...grpc.CallOption) (EventSourceService_GetByAggregateIDAndNameClient, error)
 	GetAfterGlobalVersion(ctx context.Context, in *GetAfterGlobalVersionRequest, opts ...grpc.CallOption) (EventSourceService_GetAfterGlobalVersionClient, error)
@@ -48,6 +49,15 @@ func NewEventSourceServiceClient(cc grpc.ClientConnInterface) EventSourceService
 func (c *eventSourceServiceClient) Append(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error) {
 	out := new(AppendResponse)
 	err := c.cc.Invoke(ctx, "/liara.EventSourceService/Append", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventSourceServiceClient) TestIdempotency(ctx context.Context, in *TestIdempotencyRequest, opts ...grpc.CallOption) (*TestIdempotencyResponse, error) {
+	out := new(TestIdempotencyResponse)
+	err := c.cc.Invoke(ctx, "/liara.EventSourceService/TestIdempotency", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +292,7 @@ func (x *eventSourceServiceListTenantsClient) Recv() (*Tenant, error) {
 // for forward compatibility
 type EventSourceServiceServer interface {
 	Append(context.Context, *AppendRequest) (*AppendResponse, error)
+	TestIdempotency(context.Context, *TestIdempotencyRequest) (*TestIdempotencyResponse, error)
 	Get(*GetRequest, EventSourceService_GetServer) error
 	GetByAggregateIDAndName(*GetByAggregateIDAndNameRequest, EventSourceService_GetByAggregateIDAndNameServer) error
 	GetAfterGlobalVersion(*GetAfterGlobalVersionRequest, EventSourceService_GetAfterGlobalVersionServer) error
@@ -303,6 +314,9 @@ type UnimplementedEventSourceServiceServer struct {
 
 func (UnimplementedEventSourceServiceServer) Append(context.Context, *AppendRequest) (*AppendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Append not implemented")
+}
+func (UnimplementedEventSourceServiceServer) TestIdempotency(context.Context, *TestIdempotencyRequest) (*TestIdempotencyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TestIdempotency not implemented")
 }
 func (UnimplementedEventSourceServiceServer) Get(*GetRequest, EventSourceService_GetServer) error {
 	return status.Errorf(codes.Unimplemented, "method Get not implemented")
@@ -367,6 +381,24 @@ func _EventSourceService_Append_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EventSourceServiceServer).Append(ctx, req.(*AppendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventSourceService_TestIdempotency_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestIdempotencyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventSourceServiceServer).TestIdempotency(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/liara.EventSourceService/TestIdempotency",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventSourceServiceServer).TestIdempotency(ctx, req.(*TestIdempotencyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -612,6 +644,10 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Append",
 			Handler:    _EventSourceService_Append_Handler,
+		},
+		{
+			MethodName: "TestIdempotency",
+			Handler:    _EventSourceService_TestIdempotency_Handler,
 		},
 		{
 			MethodName: "CreateOutbox",

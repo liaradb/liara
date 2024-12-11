@@ -163,6 +163,14 @@ func (es *EventService) appendEvents(
 	return nil
 }
 
+func (es *EventService) TestIdempotency(
+	ctx context.Context,
+	tenantID value.TenantID,
+	id value.RequestID,
+) (bool, error) {
+	return es.requestRepository.Test(ctx, tenantID, id)
+}
+
 func (es *EventService) Get(
 	ctx context.Context,
 	tenantID value.TenantID,

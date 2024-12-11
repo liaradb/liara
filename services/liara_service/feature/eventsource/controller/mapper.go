@@ -56,17 +56,6 @@ func metadataToDto(m entity.EventMetadata) *pb.EventMetadata {
 		Time:          timestamppb.New(m.Time)}
 }
 
-func dtoToMetadata(dto *pb.EventMetadata) entity.EventMetadata {
-	if dto == nil {
-		return entity.EventMetadata{}
-	}
-
-	return entity.EventMetadata{
-		CorrelationID: value.CorrelationID(dto.CorrelationId),
-		UserID:        value.UserID(dto.UserId),
-		Time:          dto.Time.AsTime()}
-}
-
 func dtoToPartitionRange(partitionIDs []int32) value.PartitionRange {
 	pids := make([]value.PartitionID, 0, len(partitionIDs))
 	for _, p := range partitionIDs {

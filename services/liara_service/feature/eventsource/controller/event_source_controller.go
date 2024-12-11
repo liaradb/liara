@@ -39,6 +39,22 @@ func (esc *EventSourceController) Append(
 	return &pb.AppendResponse{}, nil
 }
 
+func (esc *EventSourceController) TestIdempotency(
+	ctx context.Context,
+	request *pb.TestIdempotencyRequest,
+) (*pb.TestIdempotencyResponse, error) {
+	ok, err := esc.eventService.TestIdempotency(ctx,
+		value.TenantID(request.TenantId),
+		value.RequestID(request.RequestId))
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.TestIdempotencyResponse{
+		Ok: ok,
+	}, nil
+}
+
 func (esc *EventSourceController) Get(
 	request *pb.GetRequest,
 	stream pb.EventSourceService_GetServer,

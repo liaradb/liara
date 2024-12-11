@@ -8,6 +8,8 @@ option go_package = "https://github.com/cardboardrobots/liara";
 
 service EventSourceService {
   rpc Append(AppendRequest) returns (AppendResponse) {}
+  rpc TestIdempotency(TestIdempotencyRequest)
+      returns (TestIdempotencyResponse) {}
   rpc Get(GetRequest) returns (stream Event) {}
   rpc GetByAggregateIDAndName(GetByAggregateIDAndNameRequest)
       returns (stream Event) {}
@@ -119,6 +121,19 @@ message AppendRequest {
 }
 
 message AppendResponse {}
+
+// -----------------------------------------------------------------------------
+// Test Idempotency
+// -----------------------------------------------------------------------------
+
+message TestIdempotencyRequest {
+  string tenant_id = 1;
+  string request_id = 2;
+}
+
+message TestIdempotencyResponse {
+  bool ok = 1;
+}
 
 // -----------------------------------------------------------------------------
 // Get

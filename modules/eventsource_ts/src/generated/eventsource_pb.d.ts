@@ -211,6 +211,49 @@ export namespace AppendResponse {
     }
 }
 
+export class TestIdempotencyRequest extends jspb.Message { 
+    getTenantId(): string;
+    setTenantId(value: string): TestIdempotencyRequest;
+    getRequestId(): string;
+    setRequestId(value: string): TestIdempotencyRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TestIdempotencyRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: TestIdempotencyRequest): TestIdempotencyRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TestIdempotencyRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TestIdempotencyRequest;
+    static deserializeBinaryFromReader(message: TestIdempotencyRequest, reader: jspb.BinaryReader): TestIdempotencyRequest;
+}
+
+export namespace TestIdempotencyRequest {
+    export type AsObject = {
+        tenantId: string,
+        requestId: string,
+    }
+}
+
+export class TestIdempotencyResponse extends jspb.Message { 
+    getOk(): boolean;
+    setOk(value: boolean): TestIdempotencyResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): TestIdempotencyResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: TestIdempotencyResponse): TestIdempotencyResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: TestIdempotencyResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): TestIdempotencyResponse;
+    static deserializeBinaryFromReader(message: TestIdempotencyResponse, reader: jspb.BinaryReader): TestIdempotencyResponse;
+}
+
+export namespace TestIdempotencyResponse {
+    export type AsObject = {
+        ok: boolean,
+    }
+}
+
 export class GetRequest extends jspb.Message { 
     getTenantId(): string;
     setTenantId(value: string): GetRequest;

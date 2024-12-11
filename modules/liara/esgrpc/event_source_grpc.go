@@ -46,6 +46,18 @@ func (es *EventSourceGRPC) Append(
 	return err
 }
 
+func (es *EventSourceGRPC) TestIdempotency(
+	ctx context.Context,
+	tenantID liara.TenantID,
+	requetID liara.RequestID,
+) (bool, error) {
+	response, err := es.client.TestIdempotency(ctx, &pb.TestIdempotencyRequest{
+		TenantId:  requetID.String(),
+		RequestId: requetID.String(),
+	})
+	return response.Ok, err
+}
+
 func (es *EventSourceGRPC) Get(
 	ctx context.Context,
 	tenantID liara.TenantID,

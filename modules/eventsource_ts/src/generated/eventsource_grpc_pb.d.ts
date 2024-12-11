@@ -10,6 +10,7 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 
 interface IEventSourceServiceService extends grpc.ServiceDefinition<grpc.UntypedServiceImplementation> {
     append: IEventSourceServiceService_IAppend;
+    testIdempotency: IEventSourceServiceService_ITestIdempotency;
     get: IEventSourceServiceService_IGet;
     getByAggregateIDAndName: IEventSourceServiceService_IGetByAggregateIDAndName;
     getAfterGlobalVersion: IEventSourceServiceService_IGetAfterGlobalVersion;
@@ -32,6 +33,15 @@ interface IEventSourceServiceService_IAppend extends grpc.MethodDefinition<event
     requestDeserialize: grpc.deserialize<eventsource_pb.AppendRequest>;
     responseSerialize: grpc.serialize<eventsource_pb.AppendResponse>;
     responseDeserialize: grpc.deserialize<eventsource_pb.AppendResponse>;
+}
+interface IEventSourceServiceService_ITestIdempotency extends grpc.MethodDefinition<eventsource_pb.TestIdempotencyRequest, eventsource_pb.TestIdempotencyResponse> {
+    path: "/liara.EventSourceService/TestIdempotency";
+    requestStream: false;
+    responseStream: false;
+    requestSerialize: grpc.serialize<eventsource_pb.TestIdempotencyRequest>;
+    requestDeserialize: grpc.deserialize<eventsource_pb.TestIdempotencyRequest>;
+    responseSerialize: grpc.serialize<eventsource_pb.TestIdempotencyResponse>;
+    responseDeserialize: grpc.deserialize<eventsource_pb.TestIdempotencyResponse>;
 }
 interface IEventSourceServiceService_IGet extends grpc.MethodDefinition<eventsource_pb.GetRequest, eventsource_pb.Event> {
     path: "/liara.EventSourceService/Get";
@@ -146,6 +156,7 @@ export const EventSourceServiceService: IEventSourceServiceService;
 
 export interface IEventSourceServiceServer extends grpc.UntypedServiceImplementation {
     append: grpc.handleUnaryCall<eventsource_pb.AppendRequest, eventsource_pb.AppendResponse>;
+    testIdempotency: grpc.handleUnaryCall<eventsource_pb.TestIdempotencyRequest, eventsource_pb.TestIdempotencyResponse>;
     get: grpc.handleServerStreamingCall<eventsource_pb.GetRequest, eventsource_pb.Event>;
     getByAggregateIDAndName: grpc.handleServerStreamingCall<eventsource_pb.GetByAggregateIDAndNameRequest, eventsource_pb.Event>;
     getAfterGlobalVersion: grpc.handleServerStreamingCall<eventsource_pb.GetAfterGlobalVersionRequest, eventsource_pb.Event>;
@@ -164,6 +175,9 @@ export interface IEventSourceServiceClient {
     append(request: eventsource_pb.AppendRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
     append(request: eventsource_pb.AppendRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
     append(request: eventsource_pb.AppendRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
+    testIdempotency(request: eventsource_pb.TestIdempotencyRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
+    testIdempotency(request: eventsource_pb.TestIdempotencyRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
+    testIdempotency(request: eventsource_pb.TestIdempotencyRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
     get(request: eventsource_pb.GetRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     get(request: eventsource_pb.GetRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
@@ -202,6 +216,9 @@ export class EventSourceServiceClient extends grpc.Client implements IEventSourc
     public append(request: eventsource_pb.AppendRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
     public append(request: eventsource_pb.AppendRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
     public append(request: eventsource_pb.AppendRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.AppendResponse) => void): grpc.ClientUnaryCall;
+    public testIdempotency(request: eventsource_pb.TestIdempotencyRequest, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
+    public testIdempotency(request: eventsource_pb.TestIdempotencyRequest, metadata: grpc.Metadata, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
+    public testIdempotency(request: eventsource_pb.TestIdempotencyRequest, metadata: grpc.Metadata, options: Partial<grpc.CallOptions>, callback: (error: grpc.ServiceError | null, response: eventsource_pb.TestIdempotencyResponse) => void): grpc.ClientUnaryCall;
     public get(request: eventsource_pb.GetRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public get(request: eventsource_pb.GetRequest, metadata?: grpc.Metadata, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;
     public getByAggregateIDAndName(request: eventsource_pb.GetByAggregateIDAndNameRequest, options?: Partial<grpc.CallOptions>): grpc.ClientReadableStream<eventsource_pb.Event>;

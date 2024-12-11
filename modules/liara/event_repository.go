@@ -11,6 +11,7 @@ type EventRepository interface {
 	GetByAggregateIDAndName(context.Context, TenantID, AggregateID, AggregateName) iter.Seq2[Event, error]
 	GetByOutbox(context.Context, TenantID, OutboxID, Limit) iter.Seq2[Event, error]
 	Append(context.Context, TenantID, AppendOptions, ...AppendEvent) error
+	TestIdempotency(context.Context, TenantID, RequestID) (bool, error)
 }
 
 type AppendEvent struct {
