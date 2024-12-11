@@ -11,23 +11,23 @@ import (
 )
 
 type EventService struct {
-	transactionRepository TransactionRepository
-	eventRepository       EventRepository
-	outboxRepository      OutboxRepository
-	requestRepository     RequestRepository
+	transactionContainer TransactionContainer
+	eventRepository      EventRepository
+	outboxRepository     OutboxRepository
+	requestRepository    RequestRepository
 }
 
 func NewEventService(
-	transactionRepository TransactionRepository,
+	transactionRepository TransactionContainer,
 	eventRepository EventRepository,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 ) *EventService {
 	return &EventService{
-		transactionRepository: transactionRepository,
-		eventRepository:       eventRepository,
-		outboxRepository:      outboxRepository,
-		requestRepository:     requestRepository,
+		transactionContainer: transactionRepository,
+		eventRepository:      eventRepository,
+		outboxRepository:     outboxRepository,
+		requestRepository:    requestRepository,
 	}
 }
 
@@ -118,7 +118,7 @@ func (es *EventService) appendNoRequestID(
 		return es.appendEvents(ctx, tenantID, options, e...)
 	}
 
-	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
+	return es.transactionContainer.Run(ctx, func() error {
 		return es.appendEvents(ctx, tenantID, options, e...)
 	})
 }
@@ -130,7 +130,7 @@ func (es *EventService) appendRequestID(
 	e ...AppendEvent,
 ) error {
 	t := time.Now()
-	return es.transactionRepository.Run(ctx, func(tx Transaction) error {
+	return es.transactionContainer.Run(ctx, func() error {
 		// TODO: What should this return if requestID is present?
 		if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
 			return err

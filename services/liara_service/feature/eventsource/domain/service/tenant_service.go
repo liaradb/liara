@@ -9,11 +9,11 @@ import (
 )
 
 type TenantService struct {
-	transactionRepository TransactionRepository
-	eventRepository       EventRepository
-	outboxRepository      OutboxRepository
-	requestRepository     RequestRepository
-	tenantRepository      TenantRepository
+	transactionContainer TransactionContainer
+	eventRepository      EventRepository
+	outboxRepository     OutboxRepository
+	requestRepository    RequestRepository
+	tenantRepository     TenantRepository
 }
 
 type TenantRepository interface {
@@ -25,18 +25,18 @@ type TenantRepository interface {
 }
 
 func NewTenantService(
-	transactionRepository TransactionRepository,
+	transactionRepository TransactionContainer,
 	eventRepository EventRepository,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	tenantRepository TenantRepository,
 ) *TenantService {
 	return &TenantService{
-		transactionRepository: transactionRepository,
-		eventRepository:       eventRepository,
-		outboxRepository:      outboxRepository,
-		requestRepository:     requestRepository,
-		tenantRepository:      tenantRepository,
+		transactionContainer: transactionRepository,
+		eventRepository:      eventRepository,
+		outboxRepository:     outboxRepository,
+		requestRepository:    requestRepository,
+		tenantRepository:     tenantRepository,
 	}
 }
 
@@ -49,7 +49,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 	id := cmd.TenantID.NewIfEmpty()
 	tenant := entity.NewTenant(id, cmd.TenantName)
 
-	if err := ts.transactionRepository.Run(ctx, func(tx Transaction) error {
+	if err := ts.transactionContainer.Run(ctx, func() error {
 		if err := ts.eventRepository.CreateTable(ctx, id); err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ type DeleteTenantCommand struct {
 }
 
 func (ts *TenantService) Delete(ctx context.Context, cmd DeleteTenantCommand) error {
-	return ts.transactionRepository.Run(ctx, func(tx Transaction) error {
+	return ts.transactionContainer.Run(ctx, func() error {
 		if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
 			return nil
 		}

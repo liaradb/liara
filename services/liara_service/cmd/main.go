@@ -58,12 +58,12 @@ func initService(db *sql.DB) *grpc.Server {
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
 		service.NewEventService(
-			r.transactionRepository,
+			r.transactionContainer,
 			r.eventRepository,
 			r.outboxRepository,
 			r.requestRepository),
 		service.NewTenantService(
-			r.transactionRepository,
+			r.transactionContainer,
 			r.eventRepository,
 			r.outboxRepository,
 			r.requestRepository,
@@ -74,15 +74,15 @@ func initService(db *sql.DB) *grpc.Server {
 }
 
 type repositories struct {
-	transactionRepository *infrastructure.TransactionRepository
-	eventRepository       *infrastructure.EventRepository
-	outboxRepository      *infrastructure.OutboxRepository
-	requestRepository     *infrastructure.RequestRepository
-	tenantRepository      *infrastructure.TenantRepository
+	transactionContainer *infrastructure.TransactionContainer
+	eventRepository      *infrastructure.EventRepository
+	outboxRepository     *infrastructure.OutboxRepository
+	requestRepository    *infrastructure.RequestRepository
+	tenantRepository     *infrastructure.TenantRepository
 }
 
 func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) {
-	transactionRepository := infrastructure.NewTransactionRepository(db, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	transactionContainer := infrastructure.NewTransactionContainer(db, &sql.TxOptions{Isolation: sql.LevelSerializable})
 
 	eventRepository := infrastructure.NewEventRepository(db)
 	err := eventRepository.CreateTable(ctx, "")
@@ -114,11 +114,11 @@ func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) 
 	}
 
 	return &repositories{
-		transactionRepository: transactionRepository,
-		eventRepository:       &eventRepository,
-		outboxRepository:      outboxRepository,
-		requestRepository:     requestRepository,
-		tenantRepository:      tenantRepository,
+		transactionContainer: transactionContainer,
+		eventRepository:      &eventRepository,
+		outboxRepository:     outboxRepository,
+		requestRepository:    requestRepository,
+		tenantRepository:     tenantRepository,
 	}, nil
 }
 
