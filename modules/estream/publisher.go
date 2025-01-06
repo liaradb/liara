@@ -3,6 +3,7 @@ package estream
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/cardboardrobots/liara"
 	"github.com/nats-io/nats.go"
@@ -32,7 +33,11 @@ func (ses *StreamEventPublisher) Handle(ctx context.Context, event liara.Event) 
 		return err
 	}
 
-	return ses.handleStream(ctx, event.AggregateName.String(), data, event.ID.String())
+	streamName := fmt.Sprintf("%v.%v",
+		event.AggregateName.String(),
+		event.PartitionID.Value())
+
+	return ses.handleStream(ctx, streamName, data, event.ID.String())
 }
 
 func (ses *StreamEventPublisher) handleStream(ctx context.Context, streamName string, data []byte, id string) error {
