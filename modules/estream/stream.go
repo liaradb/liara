@@ -51,31 +51,38 @@ func (ses *StreamEventSubscriber) Init(
 		return nil, err
 	}
 
-	cons, err := c.Consume(func(msg jetstream.Msg) {
-		em := liara.Event{}
-		err := json.Unmarshal(msg.Data(), &em)
-		if err != nil {
-			log.Println(err)
-			msg.Nak()
-			return
-		}
-
-		for _, s := range ses.subscriptions {
-			err := s.Handle(ctx, em)
-			if err != nil {
-				log.Println(err)
-				msg.Nak()
-				return
-			}
-		}
-
-		msg.Ack()
-	})
+	cons, err := c.Consume(func(msg jetstream.Msg) { ses.consume(ctx, msg) })
 	if err != nil {
 		return nil, err
 	}
 
 	return func() error { cons.Stop(); return nil }, nil
+}
+
+func (ses *StreamEventSubscriber) consume(ctx context.Context, msg jetstream.Msg) {
+	em, err := ses.unmarshalEvent(msg)
+	if err != nil {
+		log.Println(err)
+		msg.Nak()
+		return
+	}
+
+	for _, s := range ses.subscriptions {
+		err := s.Handle(ctx, em)
+		if err != nil {
+			log.Println(err)
+			msg.Nak()
+			return
+		}
+	}
+
+	msg.Ack()
+}
+
+func (*StreamEventSubscriber) unmarshalEvent(msg jetstream.Msg) (liara.Event, error) {
+	em := liara.Event{}
+	err := json.Unmarshal(msg.Data(), &em)
+	return em, err
 }
 
 func (ses *StreamEventSubscriber) Subscribe(es liara.EventSubscriber) func() {
