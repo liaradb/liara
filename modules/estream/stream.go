@@ -10,54 +10,41 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 )
 
-// TODO: Move these out of library
-const StreamEvents = "events"
-const QueueGroup = "queue"
-
 type (
 	StreamEventSubscriber struct {
 		nc            *nats.Conn
 		js            jetstream.JetStream
 		subscriptions []liara.EventSubscriber
-		streamName    string
-		queueName     string
 	}
 )
 
 func NewStreamEventSubscriber(
 	nc *nats.Conn,
 	js jetstream.JetStream,
-	streamName string,
-	queueName string,
 ) *StreamEventSubscriber {
 	return &StreamEventSubscriber{
 		nc:            nc,
 		js:            js,
 		subscriptions: nil,
-		streamName:    streamName,
-		queueName:     queueName,
 	}
 }
 
-func (ses *StreamEventSubscriber) Init(ctx context.Context) (func() error, error) {
-	if useStream {
-		return ses.streamInit(ctx)
-	} else {
-		return ses.queueInit(ctx)
-	}
-}
-
-func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error, error) {
+func (ses *StreamEventSubscriber) Init(
+	ctx context.Context,
+	streamName string,
+	consumerName string,
+	subjects ...string,
+) (func() error, error) {
 	s, err := ses.js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
-		Name:     "Events",
-		Subjects: []string{StreamEvents},
+		Name:     streamName,
+		Subjects: subjects,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	c, err := s.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
-		Durable:   "Consumer",
+		Durable:   consumerName,
 		AckPolicy: jetstream.AckExplicitPolicy,
 	})
 	if err != nil {
@@ -91,34 +78,6 @@ func (ses *StreamEventSubscriber) streamInit(ctx context.Context) (func() error,
 	return func() error { cons.Stop(); return nil }, nil
 }
 
-func (ses *StreamEventSubscriber) queueInit(ctx context.Context) (func() error, error) {
-	sub, err := ses.nc.QueueSubscribe(ses.streamName, ses.queueName, func(msg *nats.Msg) {
-		em := liara.Event{}
-		err := json.Unmarshal(msg.Data, &em)
-		if err != nil {
-			log.Println(err)
-			msg.Nak()
-			return
-		}
-
-		for _, s := range ses.subscriptions {
-			err := s.Handle(ctx, em)
-			if err != nil {
-				log.Println(err)
-				msg.Nak()
-				return
-			}
-		}
-
-		msg.Ack()
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return sub.Unsubscribe, nil
-}
-
 func (ses *StreamEventSubscriber) Subscribe(es liara.EventSubscriber) func() {
 	ses.subscriptions = append(ses.subscriptions, es)
 
@@ -141,7 +100,7 @@ func Connect(url string) (*nats.Conn, error) {
 	return nc, nil
 }
 
-func ConnectStream(ctx context.Context, url string) (*nats.Conn, error) {
+func ConnectStream(ctx context.Context, url string, subject string) (*nats.Conn, error) {
 	nc, err := nats.Connect(url)
 	if err != nil {
 		return nil, err
@@ -154,13 +113,13 @@ func ConnectStream(ctx context.Context, url string) (*nats.Conn, error) {
 
 	s, err := js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
 		Name:     "Events",
-		Subjects: []string{StreamEvents},
+		Subjects: []string{subject},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = js.Publish(ctx, StreamEvents, []byte("test"))
+	_, err = js.Publish(ctx, subject, []byte("test"))
 	if err != nil {
 		return nil, err
 	}

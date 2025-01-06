@@ -11,25 +11,20 @@ import (
 
 type (
 	StreamEventPublisher struct {
-		nc         *nats.Conn
-		js         jetstream.JetStream
-		streamName string
+		nc *nats.Conn
+		js jetstream.JetStream
 	}
 )
 
 func NewStreamEventPublisher(
 	nc *nats.Conn,
 	js jetstream.JetStream,
-	streamName string,
 ) *StreamEventPublisher {
 	return &StreamEventPublisher{
-		nc:         nc,
-		js:         js,
-		streamName: streamName,
+		nc: nc,
+		js: js,
 	}
 }
-
-const useStream = false
 
 func (ses *StreamEventPublisher) Handle(ctx context.Context, event liara.Event) error {
 	data, err := json.Marshal(event)
@@ -37,18 +32,10 @@ func (ses *StreamEventPublisher) Handle(ctx context.Context, event liara.Event) 
 		return err
 	}
 
-	if useStream {
-		return ses.handleStream(ctx, data, event.ID.String())
-	} else {
-		return ses.handleQueue(data)
-	}
+	return ses.handleStream(ctx, event.AggregateName.String(), data, event.ID.String())
 }
 
-func (ses *StreamEventPublisher) handleStream(ctx context.Context, data []byte, id string) error {
-	_, err := ses.js.Publish(ctx, ses.streamName, data, jetstream.WithMsgID(id))
+func (ses *StreamEventPublisher) handleStream(ctx context.Context, streamName string, data []byte, id string) error {
+	_, err := ses.js.Publish(ctx, streamName, data, jetstream.WithMsgID(id))
 	return err
-}
-
-func (ses *StreamEventPublisher) handleQueue(data []byte) error {
-	return ses.nc.Publish(ses.streamName, data)
 }

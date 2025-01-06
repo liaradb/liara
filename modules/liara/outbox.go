@@ -19,7 +19,7 @@ type (
 
 	// TODO: Where is this used?
 	EventPublisher interface {
-		Init(context.Context) (func() error, error)
+		Init(context.Context, string, string, ...string) (func() error, error)
 		Subscribe(EventSubscriber) func()
 	}
 )
