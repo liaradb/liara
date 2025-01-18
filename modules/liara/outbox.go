@@ -10,25 +10,25 @@ type (
 		tenantID         TenantID
 		outboxRepository OutboxRepository
 		eventRepository  EventRepository
-		subscriptions    []EventSubscriber
+		subscriptions    []EventHandler
 	}
 
-	EventSubscriber interface {
+	EventHandler interface {
 		Handle(context.Context, Event) error
 	}
 
 	// TODO: Where is this used?
-	EventPublisher interface {
+	EventSubscriber interface {
 		Init(context.Context, string, string, ...string) (func() error, error)
-		Subscribe(EventSubscriber) func()
+		Subscribe(EventHandler) func()
 	}
 )
 
 func NewOutbox(
 	outboxRepository OutboxRepository,
 	eventRepository EventRepository,
-) Outbox {
-	return Outbox{
+) *Outbox {
+	return &Outbox{
 		tenantID:         "",
 		outboxRepository: outboxRepository,
 		eventRepository:  eventRepository,
@@ -73,7 +73,7 @@ func (o *Outbox) read(ctx context.Context, outboxID OutboxID, limit Limit) error
 	return nil
 }
 
-func (o *Outbox) Subscribe(es EventSubscriber) func() {
+func (o *Outbox) Subscribe(es EventHandler) func() {
 	o.subscriptions = append(o.subscriptions, es)
 
 	return func() {

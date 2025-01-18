@@ -15,7 +15,7 @@ type (
 	StreamEventSubscriber struct {
 		nc            *nats.Conn
 		js            jetstream.JetStream
-		subscriptions []liara.EventSubscriber
+		subscriptions []liara.EventHandler
 	}
 )
 
@@ -86,7 +86,7 @@ func (*StreamEventSubscriber) unmarshalEvent(msg jetstream.Msg) (liara.Event, er
 	return em, err
 }
 
-func (ses *StreamEventSubscriber) Subscribe(es liara.EventSubscriber) func() {
+func (ses *StreamEventSubscriber) Subscribe(es liara.EventHandler) func() {
 	ses.subscriptions = append(ses.subscriptions, es)
 
 	return func() {
