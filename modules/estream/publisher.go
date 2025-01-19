@@ -6,23 +6,19 @@ import (
 	"fmt"
 
 	"github.com/cardboardrobots/liara"
-	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
 
 type (
 	StreamEventPublisher struct {
-		nc *nats.Conn
 		js jetstream.JetStream
 	}
 )
 
 func NewStreamEventPublisher(
-	nc *nats.Conn,
 	js jetstream.JetStream,
 ) *StreamEventPublisher {
 	return &StreamEventPublisher{
-		nc: nc,
 		js: js,
 	}
 }
