@@ -66,7 +66,9 @@ func (esc *EventSourceController) Get(
 			return err
 		}
 
-		stream.Send(eventToDto(row))
+		if err := stream.Send(eventToDto(row)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -83,7 +85,9 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 			return err
 		}
 
-		stream.Send(eventToDto(row))
+		if err := stream.Send(eventToDto(row)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -101,7 +105,9 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 			return err
 		}
 
-		stream.Send(eventToDto(row))
+		if err := stream.Send(eventToDto(row)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -118,7 +124,9 @@ func (esc *EventSourceController) GetByOutbox(
 			return err
 		}
 
-		stream.Send(eventToDto(row))
+		if err := stream.Send(eventToDto(row)); err != nil {
+			return err
+		}
 	}
 	return nil
 }

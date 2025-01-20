@@ -2,6 +2,7 @@ package liara
 
 import (
 	"context"
+	"log"
 	"time"
 )
 
@@ -45,7 +46,10 @@ func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Durat
 	ticker := time.NewTicker(duration)
 	go func() {
 		for range ticker.C {
-			o.read(ctx, outboxID, limit)
+			// TODO: Should we handle this error?
+			if err := o.read(ctx, outboxID, limit); err != nil {
+				log.Println(err)
+			}
 		}
 	}()
 }

@@ -51,9 +51,10 @@ func (ses *StreamEventSubscriber) Init(
 	}
 
 	cons, err := c.Consume(func(msg jetstream.Msg) {
-		err := ses.consume(ctx, msg)
 		// TODO: Should we handle this error?
-		log.Println(err)
+		if err := ses.consume(ctx, msg); err != nil {
+			log.Println(err)
+		}
 	})
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func Connect(url string) (*nats.Conn, error) {
 	return nc, nil
 }
 
-func ConnectStream(ctx context.Context, url string, subject string) (*nats.Conn, error) {
+func connectStream(ctx context.Context, url string, subject string) (*nats.Conn, error) {
 	nc, err := nats.Connect(url)
 	if err != nil {
 		return nil, err

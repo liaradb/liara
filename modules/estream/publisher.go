@@ -29,14 +29,14 @@ func (ses *StreamEventPublisher) Handle(ctx context.Context, event liara.Event) 
 		return err
 	}
 
-	streamName := fmt.Sprintf("%v.%v",
+	subject := fmt.Sprintf("%v.%v",
 		event.AggregateName.String(),
 		event.PartitionID.Value())
 
-	return ses.handleStream(ctx, streamName, data, event.ID.String())
+	return ses.handleStream(ctx, subject, data, event.ID.String())
 }
 
-func (ses *StreamEventPublisher) handleStream(ctx context.Context, streamName string, data []byte, id string) error {
-	_, err := ses.js.Publish(ctx, streamName, data, jetstream.WithMsgID(id))
+func (ses *StreamEventPublisher) handleStream(ctx context.Context, subject string, data []byte, id string) error {
+	_, err := ses.js.Publish(ctx, subject, data, jetstream.WithMsgID(id))
 	return err
 }
