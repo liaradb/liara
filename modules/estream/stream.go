@@ -13,33 +13,24 @@ import (
 
 type (
 	StreamEventSubscriber struct {
-		js            jetstream.JetStream
 		cons          jetstream.ConsumeContext
 		subscriptions []liara.EventHandler
 	}
 )
 
 func NewStreamEventSubscriber(
-	js jetstream.JetStream,
-) *StreamEventSubscriber {
-	return &StreamEventSubscriber{
-		js:            js,
-		subscriptions: nil,
-	}
-}
-
-func (ses *StreamEventSubscriber) Init(
 	ctx context.Context,
+	js jetstream.JetStream,
 	streamName string,
 	consumerName string,
 	subjects ...string,
-) error {
-	s, err := ses.js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
+) (*StreamEventSubscriber, error) {
+	s, err := js.CreateOrUpdateStream(ctx, jetstream.StreamConfig{
 		Name:     streamName,
 		Subjects: subjects,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	c, err := s.CreateOrUpdateConsumer(ctx, jetstream.ConsumerConfig{
@@ -47,7 +38,11 @@ func (ses *StreamEventSubscriber) Init(
 		AckPolicy: jetstream.AckExplicitPolicy,
 	})
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	ses := &StreamEventSubscriber{
+		subscriptions: nil,
 	}
 
 	cons, err := c.Consume(func(msg jetstream.Msg) {
@@ -57,12 +52,12 @@ func (ses *StreamEventSubscriber) Init(
 		}
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ses.cons = cons
 
-	return nil
+	return ses, nil
 }
 
 func (ses *StreamEventSubscriber) Close() error {

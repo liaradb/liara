@@ -18,9 +18,7 @@ type (
 		Handle(context.Context, Event) error
 	}
 
-	// TODO: Where is this used?
 	EventSubscriber interface {
-		Init(context.Context, string, string, ...string) error
 		Subscribe(EventHandler) func()
 		Close() error
 	}
