@@ -19,6 +19,9 @@
 			"path": "modules/esmongo"
 		},
 		{
+			"path": "modules/storage"
+		},
+		{
 			"path": "modules/protos"
 		},
 		{
