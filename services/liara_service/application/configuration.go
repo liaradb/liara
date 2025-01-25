@@ -1,4 +1,4 @@
-package config
+package application
 
 import (
 	"os"
@@ -6,12 +6,12 @@ import (
 	"github.com/cardboardrobots/config"
 )
 
-type Config struct {
+type configuration struct {
 	Port          int    `yml:"port" config:"PORT"`
 	PostgresDbUri string `yaml:"postgresDbUri" config:"POSTGRES_DB_URI"`
 	SqliteDbUri   string `yaml:"sqliteDbUri" config:"SQLITE_DB_URI"`
 }
 
-func LoadConfig() (Config, error) {
-	return config.ReadConfigFile[Config](os.DirFS("."), "config/config.yml")
+func LoadConfig() (configuration, error) {
+	return config.ReadConfigFile[configuration](os.DirFS("."), "config.yml")
 }
