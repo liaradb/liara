@@ -7,6 +7,7 @@ replace github.com/cardboardrobots/eventsource_go => ../../modules/eventsource_g
 require (
 	github.com/cardboardrobots/baseerror v0.0.2
 	github.com/cardboardrobots/config v0.0.0
+	github.com/cardboardrobots/errormap v0.0.0
 	github.com/cardboardrobots/eventsource_go v0.0.0
 	github.com/cardboardrobots/listener v0.0.1
 	github.com/google/uuid v1.6.0

@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/cardboardrobots/errormap"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
-	"github.com/cardboardrobots/liara_service/feature/base"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/service"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
@@ -37,11 +37,11 @@ func initService(db *sql.DB) *grpc.Server {
 	s := listener.NewServerBuilder().
 		AddUnary(
 			listener.LogGRPC(false),
-			listener.ErrorInterceptor(base.GetStatusCodeGRPC),
+			listener.ErrorInterceptor(errormap.GetStatusCodeGRPC),
 		).
 		AddStream(
 			listener.LogStreamGRPC(false),
-			listener.ErrorInterceptorStream(base.GetStatusCodeGRPC),
+			listener.ErrorInterceptorStream(errormap.GetStatusCodeGRPC),
 		).
 		Build()
 

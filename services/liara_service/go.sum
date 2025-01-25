@@ -2,6 +2,8 @@ github.com/cardboardrobots/baseerror v0.0.2 h1:yUPtCY0ZuXyuaXRJOwfoOi5HeL871CVEN
 github.com/cardboardrobots/baseerror v0.0.2/go.mod h1:Cj0486tCPpBKJH57bsIHRZenNMERA4MEXZ7BkDvi9ZY=
 github.com/cardboardrobots/config v0.0.0 h1:4/W8u8Wb+VVnV1hUDwVSZEqsWkvkb2TeJGlN9UYQG5k=
 github.com/cardboardrobots/config v0.0.0/go.mod h1:Jge5KTiBh9sL+fLY9c4O2rKa3MZgzZMSOSDnTK+LPp0=
+github.com/cardboardrobots/errormap v0.0.0 h1:voUxTFJmpZcNJMmaidc2tRR52+PwOIOwVXJC+p3IlHA=
+github.com/cardboardrobots/errormap v0.0.0/go.mod h1:Y1+F2Xqp+jSfCSPPiFwsfDBb2+IV8Fc9zLniLAVMjMs=
 github.com/cardboardrobots/listener v0.0.1 h1:gOtFJRTrOCemZH1zT3FxTaB5IVFg7bask4uSo+z1Kbg=
 github.com/cardboardrobots/listener v0.0.1/go.mod h1:HKegyDp/niXWpOl/3my31D0R3ZlH6D7OV+WAv8Mq4Us=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
