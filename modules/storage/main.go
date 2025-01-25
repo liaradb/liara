@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sjohnsonaz/dart-grpc-client/service/util/storage/disk"
-	"github.com/sjohnsonaz/dart-grpc-client/service/util/storage/orchestrator"
+	"github.com/cardboardrobots/storage/disk"
+	"github.com/cardboardrobots/storage/orchestrator"
 )
 
 func main() {
