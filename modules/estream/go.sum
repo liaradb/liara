@@ -1,3 +1,5 @@
+github.com/cardboardrobots/baseerror v0.0.2 h1:yUPtCY0ZuXyuaXRJOwfoOi5HeL871CVEN0KRXeC+Fpc=
+github.com/cardboardrobots/baseerror v0.0.2/go.mod h1:Cj0486tCPpBKJH57bsIHRZenNMERA4MEXZ7BkDvi9ZY=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/klauspost/compress v1.17.10 h1:oXAz+Vh0PMUvJczoi+flxpnBEPxoER1IaAnU/NMPtT0=

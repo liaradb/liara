@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/cardboardrobots/baseerror v0.0.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
