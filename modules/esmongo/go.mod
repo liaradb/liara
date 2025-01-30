@@ -2,9 +2,10 @@ module github.com/cardboardrobots/esmongo
 
 go 1.23.1
 
-replace github.com/cardboardrobots/liara => ../liara
-
-require go.mongodb.org/mongo-driver v1.17.1
+require (
+	github.com/cardboardrobots/baseerror v0.0.2
+	go.mongodb.org/mongo-driver v1.17.1
+)
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect

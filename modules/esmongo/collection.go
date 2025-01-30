@@ -10,9 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var ErrNotFound = errors.New("not found")
-var ErrVersionMismatch = errors.New("version mismatch")
-
 type Collection[M any] struct {
 	collection *mongo.Collection
 }
@@ -44,7 +41,7 @@ func (c *Collection[M]) Replace(ctx context.Context, filter FilterBuilder, m *M)
 	}
 
 	if result.MatchedCount == 0 {
-		return ErrVersionMismatch
+		return ErrNoMatch
 	}
 
 	return nil
