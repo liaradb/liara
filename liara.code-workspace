@@ -19,6 +19,9 @@
 			"path": "modules/esmongo"
 		},
 		{
+			"path": "modules/mongodb_requestlog"
+		},
+		{
 			"path": "modules/storage"
 		},
 		{

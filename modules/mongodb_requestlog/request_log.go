@@ -1,4 +1,4 @@
-package esmongo
+package requestlog
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 type RequestLog struct {
-	collection *Collection[request]
+	collection *mongo.Collection
 }
 
 type RequestID string
@@ -26,28 +26,31 @@ func NewRequestLog(
 	collection *mongo.Collection,
 ) *RequestLog {
 	return &RequestLog{
-		collection: NewCollection[request](collection),
+		collection: collection,
 	}
 }
 
 func (r *RequestLog) Insert(ctx context.Context, requestID string, t time.Time) error {
-	return r.collection.Insert(ctx, requestID, &request{
+	_, err := r.collection.InsertOne(ctx, &request{
 		ID:   RequestID(requestID),
 		Time: t,
 	})
+	return err
 }
 
 func (r *RequestLog) Purge(ctx context.Context, t time.Time) error {
 	f := bson.M{
 		"time": bson.M{
 			"lt": t}}
-	_, err := r.collection.collection.DeleteMany(ctx, f)
+	_, err := r.collection.DeleteMany(ctx, f)
 	return err
 }
 
 func (r *RequestLog) Test(ctx context.Context, requestID string) (bool, error) {
-	_, err := r.collection.Get(ctx, requestID)
-	if errors.Is(err, ErrNotFound) {
+	// TODO: Can we use nil instead of struct
+	err := r.collection.FindOne(ctx, bson.M{
+		"_id": requestID}).Decode(&struct{}{})
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return true, nil
 	}
 
@@ -64,7 +67,7 @@ func (r *RequestLog) Transaction(ctx context.Context, requestID string, t time.T
 		return nil
 	}
 
-	session, err := r.collection.collection.Database().Client().StartSession()
+	session, err := r.collection.Database().Client().StartSession()
 	if err != nil {
 		return err
 	}
