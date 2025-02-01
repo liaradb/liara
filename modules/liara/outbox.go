@@ -17,11 +17,6 @@ type (
 	EventHandler interface {
 		Handle(context.Context, Event) error
 	}
-
-	EventSubscriber interface {
-		Subscribe(EventHandler) func()
-		Close() error
-	}
 )
 
 func NewOutbox(
