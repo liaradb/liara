@@ -61,7 +61,7 @@ func FindToEntitySlice[T any, U any](
 	if err != nil {
 		return nil, err
 	}
-	return CursorToEntitySlice[T, U](ctx, cursor, m)
+	return CursorToEntitySlice(ctx, cursor, m)
 }
 
 func FindEntityList[T any, U any](
@@ -76,7 +76,7 @@ func FindEntityList[T any, U any](
 		return nil, 0, err
 	}
 
-	data, err := CursorToEntitySlice[T, U](ctx, cursor, m)
+	data, err := CursorToEntitySlice(ctx, cursor, m)
 	if err != nil {
 		return nil, 0, err
 	}
