@@ -2,8 +2,8 @@ package esmongo
 
 type model[T any] struct {
 	ID      string        `bson:"_id"`
-	Version int           `bson:"version"`
-	Events  []*modelEvent `bson:"events"`
+	Version int           `bson:"_version"`
+	Events  []*modelEvent `bson:"_events"`
 	Value   T             `bson:"inline"`
 }
 
