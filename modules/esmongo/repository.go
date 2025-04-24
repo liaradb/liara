@@ -144,7 +144,7 @@ func RunTransaction[T any](
 	}
 	defer s.EndSession(ctx)
 
-	value, err := s.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+	value, err := s.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
 		return p(ctx)
 	})
 	t, _ := value.(T)
