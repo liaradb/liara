@@ -47,7 +47,7 @@ func (r *Repository[I, E, M, V]) Replace(
 	return r.collection.Replace(ctx,
 		Filter().
 			Property("_id", entity.ID().String()).
-			Property("version", entity.Version()),
+			Property("_version", entity.Version()),
 		r.newModel(entity, events).
 			increment())
 }
@@ -61,7 +61,7 @@ func (r *Repository[I, E, M, V]) ReplaceAtVersion(
 	return r.collection.Replace(ctx,
 		Filter().
 			Property("_id", entity.ID().String()).
-			Property("version", version),
+			Property("_version", version),
 		r.newModel(entity, events))
 }
 
