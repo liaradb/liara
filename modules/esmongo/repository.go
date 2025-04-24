@@ -7,19 +7,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Repository[I EntityID, E Entity[I], M any, V Event] struct {
+type Model interface {
+	Schema() string
+}
+
+type Repository[I EntityID, E Entity[I], M Model, V Event] struct {
 	collection *Collection[model[M]]
 	mapper     Mapper[I, E, M, V]
 }
 
-type Mapper[I EntityID, E Entity[I], M any, V Event] interface {
+type Mapper[I EntityID, E Entity[I], M Model, V Event] interface {
 	FromModel(string, int, M) E
 	ToModel(E) M
 	FromModelEvent(V) ([]byte, error)
 	ToModelEvent(string, []byte) (V, bool)
 }
 
-func NewRepository[I EntityID, E Entity[I], M any, V Event](
+func NewRepository[I EntityID, E Entity[I], M Model, V Event](
 	collection *mongo.Collection,
 	mapper Mapper[I, E, M, V],
 ) *Repository[I, E, M, V] {
@@ -76,8 +80,9 @@ func (r *Repository[I, E, M, V]) newModel(entity E, events []V) *model[M] {
 	return newModel(
 		entity.ID().String(),
 		entity.Version(),
-		m,
-		evs)
+		m.Schema(),
+		evs,
+		m)
 }
 
 func (r *Repository[I, E, M, V]) Get(

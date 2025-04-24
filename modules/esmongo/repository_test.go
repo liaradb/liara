@@ -33,9 +33,14 @@ type BookModel struct {
 	Title string `bson:"title"`
 }
 
+func (bm BookModel) Schema() string { return "" }
+
 type bookMapper struct{}
 
 func (b bookMapper) FromModel(id string, version int, m BookModel) Book {
+	switch m.Schema() {
+	case "":
+	}
 	return Book{
 		id:      BookID(id),
 		version: version,

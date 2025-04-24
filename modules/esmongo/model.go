@@ -3,6 +3,7 @@ package esmongo
 type model[T any] struct {
 	ID      string        `bson:"_id"`
 	Version int           `bson:"_version"`
+	Schema  string        `bson:"_schema"`
 	Events  []*modelEvent `bson:"_events"`
 	Value   T             `bson:"inline"`
 }
@@ -10,14 +11,16 @@ type model[T any] struct {
 func newModel[T any](
 	id string,
 	version int,
-	t T,
+	schema string,
 	events []*modelEvent,
+	value T,
 ) *model[T] {
 	return &model[T]{
 		ID:      id,
 		Version: version,
+		Schema:  schema,
 		Events:  events,
-		Value:   t,
+		Value:   value,
 	}
 }
 
