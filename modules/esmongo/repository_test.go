@@ -29,15 +29,15 @@ type Book struct {
 func (b Book) ID() BookID   { return b.id }
 func (b Book) Version() int { return b.version }
 
-type BookModel struct {
+type bookModel struct {
 	Title string `bson:"title"`
 }
 
-func (bm BookModel) Schema() string { return "" }
+func (bookModel) Schema() string { return "" }
 
 type bookMapper struct{}
 
-func (b bookMapper) FromModel(id string, version int, m BookModel) Book {
+func (b bookMapper) FromModel(id string, version int, m bookModel) Book {
 	switch m.Schema() {
 	case "":
 	}
@@ -48,8 +48,8 @@ func (b bookMapper) FromModel(id string, version int, m BookModel) Book {
 	}
 }
 
-func (bookMapper) ToModel(b Book) BookModel {
-	return BookModel{
+func (bookMapper) ToModel(b Book) bookModel {
+	return bookModel{
 		Title: b.title,
 	}
 }
