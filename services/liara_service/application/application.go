@@ -110,7 +110,7 @@ func createRepositories(ctx context.Context, db *sql.DB) (*repositories, error) 
 
 	return &repositories{
 		transactionContainer: transactionContainer,
-		eventRepository:      &eventRepository,
+		eventRepository:      eventRepository,
 		outboxRepository:     outboxRepository,
 		requestRepository:    requestRepository,
 		tenantRepository:     tenantRepository,

@@ -32,7 +32,7 @@ func connectInMemory(ctx context.Context, tenantID value.TenantID) (*EventReposi
 		return nil, err
 	}
 
-	return &er, nil
+	return er, nil
 }
 
 func TestEventRepository_Append(t *testing.T) {

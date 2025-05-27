@@ -24,11 +24,10 @@ type (
 
 var _ service.EventRepository = EventRepository{}
 
-// TODO: Change to pointer
 func NewEventRepository(
 	db *sql.DB,
-) EventRepository {
-	return EventRepository{
+) *EventRepository {
+	return &EventRepository{
 		db,
 	}
 }
