@@ -54,19 +54,17 @@ func TestEventRepository_Append(t *testing.T) {
 			Version:       1,
 		}
 
-		err = er.Append(ctx, "", entity.Event{
+		if err = er.Append(ctx, "", entity.Event{
 			AggregateName: "example",
 			ID:            "eventID",
 			AggregateID:   aggregateID,
 			Version:       1,
-		})
-		if err != nil {
+		}); err != nil {
 			t.Fatal(err)
 		}
 
-		rows := er.Get(ctx, "", aggregateID)
 		count := 0
-		for e, err := range rows {
+		for e, err := range er.Get(ctx, "", aggregateID) {
 			if err != nil {
 				t.Error(err)
 			}
