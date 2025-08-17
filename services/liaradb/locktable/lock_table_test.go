@@ -1,0 +1,193 @@
+package locktable
+
+import (
+	"context"
+	"testing"
+	"testing/synctest"
+	"time"
+)
+
+func TestLockTable(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should XLock", func(t *testing.T) {
+		t.Parallel()
+		lt := NewLockTable[int](t.Context(), 1)
+		ctx := t.Context()
+
+		if !lt.xLock(ctx, 0) {
+			t.Fatal("should get lock")
+		}
+	})
+
+	t.Run("should not XLock twice", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+
+			ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel()
+			if lt.xLock(ctx, 0) {
+				t.Fatal("should not get lock")
+			}
+		})
+	})
+
+	t.Run("should XLock after release XLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+			go func() {
+				// TODO: Remove this
+				time.Sleep(1 * time.Second)
+
+				lt.release(0)
+			}()
+
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+			if !lt.xLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+		})
+	})
+
+	t.Run("should XLock after failed XLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+
+			ctx1, cancel1 := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel1()
+			if lt.xLock(ctx1, 0) {
+				t.Fatal("should not get lock")
+			}
+
+			lt.release(0)
+			if !lt.xLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+		})
+	})
+
+	t.Run("should SLock", func(t *testing.T) {
+		t.Parallel()
+		lt := NewLockTable[int](t.Context(), 1)
+		ctx := t.Context()
+
+		if !lt.sLock(ctx, 0) {
+			t.Fatal("should get lock")
+		}
+	})
+
+	t.Run("should SLock twice", func(t *testing.T) {
+		t.Parallel()
+		lt := NewLockTable[int](t.Context(), 1)
+		ctx := t.Context()
+
+		if !lt.sLock(ctx, 0) {
+			t.Fatal("should get lock")
+		}
+
+		if !lt.sLock(ctx, 0) {
+			t.Fatal("should get lock")
+		}
+	})
+
+	t.Run("should not XLock while multiple SLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			if !lt.sLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+
+			if !lt.sLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+
+			lt.release(0)
+
+			if !lt.sLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+
+			ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel()
+
+			if lt.xLock(ctx, 0) {
+				t.Fatal("should not get XLock")
+			}
+		})
+	})
+
+	t.Run("should not SLock after XLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+
+			ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel()
+			if lt.sLock(ctx, 0) {
+				t.Fatal("should not get lock")
+			}
+		})
+	})
+
+	t.Run("should SLock after release XLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+			go func() {
+				// TODO: Remove this
+				time.Sleep(1 * time.Second)
+
+				lt.release(0)
+			}()
+
+			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
+			if !lt.sLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+		})
+	})
+
+	t.Run("should SLock after failed XLock", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			lt := NewLockTable[int](t.Context(), 1)
+			ctx := t.Context()
+
+			lt.xLock(ctx, 0)
+
+			ctx1, cancel1 := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel1()
+			if lt.xLock(ctx1, 0) {
+				t.Fatal("should not get lock")
+			}
+
+			lt.release(0)
+			if !lt.sLock(ctx, 0) {
+				t.Fatal("should get lock")
+			}
+		})
+	})
+}
