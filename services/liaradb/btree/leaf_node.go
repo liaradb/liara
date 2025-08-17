@@ -18,8 +18,7 @@ func (ln *leafNode[K, V]) key() K {
 
 func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 	if ln == nil {
-		var v V
-		return v, false
+		return ln.zero()
 	}
 
 	var child *leafEntry[K, V]
@@ -41,4 +40,9 @@ func (ln *leafNode[K, V]) height() int {
 	}
 
 	return 1
+}
+
+func (*leafNode[K, V]) zero() (V, bool) {
+	var v V
+	return v, false
 }

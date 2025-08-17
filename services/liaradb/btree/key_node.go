@@ -7,8 +7,7 @@ type keyNode[K comparable, V any] struct {
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
 	if kn == nil {
-		var v V
-		return v, false
+		return kn.zero()
 	}
 
 	var child node[K, V]
@@ -31,4 +30,9 @@ func (kn *keyNode[K, V]) height() int {
 	}
 
 	return kn.level + 1
+}
+
+func (*keyNode[K, V]) zero() (V, bool) {
+	var v V
+	return v, false
 }

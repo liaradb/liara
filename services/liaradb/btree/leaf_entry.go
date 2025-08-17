@@ -14,9 +14,13 @@ func newLeafEntry[K comparable, V any](k K, v V) *leafEntry[K, V] {
 
 func (l *leafEntry[K, V]) getValue() (V, bool) {
 	if l == nil {
-		var v V
-		return v, false
+		return l.zero()
 	}
 
 	return l.value, true
+}
+
+func (*leafEntry[K, V]) zero() (V, bool) {
+	var v V
+	return v, false
 }
