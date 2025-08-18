@@ -8,8 +8,18 @@ type keyNode[K comparable, V any] struct {
 
 var _ node[int, int] = (*keyNode[int, int])(nil)
 
+func newKeyNode[K comparable, V any](k K) *keyNode[K, V] {
+	return &keyNode[K, V]{
+		k: k,
+	}
+}
+
 func (kn *keyNode[K, V]) key() K {
 	return kn.k
+}
+
+func (kn *keyNode[K, V]) count() int {
+	return len(kn.children)
 }
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
@@ -24,11 +34,16 @@ func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
 			break
 		}
 	}
+	if child == nil {
+		return kn.zero()
+	}
+
 	return child.getValue(k)
 }
 
-func (kn *keyNode[K, V]) insert(k K, v V) {
+func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	kn.children = append(kn.children, newLeafNode(k, v))
+	return nil, false
 }
 
 func (kn *keyNode[K, V]) height() int {

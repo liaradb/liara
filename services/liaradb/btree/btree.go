@@ -25,9 +25,21 @@ func (bt *BTree[K, V]) getValue(k K) (V, bool) {
 func (bt *BTree[K, V]) insert(k K, v V) {
 	if bt.root == nil {
 		bt.root = newLeafNode(k, v)
-	} else {
-		bt.root.insert(k, v)
+		return
 	}
+
+	n, ok := bt.root.insert(bt.FanOut(), k, v)
+	if !ok {
+		return
+	}
+
+	bt.newRoot(n)
+}
+
+func (bt *BTree[K, V]) newRoot(n node[K, V]) {
+	kn := newKeyNode[K, V](n.key())
+	kn.children = []node[K, V]{bt.root, n}
+	bt.root = kn
 }
 
 func (*BTree[K, V]) zero() (V, bool) {

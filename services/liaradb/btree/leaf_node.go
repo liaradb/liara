@@ -18,6 +18,10 @@ func (ln *leafNode[K, V]) key() K {
 	return ln.k
 }
 
+func (ln *leafNode[K, V]) count() int {
+	return len(ln.children)
+}
+
 func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 	if ln == nil {
 		return ln.zero()
@@ -33,12 +37,16 @@ func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 	return child.getValue()
 }
 
-func (ln *leafNode[K, V]) insert(k K, v V) {
+func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	ln.children = append(ln.children, newLeafEntry(k, v))
+	if len(ln.children) <= f {
+		return nil, false
+	}
+	return ln.split(), true
 }
 
 // TODO: Should we copy slices?
-func (ln *leafNode[K, V]) split() *leafNode[K, V] {
+func (ln *leafNode[K, V]) split() node[K, V] {
 	half := len(ln.children) / 2
 
 	ln2 := &leafNode[K, V]{
