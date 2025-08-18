@@ -34,6 +34,7 @@ func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 }
 
 func (ln *leafNode[K, V]) insert(k K, v V) {
+	ln.children = append(ln.children, newLeafEntry(k, v))
 }
 
 func (ln *leafNode[K, V]) height() int {
