@@ -37,6 +37,20 @@ func (ln *leafNode[K, V]) insert(k K, v V) {
 	ln.children = append(ln.children, newLeafEntry(k, v))
 }
 
+// TODO: Should we copy slices?
+func (ln *leafNode[K, V]) split() *leafNode[K, V] {
+	half := len(ln.children) / 2
+
+	ln2 := &leafNode[K, V]{
+		k:        ln.children[half].key,
+		children: ln.children[half:],
+	}
+
+	ln.children = ln.children[:half]
+
+	return ln2
+}
+
 func (ln *leafNode[K, V]) height() int {
 	if ln == nil {
 		return 0
