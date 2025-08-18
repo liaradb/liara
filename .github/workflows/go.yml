@@ -21,9 +21,33 @@ jobs:
       with:
         go-version: '1.25'
 
-    - name: Build
+    - name: Build Liara
+      working-directory: ./modules/liara
+      run: go build -v ./...
+
+    - name: Build LiaraCtl
+      working-directory: ./modules/liaractl
+      run: go build -v ./...
+
+    - name: Build LiaraService
+      working-directory: ./services/liara_service
+      run: go build -v ./...
+
+    - name: Build LiaraDB
       working-directory: ./services/liaradb
       run: go build -v ./...
+
+    - name: Test Liara
+      working-directory: ./modules/liara
+      run: go test -v ./...
+
+    - name: Test LiaraCtl
+      working-directory: ./modules/liaractl
+      run: go test -v ./...
+
+    - name: Test LiaraService
+      working-directory: ./services/liara_service
+      run: go test -v ./...
 
     - name: Test
       working-directory: ./services/liaradb
