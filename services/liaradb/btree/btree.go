@@ -12,7 +12,7 @@ func (bt *BTree[K, V]) Height() int {
 }
 
 func (bt *BTree[K, V]) FanOut() int {
-	return 2
+	return 3
 }
 
 func (bt *BTree[K, V]) getValue(k K) (V, bool) {

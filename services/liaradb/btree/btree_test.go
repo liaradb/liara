@@ -4,9 +4,10 @@ import "testing"
 
 func TestBTree_Default(t *testing.T) {
 	bt := BTree[int, string]{}
+	fanout := 3
 
-	if f := bt.FanOut(); f != 3 {
-		t.Error("should have a fanout of 3")
+	if f := bt.FanOut(); f != fanout {
+		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
 	// if h := bt.Height(); h != 0 {
@@ -22,12 +23,13 @@ func TestBTree_Default(t *testing.T) {
 
 func TestBTree_Insert(t *testing.T) {
 	bt := BTree[int, string]{}
+	fanout := 3
 
 	bt.insert(1, "a")
 	bt.insert(2, "b")
 
-	if f := bt.FanOut(); f != 3 {
-		t.Error("should have a fanout of 3")
+	if f := bt.FanOut(); f != fanout {
+		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
 	// if h := bt.Height(); h != 1 {
@@ -50,14 +52,15 @@ func TestBTree_Insert(t *testing.T) {
 func TestBTree_Height(t *testing.T) {
 	t.Skip()
 	bt := BTree[int, string]{}
+	fanout := 3
 
 	bt.insert(1, "a")
 	bt.insert(2, "b")
 	bt.insert(3, "c")
 	bt.insert(4, "d")
 
-	if f := bt.FanOut(); f != 3 {
-		t.Error("should have a fanout of 3")
+	if f := bt.FanOut(); f != fanout {
+		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
 	// if h := bt.Height(); h != 2 {
