@@ -5,6 +5,8 @@ type leafNode[K comparable, V any] struct {
 	children []*leafEntry[K, V]
 }
 
+var _ node[int, int] = (*leafNode[int, int])(nil)
+
 func newLeafNode[K comparable, V any](k K, v V) *leafNode[K, V] {
 	return &leafNode[K, V]{
 		k:        k,

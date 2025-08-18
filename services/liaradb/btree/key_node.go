@@ -1,8 +1,15 @@
 package btree
 
 type keyNode[K comparable, V any] struct {
+	k        K
 	level    int
 	children []node[K, V]
+}
+
+var _ node[int, int] = (*keyNode[int, int])(nil)
+
+func (kn *keyNode[K, V]) key() K {
+	return kn.k
 }
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
