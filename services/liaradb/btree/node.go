@@ -1,6 +1,8 @@
 package btree
 
-type node[K comparable, V any] interface {
+import "cmp"
+
+type node[K cmp.Ordered, V any] interface {
 	key() K
 	getValue(k K) (V, bool)
 	insert(fanout int, k K, v V) (node[K, V], bool)

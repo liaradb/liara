@@ -1,13 +1,15 @@
 package btree
 
-type leafNode[K comparable, V any] struct {
+import "cmp"
+
+type leafNode[K cmp.Ordered, V any] struct {
 	k        K
 	children []*leafEntry[K, V]
 }
 
 var _ node[int, int] = (*leafNode[int, int])(nil)
 
-func newLeafNode[K comparable, V any](k K, v V) *leafNode[K, V] {
+func newLeafNode[K cmp.Ordered, V any](k K, v V) *leafNode[K, V] {
 	return &leafNode[K, V]{
 		k:        k,
 		children: []*leafEntry[K, V]{newLeafEntry(k, v)},
@@ -27,14 +29,17 @@ func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 		return ln.zero()
 	}
 
-	var child *leafEntry[K, V]
+	return ln.getChild(k).getValue()
+}
+
+func (ln *leafNode[K, V]) getChild(k K) *leafEntry[K, V] {
 	for _, l := range ln.children {
 		if l.key == k {
-			child = l
-			break
+			return l
 		}
 	}
-	return child.getValue()
+
+	return nil
 }
 
 func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {

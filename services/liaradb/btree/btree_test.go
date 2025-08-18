@@ -78,4 +78,16 @@ func TestBTree_Height(t *testing.T) {
 	} else if v != "b" {
 		t.Error("should have a value")
 	}
+
+	if v, ok := bt.getValue(3); !ok {
+		t.Error("should have a value")
+	} else if v != "c" {
+		t.Error("should have a value")
+	}
+
+	if v, ok := bt.getValue(4); !ok {
+		t.Error("should have a value")
+	} else if v != "d" {
+		t.Error("should have a value")
+	}
 }

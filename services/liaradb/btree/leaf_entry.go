@@ -1,11 +1,13 @@
 package btree
 
-type leafEntry[K comparable, V any] struct {
+import "cmp"
+
+type leafEntry[K cmp.Ordered, V any] struct {
 	key   K
 	value V
 }
 
-func newLeafEntry[K comparable, V any](k K, v V) *leafEntry[K, V] {
+func newLeafEntry[K cmp.Ordered, V any](k K, v V) *leafEntry[K, V] {
 	return &leafEntry[K, V]{
 		key:   k,
 		value: v,

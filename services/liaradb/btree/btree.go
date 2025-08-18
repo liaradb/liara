@@ -1,6 +1,8 @@
 package btree
 
-type BTree[K comparable, V any] struct {
+import "cmp"
+
+type BTree[K cmp.Ordered, V any] struct {
 	root node[K, V]
 }
 
@@ -37,7 +39,7 @@ func (bt *BTree[K, V]) insert(k K, v V) {
 }
 
 func (bt *BTree[K, V]) newRoot(n node[K, V]) {
-	kn := newKeyNode[K, V](n.key())
+	kn := newKeyNode[K, V](bt.root.key())
 	kn.children = []node[K, V]{bt.root, n}
 	bt.root = kn
 }

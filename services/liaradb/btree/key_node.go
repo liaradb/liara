@@ -1,6 +1,8 @@
 package btree
 
-type keyNode[K comparable, V any] struct {
+import "cmp"
+
+type keyNode[K cmp.Ordered, V any] struct {
 	k        K
 	level    int
 	children []node[K, V]
@@ -8,7 +10,7 @@ type keyNode[K comparable, V any] struct {
 
 var _ node[int, int] = (*keyNode[int, int])(nil)
 
-func newKeyNode[K comparable, V any](k K) *keyNode[K, V] {
+func newKeyNode[K cmp.Ordered, V any](k K) *keyNode[K, V] {
 	return &keyNode[K, V]{
 		k: k,
 	}
@@ -25,6 +27,13 @@ func (kn *keyNode[K, V]) count() int {
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
 	if kn == nil {
 		return kn.zero()
+	}
+
+	switch kn.count() {
+	case 0:
+		return kn.zero()
+	case 1:
+		return kn.children[0].getValue(k)
 	}
 
 	var child node[K, V]
