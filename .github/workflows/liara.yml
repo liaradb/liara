@@ -7,15 +7,15 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - /modules/liara/**
-      - /modules/liaractl/**
-      - /services/liara_service/**
+      - modules/liara/**
+      - modules/liaractl/**
+      - services/liara_service/**
   pull_request:
     branches: [ "main" ]
     paths:
-      - /modules/liara/**
-      - /modules/liaractl/**
-      - /services/liara_service/**
+      - modules/liara/**
+      - modules/liaractl/**
+      - services/liara_service/**
 
 jobs:
 
