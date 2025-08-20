@@ -47,6 +47,7 @@ func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	if len(ln.children) <= f {
 		return nil, false
 	}
+
 	return ln.split(), true
 }
 

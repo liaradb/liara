@@ -46,8 +46,31 @@ func (kn *keyNode[K, V]) getChild(k K) node[K, V] {
 }
 
 func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
-	kn.children = append(kn.children, newLeafNode(k, v))
-	return nil, false
+	c := kn.getChild(k)
+	n, ok := c.insert(f, k, v)
+	if !ok {
+		return nil, false
+	}
+
+	kn.children = append(kn.children, n)
+	if len(kn.children) <= f {
+		return nil, false
+	}
+
+	return kn.split(), true
+}
+
+func (kn *keyNode[K, V]) split() node[K, V] {
+	half := len(kn.children) / 2
+
+	ln2 := &keyNode[K, V]{
+		k:        kn.children[half].key(),
+		children: kn.children[half:],
+	}
+
+	kn.children = kn.children[:half]
+
+	return ln2
 }
 
 func (kn *keyNode[K, V]) height() int {
