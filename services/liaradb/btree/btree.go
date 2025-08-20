@@ -45,6 +45,18 @@ func (bt *BTree[K, V]) Insert(k K, v V) {
 	bt.root = newKeyNode(bt.root, n)
 }
 
+func (bt *BTree[K, V]) DeleteAll(k K) {
+	if bt.root == nil {
+		return
+	}
+
+	bt.root.deleteAll(k)
+}
+
+func (bt *BTree[K, V]) DeleteValue(k K, v V) {
+
+}
+
 func (*BTree[K, V]) zero() (V, bool) {
 	var v V
 	return v, false

@@ -104,6 +104,14 @@ func (kn *keyNode[K, V]) split() node[K, V] {
 	return ln2
 }
 
+func (kn *keyNode[K, V]) delete(k K, v V) {
+
+}
+
+func (kn *keyNode[K, V]) deleteAll(k K) {
+
+}
+
 func (kn *keyNode[K, V]) height() int {
 	if kn == nil {
 		return 0

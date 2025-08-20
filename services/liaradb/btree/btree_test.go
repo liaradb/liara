@@ -57,6 +57,22 @@ func TestBTree_Insert(t *testing.T) {
 	}
 }
 
+func TestBTree_Delete(t *testing.T) {
+	t.Parallel()
+
+	bt := &BTree[int, string]{}
+
+	bt.Insert(1, "1")
+	bt.DeleteAll(1)
+
+	message := "should delete"
+
+	testFanout(t, message, bt, 3)
+	testHeight(t, message, bt, 1)
+	testCount(t, message, bt, 0)
+	testItems(t, message, bt, []item{})
+}
+
 type item struct {
 	key   int
 	value string

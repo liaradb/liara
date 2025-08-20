@@ -95,6 +95,29 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 	return ln2
 }
 
+func (ln *leafNode[K, V]) delete(k K, v V) {
+
+}
+
+func (ln *leafNode[K, V]) deleteAll(k K) {
+	c, i := ln.getChildForDeletion(k)
+	if c == nil {
+		return
+	}
+
+	ln.children = slices.Delete(ln.children, i, i+1)
+}
+
+func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
+	for i, l := range ln.children {
+		if l.key == k {
+			return l, i
+		}
+	}
+
+	return nil, 0
+}
+
 func (ln *leafNode[K, V]) height() int {
 	if ln == nil {
 		return 0
