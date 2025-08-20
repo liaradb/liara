@@ -24,7 +24,11 @@ func (ln *leafNode[K, V]) key() K {
 }
 
 func (ln *leafNode[K, V]) count() int {
-	return len(ln.children)
+	count := 0
+	for _, l := range ln.children {
+		count += l.count()
+	}
+	return count
 }
 
 func (ln *leafNode[K, V]) getValue(k K) (V, bool) {

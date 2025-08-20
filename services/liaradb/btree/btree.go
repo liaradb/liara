@@ -13,6 +13,13 @@ func (bt *BTree[K, V]) Height() int {
 	return bt.root.height()
 }
 
+func (bt *BTree[K, V]) Count() int {
+	if bt.root == nil {
+		return 0
+	}
+	return bt.root.count()
+}
+
 func (bt *BTree[K, V]) FanOut() int {
 	return 3
 }

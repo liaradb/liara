@@ -26,6 +26,10 @@ func (l *leafEntry[K, V]) getValue() (V, bool) {
 	return l.value[0], true
 }
 
+func (l *leafEntry[K, V]) count() int {
+	return len(l.value)
+}
+
 func (*leafEntry[K, V]) zero() (V, bool) {
 	var v V
 	return v, false

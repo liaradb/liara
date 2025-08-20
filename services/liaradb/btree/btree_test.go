@@ -51,6 +51,7 @@ func TestBTree_Insert(t *testing.T) {
 
 			testFanout(t, row.message, bt, row.fanout)
 			testHeight(t, row.message, bt, row.height)
+			testCount(t, row.message, bt, len(row.items))
 			testItems(t, row.message, bt, row.items)
 		})
 	}
@@ -100,6 +101,14 @@ func testHeight(t *testing.T, message string, bt *BTree[int, string], height int
 
 	if h := bt.Height(); h != height {
 		t.Errorf("%v: should have a height of %v, recieved: %v", message, height, h)
+	}
+}
+
+func testCount(t *testing.T, message string, bt *BTree[int, string], count int) {
+	t.Helper()
+
+	if c := bt.Count(); c != count {
+		t.Errorf("%v: should have a count of %v, recieved: %v", message, count, c)
 	}
 }
 

@@ -25,7 +25,11 @@ func (kn *keyNode[K, V]) key() K {
 }
 
 func (kn *keyNode[K, V]) count() int {
-	return len(kn.children)
+	count := 0
+	for _, l := range kn.children {
+		count += l.count()
+	}
+	return count
 }
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
