@@ -32,6 +32,8 @@ func TestConcurrencyMgr_SLock(t *testing.T) {
 }
 
 func TestConcurrencyMgr_XLock(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should lock once", func(t *testing.T) {
 		t.Parallel()
 		lt := NewLockTable[int](t.Context(), 1)
