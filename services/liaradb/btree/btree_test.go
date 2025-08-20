@@ -3,16 +3,12 @@ package btree
 import "testing"
 
 func TestBTree_Default(t *testing.T) {
-	bt := BTree[int, string]{}
-	fanout := 3
+	t.Parallel()
 
-	if f := bt.FanOut(); f != fanout {
-		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
-	}
+	bt := &BTree[int, string]{}
 
-	if h := bt.Height(); h != 0 {
-		t.Errorf("should have a height of %v, recieved: %v", 0, h)
-	}
+	testFanout(t, bt, 3)
+	testHeight(t, bt, 0)
 
 	if v, ok := bt.getValue(0); ok {
 		t.Error("should have no value by default")
@@ -22,17 +18,11 @@ func TestBTree_Default(t *testing.T) {
 }
 
 func TestBTree_Insert(t *testing.T) {
-	bt := BTree[int, string]{}
-	fanout := 3
+	t.Parallel()
 
-	if f := bt.FanOut(); f != fanout {
-		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
-	}
+	bt := &BTree[int, string]{}
 
-	items := []struct {
-		key   int
-		value string
-	}{
+	items := []item{
 		{1, "a"},
 		{2, "b"},
 	}
@@ -41,37 +31,17 @@ func TestBTree_Insert(t *testing.T) {
 		bt.insert(i.key, i.value)
 	}
 
-	if h := bt.Height(); h != 1 {
-		t.Errorf("should have a height of %v, recieved: %v", 1, h)
-	}
-
-	if v, ok := bt.getValue(1); !ok {
-		t.Error("should have a value")
-	} else if v != "a" {
-		t.Error("should have a value")
-	}
-
-	for _, i := range items {
-		if v, ok := bt.getValue(i.key); !ok {
-			t.Error("should have a value")
-		} else if v != i.value {
-			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
-		}
-	}
+	testFanout(t, bt, 3)
+	testHeight(t, bt, 1)
+	testItems(t, bt, items)
 }
 
 func TestBTree_SplitLeafNode(t *testing.T) {
-	bt := BTree[int, string]{}
-	fanout := 3
+	t.Parallel()
 
-	if f := bt.FanOut(); f != fanout {
-		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
-	}
+	bt := &BTree[int, string]{}
 
-	items := []struct {
-		key   int
-		value string
-	}{
+	items := []item{
 		{1, "a"},
 		{2, "b"},
 		{3, "c"},
@@ -82,31 +52,17 @@ func TestBTree_SplitLeafNode(t *testing.T) {
 		bt.insert(i.key, i.value)
 	}
 
-	if h := bt.Height(); h != 2 {
-		t.Errorf("should have a height of %v, recieved: %v", 2, h)
-	}
-
-	for _, i := range items {
-		if v, ok := bt.getValue(i.key); !ok {
-			t.Error("should have a value")
-		} else if v != i.value {
-			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
-		}
-	}
+	testFanout(t, bt, 3)
+	testHeight(t, bt, 2)
+	testItems(t, bt, items)
 }
 
 func TestBTree_SplitKeyNode(t *testing.T) {
-	bt := BTree[int, string]{}
-	fanout := 3
+	t.Parallel()
 
-	if f := bt.FanOut(); f != fanout {
-		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
-	}
+	bt := &BTree[int, string]{}
 
-	items := []struct {
-		key   int
-		value string
-	}{
+	items := []item{
 		{1, "a"},
 		{2, "b"},
 		{3, "c"},
@@ -122,9 +78,34 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 		bt.insert(i.key, i.value)
 	}
 
-	if h := bt.Height(); h != 3 {
-		t.Errorf("should have a height of %v, recieved: %v", 3, h)
+	testFanout(t, bt, 3)
+	testHeight(t, bt, 3)
+	testItems(t, bt, items)
+}
+
+type item struct {
+	key   int
+	value string
+}
+
+func testFanout(t *testing.T, bt *BTree[int, string], fanout int) {
+	t.Helper()
+
+	if f := bt.FanOut(); f != fanout {
+		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
+}
+
+func testHeight(t *testing.T, bt *BTree[int, string], height int) {
+	t.Helper()
+
+	if h := bt.Height(); h != height {
+		t.Errorf("should have a height of %v, recieved: %v", height, h)
+	}
+}
+
+func testItems(t *testing.T, bt *BTree[int, string], items []item) {
+	t.Helper()
 
 	for _, i := range items {
 		if v, ok := bt.getValue(i.key); !ok {
