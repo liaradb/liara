@@ -1,6 +1,9 @@
 package btree
 
-import "cmp"
+import (
+	"cmp"
+	"slices"
+)
 
 type leafNode[K cmp.Ordered, V any] struct {
 	k        K
@@ -43,12 +46,26 @@ func (ln *leafNode[K, V]) getChild(k K) *leafEntry[K, V] {
 }
 
 func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
-	ln.children = append(ln.children, newLeafEntry(k, v))
+	i := ln.getInsertionIndex(k)
+	if i == 0 {
+		ln.k = k
+	}
+	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, v))
 	if len(ln.children) <= f {
 		return nil, false
 	}
 
 	return ln.split(), true
+}
+
+func (ln *leafNode[K, V]) getInsertionIndex(k K) int {
+	for i := len(ln.children) - 1; i >= 0; i-- {
+		j := ln.children[i]
+		if k >= j.key {
+			return i + 1
+		}
+	}
+	return 0
 }
 
 // TODO: Should we copy slices?
@@ -60,7 +77,8 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 		children: ln.children[half:],
 	}
 
-	ln.children = ln.children[:half]
+	// TODO: Should we copy slices?
+	ln.children = slices.Clone(ln.children[:half])
 
 	return ln2
 }

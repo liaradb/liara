@@ -1,6 +1,9 @@
 package btree
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestBTree_Default(t *testing.T) {
 	t.Parallel()
@@ -65,6 +68,23 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 	testItems(t, bt, items)
 }
 
+func TestBTree_SplitKeyNodeReverse(t *testing.T) {
+	t.Parallel()
+
+	bt := &BTree[int, string]{}
+
+	items := newItems(9)
+	slices.Reverse(items)
+
+	for _, i := range items {
+		bt.Insert(i.key, i.value)
+	}
+
+	testFanout(t, bt, 3)
+	testHeight(t, bt, 3)
+	testItems(t, bt, items)
+}
+
 type item struct {
 	key   int
 	value string
@@ -99,7 +119,7 @@ func testItems(t *testing.T, bt *BTree[int, string], items []item) {
 
 	for _, i := range items {
 		if v, ok := bt.GetValue(i.key); !ok {
-			t.Error("should have a value")
+			t.Errorf("%v should have a value", i.key)
 		} else if v != i.value {
 			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
 		}

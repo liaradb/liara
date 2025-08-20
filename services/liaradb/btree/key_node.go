@@ -1,6 +1,9 @@
 package btree
 
-import "cmp"
+import (
+	"cmp"
+	"slices"
+)
 
 type keyNode[K cmp.Ordered, V any] struct {
 	k        K
@@ -34,31 +37,48 @@ func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
 }
 
 func (kn *keyNode[K, V]) getChild(k K) node[K, V] {
-	child := kn.children[0]
-	for i := range len(kn.children) - 1 {
-		c := kn.children[i+1]
-		if k >= c.key() {
-			child = c
-		} else {
-			break
+	a := kn.children[0]
+
+	l := len(kn.children)
+	for i := 1; i < l; i++ {
+		b := kn.children[i]
+		if k < b.key() {
+			return a
 		}
+
+		a = b
 	}
-	return child
+
+	return a
 }
 
 func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
-	c := kn.getChild(k)
-	n, ok := c.insert(f, k, v)
+	n, ok := kn.getChild(k).insert(f, k, v)
 	if !ok {
 		return nil, false
 	}
 
-	kn.children = append(kn.children, n)
+	i := kn.getInsertionIndex(n.key())
+	if i == 0 {
+		kn.k = k
+	}
+
+	kn.children = slices.Insert(kn.children, i, n)
 	if len(kn.children) <= f {
 		return nil, false
 	}
 
 	return kn.split(), true
+}
+
+func (kn *keyNode[K, V]) getInsertionIndex(k K) int {
+	for i := len(kn.children) - 1; i >= 0; i-- {
+		j := kn.children[i]
+		if k >= j.key() {
+			return i + 1
+		}
+	}
+	return 0
 }
 
 func (kn *keyNode[K, V]) split() node[K, V] {
@@ -69,7 +89,8 @@ func (kn *keyNode[K, V]) split() node[K, V] {
 		children: kn.children[half:],
 	}
 
-	kn.children = kn.children[:half]
+	// TODO: Should we copy slices?
+	kn.children = slices.Clone(kn.children[:half])
 
 	return ln2
 }
