@@ -17,14 +17,14 @@ func (bt *BTree[K, V]) FanOut() int {
 	return 3
 }
 
-func (bt *BTree[K, V]) getValue(k K) (V, bool) {
+func (bt *BTree[K, V]) GetValue(k K) (V, bool) {
 	if bt.root == nil {
 		return bt.zero()
 	}
 	return bt.root.getValue(k)
 }
 
-func (bt *BTree[K, V]) insert(k K, v V) {
+func (bt *BTree[K, V]) Insert(k K, v V) {
 	if bt.root == nil {
 		bt.root = newLeafNode(k, v)
 		return

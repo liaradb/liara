@@ -10,7 +10,7 @@ func TestBTree_Default(t *testing.T) {
 	testFanout(t, bt, 3)
 	testHeight(t, bt, 0)
 
-	if v, ok := bt.getValue(0); ok {
+	if v, ok := bt.GetValue(0); ok {
 		t.Error("should have no value by default")
 	} else if v != "" {
 		t.Error("should have no value by default")
@@ -25,7 +25,7 @@ func TestBTree_Insert(t *testing.T) {
 	items := newItems(2)
 
 	for _, i := range items {
-		bt.insert(i.key, i.value)
+		bt.Insert(i.key, i.value)
 	}
 
 	testFanout(t, bt, 3)
@@ -41,7 +41,7 @@ func TestBTree_SplitLeafNode(t *testing.T) {
 	items := newItems(4)
 
 	for _, i := range items {
-		bt.insert(i.key, i.value)
+		bt.Insert(i.key, i.value)
 	}
 
 	testFanout(t, bt, 3)
@@ -57,7 +57,7 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 	items := newItems(9)
 
 	for _, i := range items {
-		bt.insert(i.key, i.value)
+		bt.Insert(i.key, i.value)
 	}
 
 	testFanout(t, bt, 3)
@@ -98,7 +98,7 @@ func testItems(t *testing.T, bt *BTree[int, string], items []item) {
 	t.Helper()
 
 	for _, i := range items {
-		if v, ok := bt.getValue(i.key); !ok {
+		if v, ok := bt.GetValue(i.key); !ok {
 			t.Error("should have a value")
 		} else if v != i.value {
 			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
