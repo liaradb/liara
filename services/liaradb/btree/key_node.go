@@ -58,11 +58,16 @@ func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 		return nil, false
 	}
 
+	return kn.insertNode(f, k, n)
+}
+
+func (kn *keyNode[K, V]) insertNode(f int, k K, n node[K, V]) (node[K, V], bool) {
 	i := kn.getInsertionIndex(n.key())
 	if i == 0 {
 		kn.k = k
 	}
 
+	// TODO: Split before inserting
 	kn.children = slices.Insert(kn.children, i, n)
 	if len(kn.children) <= f {
 		return nil, false

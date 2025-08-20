@@ -50,6 +50,8 @@ func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	if i == 0 {
 		ln.k = k
 	}
+
+	// TODO: Split before inserting
 	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, v))
 	if len(ln.children) <= f {
 		return nil, false
@@ -68,7 +70,6 @@ func (ln *leafNode[K, V]) getInsertionIndex(k K) int {
 	return 0
 }
 
-// TODO: Should we copy slices?
 func (ln *leafNode[K, V]) split() node[K, V] {
 	half := len(ln.children) / 2
 
