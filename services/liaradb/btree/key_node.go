@@ -10,9 +10,9 @@ type keyNode[K cmp.Ordered, V any] struct {
 
 var _ node[int, int] = (*keyNode[int, int])(nil)
 
-func newKeyNode[K cmp.Ordered, V any](k K) *keyNode[K, V] {
+func newKeyNode[K cmp.Ordered, V any](a, b node[K, V]) *keyNode[K, V] {
 	return &keyNode[K, V]{
-		k: k,
+		children: []node[K, V]{a, b},
 	}
 }
 
@@ -25,29 +25,24 @@ func (kn *keyNode[K, V]) count() int {
 }
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
-	if kn == nil {
+	if kn == nil || kn.count() == 0 {
 		return kn.zero()
 	}
 
-	switch kn.count() {
-	case 0:
-		return kn.zero()
-	case 1:
-		return kn.children[0].getValue(k)
-	}
+	return kn.getChild(k).getValue(k)
+}
 
-	var child node[K, V]
-	for _, ln := range kn.children {
-		if ln.key() == k {
-			child = ln
+func (kn *keyNode[K, V]) getChild(k K) node[K, V] {
+	child := kn.children[0]
+	for i := range len(kn.children) - 1 {
+		c := kn.children[i+1]
+		if k >= c.key() {
+			child = c
+		} else {
 			break
 		}
 	}
-	if child == nil {
-		return kn.zero()
-	}
-
-	return child.getValue(k)
+	return child
 }
 
 func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {

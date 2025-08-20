@@ -35,13 +35,7 @@ func (bt *BTree[K, V]) insert(k K, v V) {
 		return
 	}
 
-	bt.newRoot(n)
-}
-
-func (bt *BTree[K, V]) newRoot(n node[K, V]) {
-	kn := newKeyNode[K, V](bt.root.key())
-	kn.children = []node[K, V]{bt.root, n}
-	bt.root = kn
+	bt.root = newKeyNode(bt.root, n)
 }
 
 func (*BTree[K, V]) zero() (V, bool) {

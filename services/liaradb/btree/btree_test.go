@@ -50,7 +50,6 @@ func TestBTree_Insert(t *testing.T) {
 }
 
 func TestBTree_Height(t *testing.T) {
-	t.Skip()
 	bt := BTree[int, string]{}
 	fanout := 3
 
