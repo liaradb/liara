@@ -12,6 +12,7 @@ var _ node[int, int] = (*keyNode[int, int])(nil)
 
 func newKeyNode[K cmp.Ordered, V any](a, b node[K, V]) *keyNode[K, V] {
 	return &keyNode[K, V]{
+		level:    a.height() + 1,
 		children: []node[K, V]{a, b},
 	}
 }
@@ -78,7 +79,7 @@ func (kn *keyNode[K, V]) height() int {
 		return 0
 	}
 
-	return kn.level + 1
+	return kn.level
 }
 
 func (*keyNode[K, V]) zero() (V, bool) {

@@ -10,9 +10,9 @@ func TestBTree_Default(t *testing.T) {
 		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
-	// if h := bt.Height(); h != 0 {
-	// 	t.Error("should have a height of 0")
-	// }
+	if h := bt.Height(); h != 0 {
+		t.Errorf("should have a height of %v, recieved: %v", 0, h)
+	}
 
 	if v, ok := bt.getValue(0); ok {
 		t.Error("should have no value by default")
@@ -25,16 +25,25 @@ func TestBTree_Insert(t *testing.T) {
 	bt := BTree[int, string]{}
 	fanout := 3
 
-	bt.insert(1, "a")
-	bt.insert(2, "b")
-
 	if f := bt.FanOut(); f != fanout {
 		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
-	// if h := bt.Height(); h != 1 {
-	// 	t.Error("should have a height of 1")
-	// }
+	items := []struct {
+		key   int
+		value string
+	}{
+		{1, "a"},
+		{2, "b"},
+	}
+
+	for _, i := range items {
+		bt.insert(i.key, i.value)
+	}
+
+	if h := bt.Height(); h != 1 {
+		t.Errorf("should have a height of %v, recieved: %v", 1, h)
+	}
 
 	if v, ok := bt.getValue(1); !ok {
 		t.Error("should have a value")
@@ -42,10 +51,12 @@ func TestBTree_Insert(t *testing.T) {
 		t.Error("should have a value")
 	}
 
-	if v, ok := bt.getValue(2); !ok {
-		t.Error("should have a value")
-	} else if v != "b" {
-		t.Error("should have a value")
+	for _, i := range items {
+		if v, ok := bt.getValue(i.key); !ok {
+			t.Error("should have a value")
+		} else if v != i.value {
+			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
+		}
 	}
 }
 
@@ -53,41 +64,34 @@ func TestBTree_SplitLeafNode(t *testing.T) {
 	bt := BTree[int, string]{}
 	fanout := 3
 
-	bt.insert(1, "a")
-	bt.insert(2, "b")
-	bt.insert(3, "c")
-	bt.insert(4, "d")
-
 	if f := bt.FanOut(); f != fanout {
 		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
-	// if h := bt.Height(); h != 2 {
-	// 	t.Error("should have a height of 2")
-	// }
-
-	if v, ok := bt.getValue(1); !ok {
-		t.Error("should have a value")
-	} else if v != "a" {
-		t.Error("should have a value")
+	items := []struct {
+		key   int
+		value string
+	}{
+		{1, "a"},
+		{2, "b"},
+		{3, "c"},
+		{4, "d"},
 	}
 
-	if v, ok := bt.getValue(2); !ok {
-		t.Error("should have a value")
-	} else if v != "b" {
-		t.Error("should have a value")
+	for _, i := range items {
+		bt.insert(i.key, i.value)
 	}
 
-	if v, ok := bt.getValue(3); !ok {
-		t.Error("should have a value")
-	} else if v != "c" {
-		t.Error("should have a value")
+	if h := bt.Height(); h != 2 {
+		t.Errorf("should have a height of %v, recieved: %v", 2, h)
 	}
 
-	if v, ok := bt.getValue(4); !ok {
-		t.Error("should have a value")
-	} else if v != "d" {
-		t.Error("should have a value")
+	for _, i := range items {
+		if v, ok := bt.getValue(i.key); !ok {
+			t.Error("should have a value")
+		} else if v != i.value {
+			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
+		}
 	}
 }
 
@@ -95,75 +99,38 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 	bt := BTree[int, string]{}
 	fanout := 3
 
-	bt.insert(1, "a")
-	bt.insert(2, "b")
-	bt.insert(3, "c")
-	bt.insert(4, "d")
-	bt.insert(5, "e")
-	bt.insert(6, "f")
-	bt.insert(7, "g")
-	bt.insert(8, "h")
-	bt.insert(9, "i")
-
 	if f := bt.FanOut(); f != fanout {
 		t.Errorf("should have a fanout of %v, recieved: %v", fanout, f)
 	}
 
-	// if h := bt.Height(); h != 2 {
-	// 	t.Error("should have a height of 2")
-	// }
-
-	if v, ok := bt.getValue(1); !ok {
-		t.Error("should have a value")
-	} else if v != "a" {
-		t.Error("should have a value")
+	items := []struct {
+		key   int
+		value string
+	}{
+		{1, "a"},
+		{2, "b"},
+		{3, "c"},
+		{4, "d"},
+		{5, "e"},
+		{6, "f"},
+		{7, "g"},
+		{8, "h"},
+		{9, "i"},
 	}
 
-	if v, ok := bt.getValue(2); !ok {
-		t.Error("should have a value")
-	} else if v != "b" {
-		t.Error("should have a value")
+	for _, i := range items {
+		bt.insert(i.key, i.value)
 	}
 
-	if v, ok := bt.getValue(3); !ok {
-		t.Error("should have a value")
-	} else if v != "c" {
-		t.Error("should have a value")
+	if h := bt.Height(); h != 3 {
+		t.Errorf("should have a height of %v, recieved: %v", 3, h)
 	}
 
-	if v, ok := bt.getValue(4); !ok {
-		t.Error("should have a value")
-	} else if v != "d" {
-		t.Error("should have a value")
-	}
-
-	if v, ok := bt.getValue(5); !ok {
-		t.Error("should have a value")
-	} else if v != "e" {
-		t.Error("should have a value")
-	}
-
-	if v, ok := bt.getValue(6); !ok {
-		t.Error("should have a value")
-	} else if v != "f" {
-		t.Error("should have a value")
-	}
-
-	if v, ok := bt.getValue(7); !ok {
-		t.Error("should have a value")
-	} else if v != "g" {
-		t.Error("should have a value")
-	}
-
-	if v, ok := bt.getValue(8); !ok {
-		t.Error("should have a value")
-	} else if v != "h" {
-		t.Error("should have a value")
-	}
-
-	if v, ok := bt.getValue(9); !ok {
-		t.Error("should have a value")
-	} else if v != "i" {
-		t.Error("should have a value")
+	for _, i := range items {
+		if v, ok := bt.getValue(i.key); !ok {
+			t.Error("should have a value")
+		} else if v != i.value {
+			t.Errorf("incorrect value: %v, expected: %v", v, i.value)
+		}
 	}
 }
