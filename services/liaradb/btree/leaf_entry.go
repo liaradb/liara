@@ -4,14 +4,18 @@ import "cmp"
 
 type leafEntry[K cmp.Ordered, V any] struct {
 	key   K
-	value V
+	value []V
 }
 
 func newLeafEntry[K cmp.Ordered, V any](k K, v V) *leafEntry[K, V] {
 	return &leafEntry[K, V]{
 		key:   k,
-		value: v,
+		value: []V{v},
 	}
+}
+
+func (l *leafEntry[K, V]) append(v V) {
+	l.value = append(l.value, v)
 }
 
 func (l *leafEntry[K, V]) getValue() (V, bool) {
@@ -19,7 +23,7 @@ func (l *leafEntry[K, V]) getValue() (V, bool) {
 		return l.zero()
 	}
 
-	return l.value, true
+	return l.value[0], true
 }
 
 func (*leafEntry[K, V]) zero() (V, bool) {

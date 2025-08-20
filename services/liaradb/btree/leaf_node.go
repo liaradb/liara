@@ -46,6 +46,13 @@ func (ln *leafNode[K, V]) getChild(k K) *leafEntry[K, V] {
 }
 
 func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
+	c := ln.getChild(k)
+	if c != nil {
+		// TODO: Create Overflow
+		c.append(v)
+		return nil, false
+	}
+
 	i := ln.getInsertionIndex(k)
 	if i == 0 {
 		ln.k = k

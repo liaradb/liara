@@ -30,13 +30,15 @@ func TestBTree_Insert(t *testing.T) {
 		height  int
 	}{
 		{message: "should insert",
-			items: newItems(2), fanout: 3, height: 1},
+			items: newItemsAscending(2), fanout: 3, height: 1},
 		{message: "should split leaf nodes",
-			items: newItems(4), fanout: 3, height: 2},
+			items: newItemsAscending(4), fanout: 3, height: 2},
 		{message: "should split key nodes",
-			items: newItems(9), fanout: 3, height: 3},
+			items: newItemsAscending(9), fanout: 3, height: 3},
 		{message: "should insert in any order",
-			items: newItemsReverse(9), fanout: 3, height: 3},
+			items: newItemsReversed(9), fanout: 3, height: 3},
+		{message: "should handle repeated items",
+			items: newItems(1, 2, 2, 3), fanout: 3, height: 1},
 	} {
 		t.Run(row.message, func(t *testing.T) {
 			t.Parallel()
@@ -59,16 +61,28 @@ type item struct {
 	value string
 }
 
-func newItems(count int) []item {
-	items := make([]item, 0, count)
-	for i := range count {
-		items = append(items, item{i + 1, string(rune('a' + i))})
+func newItem(i int) item {
+	return item{i, string(rune('a' + i - 1))}
+}
+
+func newItems(i ...int) []item {
+	items := make([]item, 0, len(i))
+	for _, i := range i {
+		items = append(items, newItem(i))
 	}
 	return items
 }
 
-func newItemsReverse(count int) []item {
-	i := newItems(count)
+func newItemsAscending(count int) []item {
+	items := make([]item, 0, count)
+	for i := range count {
+		items = append(items, newItem(i+1))
+	}
+	return items
+}
+
+func newItemsReversed(count int) []item {
+	i := newItemsAscending(count)
 	slices.Reverse(i)
 	return i
 }
