@@ -22,10 +22,7 @@ func TestBTree_Insert(t *testing.T) {
 
 	bt := &BTree[int, string]{}
 
-	items := []item{
-		{1, "a"},
-		{2, "b"},
-	}
+	items := newItems(2)
 
 	for _, i := range items {
 		bt.insert(i.key, i.value)
@@ -41,12 +38,7 @@ func TestBTree_SplitLeafNode(t *testing.T) {
 
 	bt := &BTree[int, string]{}
 
-	items := []item{
-		{1, "a"},
-		{2, "b"},
-		{3, "c"},
-		{4, "d"},
-	}
+	items := newItems(4)
 
 	for _, i := range items {
 		bt.insert(i.key, i.value)
@@ -62,17 +54,7 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 
 	bt := &BTree[int, string]{}
 
-	items := []item{
-		{1, "a"},
-		{2, "b"},
-		{3, "c"},
-		{4, "d"},
-		{5, "e"},
-		{6, "f"},
-		{7, "g"},
-		{8, "h"},
-		{9, "i"},
-	}
+	items := newItems(9)
 
 	for _, i := range items {
 		bt.insert(i.key, i.value)
@@ -86,6 +68,14 @@ func TestBTree_SplitKeyNode(t *testing.T) {
 type item struct {
 	key   int
 	value string
+}
+
+func newItems(count int) []item {
+	items := make([]item, 0, count)
+	for i := range count {
+		items = append(items, item{i + 1, string(rune('a' + i))})
+	}
+	return items
 }
 
 func testFanout(t *testing.T, bt *BTree[int, string], fanout int) {
