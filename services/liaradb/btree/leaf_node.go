@@ -8,6 +8,8 @@ import (
 type leafNode[K cmp.Ordered, V any] struct {
 	k        K
 	children []*leafEntry[K, V]
+	left     *leafNode[K, V]
+	right    *leafNode[K, V]
 }
 
 var _ node[int, int] = (*leafNode[int, int])(nil)
@@ -87,10 +89,13 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 	ln2 := &leafNode[K, V]{
 		k:        ln.children[half].key,
 		children: ln.children[half:],
+		left:     ln,
+		right:    ln.right,
 	}
 
 	// TODO: Should we copy slices?
 	ln.children = slices.Clone(ln.children[:half])
+	ln.right = ln2
 
 	return ln2
 }

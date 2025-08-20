@@ -9,6 +9,8 @@ type keyNode[K cmp.Ordered, V any] struct {
 	k        K
 	level    int
 	children []node[K, V]
+	left     *keyNode[K, V]
+	right    *keyNode[K, V]
 }
 
 var _ node[int, int] = (*keyNode[int, int])(nil)
@@ -93,15 +95,18 @@ func (kn *keyNode[K, V]) getInsertionIndex(k K) int {
 func (kn *keyNode[K, V]) split() node[K, V] {
 	half := len(kn.children) / 2
 
-	ln2 := &keyNode[K, V]{
+	kn2 := &keyNode[K, V]{
 		k:        kn.children[half].key(),
 		children: kn.children[half:],
+		left:     kn,
+		right:    kn.right,
 	}
 
 	// TODO: Should we copy slices?
 	kn.children = slices.Clone(kn.children[:half])
+	kn.right = kn2
 
-	return ln2
+	return kn2
 }
 
 func (kn *keyNode[K, V]) delete(k K, v V) {
