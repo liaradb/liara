@@ -8,6 +8,7 @@ import (
 type leafNode[K cmp.Ordered, V any] struct {
 	k        K
 	children []*leafEntry[K, V]
+	parent   *keyNode[K, V]
 	left     *leafNode[K, V]
 	right    *leafNode[K, V]
 }
@@ -31,6 +32,10 @@ func (ln *leafNode[K, V]) count() int {
 		count += l.count()
 	}
 	return count
+}
+
+func (ln *leafNode[K, V]) setParent(p *keyNode[K, V]) {
+	ln.parent = p
 }
 
 func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
@@ -89,6 +94,7 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 	ln2 := &leafNode[K, V]{
 		k:        ln.children[half].key,
 		children: ln.children[half:],
+		parent:   ln.parent,
 		left:     ln,
 		right:    ln.right,
 	}
