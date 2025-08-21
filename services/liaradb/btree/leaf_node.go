@@ -110,11 +110,35 @@ func (ln *leafNode[K, V]) deleteAll(f int, k K) {
 		return
 	}
 
-	if ln.isMinimum(f, len(ln.children)-1) {
+	if ln.isMinimum(f) {
 		// TODO: Rebalance
-		// Borrow Left
-		// Borrow Right
-		// Merge Left
+		if ln.left != nil && !ln.left.isMinimum(f) {
+			// Borrow Left
+			// Pull smallest from Left
+			// Update This Key
+			// Key change propagates
+		} else if ln.right != nil && !ln.right.isMinimum(f) {
+			// Borrow Right
+			// Pull largest from Right
+			// Update Right Key
+			// Key changes propagates
+		} else if ln.left != nil {
+			// Merge Left
+			// Move children to Left
+			// Delete node
+			// Deletion propagates
+		} else if ln.right != nil {
+			// Merge Right
+			// Move children to Right
+			// Update Right Key
+			// Key change propagates
+			// Delete node
+			// Deletion propagates
+		} else {
+			// Delete
+		}
+	} else {
+		// Delete
 	}
 	ln.children = slices.Delete(ln.children, i, i+1)
 }
@@ -129,8 +153,8 @@ func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
 	return nil, 0
 }
 
-func (ln *leafNode[K, V]) isMinimum(f int, l int) bool {
-	return len(ln.children) < ln.minimum(f)
+func (ln *leafNode[K, V]) isMinimum(f int) bool {
+	return len(ln.children) <= ln.minimum(f)
 }
 
 // TODO: Can we store this?
