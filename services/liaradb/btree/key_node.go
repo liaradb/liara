@@ -109,11 +109,11 @@ func (kn *keyNode[K, V]) split() node[K, V] {
 	return kn2
 }
 
-func (kn *keyNode[K, V]) delete(k K, v V) {
+func (kn *keyNode[K, V]) delete(f int, k K, v V) {
 
 }
 
-func (kn *keyNode[K, V]) deleteAll(k K) {
+func (kn *keyNode[K, V]) deleteAll(f int, k K) {
 
 }
 

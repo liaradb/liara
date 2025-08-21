@@ -100,16 +100,22 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 	return ln2
 }
 
-func (ln *leafNode[K, V]) delete(k K, v V) {
+func (ln *leafNode[K, V]) delete(f int, k K, v V) {
 
 }
 
-func (ln *leafNode[K, V]) deleteAll(k K) {
+func (ln *leafNode[K, V]) deleteAll(f int, k K) {
 	c, i := ln.getChildForDeletion(k)
 	if c == nil {
 		return
 	}
 
+	if ln.isMinimum(f, len(ln.children)-1) {
+		// TODO: Rebalance
+		// Borrow Left
+		// Borrow Right
+		// Merge Left
+	}
 	ln.children = slices.Delete(ln.children, i, i+1)
 }
 
@@ -121,6 +127,19 @@ func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
 	}
 
 	return nil, 0
+}
+
+func (ln *leafNode[K, V]) isMinimum(f int, l int) bool {
+	return len(ln.children) < ln.minimum(f)
+}
+
+// TODO: Can we store this?
+func (ln *leafNode[K, V]) minimum(f int) int {
+	return ceiling(f, 2) - 1
+}
+
+func ceiling(a, b int) int {
+	return (a + b - 1) / b
 }
 
 func (ln *leafNode[K, V]) height() int {

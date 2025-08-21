@@ -50,7 +50,7 @@ func (bt *BTree[K, V]) DeleteAll(k K) {
 		return
 	}
 
-	bt.root.deleteAll(k)
+	bt.root.deleteAll(bt.FanOut(), k)
 }
 
 func (bt *BTree[K, V]) DeleteValue(k K, v V) {
