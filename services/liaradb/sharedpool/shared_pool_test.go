@@ -3,41 +3,46 @@ package sharedpool
 import (
 	"context"
 	"testing"
+	"testing/synctest"
 	"time"
 )
 
 func TestSharedPool(t *testing.T) {
 	t.Parallel()
 
-	sp := NewSharedPool[string, *testItem](2)
-	for i := range 2 {
-		sp.Add(&testItem{id: i})
-	}
+	synctest.Test(t, func(t *testing.T) {
+		sp := NewSharedPool[string, *testItem](2)
+		defer sp.Close()
 
-	ctx := context.Background()
+		for i := range 2 {
+			sp.Add(&testItem{id: i})
+		}
 
-	if a, ok := sp.Request(ctx, "a"); !ok || a == nil {
-		t.Error("should get value")
-	}
+		ctx := context.Background()
 
-	var b *testItem
-	var ok bool
-	if b, ok = sp.Request(ctx, "b"); !ok || b == nil {
-		t.Error("should get value")
-	}
+		if a, ok := sp.Request(ctx, "a"); !ok || a == nil {
+			t.Error("should get value")
+		}
 
-	ctx2, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
+		var b *testItem
+		var ok bool
+		if b, ok = sp.Request(ctx, "b"); !ok || b == nil {
+			t.Error("should get value")
+		}
 
-	if c, ok := sp.Request(ctx2, "c"); ok || c != nil {
-		t.Error("should not get value")
-	}
+		ctx2, cancel := context.WithTimeout(ctx, 1*time.Second)
+		defer cancel()
 
-	sp.Release(b)
+		if c, ok := sp.Request(ctx2, "c"); ok || c != nil {
+			t.Error("should not get value")
+		}
 
-	if c, ok := sp.Request(ctx, "c"); !ok || c == nil {
-		t.Error("should get value")
-	}
+		sp.Release(b)
+
+		if c, ok := sp.Request(ctx, "c"); !ok || c == nil {
+			t.Error("should get value")
+		}
+	})
 }
 
 type testItem struct {
