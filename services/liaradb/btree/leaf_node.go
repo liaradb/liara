@@ -120,11 +120,17 @@ func (ln *leafNode[K, V]) deleteAll(f int, k K) {
 		// TODO: Rebalance
 		if ln.left != nil && !ln.left.isMinimum(f) {
 			// Borrow Left
+			e := ln.left.popSmallest()
+			// TODO: How do we handle overflow?
+			ln.insert(f, e.key, e.value[0])
 			// Pull smallest from Left
 			// Update This Key
 			// Key change propagates
 		} else if ln.right != nil && !ln.right.isMinimum(f) {
 			// Borrow Right
+			e := ln.right.popLargest()
+			// TODO: How do we handle overflow?
+			ln.insert(f, e.key, e.value[0])
 			// Pull largest from Right
 			// Update Right Key
 			// Key changes propagates
@@ -147,6 +153,19 @@ func (ln *leafNode[K, V]) deleteAll(f int, k K) {
 		// Delete
 	}
 	ln.children = slices.Delete(ln.children, i, i+1)
+}
+
+func (ln *leafNode[K, V]) popLargest() *leafEntry[K, V] {
+	largest := ln.children[0]
+	ln.children = ln.children[1:]
+	return largest
+}
+
+func (ln *leafNode[K, V]) popSmallest() *leafEntry[K, V] {
+	i := len(ln.children) - 1
+	smallest := ln.children[i]
+	ln.children = ln.children[:i]
+	return smallest
 }
 
 func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
