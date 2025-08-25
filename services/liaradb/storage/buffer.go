@@ -1,8 +1,7 @@
 package storage
 
 import (
-	"encoding/binary"
-	"errors"
+	"github.com/cardboardrobots/liaradb/raw"
 )
 
 type Position int64
@@ -27,18 +26,9 @@ func (b *Buffer) Flush() error {
 }
 
 func (b *Buffer) WriteUint64(value uint64, pos int) error {
-	if pos < 0 || pos >= len(b.data)-8 {
-		return errors.New("out of bounds")
-	}
-
-	binary.BigEndian.PutUint64(b.data[pos:], value)
-	return nil
+	return raw.CopyUint64(b.data, value, raw.Offset(pos))
 }
 
 func (b *Buffer) ReadUint64(pos int) (uint64, error) {
-	if pos < 0 || pos >= len(b.data)-8 {
-		return 0, errors.New("out of bounds")
-	}
-
-	return binary.BigEndian.Uint64(b.data[pos:]), nil
+	return raw.GetUint64(b.data, raw.Offset(pos))
 }

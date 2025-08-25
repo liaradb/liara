@@ -6,6 +6,7 @@ type Offset int64
 
 const (
 	Uint32Length       Offset = 4
+	Uint64Length       Offset = 8
 	IntLength          Offset = strconv.IntSize / 8
 	Int32Length        Offset = 4
 	Int64Length        Offset = 8
