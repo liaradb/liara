@@ -15,6 +15,14 @@ type Buffer struct {
 	bm      *BufferManager
 }
 
+func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
+	return &Buffer{
+		blockID: bid,
+		data:    make([]byte, bm.bufferSize),
+		bm:      bm,
+	}
+}
+
 func (b *Buffer) Load() error {
 	return b.bm.Load(b)
 }

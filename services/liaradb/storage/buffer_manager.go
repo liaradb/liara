@@ -15,11 +15,7 @@ func newBufferManager(fs FS) *BufferManager {
 }
 
 func (bm *BufferManager) Buffer(bid BlockID) *Buffer {
-	return &Buffer{
-		blockID: bid,
-		data:    make([]byte, bm.bufferSize),
-		bm:      bm,
-	}
+	return newBuffer(bid, bm)
 }
 
 func (bm *BufferManager) Load(b *Buffer) error {

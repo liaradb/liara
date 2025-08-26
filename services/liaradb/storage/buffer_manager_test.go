@@ -6,13 +6,8 @@ import (
 )
 
 func TestBufferManager(t *testing.T) {
-	dir := t.TempDir()
-	fs := &fileSystem{}
-	defer fs.Close()
-
-	bm := newBufferManager(fs)
-	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
-	b := bm.Buffer(bid)
+	b, close := testCreateBuffer(t)
+	defer close()
 
 	if err := b.Load(); err != nil {
 		t.Fatal(err)
@@ -32,23 +27,16 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	v, err := b.ReadUint64(0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if v != want {
+	if v, err := b.ReadUint64(0); err != nil {
+		t.Error(err)
+	} else if v != want {
 		t.Errorf("value does not match: expected: %v, recieved: %v", want, v)
 	}
 }
 
 func TestBufferEntry(t *testing.T) {
-	dir := t.TempDir()
-	fs := &fileSystem{}
-	defer fs.Close()
-
-	bm := newBufferManager(fs)
-	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
-	b := bm.Buffer(bid)
+	b, close := testCreateBuffer(t)
+	defer close()
 
 	if err := b.Load(); err != nil {
 		t.Fatal(err)
@@ -57,15 +45,23 @@ func TestBufferEntry(t *testing.T) {
 	number := newUInt64Entry(0)
 
 	var want uint64 = 12345
+
 	if err := number.Set(b, want); err != nil {
 		t.Fatal(err)
 	}
 
-	v, err := number.Get(b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if v != want {
+	if v, err := number.Get(b); err != nil {
+		t.Error(err)
+	} else if v != want {
 		t.Errorf("value does not match: expected: %v, recieved: %v", want, v)
 	}
+}
+
+func testCreateBuffer(t *testing.T) (*Buffer, func() error) {
+	dir := t.TempDir()
+	fs := &fileSystem{}
+
+	bm := newBufferManager(fs)
+	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
+	return bm.Buffer(bid), fs.Close
 }
