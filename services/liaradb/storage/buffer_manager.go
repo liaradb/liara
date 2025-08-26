@@ -19,7 +19,7 @@ func (bm *BufferManager) Buffer(bid BlockID) *Buffer {
 }
 
 func (bm *BufferManager) Load(b *Buffer) error {
-	f, err := bm.fs.Open(b.blockID.FileName)
+	f, err := bm.openFile(b)
 	if err != nil {
 		return err
 	}
@@ -33,13 +33,17 @@ func (bm *BufferManager) Load(b *Buffer) error {
 }
 
 func (bm *BufferManager) Flush(b *Buffer) error {
-	f, err := bm.fs.Open(b.blockID.FileName)
+	f, err := bm.openFile(b)
 	if err != nil {
 		return err
 	}
 
 	_, err = f.WriteAt(b.data, bm.offset(b.blockID))
 	return err
+}
+
+func (bm *BufferManager) openFile(b *Buffer) (file, error) {
+	return bm.fs.Open(b.blockID.FileName)
 }
 
 func (bm *BufferManager) offset(bid BlockID) int64 {
