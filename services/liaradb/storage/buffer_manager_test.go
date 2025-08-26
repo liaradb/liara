@@ -36,9 +36,9 @@ func TestBufferManager(t *testing.T) {
 
 func testCreateBuffer(t *testing.T) (*Buffer, func() error) {
 	dir := t.TempDir()
-	fs := &fileSystem{}
+	fs := &FileSystem{}
 
-	bm := newBufferManager(fs)
+	bm := NewBufferManager(fs)
 	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
 	return bm.Buffer(bid), fs.Close
 }

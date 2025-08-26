@@ -1,6 +1,11 @@
 package storage
 
-import "testing"
+import (
+	"path"
+	"testing"
+
+	"github.com/cardboardrobots/liaradb/storage"
+)
 
 func TestBufferEntry(t *testing.T) {
 	b, close := testCreateBuffer(t)
@@ -23,4 +28,13 @@ func TestBufferEntry(t *testing.T) {
 	} else if v != want {
 		t.Errorf("value does not match: expected: %v, recieved: %v", want, v)
 	}
+}
+
+func testCreateBuffer(t *testing.T) (*storage.Buffer, func() error) {
+	dir := t.TempDir()
+	fs := &storage.FileSystem{}
+
+	bm := storage.NewBufferManager(fs)
+	bid := storage.BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
+	return bm.Buffer(bid), fs.Close
 }

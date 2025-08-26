@@ -7,7 +7,7 @@ type BufferManager struct {
 	fs         FS
 }
 
-func newBufferManager(fs FS) *BufferManager {
+func NewBufferManager(fs FS) *BufferManager {
 	return &BufferManager{
 		bufferSize: 1024,
 		fs:         fs,

@@ -18,11 +18,11 @@ type file interface {
 	io.Seeker
 }
 
-type fileSystem struct {
+type FileSystem struct {
 	files map[string]file
 }
 
-func (fs *fileSystem) Close() error {
+func (fs *FileSystem) Close() error {
 	errs := make([]error, 0, len(fs.files))
 	for _, f := range fs.files {
 		errs = append(errs, f.Close())
@@ -30,7 +30,7 @@ func (fs *fileSystem) Close() error {
 	return errors.Join(errs...)
 }
 
-func (fs *fileSystem) Open(name string) (file, error) {
+func (fs *FileSystem) Open(name string) (file, error) {
 	f, ok := fs.files[name]
 	if ok {
 		return f, nil
@@ -48,7 +48,7 @@ func (fs *fileSystem) Open(name string) (file, error) {
 	return f, nil
 }
 
-func (fs *fileSystem) CloseFile(name string) error {
+func (fs *FileSystem) CloseFile(name string) error {
 	f, ok := fs.files[name]
 	if !ok {
 		return nil
