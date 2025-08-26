@@ -24,11 +24,12 @@ func (bm *BufferManager) Load(b *Buffer) error {
 		return err
 	}
 
-	_, err = f.ReadAt(b.data, int64(b.blockID.Position)*bm.bufferSize)
-	if err == io.EOF {
-		return nil
+	_, err = f.ReadAt(b.data, bm.offset(b.blockID))
+	if err != nil && err != io.EOF {
+		return err
 	}
-	return err
+
+	return nil
 }
 
 func (bm *BufferManager) Flush(b *Buffer) error {
@@ -37,6 +38,10 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 		return err
 	}
 
-	_, err = f.WriteAt(b.data, int64(b.blockID.Position)*bm.bufferSize)
+	_, err = f.WriteAt(b.data, bm.offset(b.blockID))
 	return err
+}
+
+func (bm *BufferManager) offset(bid BlockID) int64 {
+	return int64(bid.Offset(bm.bufferSize))
 }

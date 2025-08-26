@@ -1,13 +1,6 @@
 package storage
 
-import (
-	"github.com/cardboardrobots/liaradb/raw"
-)
-
-type BlockID struct {
-	FileName string
-	Position raw.Offset
-}
+import "github.com/cardboardrobots/liaradb/raw"
 
 type Buffer struct {
 	blockID BlockID
