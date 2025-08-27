@@ -14,6 +14,14 @@ type SharedPool[K comparable, V item[K]] struct {
 	cancel   context.CancelFunc
 }
 
+type item[K comparable] interface {
+	comparable
+	Id() int
+	Block() (K, bool)
+	ReplaceBlock(K) error
+	Pin()
+}
+
 func NewSharedPool[K comparable, V item[K]](size int) *SharedPool[K, V] {
 	ctx, cancel := context.WithCancel(context.Background())
 	sp := &SharedPool[K, V]{

@@ -2,14 +2,6 @@ package sharedpool
 
 import "context"
 
-type item[K comparable] interface {
-	comparable
-	Id() int
-	Block() (K, bool)
-	ReplaceBlock(K) error
-	Pin()
-}
-
 type request[K comparable, V item[K]] struct {
 	key      K
 	ctx      context.Context
