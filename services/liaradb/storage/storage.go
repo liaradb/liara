@@ -5,9 +5,9 @@ import (
 )
 
 type Storage struct {
-	count int
-	file  file
+	ctx   context.Context
 	in    chan *request
+	count int
 }
 
 func NewStorage() *Storage {
@@ -22,6 +22,7 @@ type request struct {
 }
 
 func (s *Storage) Run(ctx context.Context) {
+	s.ctx = ctx
 	go s.run(ctx)
 }
 
@@ -36,13 +37,25 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) Request(value int) int {
+func (s *Storage) Request(ctx context.Context, value int) int {
 	r := &request{
 		value: value,
 		out:   make(chan int),
 	}
-	s.in <- r
-	return <-r.out
+	select {
+	case s.in <- r:
+	case <-s.ctx.Done():
+	case <-ctx.Done():
+	}
+
+	select {
+	case o := <-r.out:
+		return o
+	case <-s.ctx.Done():
+	case <-ctx.Done():
+	}
+
+	return 0
 }
 
 func (s *Storage) request(value int) int {
