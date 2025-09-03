@@ -5,14 +5,17 @@ import (
 )
 
 type Storage struct {
-	ctx   context.Context
-	in    chan *request
-	count int
+	ctx context.Context
+	in  chan *request
 }
 
 type request struct {
-	value int
-	out   chan int
+	id  int
+	out chan *buffer
+}
+
+type buffer struct {
+	id int
 }
 
 func (s *Storage) Run(ctx context.Context) {
@@ -26,7 +29,7 @@ func (s *Storage) run(ctx context.Context) {
 		select {
 		case r, ok := <-s.in:
 			if ok {
-				r.out <- s.request(r.value)
+				r.out <- s.request(r.id)
 			} else {
 				close(r.out)
 			}
@@ -37,14 +40,14 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) Request(ctx context.Context, value int) (int, bool) {
+func (s *Storage) Request(ctx context.Context, id int) (*buffer, bool) {
 	if s.in == nil {
-		return 0, false
+		return nil, false
 	}
 
 	r := &request{
-		value: value,
-		out:   make(chan int),
+		id:  id,
+		out: make(chan *buffer),
 	}
 	select {
 	case s.in <- r:
@@ -61,10 +64,11 @@ func (s *Storage) Request(ctx context.Context, value int) (int, bool) {
 	case <-ctx.Done():
 	}
 
-	return 0, false
+	return nil, false
 }
 
-func (s *Storage) request(value int) int {
-	s.count++
-	return s.count + value
+func (s *Storage) request(id int) *buffer {
+	return &buffer{
+		id: id,
+	}
 }
