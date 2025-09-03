@@ -24,8 +24,8 @@ type FileSystem struct {
 
 func (fs *FileSystem) Close() error {
 	errs := make([]error, 0, len(fs.files))
-	for _, f := range fs.files {
-		errs = append(errs, f.Close())
+	for n := range fs.files {
+		errs = append(errs, fs.CloseFile(n))
 	}
 	return errors.Join(errs...)
 }
@@ -60,4 +60,8 @@ func (fs *FileSystem) CloseFile(name string) error {
 
 	delete(fs.files, name)
 	return nil
+}
+
+func (fs *FileSystem) Count() int {
+	return len(fs.files)
 }
