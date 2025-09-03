@@ -18,14 +18,18 @@ func testStorage(t *testing.T) {
 	s := Storage{}
 
 	ctx := t.Context()
-	s.Run(ctx)
+	s.Run(ctx, NewBufferManager(&FileSystem{}))
 
-	if r, _ := s.Request(ctx, 1); r.id != 1 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, r)
+	if r, ok := s.Request(ctx, BlockID{Position: 1}); !ok {
+		t.Error("incorrect result")
+	} else if r.blockID.Position != 1 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 
-	if r, _ := s.Request(ctx, 2); r.id != 2 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 2, r)
+	if r, ok := s.Request(ctx, BlockID{Position: 2}); !ok {
+		t.Error("incorrect result")
+	} else if r.blockID.Position != 2 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 2, r.blockID.Position)
 	}
 }
 
@@ -37,8 +41,8 @@ func TestStorage_RequestBeforeRun(t *testing.T) {
 func testStorage_RequestBeforeRun(t *testing.T) {
 	s := Storage{}
 
-	if r, ok := s.Request(t.Context(), 0); r != nil || ok {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, r)
+	if r, ok := s.Request(t.Context(), BlockID{}); r != nil || ok {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 }
 
@@ -51,18 +55,20 @@ func testStorage_CancelRun(t *testing.T) {
 	s := Storage{}
 
 	ctx, cancel := context.WithCancel(t.Context())
-	s.Run(ctx)
+	s.Run(ctx, NewBufferManager(&FileSystem{}))
 
 	ctx2 := t.Context()
 
-	if r, _ := s.Request(ctx2, 1); r.id != 1 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.id)
+	if r, ok := s.Request(ctx2, BlockID{Position: 1}); !ok {
+		t.Error("incorrect result")
+	} else if r.blockID.Position != 1 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 
 	cancel()
 
-	if r, ok := s.Request(ctx2, 0); r != nil || ok {
-		t.Errorf("incorrect result: expected %v, recieved %v", 0, r)
+	if r, ok := s.Request(ctx2, BlockID{}); r != nil || ok {
+		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position)
 	}
 }
 

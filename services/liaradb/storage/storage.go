@@ -7,20 +7,18 @@ import (
 type Storage struct {
 	ctx context.Context
 	in  chan *request
+	bm  *BufferManager
 }
 
 type request struct {
-	id  int
-	out chan *buffer
+	blockID BlockID
+	out     chan *Buffer
 }
 
-type buffer struct {
-	id int
-}
-
-func (s *Storage) Run(ctx context.Context) {
+func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
 	s.in = make(chan *request)
 	s.ctx = ctx
+	s.bm = bm
 	go s.run(ctx)
 }
 
@@ -29,7 +27,7 @@ func (s *Storage) run(ctx context.Context) {
 		select {
 		case r, ok := <-s.in:
 			if ok {
-				r.out <- s.request(r.id)
+				r.out <- s.request(r.blockID)
 			} else {
 				close(r.out)
 			}
@@ -40,14 +38,14 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) Request(ctx context.Context, id int) (*buffer, bool) {
+func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
 	if s.in == nil {
 		return nil, false
 	}
 
 	r := &request{
-		id:  id,
-		out: make(chan *buffer),
+		blockID: bid,
+		out:     make(chan *Buffer),
 	}
 	select {
 	case s.in <- r:
@@ -67,8 +65,8 @@ func (s *Storage) Request(ctx context.Context, id int) (*buffer, bool) {
 	return nil, false
 }
 
-func (s *Storage) request(id int) *buffer {
-	return &buffer{
-		id: id,
+func (s *Storage) request(bid BlockID) *Buffer {
+	return &Buffer{
+		blockID: bid,
 	}
 }
