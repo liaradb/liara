@@ -20,12 +20,8 @@ func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
 func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
-		case r, ok := <-s.in:
-			if ok {
-				s.respond(r)
-			} else {
-				r.close()
-			}
+		case r := <-s.in:
+			s.respond(r)
 		case <-ctx.Done():
 			return
 		}

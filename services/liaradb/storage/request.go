@@ -19,10 +19,6 @@ func newRequest(bid BlockID) *request {
 	}
 }
 
-func (r *request) close() {
-	close(r.out)
-}
-
 func (r *request) respond(b *Buffer, err error) {
 	r.out <- &response{
 		buffer: b,
@@ -32,12 +28,8 @@ func (r *request) respond(b *Buffer, err error) {
 
 func (r *request) wait(ctx context.Context) (*Buffer, error) {
 	select {
-	case o, ok := <-r.out:
-		if ok {
-			return o.buffer, o.err
-		} else {
-			return nil, ErrRequestClosed
-		}
+	case o := <-r.out:
+		return o.buffer, o.err
 	case <-ctx.Done():
 		return nil, context.Canceled
 	}
