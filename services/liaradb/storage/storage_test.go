@@ -23,14 +23,14 @@ func testStorage(t *testing.T) {
 
 	n := path.Join(t.TempDir(), "testfile")
 
-	if r, ok := s.Request(ctx, BlockID{FileName: n, Position: 1}); !ok {
-		t.Error("incorrect result")
+	if r, err := s.Request(ctx, BlockID{FileName: n, Position: 1}); err != nil {
+		t.Error(err)
 	} else if r.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 
-	if r, ok := s.Request(ctx, BlockID{FileName: n, Position: 2}); !ok {
-		t.Error("incorrect result")
+	if r, err := s.Request(ctx, BlockID{FileName: n, Position: 2}); err != nil {
+		t.Error(err)
 	} else if r.blockID.Position != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, r.blockID.Position)
 	}
@@ -44,7 +44,7 @@ func TestStorage_RequestBeforeRun(t *testing.T) {
 func testStorage_RequestBeforeRun(t *testing.T) {
 	s := Storage{}
 
-	if r, ok := s.Request(t.Context(), BlockID{}); r != nil || ok {
+	if r, err := s.Request(t.Context(), BlockID{}); r != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 }
@@ -63,15 +63,15 @@ func testStorage_CancelRun(t *testing.T) {
 	ctx2 := t.Context()
 
 	n := path.Join(t.TempDir(), "testfile")
-	if r, ok := s.Request(ctx2, BlockID{FileName: n, Position: 1}); !ok {
-		t.Error("incorrect result")
+	if r, err := s.Request(ctx2, BlockID{FileName: n, Position: 1}); err != nil {
+		t.Error(err)
 	} else if r.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 
 	cancel()
 
-	if r, ok := s.Request(ctx2, BlockID{}); r != nil || ok {
+	if r, err := s.Request(ctx2, BlockID{}); r != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position)
 	}
 }

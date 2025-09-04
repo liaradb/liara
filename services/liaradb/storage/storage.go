@@ -43,9 +43,9 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
+func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if s.in == nil {
-		return nil, false
+		return nil, ErrNotInitialized
 	}
 
 	r := &request{
@@ -61,13 +61,15 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
 	select {
 	case o, ok := <-r.out:
 		if ok {
-			return o.buffer, o.err == nil
+			return o.buffer, o.err
+		} else {
+			return nil, ErrRequestClosed
 		}
 	case <-s.ctx.Done():
 	case <-ctx.Done():
 	}
 
-	return nil, false
+	return nil, context.Canceled
 }
 
 func (s *Storage) request(bid BlockID) *response {
