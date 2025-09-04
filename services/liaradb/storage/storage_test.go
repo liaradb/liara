@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"sync"
 	"testing"
 	"testing/synctest"
@@ -20,13 +21,15 @@ func testStorage(t *testing.T) {
 	ctx := t.Context()
 	s.Run(ctx, NewBufferManager(&FileSystem{}))
 
-	if r, ok := s.Request(ctx, BlockID{Position: 1}); !ok {
+	n := path.Join(t.TempDir(), "testfile")
+
+	if r, ok := s.Request(ctx, BlockID{FileName: n, Position: 1}); !ok {
 		t.Error("incorrect result")
 	} else if r.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)
 	}
 
-	if r, ok := s.Request(ctx, BlockID{Position: 2}); !ok {
+	if r, ok := s.Request(ctx, BlockID{FileName: n, Position: 2}); !ok {
 		t.Error("incorrect result")
 	} else if r.blockID.Position != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, r.blockID.Position)
@@ -59,7 +62,8 @@ func testStorage_CancelRun(t *testing.T) {
 
 	ctx2 := t.Context()
 
-	if r, ok := s.Request(ctx2, BlockID{Position: 1}); !ok {
+	n := path.Join(t.TempDir(), "testfile")
+	if r, ok := s.Request(ctx2, BlockID{FileName: n, Position: 1}); !ok {
 		t.Error("incorrect result")
 	} else if r.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, r.blockID.Position)

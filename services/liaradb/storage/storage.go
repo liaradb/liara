@@ -12,7 +12,12 @@ type Storage struct {
 
 type request struct {
 	blockID BlockID
-	out     chan *Buffer
+	out     chan *response
+}
+
+type response struct {
+	buffer *Buffer
+	err    error
 }
 
 func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
@@ -45,7 +50,7 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
 
 	r := &request{
 		blockID: bid,
-		out:     make(chan *Buffer),
+		out:     make(chan *response),
 	}
 	select {
 	case s.in <- r:
@@ -56,7 +61,7 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
 	select {
 	case o, ok := <-r.out:
 		if ok {
-			return o, true
+			return o.buffer, o.err == nil
 		}
 	case <-s.ctx.Done():
 	case <-ctx.Done():
@@ -65,8 +70,11 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, bool) {
 	return nil, false
 }
 
-func (s *Storage) request(bid BlockID) *Buffer {
-	return &Buffer{
-		blockID: bid,
+func (s *Storage) request(bid BlockID) *response {
+	b := s.bm.Buffer(bid)
+	err := b.Load()
+	return &response{
+		buffer: b,
+		err:    err,
 	}
 }
