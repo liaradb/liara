@@ -10,16 +10,6 @@ type Storage struct {
 	bm  *BufferManager
 }
 
-type request struct {
-	blockID BlockID
-	out     chan *response
-}
-
-type response struct {
-	buffer *Buffer
-	err    error
-}
-
 func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
 	s.in = make(chan *request)
 	s.ctx = ctx
@@ -32,15 +22,20 @@ func (s *Storage) run(ctx context.Context) {
 		select {
 		case r, ok := <-s.in:
 			if ok {
-				r.out <- s.request(r.blockID)
+				b, err := s.loadBuffer(r.blockID)
+				r.respond(b, err)
 			} else {
-				close(r.out)
+				r.close()
 			}
 		case <-ctx.Done():
-			close(s.in)
+			s.close()
 			return
 		}
 	}
+}
+
+func (s *Storage) close() {
+	close(s.in)
 }
 
 func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
@@ -48,10 +43,7 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 		return nil, ErrNotInitialized
 	}
 
-	r := &request{
-		blockID: bid,
-		out:     make(chan *response),
-	}
+	r := newRequest(bid)
 	select {
 	case s.in <- r:
 	case <-s.ctx.Done():
@@ -72,11 +64,12 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	return nil, context.Canceled
 }
 
-func (s *Storage) request(bid BlockID) *response {
+func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {
 	b := s.bm.Buffer(bid)
 	err := b.Load()
-	return &response{
-		buffer: b,
-		err:    err,
+	if err != nil {
+		return nil, err
 	}
+
+	return b, nil
 }
