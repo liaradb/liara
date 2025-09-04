@@ -22,8 +22,7 @@ func (s *Storage) run(ctx context.Context) {
 		select {
 		case r, ok := <-s.in:
 			if ok {
-				b, err := s.loadBuffer(r.blockID)
-				r.respond(b, err)
+				s.respond(r)
 			} else {
 				r.close()
 			}
@@ -31,6 +30,21 @@ func (s *Storage) run(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (s *Storage) respond(r *request) {
+	b, err := s.loadBuffer(r.blockID)
+	r.respond(b, err)
+}
+
+func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {
+	b := s.bm.Buffer(bid)
+	err := b.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 // External thread
@@ -47,14 +61,4 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	}
 
 	return r.wait(ctx)
-}
-
-func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {
-	b := s.bm.Buffer(bid)
-	err := b.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
 }
