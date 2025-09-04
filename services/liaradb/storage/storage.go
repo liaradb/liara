@@ -5,14 +5,14 @@ import (
 )
 
 type Storage struct {
-	ctx context.Context
-	in  chan *request
-	bm  *BufferManager
+	in chan *request
+	bm *BufferManager
 }
 
 func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
-	s.in = make(chan *request)
-	s.ctx = ctx
+	if s.in == nil {
+		s.in = make(chan *request)
+	}
 	s.bm = bm
 	go s.run(ctx)
 }
@@ -28,16 +28,12 @@ func (s *Storage) run(ctx context.Context) {
 				r.close()
 			}
 		case <-ctx.Done():
-			s.close()
 			return
 		}
 	}
 }
 
-func (s *Storage) close() {
-	close(s.in)
-}
-
+// External thread
 func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if s.in == nil {
 		return nil, ErrNotInitialized
@@ -46,22 +42,11 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	r := newRequest(bid)
 	select {
 	case s.in <- r:
-	case <-s.ctx.Done():
 	case <-ctx.Done():
+		return nil, context.Canceled
 	}
 
-	select {
-	case o, ok := <-r.out:
-		if ok {
-			return o.buffer, o.err
-		} else {
-			return nil, ErrRequestClosed
-		}
-	case <-s.ctx.Done():
-	case <-ctx.Done():
-	}
-
-	return nil, context.Canceled
+	return r.wait(ctx)
 }
 
 func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {

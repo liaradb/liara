@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 	"testing/synctest"
+	"time"
 )
 
 func TestStorage(t *testing.T) {
@@ -60,7 +61,8 @@ func testStorage_CancelRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	s.Run(ctx, NewBufferManager(&FileSystem{}))
 
-	ctx2 := t.Context()
+	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
+	defer cancel2()
 
 	n := path.Join(t.TempDir(), "testfile")
 	if r, err := s.Request(ctx2, BlockID{FileName: n, Position: 1}); err != nil {
