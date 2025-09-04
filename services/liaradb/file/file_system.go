@@ -1,4 +1,4 @@
-package storage
+package file
 
 import (
 	"errors"
@@ -7,11 +7,7 @@ import (
 	"os"
 )
 
-type FS interface {
-	Open(name string) (file, error)
-}
-
-type file interface {
+type File interface {
 	fs.File
 	io.ReaderAt
 	io.WriterAt
@@ -19,7 +15,7 @@ type file interface {
 }
 
 type FileSystem struct {
-	files map[string]file
+	files map[string]File
 }
 
 func (fs *FileSystem) Close() error {
@@ -30,7 +26,7 @@ func (fs *FileSystem) Close() error {
 	return errors.Join(errs...)
 }
 
-func (fs *FileSystem) Open(name string) (file, error) {
+func (fs *FileSystem) Open(name string) (File, error) {
 	f, ok := fs.files[name]
 	if ok {
 		return f, nil
@@ -42,7 +38,7 @@ func (fs *FileSystem) Open(name string) (file, error) {
 	}
 
 	if fs.files == nil {
-		fs.files = map[string]file{}
+		fs.files = map[string]File{}
 	}
 	fs.files[name] = f
 	return f, nil

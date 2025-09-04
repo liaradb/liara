@@ -1,10 +1,18 @@
 package storage
 
-import "io"
+import (
+	"io"
+
+	"github.com/cardboardrobots/liaradb/file"
+)
 
 type BufferManager struct {
 	bufferSize int64
 	fs         FS
+}
+
+type FS interface {
+	Open(name string) (file.File, error)
 }
 
 func NewBufferManager(fs FS) *BufferManager {
@@ -42,7 +50,7 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 	return err
 }
 
-func (bm *BufferManager) openFile(b *Buffer) (file, error) {
+func (bm *BufferManager) openFile(b *Buffer) (file.File, error) {
 	return bm.fs.Open(b.blockID.FileName)
 }
 

@@ -3,6 +3,8 @@ package storage
 import (
 	"path"
 	"testing"
+
+	"github.com/cardboardrobots/liaradb/file"
 )
 
 func TestBufferManager(t *testing.T) {
@@ -36,7 +38,7 @@ func TestBufferManager(t *testing.T) {
 
 func testCreateBuffer(t *testing.T) (*Buffer, func() error) {
 	dir := t.TempDir()
-	fs := &FileSystem{}
+	fs := &file.FileSystem{}
 
 	bm := NewBufferManager(fs)
 	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}

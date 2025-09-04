@@ -4,6 +4,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/cardboardrobots/liaradb/file"
 	"github.com/cardboardrobots/liaradb/storage"
 )
 
@@ -32,7 +33,7 @@ func TestBufferEntry(t *testing.T) {
 
 func testCreateBuffer(t *testing.T) (*storage.Buffer, func() error) {
 	dir := t.TempDir()
-	fs := &storage.FileSystem{}
+	fs := &file.FileSystem{}
 
 	bm := storage.NewBufferManager(fs)
 	bid := storage.BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
