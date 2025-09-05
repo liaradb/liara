@@ -5,13 +5,17 @@ import (
 )
 
 type Storage struct {
-	in chan *request
-	bm *BufferManager
+	in     chan *request
+	bm     *BufferManager
+	pinned map[BlockID]*Buffer
 }
 
 func (s *Storage) Run(ctx context.Context, bm *BufferManager) {
 	if s.in == nil {
 		s.in = make(chan *request)
+	}
+	if s.pinned == nil {
+		s.pinned = make(map[BlockID]*Buffer)
 	}
 	s.bm = bm
 	go s.run(ctx)
@@ -34,12 +38,17 @@ func (s *Storage) respond(r *request) {
 }
 
 func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {
+	if b, ok := s.pinned[bid]; ok {
+		return b, nil
+	}
+
 	b := s.bm.Buffer(bid)
 	err := b.Load()
 	if err != nil {
 		return nil, err
 	}
 
+	s.pinned[bid] = b
 	return b, nil
 }
 

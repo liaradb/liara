@@ -80,6 +80,43 @@ func testStorage_CancelRun(t *testing.T) {
 	}
 }
 
+func TestStorage_Pinned(t *testing.T) {
+	s := Storage{}
+
+	ctx := t.Context()
+	s.Run(ctx, NewBufferManager(&file.FileSystem{}))
+
+	n := path.Join(t.TempDir(), "testfile")
+	bid := BlockID{FileName: n, Position: 0}
+
+	b, err := s.Request(ctx, bid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if b.dirty {
+		t.Error("should not be dirty")
+	}
+
+	err = b.WriteUint64(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !b.dirty {
+		t.Error("should be dirty")
+	}
+
+	b, err = s.Request(ctx, bid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !b.dirty {
+		t.Error("should be dirty")
+	}
+}
+
 func TestMultipleWriter(t *testing.T) {
 	t.Skip()
 	f, _ := os.OpenFile("multiple.text", os.O_RDWR|os.O_CREATE, 0644)

@@ -11,6 +11,10 @@ func TestBufferManager(t *testing.T) {
 	b, close := testCreateBuffer(t)
 	defer close()
 
+	if b.dirty {
+		t.Error("should not be dirty")
+	}
+
 	if err := b.Load(); err != nil {
 		t.Fatal(err)
 	}
@@ -21,12 +25,24 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if !b.dirty {
+		t.Error("should be dirty")
+	}
+
 	if err := b.Flush(); err != nil {
 		t.Fatal(err)
 	}
 
+	if b.dirty {
+		t.Error("should not be dirty")
+	}
+
 	if err := b.Load(); err != nil {
 		t.Fatal(err)
+	}
+
+	if b.dirty {
+		t.Error("should not be dirty")
 	}
 
 	if v, err := b.ReadUint64(0); err != nil {
