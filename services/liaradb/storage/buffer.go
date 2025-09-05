@@ -17,6 +17,8 @@ func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
 	}
 }
 
+func (b *Buffer) Dirty() bool { return b.dirty }
+
 func (b *Buffer) Load() error {
 	if err := b.bm.Load(b); err != nil {
 		return err

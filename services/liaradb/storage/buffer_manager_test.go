@@ -11,7 +11,7 @@ func TestBufferManager(t *testing.T) {
 	b, close := testCreateBuffer(t)
 	defer close()
 
-	if b.dirty {
+	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
 
@@ -25,7 +25,7 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !b.dirty {
+	if !b.Dirty() {
 		t.Error("should be dirty")
 	}
 
@@ -33,7 +33,7 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if b.dirty {
+	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
 
@@ -41,7 +41,7 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if b.dirty {
+	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
 
