@@ -98,8 +98,7 @@ func TestStorage_Pinned(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	err = b.WriteUint64(1, 1)
-	if err != nil {
+	if err = b.WriteUint64(1, 1); err != nil {
 		t.Fatal(err)
 	}
 

@@ -43,8 +43,7 @@ func (s *Storage) loadBuffer(bid BlockID) (*Buffer, error) {
 	}
 
 	b := s.bm.Buffer(bid)
-	err := b.Load()
-	if err != nil {
+	if err := b.Load(); err != nil {
 		return nil, err
 	}
 

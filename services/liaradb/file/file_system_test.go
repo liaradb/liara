@@ -13,12 +13,9 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
 	}
 
-	f, err := fs.Open(p)
-	if err != nil {
+	if f, err := fs.Open(p); err != nil {
 		t.Error(err)
-	}
-
-	if f == nil {
+	} else if f == nil {
 		t.Error("file should not be nil")
 	}
 
@@ -26,12 +23,9 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
 	}
 
-	f, err = fs.Open(p)
-	if err != nil {
+	if f, err := fs.Open(p); err != nil {
 		t.Error(err)
-	}
-
-	if f == nil {
+	} else if f == nil {
 		t.Error("file should not be nil")
 	}
 
@@ -39,8 +33,7 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
 	}
 
-	err = fs.Close()
-	if err != nil {
+	if err := fs.Close(); err != nil {
 		t.Error(err)
 	}
 
