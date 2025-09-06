@@ -22,7 +22,7 @@ func testStorage(t *testing.T) {
 	s := Storage{}
 
 	ctx := t.Context()
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}))
+	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
 
 	n := path.Join(t.TempDir(), "testfile")
 
@@ -61,7 +61,7 @@ func testStorage_CancelRun(t *testing.T) {
 	s := Storage{}
 
 	ctx, cancel := context.WithCancel(t.Context())
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}))
+	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
 
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
 	defer cancel2()
@@ -84,7 +84,7 @@ func TestStorage_Pinned(t *testing.T) {
 	s := Storage{}
 
 	ctx := t.Context()
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}))
+	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
 
 	n := path.Join(t.TempDir(), "testfile")
 	bid := BlockID{FileName: n, Position: 0}
@@ -113,6 +113,49 @@ func TestStorage_Pinned(t *testing.T) {
 
 	if !b.Dirty() {
 		t.Error("should be dirty")
+	}
+}
+
+func TestStorage_Flush(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Flush)
+}
+
+func testStorage_Flush(t *testing.T) {
+	s := Storage{}
+
+	ctx := t.Context()
+	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
+
+	n := path.Join(t.TempDir(), "testfile")
+	bid0 := BlockID{FileName: n, Position: 0}
+	bid1 := BlockID{FileName: n, Position: 1}
+	bid2 := BlockID{FileName: n, Position: 2}
+
+	b0, err := s.Request(ctx, bid0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if b0.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	b1, err := s.Request(ctx, bid1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if b1.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	ctx2, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	_, err = s.Request(ctx2, bid2)
+	if err != context.Canceled {
+		t.Error("should be cancelled")
 	}
 }
 
