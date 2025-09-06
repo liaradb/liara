@@ -37,6 +37,10 @@ func TestBufferManager(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
+	if err := b.Flush(); err == nil {
+		t.Fatal("should not flush clean buffers")
+	}
+
 	if err := b.Load(); err != nil {
 		t.Fatal(err)
 	}

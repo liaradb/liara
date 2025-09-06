@@ -5,9 +5,19 @@ import "github.com/cardboardrobots/liaradb/raw"
 type Buffer struct {
 	blockID BlockID
 	data    []byte
-	dirty   bool
+	status  BufferStatus
 	bm      *BufferManager
 }
+
+type BufferStatus int
+
+const (
+	BufferStatusUninitialized BufferStatus = iota
+	BufferStatusLoading
+	BufferStatusLoaded
+	BufferStatusDirty
+	BufferStatusCorrupt
+)
 
 func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
 	return &Buffer{
@@ -17,23 +27,31 @@ func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
 	}
 }
 
-func (b *Buffer) Dirty() bool { return b.dirty }
+func (b *Buffer) Dirty() bool { return b.status == BufferStatusDirty }
 
 func (b *Buffer) Load() error {
+	b.status = BufferStatusLoading
+
 	if err := b.bm.Load(b); err != nil {
+		b.status = BufferStatusCorrupt
 		return err
 	}
 
-	b.dirty = false
+	b.status = BufferStatusLoaded
 	return nil
 }
 
 func (b *Buffer) Flush() error {
+	if b.status != BufferStatusDirty {
+		// TODO: Do we need more specific errors?
+		return ErrNotDirty
+	}
+
 	if err := b.bm.Flush(b); err != nil {
 		return err
 	}
 
-	b.dirty = false
+	b.status = BufferStatusLoaded
 	return nil
 }
 
@@ -42,7 +60,7 @@ func (b *Buffer) WriteUint64(value uint64, off raw.Offset) error {
 		return err
 	}
 
-	b.dirty = true
+	b.status = BufferStatusDirty
 	return nil
 }
 
