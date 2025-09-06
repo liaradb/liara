@@ -3,6 +3,8 @@ package queue
 import "testing"
 
 func TestQueue_Count(t *testing.T) {
+	t.Parallel()
+
 	mq := MapQueue[int, string]{}
 
 	if c := mq.Count(); c != 0 {
@@ -35,6 +37,8 @@ func TestQueue_Count(t *testing.T) {
 }
 
 func TestQueue_PopDefault(t *testing.T) {
+	t.Parallel()
+
 	mq := MapQueue[int, string]{}
 
 	if v, ok := mq.Pop(); ok {
@@ -45,6 +49,8 @@ func TestQueue_PopDefault(t *testing.T) {
 }
 
 func TestQueue_PopValue(t *testing.T) {
+	t.Parallel()
+
 	mq := MapQueue[int, string]{}
 
 	mq.Push(1, "a")
@@ -64,6 +70,8 @@ func TestQueue_PopValue(t *testing.T) {
 }
 
 func TestQueue_RemoveDefault(t *testing.T) {
+	t.Parallel()
+
 	mq := MapQueue[int, string]{}
 
 	if v, ok := mq.Remove(1); ok {
@@ -74,6 +82,8 @@ func TestQueue_RemoveDefault(t *testing.T) {
 }
 
 func TestQueue_RemoveValue(t *testing.T) {
+	t.Parallel()
+
 	mq := MapQueue[int, string]{}
 
 	mq.Push(1, "a")

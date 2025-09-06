@@ -8,6 +8,8 @@ import (
 )
 
 func TestBufferManager(t *testing.T) {
+	t.Parallel()
+
 	b, bid, close := testCreateBuffer(t)
 	defer close()
 

@@ -2,10 +2,7 @@ package storage
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"path"
-	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -177,16 +174,4 @@ func testStorage_Flush(t *testing.T) {
 	if c := s.CountPinned(); c != 2 {
 		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
 	}
-}
-
-func TestMultipleWriter(t *testing.T) {
-	t.Skip()
-	f, _ := os.OpenFile("multiple.text", os.O_RDWR|os.O_CREATE, 0644)
-	wg := sync.WaitGroup{}
-	for i := range 100 {
-		wg.Go(func() {
-			fmt.Fprintf(f, "abcdefg: %v\n", i)
-		})
-	}
-	wg.Wait()
 }
