@@ -15,9 +15,10 @@ type FS interface {
 	Open(name string) (file.File, error)
 }
 
-func NewBufferManager(fs FS) *BufferManager {
+// TODO: Should this be public?
+func NewBufferManager(fs FS, bs int64) *BufferManager {
 	return &BufferManager{
-		bufferSize: 1024,
+		bufferSize: bs,
 		fs:         fs,
 	}
 }

@@ -15,12 +15,12 @@ type Storage struct {
 	bm       *BufferManager
 }
 
-func NewStorage(bm *BufferManager, max int) *Storage {
+func NewStorage(fs FS, max int, bs int64) *Storage {
 	return &Storage{
 		requests: make(chan *request),
 		returns:  make(chan *Buffer, max),
 		pinned:   make(map[BlockID]*Buffer, max),
-		bm:       bm,
+		bm:       NewBufferManager(fs, bs),
 		max:      max,
 	}
 }

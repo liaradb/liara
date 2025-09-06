@@ -16,7 +16,7 @@ func TestStorage(t *testing.T) {
 }
 
 func testStorage(t *testing.T) {
-	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
+	s := NewStorage(&file.FileSystem{}, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)
@@ -55,7 +55,7 @@ func TestStorage_CancelRun(t *testing.T) {
 }
 
 func testStorage_CancelRun(t *testing.T) {
-	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
+	s := NewStorage(&file.FileSystem{}, 2, 1024)
 
 	ctx, cancel := context.WithCancel(t.Context())
 	s.Run(ctx)
@@ -78,7 +78,7 @@ func testStorage_CancelRun(t *testing.T) {
 }
 
 func TestStorage_Pinned(t *testing.T) {
-	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
+	s := NewStorage(&file.FileSystem{}, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)
@@ -119,7 +119,7 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
+	s := NewStorage(&file.FileSystem{}, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)
