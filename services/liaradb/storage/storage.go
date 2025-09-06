@@ -53,23 +53,35 @@ func (s *Storage) respond(r *request) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	b, err := s.loadBuffer(r.ctx, r.blockID)
+	b, err := s.getBuffer(r.ctx, r.blockID)
 	r.respond(r.ctx, b, err)
 }
 
-func (s *Storage) loadBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
+func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
+	if b, ok := s.getLoaded(bid); ok {
+		return b, nil
+	}
+
+	return s.getUnloaded(ctx, bid)
+}
+
+func (s *Storage) getLoaded(bid BlockID) (*Buffer, bool) {
 	if b, ok := s.getPinned(bid); ok {
 		b.pin()
-		return b, nil
+		return b, true
 	}
 
 	if b, ok := s.getUnpinned(bid); ok {
 		b.pin()
 		s.moveToPinned(b)
-		return b, nil
+		return b, true
 	}
 
-	b, err := s.allocateOrWait(ctx, bid)
+	return nil, false
+}
+
+func (s *Storage) getUnloaded(ctx context.Context, bid BlockID) (*Buffer, error) {
+	b, err := s.popAllocateOrWait(ctx, bid)
 	if err != nil {
 		return nil, err
 	}
@@ -103,24 +115,16 @@ func (s *Storage) getUnpinned(bid BlockID) (*Buffer, bool) {
 	return b, ok
 }
 
-func (s *Storage) allocateOrWait(ctx context.Context, bid BlockID) (*Buffer, error) {
+func (s *Storage) popAllocateOrWait(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if b, ok := s.popUnpinned(); ok {
-		b.pin()
-		s.moveToPinned(b)
 		return b, nil
 	}
 
 	if b, ok := s.allocate(bid); ok {
-		b.pin()
 		return b, nil
 	}
 
-	if b, err := s.waitForRelease(ctx); err != nil {
-		return nil, err
-	} else {
-		b.pin()
-		return b, nil
-	}
+	return s.waitForRelease(ctx)
 }
 
 func (s *Storage) popUnpinned() (*Buffer, bool) {
@@ -129,6 +133,8 @@ func (s *Storage) popUnpinned() (*Buffer, bool) {
 	}
 
 	for _, b := range s.unpinned {
+		b.pin()
+		s.moveToPinned(b)
 		return b, true
 	}
 
@@ -142,12 +148,14 @@ func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
 
 	b := NewBuffer(s)
 	s.pinned[bid] = b
+	b.pin()
 	return b, true
 }
 
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
 	select {
 	case b := <-s.returns:
+		b.pin()
 		return b, nil
 	case <-ctx.Done():
 		return nil, context.Canceled
