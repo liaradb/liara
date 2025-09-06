@@ -157,6 +157,16 @@ func testStorage_Flush(t *testing.T) {
 	if err != context.Canceled {
 		t.Error("should be cancelled")
 	}
+
+	s.Release(ctx, b1)
+
+	ctx2, cancel = context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+
+	_, err = s.Request(ctx2, bid2)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestMultipleWriter(t *testing.T) {

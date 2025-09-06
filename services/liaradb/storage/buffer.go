@@ -7,6 +7,7 @@ type Buffer struct {
 	data    []byte
 	status  BufferStatus
 	bm      *BufferManager
+	pins    int
 }
 
 type BufferStatus int
@@ -28,6 +29,20 @@ func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
 }
 
 func (b *Buffer) Dirty() bool { return b.status == BufferStatusDirty }
+func (b *Buffer) Pins() int   { return b.pins }
+
+func (b *Buffer) pin() {
+	b.pins++
+}
+
+func (b *Buffer) unpin() bool {
+	b.pins--
+	// TODO: Do we need this?
+	if b.pins < 0 {
+		b.pins = 0
+	}
+	return b.pins == 0
+}
 
 func (b *Buffer) Load() error {
 	b.status = BufferStatusLoading

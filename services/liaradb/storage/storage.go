@@ -17,8 +17,14 @@ func (s *Storage) Run(ctx context.Context, bm *BufferManager, max int) {
 	if s.requests == nil {
 		s.requests = make(chan *request)
 	}
+	if s.returns == nil {
+		s.returns = make(chan *Buffer)
+	}
 	if s.pinned == nil {
 		s.pinned = make(map[BlockID]*Buffer)
+	}
+	if s.unpinned == nil {
+		s.unpinned = make(map[BlockID]*Buffer)
 	}
 	s.bm = bm
 	s.max = max
@@ -29,24 +35,29 @@ func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
 		case r := <-s.requests:
-			s.respond(ctx, r)
+			s.respond(r)
+		case b := <-s.returns:
+			s.unpin(b)
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (s *Storage) respond(ctx context.Context, r *request) {
+func (s *Storage) respond(r *request) {
 	b, err := s.loadBuffer(r.ctx, r.blockID)
-	r.respond(ctx, b, err)
+	r.respond(r.ctx, b, err)
 }
 
 func (s *Storage) loadBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if b, ok := s.getPinned(bid); ok {
+		b.pin()
 		return b, nil
 	}
 
 	if b, ok := s.getUnpinned(bid); ok {
+		b.pin()
+		s.moveToPinned(b)
 		return b, nil
 	}
 
@@ -55,7 +66,24 @@ func (s *Storage) loadBuffer(ctx context.Context, bid BlockID) (*Buffer, error) 
 		return nil, err
 	}
 
+	b.pin()
 	return b, b.Load()
+}
+
+func (s *Storage) unpin(b *Buffer) {
+	if b.unpin() {
+		s.moveToUnpinned(b)
+	}
+}
+
+func (s *Storage) moveToPinned(b *Buffer) {
+	delete(s.unpinned, b.blockID)
+	s.pinned[b.blockID] = b
+}
+
+func (s *Storage) moveToUnpinned(b *Buffer) {
+	delete(s.pinned, b.blockID)
+	s.unpinned[b.blockID] = b
 }
 
 func (s *Storage) getPinned(bid BlockID) (*Buffer, bool) {
@@ -109,4 +137,13 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	}
 
 	return r.wait(ctx)
+}
+
+// External thread
+func (s *Storage) Release(ctx context.Context, b *Buffer) {
+	select {
+	case s.returns <- b:
+	case <-ctx.Done():
+		return
+	}
 }
