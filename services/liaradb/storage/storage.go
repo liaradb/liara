@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+
+	"github.com/cardboardrobots/liaradb/storage/queue"
 )
 
 type Storage struct {
 	pinned   map[BlockID]*Buffer
-	unpinned map[BlockID]*Buffer
+	unpinned queue.MapQueue[BlockID, *Buffer]
 	requests chan *request
 	returns  chan *Buffer
 	max      int
@@ -18,7 +20,6 @@ func NewStorage(bm *BufferManager, max int) *Storage {
 		requests: make(chan *request),
 		returns:  make(chan *Buffer, max),
 		pinned:   make(map[BlockID]*Buffer, max),
-		unpinned: make(map[BlockID]*Buffer, max),
 		bm:       bm,
 		max:      max,
 	}
@@ -29,7 +30,7 @@ func (s *Storage) CountPinned() int {
 }
 
 func (s *Storage) Count() int {
-	return len(s.pinned) + len(s.unpinned)
+	return len(s.pinned) + s.unpinned.Count()
 }
 
 func (s *Storage) Run(ctx context.Context) {
@@ -71,7 +72,7 @@ func (s *Storage) getLoaded(bid BlockID) (*Buffer, bool) {
 		return b, true
 	}
 
-	if b, ok := s.getUnpinned(bid); ok {
+	if b, ok := s.unpinned.Remove(bid); ok {
 		b.pin()
 		s.moveToPinned(b)
 		return b, true
@@ -96,22 +97,17 @@ func (s *Storage) unpin(b *Buffer) {
 }
 
 func (s *Storage) moveToPinned(b *Buffer) {
-	delete(s.unpinned, b.blockID)
+	s.unpinned.Remove(b.blockID)
 	s.pinned[b.blockID] = b
 }
 
 func (s *Storage) moveToUnpinned(b *Buffer) {
 	delete(s.pinned, b.blockID)
-	s.unpinned[b.blockID] = b
+	s.unpinned.Push(b.blockID, b)
 }
 
 func (s *Storage) getPinned(bid BlockID) (*Buffer, bool) {
 	b, ok := s.pinned[bid]
-	return b, ok
-}
-
-func (s *Storage) getUnpinned(bid BlockID) (*Buffer, bool) {
-	b, ok := s.unpinned[bid]
 	return b, ok
 }
 
@@ -128,17 +124,14 @@ func (s *Storage) popAllocateOrWait(ctx context.Context, bid BlockID) (*Buffer, 
 }
 
 func (s *Storage) popUnpinned() (*Buffer, bool) {
-	if len(s.unpinned) == 0 {
+	b, ok := s.unpinned.Pop()
+	if !ok {
 		return nil, false
 	}
 
-	for _, b := range s.unpinned {
-		b.pin()
-		s.moveToPinned(b)
-		return b, true
-	}
-
-	return nil, false
+	b.pin()
+	s.moveToPinned(b)
+	return b, true
 }
 
 func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
