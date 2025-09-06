@@ -22,10 +22,6 @@ func NewBufferManager(fs FS) *BufferManager {
 	}
 }
 
-func (bm *BufferManager) Buffer() *Buffer {
-	return newBuffer(bm)
-}
-
 func (bm *BufferManager) Load(b *Buffer) error {
 	f, err := bm.openFile(b)
 	if err != nil {

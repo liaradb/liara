@@ -6,7 +6,7 @@ type Buffer struct {
 	blockID BlockID
 	data    []byte
 	status  BufferStatus
-	bm      *BufferManager
+	s       *Storage
 	pins    int
 }
 
@@ -20,10 +20,11 @@ const (
 	BufferStatusCorrupt
 )
 
-func newBuffer(bm *BufferManager) *Buffer {
+// TODO: This should be private
+func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
-		data: make([]byte, bm.bufferSize),
-		bm:   bm,
+		data: make([]byte, s.bm.bufferSize),
+		s:    s,
 	}
 }
 
@@ -43,9 +44,13 @@ func (b *Buffer) unpin() bool {
 	return b.pins == 0
 }
 
+func (b *Buffer) Release() {
+	b.s.release(b)
+}
+
 func (b *Buffer) Load(bid BlockID) error {
 	if b.blockID != bid && b.status == BufferStatusDirty {
-		if err := b.bm.Flush(b); err != nil {
+		if err := b.s.bm.Flush(b); err != nil {
 			return err
 		}
 	}
@@ -53,7 +58,7 @@ func (b *Buffer) Load(bid BlockID) error {
 	b.blockID = bid
 	b.status = BufferStatusLoading
 
-	if err := b.bm.Load(b); err != nil {
+	if err := b.s.bm.Load(b); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
@@ -68,7 +73,7 @@ func (b *Buffer) Flush() error {
 		return ErrNotDirty
 	}
 
-	if err := b.bm.Flush(b); err != nil {
+	if err := b.s.bm.Flush(b); err != nil {
 		return err
 	}
 

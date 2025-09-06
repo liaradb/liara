@@ -19,10 +19,10 @@ func TestStorage(t *testing.T) {
 }
 
 func testStorage(t *testing.T) {
-	s := Storage{}
+	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
 
 	ctx := t.Context()
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
+	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 
@@ -58,10 +58,10 @@ func TestStorage_CancelRun(t *testing.T) {
 }
 
 func testStorage_CancelRun(t *testing.T) {
-	s := Storage{}
+	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
 
 	ctx, cancel := context.WithCancel(t.Context())
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
+	s.Run(ctx)
 
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
 	defer cancel2()
@@ -81,10 +81,10 @@ func testStorage_CancelRun(t *testing.T) {
 }
 
 func TestStorage_Pinned(t *testing.T) {
-	s := Storage{}
+	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
 
 	ctx := t.Context()
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
+	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 	bid := BlockID{FileName: n, Position: 0}
@@ -122,10 +122,10 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	s := Storage{}
+	s := NewStorage(NewBufferManager(&file.FileSystem{}), 2)
 
 	ctx := t.Context()
-	s.Run(ctx, NewBufferManager(&file.FileSystem{}), 2)
+	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 	bid0 := BlockID{FileName: n, Position: 0}
@@ -158,7 +158,8 @@ func testStorage_Flush(t *testing.T) {
 		t.Error("should be cancelled")
 	}
 
-	s.Release(ctx, b1)
+	// TODO: Prove this is non-blocking
+	b1.Release()
 
 	ctx2, cancel = context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()

@@ -13,6 +13,17 @@ type Storage struct {
 	bm       *BufferManager
 }
 
+func NewStorage(bm *BufferManager, max int) *Storage {
+	return &Storage{
+		requests: make(chan *request),
+		returns:  make(chan *Buffer, max),
+		pinned:   make(map[BlockID]*Buffer, max),
+		unpinned: make(map[BlockID]*Buffer, max),
+		bm:       bm,
+		max:      max,
+	}
+}
+
 func (s *Storage) CountPinned() int {
 	return len(s.pinned)
 }
@@ -21,21 +32,7 @@ func (s *Storage) Count() int {
 	return len(s.pinned) + len(s.unpinned)
 }
 
-func (s *Storage) Run(ctx context.Context, bm *BufferManager, max int) {
-	if s.requests == nil {
-		s.requests = make(chan *request)
-	}
-	if s.returns == nil {
-		s.returns = make(chan *Buffer)
-	}
-	if s.pinned == nil {
-		s.pinned = make(map[BlockID]*Buffer)
-	}
-	if s.unpinned == nil {
-		s.unpinned = make(map[BlockID]*Buffer)
-	}
-	s.bm = bm
-	s.max = max
+func (s *Storage) Run(ctx context.Context) {
 	go s.run(ctx)
 }
 
@@ -53,6 +50,9 @@ func (s *Storage) run(ctx context.Context) {
 }
 
 func (s *Storage) respond(r *request) {
+	// TODO: Create second goroutine
+	// One for loaded Buffers, one for non-loaded Buffers
+	// This will allow loaded traffic to continue
 	b, err := s.loadBuffer(r.ctx, r.blockID)
 	r.respond(r.ctx, b, err)
 }
@@ -140,7 +140,7 @@ func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
 		return nil, false
 	}
 
-	b := s.bm.Buffer()
+	b := NewBuffer(s)
 	s.pinned[bid] = b
 	return b, true
 }
@@ -171,10 +171,6 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 }
 
 // External thread
-func (s *Storage) Release(ctx context.Context, b *Buffer) {
-	select {
-	case s.returns <- b:
-	case <-ctx.Done():
-		return
-	}
+func (s *Storage) release(b *Buffer) {
+	s.returns <- b
 }

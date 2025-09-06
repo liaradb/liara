@@ -35,7 +35,7 @@ func testCreateBuffer(t *testing.T) (*storage.Buffer, storage.BlockID, func() er
 	dir := t.TempDir()
 	fs := &file.FileSystem{}
 
-	bm := storage.NewBufferManager(fs)
-	bid := storage.BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
-	return bm.Buffer(), bid, fs.Close
+	return storage.NewBuffer(storage.NewStorage(storage.NewBufferManager(fs), 2)),
+		storage.BlockID{FileName: path.Join(dir, "testfile"), Position: 0},
+		fs.Close
 }

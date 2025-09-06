@@ -18,7 +18,7 @@ func newRequest(ctx context.Context, bid BlockID) *request {
 	return &request{
 		blockID: bid,
 		ctx:     ctx,
-		out:     make(chan *response), // TODO: Make this async
+		out:     make(chan *response, 1), // TODO: Test this async
 	}
 }
 
