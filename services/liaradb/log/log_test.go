@@ -35,3 +35,59 @@ func TestLog_Append(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", l, 0)
 	}
 }
+
+func TestLog_Flush(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should flush", func(t *testing.T) {
+		l := &Log{}
+
+		lsn1, err := l.Append([]byte{0, 1, 2, 3, 4, 5})
+		if err != nil {
+			t.Error(err)
+		}
+
+		_, err = l.Append([]byte{0, 1, 2, 3, 4, 5})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := l.Flush(lsn1); err != nil {
+			t.Error(err)
+		}
+
+		if h := l.HighWater(); h != 2 {
+			t.Errorf("incorrect value: %v, expected: %v", h, 2)
+		}
+
+		if l := l.LowWater(); l != 1 {
+			t.Errorf("incorrect value: %v, expected: %v", l, 1)
+		}
+	})
+
+	t.Run("should not flush beyond HighWater", func(t *testing.T) {
+		l := &Log{}
+
+		_, err := l.Append([]byte{0, 1, 2, 3, 4, 5})
+		if err != nil {
+			t.Error(err)
+		}
+
+		_, err = l.Append([]byte{0, 1, 2, 3, 4, 5})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := l.Flush(10); err != nil {
+			t.Error(err)
+		}
+
+		if h := l.HighWater(); h != 2 {
+			t.Errorf("incorrect value: %v, expected: %v", h, 2)
+		}
+
+		if l := l.LowWater(); l != 2 {
+			t.Errorf("incorrect value: %v, expected: %v", l, 1)
+		}
+	})
+}

@@ -14,3 +14,9 @@ func (l *Log) Append(data []byte) (LogSequenceNumber, error) {
 	l.highWater++
 	return l.highWater, nil
 }
+
+func (l *Log) Flush(lsn LogSequenceNumber) error {
+	lsn = min(lsn, l.highWater)
+	l.lowWater = lsn
+	return nil
+}
