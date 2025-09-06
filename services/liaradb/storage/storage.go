@@ -13,6 +13,14 @@ type Storage struct {
 	bm       *BufferManager
 }
 
+func (s *Storage) CountPinned() int {
+	return len(s.pinned)
+}
+
+func (s *Storage) Count() int {
+	return len(s.pinned) + len(s.unpinned)
+}
+
 func (s *Storage) Run(ctx context.Context, bm *BufferManager, max int) {
 	if s.requests == nil {
 		s.requests = make(chan *request)
@@ -66,8 +74,7 @@ func (s *Storage) loadBuffer(ctx context.Context, bid BlockID) (*Buffer, error) 
 		return nil, err
 	}
 
-	b.pin()
-	return b, b.Load()
+	return b, b.Load(bid)
 }
 
 func (s *Storage) unpin(b *Buffer) {
@@ -97,19 +104,43 @@ func (s *Storage) getUnpinned(bid BlockID) (*Buffer, bool) {
 }
 
 func (s *Storage) allocateOrWait(ctx context.Context, bid BlockID) (*Buffer, error) {
-	if b, ok := s.allocate(bid); ok {
+	if b, ok := s.popUnpinned(); ok {
+		b.pin()
+		s.moveToPinned(b)
 		return b, nil
 	}
 
-	return s.waitForRelease(ctx)
+	if b, ok := s.allocate(bid); ok {
+		b.pin()
+		return b, nil
+	}
+
+	if b, err := s.waitForRelease(ctx); err != nil {
+		return nil, err
+	} else {
+		b.pin()
+		return b, nil
+	}
 }
 
-func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
-	if len(s.pinned) == s.max {
+func (s *Storage) popUnpinned() (*Buffer, bool) {
+	if len(s.unpinned) == 0 {
 		return nil, false
 	}
 
-	b := s.bm.Buffer(bid)
+	for _, b := range s.unpinned {
+		return b, true
+	}
+
+	return nil, false
+}
+
+func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
+	if s.Count() >= s.max {
+		return nil, false
+	}
+
+	b := s.bm.Buffer()
 	s.pinned[bid] = b
 	return b, true
 }

@@ -9,10 +9,10 @@ import (
 )
 
 func TestBufferEntry(t *testing.T) {
-	b, close := testCreateBuffer(t)
+	b, bid, close := testCreateBuffer(t)
 	defer close()
 
-	if err := b.Load(); err != nil {
+	if err := b.Load(bid); err != nil {
 		t.Fatal(err)
 	}
 
@@ -31,11 +31,11 @@ func TestBufferEntry(t *testing.T) {
 	}
 }
 
-func testCreateBuffer(t *testing.T) (*storage.Buffer, func() error) {
+func testCreateBuffer(t *testing.T) (*storage.Buffer, storage.BlockID, func() error) {
 	dir := t.TempDir()
 	fs := &file.FileSystem{}
 
 	bm := storage.NewBufferManager(fs)
 	bid := storage.BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
-	return bm.Buffer(bid), fs.Close
+	return bm.Buffer(), bid, fs.Close
 }

@@ -163,9 +163,18 @@ func testStorage_Flush(t *testing.T) {
 	ctx2, cancel = context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
+	// TODO: How do we test that it flushed?
 	_, err = s.Request(ctx2, bid2)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if c := s.Count(); c != 2 {
+		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
+	}
+
+	if c := s.CountPinned(); c != 2 {
+		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
 	}
 }
 

@@ -20,11 +20,10 @@ const (
 	BufferStatusCorrupt
 )
 
-func newBuffer(bid BlockID, bm *BufferManager) *Buffer {
+func newBuffer(bm *BufferManager) *Buffer {
 	return &Buffer{
-		blockID: bid,
-		data:    make([]byte, bm.bufferSize),
-		bm:      bm,
+		data: make([]byte, bm.bufferSize),
+		bm:   bm,
 	}
 }
 
@@ -44,7 +43,14 @@ func (b *Buffer) unpin() bool {
 	return b.pins == 0
 }
 
-func (b *Buffer) Load() error {
+func (b *Buffer) Load(bid BlockID) error {
+	if b.blockID != bid && b.status == BufferStatusDirty {
+		if err := b.bm.Flush(b); err != nil {
+			return err
+		}
+	}
+
+	b.blockID = bid
 	b.status = BufferStatusLoading
 
 	if err := b.bm.Load(b); err != nil {

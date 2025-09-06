@@ -8,14 +8,14 @@ import (
 )
 
 func TestBufferManager(t *testing.T) {
-	b, close := testCreateBuffer(t)
+	b, bid, close := testCreateBuffer(t)
 	defer close()
 
 	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
 
-	if err := b.Load(); err != nil {
+	if err := b.Load(bid); err != nil {
 		t.Fatal(err)
 	}
 
@@ -41,7 +41,7 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal("should not flush clean buffers")
 	}
 
-	if err := b.Load(); err != nil {
+	if err := b.Load(bid); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,11 +56,11 @@ func TestBufferManager(t *testing.T) {
 	}
 }
 
-func testCreateBuffer(t *testing.T) (*Buffer, func() error) {
+func testCreateBuffer(t *testing.T) (*Buffer, BlockID, func() error) {
 	dir := t.TempDir()
 	fs := &file.FileSystem{}
 
 	bm := NewBufferManager(fs)
 	bid := BlockID{FileName: path.Join(dir, "testfile"), Position: 0}
-	return bm.Buffer(bid), fs.Close
+	return bm.Buffer(), bid, fs.Close
 }
