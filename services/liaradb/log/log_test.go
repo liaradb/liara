@@ -40,6 +40,8 @@ func TestLog_Flush(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should flush", func(t *testing.T) {
+		t.Parallel()
+
 		l := &Log{}
 
 		lsn1, err := l.Append([]byte{0, 1, 2, 3, 4, 5})
@@ -66,6 +68,8 @@ func TestLog_Flush(t *testing.T) {
 	})
 
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
+		t.Parallel()
+
 		l := &Log{}
 
 		_, err := l.Append([]byte{0, 1, 2, 3, 4, 5})
