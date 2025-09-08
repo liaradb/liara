@@ -48,6 +48,7 @@ func (b *Buffer) Release() {
 	b.s.release(b)
 }
 
+// TODO: Only load if BlockID is changing
 func (b *Buffer) Load(bid BlockID) error {
 	if b.blockID != bid && b.status == BufferStatusDirty {
 		if err := b.s.bm.Flush(b); err != nil {

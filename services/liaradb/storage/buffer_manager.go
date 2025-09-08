@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"io"
 
 	"github.com/cardboardrobots/liaradb/file"
@@ -9,6 +10,7 @@ import (
 type BufferManager struct {
 	bufferSize int64
 	fs         FS
+	requests   chan *Buffer
 }
 
 type FS interface {
@@ -20,6 +22,14 @@ func NewBufferManager(fs FS, bs int64) *BufferManager {
 	return &BufferManager{
 		bufferSize: bs,
 		fs:         fs,
+		requests:   make(chan *Buffer),
+	}
+}
+
+func (bm *BufferManager) Request(ctx context.Context, b *Buffer) {
+	select {
+	case bm.requests <- b:
+	case <-ctx.Done():
 	}
 }
 

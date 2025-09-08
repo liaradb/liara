@@ -87,6 +87,7 @@ func (s *Storage) getUnloaded(ctx context.Context, bid BlockID) (*Buffer, error)
 		return nil, err
 	}
 
+	// TODO: Don't load here.  Do this in separate goroutine.
 	return b, b.Load(bid)
 }
 
