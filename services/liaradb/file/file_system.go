@@ -9,7 +9,9 @@ import (
 
 type File interface {
 	fs.File
+	io.Reader
 	io.ReaderAt
+	io.Writer
 	io.WriterAt
 	io.Seeker
 }
