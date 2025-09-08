@@ -6,6 +6,8 @@ import (
 )
 
 func TestFileSystem(t *testing.T) {
+	t.Parallel()
+
 	p := path.Join(t.TempDir(), "file")
 	fs := &FileSystem{}
 

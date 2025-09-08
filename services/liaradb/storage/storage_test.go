@@ -78,6 +78,8 @@ func testStorage_CancelRun(t *testing.T) {
 }
 
 func TestStorage_Pinned(t *testing.T) {
+	t.Parallel()
+
 	s := NewStorage(&file.FileSystem{}, 2, 1024)
 
 	ctx := t.Context()
