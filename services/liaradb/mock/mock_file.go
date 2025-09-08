@@ -10,9 +10,10 @@ import (
 )
 
 type mockFile struct {
-	name    string
-	data    []byte
-	modTime time.Time
+	name     string
+	data     []byte
+	position int64
+	modTime  time.Time
 }
 
 type file interface {
@@ -42,10 +43,9 @@ func (m *mockFile) Stat() (os.FileInfo, error) {
 	}, nil
 }
 
+// TODO: Test this
 func (m *mockFile) Read(b []byte) (n int, err error) {
-	m.adjustSize(b, 0)
-
-	return copy(b, m.data), nil
+	return m.WriteAt(b, m.position)
 }
 
 func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
@@ -58,7 +58,15 @@ func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
 
 	m.adjustSize(b, off)
 
-	return copy(b, m.data[off:]), nil
+	n = copy(b, m.data[off:])
+	m.position = off + int64(len(b))
+
+	return n, nil
+}
+
+// TODO: Test this
+func (m *mockFile) Write(b []byte) (n int, err error) {
+	return m.WriteAt(b, m.position)
 }
 
 func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
@@ -71,6 +79,7 @@ func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
 
 	m.modTime = time.Now()
 	m.adjustSize(b, off)
+	m.position = off + int64(len(b))
 
 	return copy(m.data[off:int(off)+len(b)], b), nil
 }

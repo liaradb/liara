@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cardboardrobots/liaradb/file"
+	"github.com/cardboardrobots/liaradb/mock"
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
@@ -81,14 +81,12 @@ func TestLog_Flush(t *testing.T) {
 
 func createLog(t *testing.T) *Log {
 	t.Helper()
-	l := &Log{}
-	fs := file.FileSystem{}
-	f, err := fs.Open(path.Join(t.TempDir(), "logfile"))
-	if err != nil {
-		t.Fatal(err)
-	}
 
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+
+	l := &Log{}
 	l.Open(f)
+
 	return l
 }
 
