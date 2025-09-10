@@ -3,15 +3,15 @@ package log
 import (
 	"bufio"
 	"encoding/binary"
-	"io"
 
+	"github.com/cardboardrobots/liaradb/file"
 	"github.com/cardboardrobots/liaradb/raw"
 )
 
 type Log struct {
 	highWater LogSequenceNumber
 	lowWater  LogSequenceNumber
-	w         io.Writer
+	f         file.File
 	buffer    *bufio.Writer
 }
 
@@ -20,13 +20,13 @@ type LogSequenceNumber uint64
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 
-func (l *Log) Open(w io.Writer) {
-	l.w = w
-	l.buffer = bufio.NewWriter(w)
+func (l *Log) Open(f file.File) {
+	l.f = f
+	l.buffer = bufio.NewWriter(f)
 }
 
 func (l *Log) reset() {
-	l.buffer.Reset(l.w)
+	l.buffer.Reset(l.f)
 }
 
 func (l *Log) Append(data []byte) (LogSequenceNumber, error) {

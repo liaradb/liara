@@ -18,8 +18,11 @@ type mockFile struct {
 
 type file interface {
 	fs.File
+	io.Reader
 	io.ReaderAt
+	io.Writer
 	io.WriterAt
+	io.Seeker
 }
 
 var _ file = (*mockFile)(nil)
@@ -90,5 +93,23 @@ func (m *mockFile) adjustSize(b []byte, off int64) {
 	if g > 0 {
 		m.data = slices.Grow(m.data, g)
 		m.data = m.data[0:l]
+	}
+}
+
+func (m *mockFile) Seek(offxset int64, whence int) (int64, error) {
+	m.position = m.seekPosition(offxset, whence)
+	return m.position, nil
+}
+
+func (m *mockFile) seekPosition(offset int64, whence int) int64 {
+	switch whence {
+	case io.SeekStart:
+		return offset
+	case io.SeekCurrent:
+		return m.position + offset
+	case io.SeekEnd:
+		return int64(len(m.data)) - offset
+	default:
+		return offset
 	}
 }
