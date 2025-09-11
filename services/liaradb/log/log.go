@@ -15,8 +15,6 @@ type Log struct {
 	buffer    *bufio.Writer
 }
 
-type LogSequenceNumber uint64
-
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 

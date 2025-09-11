@@ -22,10 +22,7 @@ package log
 // - transID
 // - lastLSN
 
-type (
-	TransactionID uint64
-	PageID        uint64
-)
+type PageID uint64
 
 const (
 	BlockSize   uint64 = 1024
