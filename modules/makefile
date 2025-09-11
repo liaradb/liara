@@ -6,11 +6,21 @@ go_out = eventsource_go/generated
 ts_out = eventsource_ts/src/generated
 
 .PHONY: default
-default: go ts
+default: go
+
+.PHONY: clean
+clean: clean-go clean-ts
+
+.PHONY: clean-go
+clean-go:
+	rm -rf ${go_out}
+
+.PHONY: clean-ts
+clean-ts:
+	rm -rf ${ts_out}
 
 .PHONY: go
-go:
-	rm -rf ${go_out}
+go: clean-go
 	mkdir -p ${go_out}
 	protoc \
 	--go_out=${go_out} \
@@ -20,7 +30,7 @@ go:
 	$(files)
 
 .PHONY: ts
-ts:
+ts: clean-ts
 	rm -rf ${ts_out}
 	mkdir -p ${ts_out}
 	grpc_tools_node_protoc \
