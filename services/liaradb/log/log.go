@@ -2,6 +2,7 @@ package log
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"iter"
 
@@ -15,6 +16,7 @@ type Log struct {
 	lowWater  LogSequenceNumber
 	f         file.File
 	buffer    *bufio.Writer
+	rb        *bytes.Buffer
 }
 
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
@@ -23,6 +25,7 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 func (l *Log) Open(f file.File) {
 	l.f = f
 	l.buffer = bufio.NewWriter(f)
+	l.rb = bytes.NewBuffer(nil)
 }
 
 func (l *Log) Iterate() iter.Seq2[[]byte, error] {
@@ -47,6 +50,20 @@ func (l *Log) Iterate() iter.Seq2[[]byte, error] {
 
 func (l *Log) reset() {
 	l.buffer.Reset(l.f)
+}
+
+func (l *Log) AppendRecord(lr *LogRecord) (LogSequenceNumber, error) {
+	l.rb.Reset()
+	if err := lr.Write(l.rb); err != nil {
+		return 0, err
+	}
+
+	crc := NewCRC(l.rb.Bytes())
+	if err := crc.Write(l.rb); err != nil {
+		return 0, err
+	}
+
+	return l.Append(l.rb.Bytes())
 }
 
 func (l *Log) Append(data []byte) (LogSequenceNumber, error) {

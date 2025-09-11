@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"io"
 
 	"github.com/liaradb/liaradb/raw"
@@ -11,7 +10,6 @@ type LogRecord struct {
 	header  LogRecordHeader
 	data    []byte
 	reverse []byte
-	crc     CRC
 }
 
 func newLogRecord(
@@ -32,7 +30,6 @@ func newLogRecord(
 
 func (lr *LogRecord) LogSequenceNumber() LogSequenceNumber { return lr.header.LogSequenceNumber() }
 func (lr *LogRecord) TransactionID() TransactionID         { return lr.header.TransactionID() }
-func (lr *LogRecord) CRC() CRC                             { return lr.crc }
 func (lr *LogRecord) Data() []byte                         { return lr.data }
 func (lr *LogRecord) Reverse() []byte                      { return lr.reverse }
 
@@ -52,13 +49,20 @@ func (lr *LogRecord) Write(w io.Writer) error {
 	return nil
 }
 
-func (lr *LogRecord) WriteFull(b *bytes.Buffer) error {
-	if err := lr.Write(b); err != nil {
+func (lr *LogRecord) Read(r io.Reader) error {
+	if err := lr.header.Read(r); err != nil {
 		return err
 	}
 
-	lr.crc = NewCRC(b.Bytes())
-	return lr.crc.Write(b)
+	if _, err := r.Read(lr.data); err != nil {
+		return err
+	}
+
+	if _, err := r.Read(lr.reverse); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (lr *LogRecord) Value() []byte {
@@ -72,8 +76,6 @@ func (lr *LogRecord) Length() raw.Offset {
 		// [LogRecord.TransactionID]
 		raw.Uint64Length +
 		// [LogRecord.Length]
-		raw.Uint32Length +
-		// [LogRecord.CRC]
 		raw.Uint32Length +
 		// [LogRecord.Data]
 		raw.Offset(len(lr.data)) +

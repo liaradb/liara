@@ -31,5 +31,17 @@ func (lrh *LogRecordHeader) Write(w io.Writer) error {
 }
 
 func (lrh *LogRecordHeader) Read(r io.Reader) error {
-	return nil
+	if err := lrh.logSequenceNumber.Read(r); err != nil {
+		return err
+	}
+
+	if err := lrh.transactionID.Read(r); err != nil {
+		return err
+	}
+
+	if err := lrh.dataLength.Read(r); err != nil {
+		return err
+	}
+
+	return lrh.reverseLength.Read(r)
 }
