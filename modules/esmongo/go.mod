@@ -1,6 +1,6 @@
 module github.com/cardboardrobots/esmongo
 
-go 1.23.1
+go 1.25.0
 
 require (
 	github.com/cardboardrobots/baseerror v0.0.2

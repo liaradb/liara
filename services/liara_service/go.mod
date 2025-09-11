@@ -1,6 +1,6 @@
 module github.com/cardboardrobots/liara_service
 
-go 1.23.1
+go 1.25.0
 
 replace github.com/cardboardrobots/eventsource_go => ../../modules/eventsource_go
 
