@@ -29,10 +29,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version-file: |
-          modules/liara/go.mod
-          modules/liaractl/go.mod
-          services/liara_service/go.mod
+        go-version-file: services/liara_service/go.mod
         cache-dependency-path: |
           modules/liara/go.sum
           modules/liaractl/go.sum
