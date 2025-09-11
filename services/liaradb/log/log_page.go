@@ -1,5 +1,13 @@
 package log
 
+import (
+	"bytes"
+	"encoding/binary"
+	"errors"
+	"io"
+	"iter"
+)
+
 // # Log Records
 //
 // ## Common to all
@@ -29,31 +37,69 @@ const (
 	SegmentSize uint64 = 1024
 )
 
+var (
+	ErrNotPage = errors.New("not page")
+)
+
 type LogPage struct {
 	Magic           LogMagic
 	ID              PageID
 	LengthRemaining int
-	Records         []*LogRecord
+	Positions       []uint32
+	Data            []byte
+	Reader          *bytes.Reader
 }
 
-type LogRecord struct {
-	LogSequenceNumber LogSequenceNumber
-	TransactionID     TransactionID
-	Length            int
-	CRC               CRC
-	Data              []byte
-	Reverse           []byte
+func (lp *LogPage) Parse(data []byte) error {
+	lp.Data = data
+	lp.initReader()
+	return lp.checkMagic()
 }
 
-func (lr *LogRecord) Write([]byte) error {
+func (lp *LogPage) initReader() {
+	if lp.Reader == nil {
+		lp.Reader = bytes.NewReader(lp.Data)
+	} else {
+		lp.Reader.Reset(lp.Data)
+	}
+}
+
+func (lp *LogPage) checkMagic() error {
+	if err := lp.Magic.Read(lp.Reader); err != nil && err != io.EOF {
+		return err
+	}
+
+	if lp.Magic != LogMagicPage {
+		return ErrNotPage
+	}
+
 	return nil
 }
 
-func (lr *LogRecord) Value() []byte {
-	data := make([]byte, lr.Size())
-	return data
-}
+func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
+	lp.initReader()
+	return func(yield func(*LogRecord, error) bool) {
+		var size uint32
+		if err := binary.Read(lp.Reader, binary.BigEndian, &size); err != nil {
+			yield(nil, err)
+			return
+		}
 
-func (lr *LogRecord) Size() int {
-	return 0
+		data := make([]byte, size)
+		if _, err := lp.Reader.Read(data); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		if !yield(&LogRecord{
+			header: LogRecordHeader{
+				dataLength: LogRecordLength(size),
+			},
+			data: LogRecordData{
+				data: data,
+			},
+		}, nil) {
+			return
+		}
+	}
 }

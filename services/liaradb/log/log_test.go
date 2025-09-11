@@ -79,6 +79,26 @@ func TestLog_Flush(t *testing.T) {
 	})
 }
 
+func TestLog_Iterate(t *testing.T) {
+	t.Parallel()
+
+	l := createLog(t)
+	_, err := l.Append(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	lsn2, err := l.Append(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := l.Flush(lsn2); err != nil {
+		t.Error(err)
+	}
+
+}
+
 func createLog(t *testing.T) *Log {
 	t.Helper()
 

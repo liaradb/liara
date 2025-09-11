@@ -3,12 +3,14 @@ package log
 import (
 	"bufio"
 	"encoding/binary"
+	"iter"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/raw"
 )
 
 type Log struct {
+	pageSize  int64
 	highWater LogSequenceNumber
 	lowWater  LogSequenceNumber
 	f         file.File
@@ -21,6 +23,26 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 func (l *Log) Open(f file.File) {
 	l.f = f
 	l.buffer = bufio.NewWriter(f)
+}
+
+func (l *Log) Iterate() iter.Seq2[[]byte, error] {
+	_, _ = l.f.Seek(0, 0)
+	b := make([]byte, l.pageSize)
+	return func(yield func([]byte, error) bool) {
+		n, err := l.f.Read(b)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+		if n < int(l.pageSize) {
+			for i := n; i < int(l.pageSize); i++ {
+				b[i] = 0
+			}
+		}
+		if !yield(b, nil) {
+			return
+		}
+	}
 }
 
 func (l *Log) reset() {
