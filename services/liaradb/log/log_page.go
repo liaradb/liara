@@ -30,8 +30,6 @@ import (
 // - transID
 // - lastLSN
 
-type PageID uint64
-
 const (
 	BlockSize   uint64 = 1024
 	SegmentSize uint64 = 1024
@@ -43,7 +41,7 @@ var (
 
 type LogPage struct {
 	Magic           LogMagic
-	ID              PageID
+	ID              LogPageID
 	LengthRemaining int
 	Positions       []uint32
 	Data            []byte
@@ -95,9 +93,7 @@ func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 			header: LogRecordHeader{
 				dataLength: LogRecordLength(size),
 			},
-			data: LogRecordData{
-				data: data,
-			},
+			data: data,
 		}, nil) {
 			return
 		}
