@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 
-	"github.com/cardboardrobots/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/storage/queue"
 )
 
 type Storage struct {

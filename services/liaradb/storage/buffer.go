@@ -1,6 +1,6 @@
 package storage
 
-import "github.com/cardboardrobots/liaradb/raw"
+import "github.com/liaradb/liaradb/raw"
 
 type Buffer struct {
 	blockID BlockID

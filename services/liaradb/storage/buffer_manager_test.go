@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cardboardrobots/liaradb/file"
+	"github.com/liaradb/liaradb/file"
 )
 
 func TestBufferManager(t *testing.T) {

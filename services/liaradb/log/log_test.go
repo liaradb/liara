@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cardboardrobots/liaradb/mock"
+	"github.com/liaradb/liaradb/mock"
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}

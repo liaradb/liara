@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"encoding/binary"
 
-	"github.com/cardboardrobots/liaradb/file"
-	"github.com/cardboardrobots/liaradb/raw"
+	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Log struct {

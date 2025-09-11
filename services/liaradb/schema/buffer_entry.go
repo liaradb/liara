@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/cardboardrobots/liaradb/raw"
-	"github.com/cardboardrobots/liaradb/storage"
+	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/storage"
 )
 
 type Uint64Entry struct {

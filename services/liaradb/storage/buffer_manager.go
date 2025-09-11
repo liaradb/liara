@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/cardboardrobots/liaradb/file"
+	"github.com/liaradb/liaradb/file"
 )
 
 type BufferManager struct {

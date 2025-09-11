@@ -4,8 +4,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/cardboardrobots/liaradb/file"
-	"github.com/cardboardrobots/liaradb/storage"
+	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestBufferEntry(t *testing.T) {

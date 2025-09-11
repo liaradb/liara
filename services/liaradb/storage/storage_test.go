@@ -7,7 +7,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/cardboardrobots/liaradb/file"
+	"github.com/liaradb/liaradb/file"
 )
 
 func TestStorage(t *testing.T) {

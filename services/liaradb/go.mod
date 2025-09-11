@@ -1,4 +1,4 @@
-module github.com/cardboardrobots/liaradb
+module github.com/liaradb/liaradb
 
 go 1.25.0
 
