@@ -9,6 +9,7 @@ import (
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
+var record = newLogRecord(1, 2, data, data)
 
 func TestLog_Default(t *testing.T) {
 	t.Parallel()
@@ -23,7 +24,7 @@ func TestLog_Append(t *testing.T) {
 
 	l := createLog(t)
 
-	if lsn, err := l.Append(data); err != nil {
+	if lsn, err := l.Append(record); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -40,12 +41,12 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLog(t)
 
-		lsn1, err := l.Append(data)
+		lsn1, err := l.Append(record)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(data)
+		_, err = l.Append(record)
 		if err != nil {
 			t.Error(err)
 		}
@@ -62,12 +63,12 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLog(t)
 
-		_, err := l.Append(data)
+		_, err := l.Append(record)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(data)
+		_, err = l.Append(record)
 		if err != nil {
 			t.Error(err)
 		}
@@ -84,12 +85,12 @@ func TestLog_Iterate(t *testing.T) {
 	t.Parallel()
 
 	l := createLog(t)
-	_, err := l.Append(data)
+	_, err := l.Append(record)
 	if err != nil {
 		t.Error(err)
 	}
 
-	lsn2, err := l.Append(data)
+	lsn2, err := l.Append(record)
 	if err != nil {
 		t.Error(err)
 	}
@@ -103,8 +104,8 @@ func TestLog_Iterate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(r, data) {
-			t.Fatalf("incorrect value: %v, expected: %v", r, data)
+		if !reflect.DeepEqual(r, record) {
+			t.Fatalf("incorrect value: %v, expected: %v", r, record)
 		}
 	}
 }

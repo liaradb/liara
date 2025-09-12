@@ -28,34 +28,34 @@ func (l *Log) Open(f file.File) {
 	l.rb = bytes.NewBuffer(nil)
 }
 
-func (l *Log) Iterate() iter.Seq2[[]byte, error] {
+func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 	_, _ = l.f.Seek(0, 0)
 	// b := make([]byte, l.pageSize)
-	return func(yield func([]byte, error) bool) {
+	return func(yield func(*LogRecord, error) bool) {
 		// var c CRC
 		// if err := c.Read(l.f); err != nil {
 		// 	yield(nil, err)
 		// 	return
 		// }
 
-		// lr := &LogRecord{}
-		// if err := lr.Read(l.f); err != nil {
-		// 	yield(nil, err)
-		// 	return
-		// }
-
-		ld := &LogData{}
-		err := ld.Read(l.f)
-		if err != nil {
+		lr := &LogRecord{}
+		if err := lr.Read(l.f); err != nil {
 			yield(nil, err)
 			return
 		}
+
+		// ld := &LogData{}
+		// err := ld.Read(l.f)
+		// if err != nil {
+		// 	yield(nil, err)
+		// 	return
+		// }
 		// if n < int(l.pageSize) {
 		// 	for i := n; i < int(l.pageSize); i++ {
 		// 		b[i] = 0
 		// 	}
 		// }
-		if !yield(ld.Bytes(), nil) {
+		if !yield(lr, nil) {
 			return
 		}
 	}
@@ -65,22 +65,22 @@ func (l *Log) reset() {
 	l.buffer.Reset(l.f)
 }
 
-func (l *Log) AppendRecord(lr *LogRecord) (LogSequenceNumber, error) {
+func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
 	l.rb.Reset()
 	if err := lr.Write(l.rb); err != nil {
 		return 0, err
 	}
 
-	crc := NewCRC(l.rb.Bytes())
-	if err := crc.Write(l.rb); err != nil {
-		return 0, err
-	}
+	// crc := NewCRC(l.rb.Bytes())
+	// if err := crc.Write(l.rb); err != nil {
+	// 	return 0, err
+	// }
 
-	return l.Append(l.rb.Bytes())
+	return l.append(l.rb.Bytes())
 }
 
-func (l *Log) Append(data []byte) (LogSequenceNumber, error) {
-	if err := NewLogData(data).Write(l.f); err != nil {
+func (l *Log) append(data []byte) (LogSequenceNumber, error) {
+	if _, err := l.f.Write(data); err != nil {
 		l.reset()
 		return 0, err
 	}
