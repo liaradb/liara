@@ -1,14 +1,14 @@
 package log
 
 import (
-	"bufio"
-	"bytes"
 	"io"
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestLogSequenceNumber(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	var lsn LogSequenceNumber = 123456
 	if err := lsn.Write(w); err != nil {
@@ -27,10 +27,4 @@ func TestLogSequenceNumber(t *testing.T) {
 	if lsn != lsn2 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn2, lsn)
 	}
-}
-
-func createReaderWriter() (*bufio.Reader, *bufio.Writer) {
-	buffer := bytes.NewBuffer(nil)
-	return bufio.NewReader(buffer),
-		bufio.NewWriter(buffer)
 }

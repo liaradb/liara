@@ -3,10 +3,12 @@ package log
 import (
 	"io"
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestLogPageIDTest(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	var lpid LogPageID = 123456
 	if err := lpid.Write(w); err != nil {

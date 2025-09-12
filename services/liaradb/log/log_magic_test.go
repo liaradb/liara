@@ -3,10 +3,12 @@ package log
 import (
 	"io"
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestLogMagic(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	var l LogMagic = LogMagicPage
 	if err := l.Write(w); err != nil {

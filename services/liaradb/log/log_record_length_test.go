@@ -3,10 +3,12 @@ package log
 import (
 	"io"
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestLogRecordLength(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	var lrl LogRecordLength = NewLogRecordLength([]byte{1, 2, 3, 4, 5})
 	if err := lrl.Write(w); err != nil {

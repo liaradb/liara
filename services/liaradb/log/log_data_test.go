@@ -2,10 +2,12 @@ package log
 
 import (
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestLogData(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	want := "abcde"
 	ld := NewLogData([]byte(want))

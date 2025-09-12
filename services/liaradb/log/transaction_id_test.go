@@ -3,10 +3,12 @@ package log
 import (
 	"io"
 	"testing"
+
+	"github.com/cardboardrobots/assert"
 )
 
 func TestTransactionID(t *testing.T) {
-	r, w := createReaderWriter()
+	r, w := assert.NewReaderWriter()
 
 	var tid TransactionID = 123456
 	if err := tid.Write(w); err != nil {
