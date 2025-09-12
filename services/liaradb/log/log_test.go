@@ -9,7 +9,8 @@ import (
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
-var record = newLogRecord(1, 2, data, data)
+var reverse = []byte{6, 7, 8, 9, 10, 11}
+var record = newLogRecord(1, 2, data, reverse)
 
 func TestLog_Default(t *testing.T) {
 	t.Parallel()

@@ -3,7 +3,6 @@ package log
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
 	"iter"
 
 	"github.com/liaradb/liaradb/file"
@@ -32,11 +31,17 @@ func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 	_, _ = l.f.Seek(0, 0)
 	// b := make([]byte, l.pageSize)
 	return func(yield func(*LogRecord, error) bool) {
-		// var c CRC
-		// if err := c.Read(l.f); err != nil {
-		// 	yield(nil, err)
-		// 	return
-		// }
+		var c CRC
+		if err := c.Read(l.f); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		lrl := LogRecordLength(0)
+		if err := lrl.Read(l.f); err != nil {
+			yield(nil, err)
+			return
+		}
 
 		lr := &LogRecord{}
 		if err := lr.Read(l.f); err != nil {
@@ -71,43 +76,30 @@ func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
 		return 0, err
 	}
 
-	// crc := NewCRC(l.rb.Bytes())
-	// if err := crc.Write(l.rb); err != nil {
-	// 	return 0, err
-	// }
-
 	return l.append(l.rb.Bytes())
 }
 
 func (l *Log) append(data []byte) (LogSequenceNumber, error) {
-	if _, err := l.f.Write(data); err != nil {
+	crc := NewCRC(l.rb.Bytes())
+	if err := crc.Write(l.f); err != nil {
+		return 0, err
+	}
+
+	if err := NewLogRecordLength(data).Write(l.f); err != nil {
 		l.reset()
 		return 0, err
 	}
 
+	// TODO: Do we need to verify write lengths?
+	if n, err := l.f.Write(data); err != nil {
+		l.reset()
+		return 0, err
+	} else if n != len(data) {
+		return 0, raw.ErrOverflow
+	}
+
 	l.highWater++
 	return l.highWater, nil
-}
-
-func (l *Log) write(data []byte) error {
-	if err := l.writeSize(data); err != nil {
-		return err
-	}
-
-	return l.writeData(data)
-}
-
-func (l *Log) writeSize(data []byte) error {
-	return binary.Write(l.buffer, binary.BigEndian, uint32(len(data)))
-}
-
-func (l *Log) writeData(data []byte) error {
-	n, err := l.buffer.Write(data)
-	if n != len(data) {
-		return raw.ErrOverflow
-	}
-
-	return err
 }
 
 func (l *Log) Flush(lsn LogSequenceNumber) error {
