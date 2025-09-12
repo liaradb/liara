@@ -93,7 +93,7 @@ func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 			header: LogRecordHeader{
 				dataLength: LogRecordLength(size),
 			},
-			data: data,
+			data: LogData{data},
 		}, nil) {
 			return
 		}

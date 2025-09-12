@@ -10,6 +10,7 @@ type LogData struct {
 }
 
 func (ld *LogData) Bytes() []byte { return ld.data }
+func (ld *LogData) Length() int   { return len(ld.data) }
 
 func (ld *LogData) Write(w io.Writer) error {
 	if err := binary.Write(w, binary.BigEndian, uint32(len(ld.data))); err != nil {
