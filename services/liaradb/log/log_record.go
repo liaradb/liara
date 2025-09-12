@@ -7,9 +7,10 @@ import (
 )
 
 type LogRecord struct {
-	header  LogRecordHeader
-	data    LogData
-	reverse LogData
+	logSequenceNumber LogSequenceNumber
+	transactionID     TransactionID
+	data              LogData
+	reverse           LogData
 }
 
 func newLogRecord(
@@ -19,25 +20,26 @@ func newLogRecord(
 	reverse []byte,
 ) *LogRecord {
 	return &LogRecord{
-		header: LogRecordHeader{
-			logSequenceNumber: lsn,
-			transactionID:     tid,
-		},
-		data:    LogData{data},
-		reverse: LogData{reverse},
+		logSequenceNumber: lsn,
+		transactionID:     tid,
+		data:              LogData{data},
+		reverse:           LogData{reverse},
 	}
 }
 
-func (lr *LogRecord) LogSequenceNumber() LogSequenceNumber { return lr.header.LogSequenceNumber() }
-func (lr *LogRecord) TransactionID() TransactionID         { return lr.header.TransactionID() }
+func (lr *LogRecord) LogSequenceNumber() LogSequenceNumber { return lr.logSequenceNumber }
+func (lr *LogRecord) TransactionID() TransactionID         { return lr.transactionID }
 func (lr *LogRecord) Data() []byte                         { return lr.data.Bytes() }
 func (lr *LogRecord) Reverse() []byte                      { return lr.reverse.Bytes() }
 
 func (lr *LogRecord) Write(w io.Writer) error {
-	if err := lr.header.Write(w); err != nil {
+	if err := lr.logSequenceNumber.Write(w); err != nil {
 		return err
 	}
 
+	if err := lr.transactionID.Write(w); err != nil {
+		return err
+	}
 	if err := lr.data.Write(w); err != nil {
 		return err
 	}
@@ -50,7 +52,11 @@ func (lr *LogRecord) Write(w io.Writer) error {
 }
 
 func (lr *LogRecord) Read(r io.Reader) error {
-	if err := lr.header.Read(r); err != nil {
+	if err := lr.logSequenceNumber.Read(r); err != nil {
+		return err
+	}
+
+	if err := lr.transactionID.Read(r); err != nil {
 		return err
 	}
 

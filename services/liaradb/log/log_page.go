@@ -90,9 +90,6 @@ func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 		}
 
 		if !yield(&LogRecord{
-			header: LogRecordHeader{
-				dataLength: LogRecordLength(size),
-			},
 			data: LogData{data},
 		}, nil) {
 			return
