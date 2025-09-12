@@ -9,6 +9,12 @@ type LogData struct {
 	data []byte
 }
 
+func NewLogData(data []byte) *LogData {
+	return &LogData{
+		data: data,
+	}
+}
+
 func (ld *LogData) Bytes() []byte { return ld.data }
 func (ld *LogData) Length() int   { return len(ld.data) }
 
