@@ -48,7 +48,7 @@ func (m *mockFile) Stat() (os.FileInfo, error) {
 
 // TODO: Test this
 func (m *mockFile) Read(b []byte) (n int, err error) {
-	return m.WriteAt(b, m.position)
+	return m.ReadAt(b, m.position)
 }
 
 func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {

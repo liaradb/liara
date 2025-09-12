@@ -2,6 +2,7 @@ package log
 
 import (
 	"path"
+	"reflect"
 	"testing"
 
 	"github.com/liaradb/liaradb/mock"
@@ -97,6 +98,15 @@ func TestLog_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
+	for r, err := range l.Iterate() {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(r, data) {
+			t.Fatalf("incorrect value: %v, expected: %v", r, data)
+		}
+	}
 }
 
 func createLog(t *testing.T) *Log {
