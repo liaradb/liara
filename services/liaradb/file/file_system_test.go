@@ -43,3 +43,55 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
 	}
 }
+
+func TestFileSystem_CloseFile(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should close", func(t *testing.T) {
+		t.Parallel()
+
+		p := path.Join(t.TempDir(), "file")
+		fs := &FileSystem{}
+		if f, err := fs.Open(p); err != nil {
+			t.Error(err)
+		} else if f == nil {
+			t.Error("file should not be nil")
+		}
+
+		if err := fs.CloseFile(p); err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("Should noop if file not opened", func(t *testing.T) {
+		t.Parallel()
+
+		fs := &FileSystem{}
+
+		if err := fs.CloseFile("other"); err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("should return error if already closed", func(t *testing.T) {
+		t.Parallel()
+
+		p := path.Join(t.TempDir(), "file")
+		fs := &FileSystem{}
+
+		f, err := fs.Open(p)
+		if err != nil {
+			t.Error(err)
+		} else if f == nil {
+			t.Error("file should not be nil")
+		}
+
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := fs.CloseFile(p); err == nil {
+			t.Error("should return error")
+		}
+	})
+}
