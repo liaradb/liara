@@ -3,7 +3,6 @@ package log
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"io"
 	"iter"
 )
@@ -33,10 +32,6 @@ import (
 const (
 	BlockSize   uint64 = 1024
 	SegmentSize uint64 = 1024
-)
-
-var (
-	ErrNotPage = errors.New("not page")
 )
 
 type LogPage struct {

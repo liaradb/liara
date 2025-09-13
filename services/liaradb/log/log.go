@@ -30,21 +30,15 @@ func (l *Log) Open(f file.File) {
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 	_, _ = l.f.Seek(0, 0)
 	// b := make([]byte, l.pageSize)
+	r := bufio.NewReader(l.f)
 	return func(yield func(*LogRecord, error) bool) {
-		var c CRC
-		if err := c.Read(l.f); err != nil {
-			yield(nil, err)
-			return
-		}
-
-		lrl := LogRecordLength(0)
-		if err := lrl.Read(l.f); err != nil {
+		if err := l.validateCRC(r); err != nil {
 			yield(nil, err)
 			return
 		}
 
 		lr := &LogRecord{}
-		if err := lr.Read(l.f); err != nil {
+		if err := lr.Read(r); err != nil {
 			yield(nil, err)
 			return
 		}
@@ -64,6 +58,29 @@ func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 			return
 		}
 	}
+}
+
+func (*Log) validateCRC(r *bufio.Reader) error {
+	var c CRC
+	if err := c.Read(r); err != nil {
+		return err
+	}
+
+	lrl := LogRecordLength(0)
+	if err := lrl.Read(r); err != nil {
+		return err
+	}
+
+	d, err := r.Peek(int(lrl))
+	if err != nil {
+		return err
+	}
+
+	if !c.Compare(d) {
+		return ErrInvalidCRC
+	}
+
+	return nil
 }
 
 func (l *Log) reset() {
