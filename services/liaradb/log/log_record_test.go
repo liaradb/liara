@@ -11,7 +11,7 @@ import (
 func TestLogRecord(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
-	now := time.Now()
+	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -27,7 +27,7 @@ func TestLogRecord(t *testing.T) {
 func TestLogRecord_Write(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
-	now := time.Now()
+	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -59,7 +59,7 @@ func TestLogRecord_Time(t *testing.T) {
 	r, w := assert.NewReaderWriter()
 
 	lr := LogRecord{
-		time: time.Now()}
+		time: time.UnixMicro(1234567890)}
 	if err := lr.writeTime(w); err != nil {
 		t.Fatal(err)
 	}
