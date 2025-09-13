@@ -35,20 +35,31 @@ func (l *Log) IteratePages() iter.Seq2[[]byte, error] {
 
 	return func(yield func([]byte, error) bool) {
 		for {
-			n, err := io.ReadFull(l.f, buffer)
-			if n == 0 {
-				return
-			}
-			if err != nil && err != io.EOF {
-				yield(nil, err)
+			err := l.readPage(buffer)
+			if err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
 				return
 			}
 
-			if !yield(buffer, nil) || err == io.EOF {
+			if !yield(buffer, nil) {
 				return
 			}
 		}
 	}
+}
+
+func (l *Log) readPage(buf []byte) error {
+	n, err := l.f.Read(buf)
+	if err != nil {
+		return err
+	}
+	if n != len(buf) {
+		clear(buf[n:])
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
@@ -152,6 +163,17 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 
 	l.highWater++
 	return l.highWater, nil
+}
+
+func (l *Log) appendPage(lp *LogPage) error {
+	n, err := l.f.Write(lp.Data)
+	if err != nil {
+		return err
+	}
+	if n < int(l.pageSize) {
+		return io.ErrShortWrite
+	}
+	return nil
 }
 
 func (l *Log) Flush(lsn LogSequenceNumber) error {

@@ -119,21 +119,16 @@ func TestLog_Iterate(t *testing.T) {
 }
 
 func TestLog_IteratePages(t *testing.T) {
-	t.Skip()
 	t.Parallel()
 
 	l := createLog(t)
-	_, err := l.Append(record)
+	err := l.appendPage(NewLogPage(l.pageSize))
 	if err != nil {
 		t.Error(err)
 	}
 
-	lsn2, err := l.Append(record)
+	err = l.appendPage(NewLogPage(l.pageSize))
 	if err != nil {
-		t.Error(err)
-	}
-
-	if err := l.Flush(lsn2); err != nil {
 		t.Error(err)
 	}
 

@@ -43,6 +43,12 @@ type LogPage struct {
 	Reader          *bytes.Reader
 }
 
+func NewLogPage(size int64) *LogPage {
+	return &LogPage{
+		Data: make([]byte, size),
+	}
+}
+
 func (lp *LogPage) Parse(data []byte) error {
 	lp.Data = data
 	lp.initReader()
