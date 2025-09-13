@@ -37,6 +37,7 @@ const (
 type LogPage struct {
 	Magic           LogMagic
 	ID              LogPageID
+	TimeLineID      TimeLineID
 	LengthRemaining int
 	Positions       []uint32
 	Data            []byte
