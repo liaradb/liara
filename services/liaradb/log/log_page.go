@@ -38,22 +38,28 @@ type LogPage struct {
 	magic           LogMagic
 	id              LogPageID
 	timeLineID      TimeLineID
-	lengthRemaining int
+	lengthRemaining LogRecordLength
 	positions       []uint32
 	data            []byte
 	reader          *bytes.Reader
 }
 
-func NewLogPage(size int64) *LogPage {
+func NewLogPage(
+	size int64,
+	id LogPageID,
+	timeLineID TimeLineID,
+) *LogPage {
 	return &LogPage{
-		data: make([]byte, size),
+		id:         id,
+		timeLineID: timeLineID,
+		data:       make([]byte, size),
 	}
 }
 
-func (lp *LogPage) ID() LogPageID          { return lp.id }
-func (lp *LogPage) TimeLineID() TimeLineID { return lp.timeLineID }
-func (lp *LogPage) LengthRemaining() int   { return lp.lengthRemaining }
-func (lp *LogPage) Data() []byte           { return lp.data }
+func (lp *LogPage) ID() LogPageID                    { return lp.id }
+func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
+func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
+func (lp *LogPage) Data() []byte                     { return lp.data }
 
 func (lp *LogPage) Parse(data []byte) error {
 	lp.data = data
@@ -102,4 +108,36 @@ func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 			return
 		}
 	}
+}
+
+func (lp *LogPage) Write(w io.Writer) error {
+	if err := LogMagicPage.Write(w); err != nil {
+		return err
+	}
+
+	if err := lp.id.Write(w); err != nil {
+		return err
+	}
+
+	if err := lp.timeLineID.Write(w); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (lp *LogPage) Read(r io.Reader) error {
+	if err := LogMagicPage.ReadIsPage(r); err != nil {
+		return err
+	}
+
+	if err := lp.id.Read(r); err != nil {
+		return err
+	}
+
+	if err := lp.timeLineID.Read(r); err != nil {
+		return err
+	}
+
+	return nil
 }

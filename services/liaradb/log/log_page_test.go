@@ -1,0 +1,32 @@
+package log
+
+import (
+	"testing"
+
+	"github.com/cardboardrobots/assert"
+)
+
+func TestLogPage(t *testing.T) {
+	lpid := LogPageID(1)
+	tlid := TimeLineID(2)
+
+	lp := NewLogPage(256, lpid, tlid)
+
+	r, w := assert.NewReaderWriter()
+
+	if err := lp.Write(w); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.Flush(); err != nil {
+		t.Fatal(err)
+	}
+
+	lp2 := &LogPage{}
+	if err := lp2.Read(r); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Getter(t, lp2.ID, lpid, "ID")
+	assert.Getter(t, lp2.TimeLineID, tlid, "TimeLineID")
+}

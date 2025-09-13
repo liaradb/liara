@@ -122,12 +122,12 @@ func TestLog_IteratePages(t *testing.T) {
 	t.Parallel()
 
 	l := createLog(t)
-	err := l.appendPage(NewLogPage(l.pageSize))
+	err := l.appendPage(NewLogPage(l.pageSize, 1, 2))
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = l.appendPage(NewLogPage(l.pageSize))
+	err = l.appendPage(NewLogPage(l.pageSize, 1, 2))
 	if err != nil {
 		t.Error(err)
 	}
