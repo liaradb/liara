@@ -3,6 +3,8 @@ package log
 import (
 	"bufio"
 	"bytes"
+	"fmt"
+	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/file"
@@ -32,30 +34,37 @@ func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 	// b := make([]byte, l.pageSize)
 	r := bufio.NewReader(l.f)
 	return func(yield func(*LogRecord, error) bool) {
-		if err := l.validateCRC(r); err != nil {
-			yield(nil, err)
-			return
-		}
+		for {
+			buffered := r.Buffered()
+			fmt.Println(buffered)
+			if err := l.validateCRC(r); err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
+				return
+			}
 
-		lr := &LogRecord{}
-		if err := lr.Read(r); err != nil {
-			yield(nil, err)
-			return
-		}
+			lr := &LogRecord{}
+			err := lr.Read(r)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
 
-		// ld := &LogData{}
-		// err := ld.Read(l.f)
-		// if err != nil {
-		// 	yield(nil, err)
-		// 	return
-		// }
-		// if n < int(l.pageSize) {
-		// 	for i := n; i < int(l.pageSize); i++ {
-		// 		b[i] = 0
-		// 	}
-		// }
-		if !yield(lr, nil) {
-			return
+			// ld := &LogData{}
+			// err := ld.Read(l.f)
+			// if err != nil {
+			// 	yield(nil, err)
+			// 	return
+			// }
+			// if n < int(l.pageSize) {
+			// 	for i := n; i < int(l.pageSize); i++ {
+			// 		b[i] = 0
+			// 	}
+			// }
+			if !yield(lr, nil) || err == io.EOF {
+				return
+			}
 		}
 	}
 }
@@ -69,6 +78,10 @@ func (*Log) validateCRC(r *bufio.Reader) error {
 	lrl := LogRecordLength(0)
 	if err := lrl.Read(r); err != nil {
 		return err
+	}
+
+	if lrl == 0 {
+		return io.EOF
 	}
 
 	d, err := r.Peek(int(lrl))

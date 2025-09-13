@@ -100,7 +100,9 @@ func TestLog_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
+	count := 0
 	for r, err := range l.Iterate() {
+		count++
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -109,6 +111,10 @@ func TestLog_Iterate(t *testing.T) {
 			t.Fatalf("incorrect value: %v, expected: %v", r, record)
 		}
 	}
+
+	if count != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	}
 }
 
 func createLog(t *testing.T) *Log {
@@ -116,7 +122,9 @@ func createLog(t *testing.T) *Log {
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 
-	l := &Log{}
+	l := &Log{
+		pageSize: 256,
+	}
 	l.Open(f)
 
 	return l
