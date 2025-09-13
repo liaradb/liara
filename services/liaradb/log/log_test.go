@@ -1,17 +1,17 @@
 package log
 
 import (
-	"fmt"
 	"path"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/liaradb/liaradb/file"
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
 var reverse = []byte{6, 7, 8, 9, 10, 11}
-var record = newLogRecord(1, 2, data, reverse)
+var record = newLogRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
 func TestLog_Default(t *testing.T) {
 	t.Parallel()
@@ -109,7 +109,7 @@ func TestLog_Iterate(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(r, record) {
-			t.Fatalf("incorrect value: %v, expected: %v", r, record)
+			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", r, record)
 		}
 	}
 
@@ -133,13 +133,11 @@ func TestLog_IteratePages(t *testing.T) {
 	}
 
 	count := 0
-	for r, err := range l.IteratePages() {
+	for _, err := range l.IteratePages() {
 		count++
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		fmt.Println(r)
 	}
 
 	if count != 2 {
