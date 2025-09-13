@@ -59,12 +59,14 @@ func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
 			Err:  errors.New("negative offset")}
 	}
 
-	m.adjustSize(b, off)
+	if m.adjustSize(b, off) {
+		err = io.EOF
+	}
 
 	n = copy(b, m.data[off:])
 	m.position = off + int64(len(b))
 
-	return n, nil
+	return
 }
 
 // TODO: Test this
@@ -87,13 +89,15 @@ func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
 	return copy(m.data[off:int(off)+len(b)], b), nil
 }
 
-func (m *mockFile) adjustSize(b []byte, off int64) {
+func (m *mockFile) adjustSize(b []byte, off int64) bool {
 	l := int(off) + len(b)
 	g := l - len(m.data)
 	if g > 0 {
 		m.data = slices.Grow(m.data, g)
 		m.data = m.data[0:l]
+		return true
 	}
+	return false
 }
 
 func (m *mockFile) Seek(offxset int64, whence int) (int64, error) {

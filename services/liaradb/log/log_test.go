@@ -1,11 +1,12 @@
 package log
 
 import (
+	"fmt"
 	"path"
 	"reflect"
 	"testing"
 
-	"github.com/liaradb/liaradb/mock"
+	"github.com/liaradb/liaradb/file"
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
@@ -117,11 +118,46 @@ func TestLog_Iterate(t *testing.T) {
 	}
 }
 
+func TestLog_IteratePages(t *testing.T) {
+	t.Skip()
+	t.Parallel()
+
+	l := createLog(t)
+	_, err := l.Append(record)
+	if err != nil {
+		t.Error(err)
+	}
+
+	lsn2, err := l.Append(record)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := l.Flush(lsn2); err != nil {
+		t.Error(err)
+	}
+
+	count := 0
+	for r, err := range l.IteratePages() {
+		count++
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		fmt.Println(r)
+	}
+
+	if count != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	}
+}
+
 func createLog(t *testing.T) *Log {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
-
+	// f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	fs := &file.FileSystem{}
+	f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 	l := &Log{
 		pageSize: 256,
 	}
