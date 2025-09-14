@@ -128,7 +128,7 @@ func (*Log) validateCRC(r *bufio.Reader) error {
 }
 
 func (l *Log) reset() {
-	l.buffer.Reset(l.f)
+	// l.buffer.Reset(l.f)
 }
 
 func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
@@ -184,10 +184,6 @@ func (l *Log) appendPage(lp *LogPage) error {
 }
 
 func (l *Log) Flush(lsn LogSequenceNumber) error {
-	if err := l.buffer.Flush(); err != nil {
-		return err
-	}
-
 	lsn = min(lsn, l.highWater)
 	l.lowWater = lsn
 	return nil
