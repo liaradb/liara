@@ -51,17 +51,13 @@ type LogPage struct {
 
 func NewLogPage(
 	size int64,
-	id LogPageID,
-	timeLineID TimeLineID,
 ) *LogPage {
 	writer := bytes.NewBuffer(make([]byte, 0, size))
 	return &LogPage{
-		size:       size,
-		id:         id,
-		timeLineID: timeLineID,
-		data:       make([]byte, size),
-		writer:     writer,
-		writeBuf:   bufio.NewWriter(writer),
+		size:     size,
+		data:     make([]byte, size),
+		writer:   writer,
+		writeBuf: bufio.NewWriter(writer),
 	}
 }
 
@@ -72,6 +68,11 @@ func (lp *LogPage) Data() []byte {
 	clear(lp.data)
 	copy(lp.data, lp.writer.Bytes())
 	return lp.data
+}
+
+func (lp *LogPage) Init(id LogPageID, timeLineID TimeLineID) {
+	lp.id = id
+	lp.timeLineID = timeLineID
 }
 
 func (lp *LogPage) reset() {

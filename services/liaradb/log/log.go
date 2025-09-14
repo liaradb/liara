@@ -17,6 +17,7 @@ type Log struct {
 	lowWater  LogSequenceNumber
 	f         file.File
 	recordBuf *bytes.Buffer
+	page      *LogPage
 }
 
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
@@ -25,6 +26,7 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 func (l *Log) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
+	l.page = NewLogPage(l.pageSize)
 }
 
 func (l *Log) IteratePages() iter.Seq2[[]byte, error] {

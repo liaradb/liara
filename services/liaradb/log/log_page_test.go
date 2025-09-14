@@ -10,7 +10,8 @@ func TestLogPage(t *testing.T) {
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
 
-	lp := NewLogPage(256, lpid, tlid)
+	lp := NewLogPage(256)
+	lp.Init(lpid, tlid)
 
 	r, w := assert.NewReaderWriter()
 
@@ -36,7 +37,8 @@ func TestLogPage_Append(t *testing.T) {
 
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
-	lp := NewLogPage(256, lpid, tlid)
+	lp := NewLogPage(256)
+	lp.Init(lpid, tlid)
 
 	data := []byte{1, 2, 3, 4, 5, 6}
 	crc := NewCRC(data)
