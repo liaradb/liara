@@ -16,8 +16,7 @@ type Log struct {
 	highWater LogSequenceNumber
 	lowWater  LogSequenceNumber
 	f         file.File
-	buffer    *bufio.Writer
-	rb        *bytes.Buffer
+	recordBuf *bytes.Buffer
 }
 
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
@@ -25,8 +24,7 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 
 func (l *Log) Open(f file.File) {
 	l.f = f
-	l.buffer = bufio.NewWriter(f)
-	l.rb = bytes.NewBuffer(nil)
+	l.recordBuf = bytes.NewBuffer(nil)
 }
 
 func (l *Log) IteratePages() iter.Seq2[[]byte, error] {
@@ -134,16 +132,25 @@ func (l *Log) reset() {
 }
 
 func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
-	l.rb.Reset()
-	if err := lr.Write(l.rb); err != nil {
+	data, err := l.recordToBytes(lr)
+	if err != nil {
 		return 0, err
 	}
 
-	return l.append(l.rb.Bytes())
+	return l.append(data)
+}
+
+func (l *Log) recordToBytes(lr *LogRecord) ([]byte, error) {
+	l.recordBuf.Reset()
+	if err := lr.Write(l.recordBuf); err != nil {
+		return nil, err
+	}
+
+	return l.recordBuf.Bytes(), nil
 }
 
 func (l *Log) append(data []byte) (LogSequenceNumber, error) {
-	crc := NewCRC(l.rb.Bytes())
+	crc := NewCRC(data)
 	if err := crc.Write(l.f); err != nil {
 		return 0, err
 	}
