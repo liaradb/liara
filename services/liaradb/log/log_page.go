@@ -33,8 +33,9 @@ import (
 // - lastLSN
 
 const (
-	BlockSize   uint64 = 1024
-	SegmentSize uint64 = 1024
+	BlockSize     = 1024
+	SegmentSize   = 1024
+	RowHeaderSize = 4 + 4
 )
 
 type LogPage struct {
@@ -80,38 +81,51 @@ func (lp *LogPage) reset() {
 }
 
 func (lp *LogPage) Append(crc CRC, data []byte) error {
-	if 4+4+len(data) > lp.available() {
-		return ErrInsufficientSpace
-	}
-
-	if err := crc.Write(lp.writeBuf); err != nil {
-		lp.reset()
+	if err := lp.canInsert(data); err != nil {
 		return err
 	}
 
-	if err := NewLogRecordLength(data).Write(lp.writeBuf); err != nil {
+	if err := lp.insert(crc, data); err != nil {
 		lp.reset()
 		return err
-	}
-
-	// TODO: Do we need to verify write lengths?
-	if n, err := lp.writeBuf.Write(data); err != nil {
-		lp.reset()
-		return err
-	} else if n != len(data) {
-		lp.reset()
-		return raw.ErrOverflow
-	}
-
-	if err := lp.writeBuf.Flush(); err != nil {
-		lp.reset()
 	}
 
 	return nil
 }
 
+func (lp *LogPage) canInsert(data []byte) error {
+	if lp.recordSize(data) > lp.available() {
+		return ErrInsufficientSpace
+	}
+
+	return nil
+}
+
+func (*LogPage) recordSize(data []byte) int {
+	return RowHeaderSize + len(data)
+}
+
 func (lp *LogPage) available() int {
 	return int(lp.size) - lp.writer.Len()
+}
+
+func (lp *LogPage) insert(crc CRC, data []byte) error {
+	if err := crc.Write(lp.writeBuf); err != nil {
+		return err
+	}
+
+	if err := NewLogRecordLength(data).Write(lp.writeBuf); err != nil {
+		return err
+	}
+
+	// TODO: Do we need to verify write lengths?
+	if n, err := lp.writeBuf.Write(data); err != nil {
+		return err
+	} else if n != len(data) {
+		return raw.ErrOverflow
+	}
+
+	return lp.writeBuf.Flush()
 }
 
 func (lp *LogPage) Parse(data []byte) error {
