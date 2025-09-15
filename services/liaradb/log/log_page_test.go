@@ -1,8 +1,10 @@
 package log
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/cardboardrobots/assert"
 )
@@ -41,7 +43,11 @@ func TestLogPage_Append(t *testing.T) {
 	lp := NewLogPage(256)
 	lp.Init(lpid, tlid)
 
-	data := []byte{1, 2, 3, 4, 5, 6}
+	lr, data, err := createRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	crc := NewCRC(data)
 
 	if err := lp.Append(crc, data); err != nil {
@@ -77,7 +83,7 @@ func TestLogPage_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(r, data) {
+		if !reflect.DeepEqual(r, lr) {
 			t.Error("data does not match")
 		}
 	}
@@ -85,4 +91,25 @@ func TestLogPage_Append(t *testing.T) {
 	if count != 2 {
 		t.Errorf("incorrect count: %v, expected: %v", count, 2)
 	}
+}
+
+func createRecord() (*LogRecord, []byte, error) {
+	lsn := LogSequenceNumber(1)
+	tid := TransactionID(2)
+	now := time.UnixMicro(1234567890)
+	data := []byte("abcde")
+	reverse := []byte("fghij")
+
+	lr := newLogRecord(lsn, tid, now, data, reverse)
+	data, err := recordToBytes(lr)
+	return lr, data, err
+}
+
+func recordToBytes(lr *LogRecord) ([]byte, error) {
+	recordBuf := bytes.NewBuffer(nil)
+	if err := lr.Write(recordBuf); err != nil {
+		return nil, err
+	}
+
+	return recordBuf.Bytes(), nil
 }

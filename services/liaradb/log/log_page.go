@@ -197,13 +197,14 @@ func (lp *LogPage) checkMagic() error {
 	return nil
 }
 
-func (lp *LogPage) Records() iter.Seq2[[]byte, error] {
+func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 	r := bufio.NewReader(lp.reader)
-	return func(yield func([]byte, error) bool) {
+	lr := &LogRecord{}
+
+	return func(yield func(*LogRecord, error) bool) {
 		for {
-			var lrl LogRecordLength
 			var err error
-			if lrl, err = lp.validateCRC(r); err != nil {
+			if err = lp.validateCRC(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -211,45 +212,43 @@ func (lp *LogPage) Records() iter.Seq2[[]byte, error] {
 			}
 
 			// TODO: Use a buffer
-			data := make([]byte, lrl)
-
-			if _, err := r.Read(data); err != nil {
+			if err := lr.Read(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			if !yield(data, nil) {
+			if !yield(lr, nil) {
 				return
 			}
 		}
 	}
 }
 
-func (*LogPage) validateCRC(r *bufio.Reader) (LogRecordLength, error) {
+func (*LogPage) validateCRC(r *bufio.Reader) error {
 	var c CRC
 	if err := c.Read(r); err != nil {
-		return 0, err
+		return err
 	}
 
 	lrl := LogRecordLength(0)
 	if err := lrl.Read(r); err != nil {
-		return 0, err
+		return err
 	}
 
 	if lrl == 0 {
-		return 0, io.EOF
+		return io.EOF
 	}
 
 	d, err := r.Peek(int(lrl))
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	if !c.Compare(d) {
-		return 0, ErrInvalidCRC
+		return ErrInvalidCRC
 	}
 
-	return lrl, nil
+	return nil
 }

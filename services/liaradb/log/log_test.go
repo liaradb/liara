@@ -123,7 +123,11 @@ func TestLog_IteratePages(t *testing.T) {
 
 	l := createLog(t)
 
-	data := []byte{1, 2, 3, 4, 5, 6}
+	lr, data, err := createRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	crc := NewCRC(data)
 
 	lp := NewLogPage(l.pageSize)
@@ -163,7 +167,7 @@ func TestLog_IteratePages(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(r, data) {
+		if !reflect.DeepEqual(r, lr) {
 			t.Error("data does not match")
 		}
 	}
