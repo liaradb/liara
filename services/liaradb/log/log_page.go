@@ -66,7 +66,7 @@ func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
 func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
 
 func (lp *LogPage) Position() int64 {
-	return int64(lp.id) * lp.size
+	return int64(lp.id) * (lp.size + PageHeaderSize)
 }
 
 // TODO: This is slow

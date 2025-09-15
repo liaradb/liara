@@ -87,9 +87,14 @@ func TestLog_Iterate(t *testing.T) {
 	t.Parallel()
 
 	l := createLog(t)
-	_, err := l.Append(record)
-	if err != nil {
-		t.Error(err)
+
+	count := 10
+
+	for range count - 1 {
+		_, err := l.Append(record)
+		if err != nil {
+			t.Error(err)
+		}
 	}
 
 	lsn2, err := l.Append(record)
@@ -101,9 +106,13 @@ func TestLog_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
-	count := 0
+	if p := l.PageIndex(); p != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 2)
+	}
+
+	c := 0
 	for r, err := range l.Iterate() {
-		count++
+		c++
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -113,8 +122,8 @@ func TestLog_Iterate(t *testing.T) {
 		}
 	}
 
-	if count != 2 {
-		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	if c != count {
+		t.Errorf("incorrect count: %v, expected: %v", c, count)
 	}
 }
 
@@ -123,6 +132,7 @@ func TestLog_IteratePages(t *testing.T) {
 	t.Parallel()
 
 	l := createLog(t)
+	count := 4
 
 	lr, data, err := createRecord()
 	if err != nil {
@@ -161,9 +171,13 @@ func TestLog_IteratePages(t *testing.T) {
 		t.Error(err)
 	}
 
-	count := 0
+	if p := l.PageIndex(); p != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 2)
+	}
+
+	c := 0
 	for r, err := range l.Iterate() {
-		count++
+		c++
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -173,8 +187,8 @@ func TestLog_IteratePages(t *testing.T) {
 		}
 	}
 
-	if count != 4 {
-		t.Errorf("incorrect count: %v, expected: %v", count, 4)
+	if c != count {
+		t.Errorf("incorrect count: %v, expected: %v", c, count)
 	}
 }
 

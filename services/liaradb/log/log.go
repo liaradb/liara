@@ -10,6 +10,7 @@ import (
 
 type Log struct {
 	pageSize  int64
+	pageIndex LogPageID
 	highWater LogSequenceNumber
 	lowWater  LogSequenceNumber
 	f         file.File
@@ -17,6 +18,7 @@ type Log struct {
 	page      *LogPage
 }
 
+func (l *Log) PageIndex() LogPageID         { return l.pageIndex }
 func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 
@@ -72,6 +74,7 @@ func (l *Log) recordToBytes(lr *LogRecord) ([]byte, error) {
 }
 
 func (l *Log) appendPage(lp *LogPage) error {
+	l.pageIndex++
 	return lp.Write(l.f)
 }
 
@@ -102,7 +105,9 @@ func (l *Log) AppendOrNext(crc CRC, data []byte) error {
 			return err
 		}
 
+		l.pageIndex++
 		l.page = NewLogPage(l.pageSize)
+		l.page.id = l.pageIndex
 		return l.page.Append(crc, data)
 	}
 
