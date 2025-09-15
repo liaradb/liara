@@ -122,30 +122,54 @@ func TestLog_IteratePages(t *testing.T) {
 	t.Parallel()
 
 	l := createLog(t)
+
+	data := []byte{1, 2, 3, 4, 5, 6}
+	crc := NewCRC(data)
+
 	lp := NewLogPage(l.pageSize)
 	lp.Init(1, 2)
-	err := l.appendPage(lp)
-	if err != nil {
+
+	if err := lp.Append(crc, data); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := lp.Append(crc, data); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := l.appendPage(lp); err != nil {
 		t.Error(err)
 	}
 
 	lp = NewLogPage(l.pageSize)
 	lp.Init(1, 2)
-	err = l.appendPage(lp)
-	if err != nil {
+
+	if err := lp.Append(crc, data); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := lp.Append(crc, data); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := l.appendPage(lp); err != nil {
 		t.Error(err)
 	}
 
 	count := 0
-	for _, err := range l.IteratePages() {
+	for r, err := range l.IteratePages() {
 		count++
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		if !reflect.DeepEqual(r, data) {
+			t.Error("data does not match")
+		}
 	}
 
-	if count != 2 {
-		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	if count != 4 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 4)
 	}
 }
 
