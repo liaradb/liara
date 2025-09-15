@@ -118,6 +118,7 @@ func TestLog_Iterate(t *testing.T) {
 	}
 }
 
+// TODO: Change to use public API
 func TestLog_IteratePages(t *testing.T) {
 	t.Parallel()
 
@@ -161,7 +162,7 @@ func TestLog_IteratePages(t *testing.T) {
 	}
 
 	count := 0
-	for r, err := range l.IteratePages() {
+	for r, err := range l.Iterate() {
 		count++
 		if err != nil {
 			t.Fatal(err)

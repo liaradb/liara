@@ -65,6 +65,10 @@ func (lp *LogPage) ID() LogPageID                    { return lp.id }
 func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
 func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
 
+func (lp *LogPage) Position() int64 {
+	return int64(lp.id) * lp.size
+}
+
 // TODO: This is slow
 func (lp *LogPage) Data() []byte {
 	clear(lp.data)
@@ -124,6 +128,17 @@ func (lp *LogPage) insert(crc CRC, data []byte) error {
 
 	// TODO: If this fails, should we reset?
 	return lp.writeBuf.Flush()
+}
+
+func (lp *LogPage) Flush(w interface {
+	io.Writer
+	io.Seeker
+}) error {
+	if _, err := w.Seek(lp.Position(), io.SeekStart); err != nil {
+		return err
+	}
+
+	return lp.Write(w)
 }
 
 func (lp *LogPage) Write(w io.Writer) error {
