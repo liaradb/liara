@@ -48,7 +48,7 @@ type LogPage struct {
 	writeBuf        *bufio.Writer
 }
 
-func NewLogPage(
+func newLogPage(
 	size int64,
 ) *LogPage {
 	body := size - PageHeaderSize
@@ -76,7 +76,7 @@ func (lp *LogPage) Data() []byte {
 	return lp.data
 }
 
-func (lp *LogPage) Init(id LogPageID, timeLineID TimeLineID) {
+func (lp *LogPage) init(id LogPageID, timeLineID TimeLineID) {
 	lp.id = id
 	lp.timeLineID = timeLineID
 }
@@ -85,7 +85,7 @@ func (lp *LogPage) reset() {
 	lp.writeBuf.Reset(lp.writer)
 }
 
-func (lp *LogPage) Append(crc CRC, data []byte) error {
+func (lp *LogPage) append(crc CRC, data []byte) error {
 	if !lp.canInsert(data) {
 		return ErrInsufficientSpace
 	}

@@ -13,8 +13,8 @@ func TestLogPage(t *testing.T) {
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
 
-	lp := NewLogPage(256)
-	lp.Init(lpid, tlid)
+	lp := newLogPage(256)
+	lp.init(lpid, tlid)
 
 	r, w := assert.NewReaderWriter()
 
@@ -40,8 +40,8 @@ func TestLogPage_Append(t *testing.T) {
 
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
-	lp := NewLogPage(256)
-	lp.Init(lpid, tlid)
+	lp := newLogPage(256)
+	lp.init(lpid, tlid)
 
 	lr, data, err := createRecord()
 	if err != nil {
@@ -50,11 +50,11 @@ func TestLogPage_Append(t *testing.T) {
 
 	crc := NewCRC(data)
 
-	if err := lp.Append(crc, data); err != nil {
+	if err := lp.append(crc, data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := lp.Append(crc, data); err != nil {
+	if err := lp.append(crc, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -66,7 +66,7 @@ func TestLogPage_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := NewLogPage(256)
+	lp2 := newLogPage(256)
 	if err := lp2.Read(r); err != nil {
 		t.Fatal(err)
 	}

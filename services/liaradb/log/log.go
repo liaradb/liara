@@ -25,12 +25,12 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 func (l *Log) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
-	l.page = NewLogPage(l.pageSize)
+	l.page = newLogPage(l.pageSize)
 }
 
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 	_, _ = l.f.Seek(0, 0)
-	lp := NewLogPage(l.pageSize)
+	lp := newLogPage(l.pageSize)
 
 	return func(yield func(*LogRecord, error) bool) {
 		for {
@@ -93,7 +93,7 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 }
 
 func (l *Log) AppendOrNext(crc CRC, data []byte) error {
-	err := l.page.Append(crc, data)
+	err := l.page.append(crc, data)
 	if err == nil {
 		return nil
 	}
@@ -106,9 +106,9 @@ func (l *Log) AppendOrNext(crc CRC, data []byte) error {
 		}
 
 		l.pageIndex++
-		l.page = NewLogPage(l.pageSize)
+		l.page = newLogPage(l.pageSize)
 		l.page.id = l.pageIndex
-		return l.page.Append(crc, data)
+		return l.page.append(crc, data)
 	}
 
 	return err
