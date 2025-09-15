@@ -29,21 +29,20 @@ func (l *Log) Open(f file.File) {
 	l.page = NewLogPage(l.pageSize)
 }
 
-func (l *Log) IteratePages() iter.Seq2[[]byte, error] {
+func (l *Log) IteratePages() iter.Seq2[*LogPage, error] {
 	_, _ = l.f.Seek(0, 0)
-	buffer := make([]byte, l.pageSize)
+	lp := NewLogPage(l.pageSize)
 
-	return func(yield func([]byte, error) bool) {
+	return func(yield func(*LogPage, error) bool) {
 		for {
-			err := l.readPage(buffer)
-			if err != nil {
+			if err := lp.Read(l.f); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			if !yield(buffer, nil) {
+			if !yield(lp, nil) {
 				return
 			}
 		}

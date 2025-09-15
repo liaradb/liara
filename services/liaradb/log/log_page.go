@@ -210,6 +210,7 @@ func (lp *LogPage) Records() iter.Seq2[[]byte, error] {
 				return
 			}
 
+			// TODO: Use a buffer
 			data := make([]byte, lrl)
 
 			if _, err := r.Read(data); err != nil {

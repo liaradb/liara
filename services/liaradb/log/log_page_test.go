@@ -1,6 +1,7 @@
 package log
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/cardboardrobots/assert"
@@ -70,10 +71,14 @@ func TestLogPage_Append(t *testing.T) {
 	assert.EqualsArray(t, lp.data, lp2.data, "data")
 
 	count := 0
-	for _, err := range lp2.Records() {
+	for r, err := range lp2.Records() {
 		count++
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(r, data) {
+			t.Error("data does not match")
 		}
 	}
 
