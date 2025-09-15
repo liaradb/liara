@@ -47,6 +47,10 @@ func TestLogPage_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := lp.Append(crc, data); err != nil {
+		t.Fatal(err)
+	}
+
 	if err := lp.Write(w); err != nil {
 		t.Fatal(err)
 	}
@@ -55,11 +59,25 @@ func TestLogPage_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := &LogPage{}
+	lp2 := NewLogPage(256)
 	if err := lp2.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
 	assert.Getter(t, lp2.ID, lpid, "ID")
 	assert.Getter(t, lp2.TimeLineID, tlid, "TimeLineID")
+	// TODO: This is not using the public API
+	assert.EqualsArray(t, lp.data, lp2.data, "data")
+
+	count := 0
+	for _, err := range lp2.Records() {
+		count++
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if count != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	}
 }

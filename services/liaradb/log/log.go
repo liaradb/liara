@@ -175,14 +175,7 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 }
 
 func (l *Log) appendPage(lp *LogPage) error {
-	n, err := l.f.Write(lp.Data())
-	if err != nil {
-		return err
-	}
-	if n < int(l.pageSize) {
-		return io.ErrShortWrite
-	}
-	return nil
+	return lp.Write(l.f)
 }
 
 func (l *Log) Flush(lsn LogSequenceNumber) error {
