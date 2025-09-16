@@ -59,7 +59,7 @@ func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
 			Err:  errors.New("negative offset")}
 	}
 
-	if m.remaining(b, off) {
+	if m.endOfFile(b, off) {
 		err = io.EOF
 	}
 
@@ -89,7 +89,7 @@ func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
 	return copy(m.data[off:int(off)+len(b)], b), nil
 }
 
-func (m *mockFile) remaining(b []byte, off int64) bool {
+func (m *mockFile) endOfFile(b []byte, off int64) bool {
 	l := int(off) + len(b)
 	g := l - len(m.data)
 	return g > 0
