@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"io"
 	"time"
-
-	"github.com/liaradb/liaradb/raw"
 )
 
 type LogRecord struct {
@@ -84,24 +82,6 @@ func (lr *LogRecord) Read(r io.Reader) error {
 	}
 
 	return nil
-}
-
-func (lr *LogRecord) Value() []byte {
-	data := make([]byte, lr.Length())
-	return data
-}
-
-func (lr *LogRecord) Length() raw.Offset {
-	// [LogRecord.LogSequenceNumber]
-	return raw.Uint64Length +
-		// [LogRecord.TransactionID]
-		raw.Uint64Length +
-		// [LogRecord.Length]
-		raw.Uint32Length +
-		// [LogRecord.Data]
-		raw.Offset(lr.data.Length()) +
-		// [LogRecord.Reverse]
-		raw.Offset(lr.reverse.Length())
 }
 
 func (lr *LogRecord) writeTime(w io.Writer) error {
