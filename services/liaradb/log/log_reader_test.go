@@ -58,15 +58,6 @@ func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
-	l := &LogWriter{
-		pageSize: 256,
-	}
-	l.Open(f)
 
-	lr := &LogReader{
-		pageSize: 256,
-	}
-	lr.Open(f)
-
-	return lr, l
+	return NewLogReader(256, f), NewLogWriter(256, f)
 }

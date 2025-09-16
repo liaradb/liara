@@ -12,8 +12,11 @@ type LogReader struct {
 	f        file.File
 }
 
-func (l *LogReader) Open(f file.File) {
-	l.f = f
+func NewLogReader(pageSize int64, f file.File) *LogReader {
+	return &LogReader{
+		pageSize: pageSize,
+		f:        f,
+	}
 }
 
 func (l *LogReader) Iterate() iter.Seq2[*LogRecord, error] {

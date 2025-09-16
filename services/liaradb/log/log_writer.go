@@ -24,15 +24,18 @@ type LogWriter struct {
 	page       *LogPageWriter
 }
 
+func NewLogWriter(pageSize int64, f file.File) *LogWriter {
+	return &LogWriter{
+		pageSize:  pageSize,
+		f:         f,
+		recordBuf: bytes.NewBuffer(nil),
+		page:      newLogPageWriter(pageSize),
+	}
+}
+
 func (l *LogWriter) PageIndex() LogPageID         { return l.pageIndex }
 func (l *LogWriter) HighWater() LogSequenceNumber { return l.highWater }
 func (l *LogWriter) LowWater() LogSequenceNumber  { return l.lowWater }
-
-func (l *LogWriter) Open(f file.File) {
-	l.f = f
-	l.recordBuf = bytes.NewBuffer(nil)
-	l.page = newLogPageWriter(l.pageSize)
-}
 
 func (l *LogWriter) Append(lr *LogRecord) (LogSequenceNumber, error) {
 	data, err := l.recordToBytes(lr)

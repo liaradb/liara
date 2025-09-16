@@ -88,12 +88,8 @@ func createLogWriter(t *testing.T) *LogWriter {
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
-	l := &LogWriter{
-		pageSize: 256,
-	}
-	l.Open(f)
 
-	return l
+	return NewLogWriter(256, f)
 }
 
 func testPosition(t *testing.T, l *LogWriter, lw, hw LogSequenceNumber) {
