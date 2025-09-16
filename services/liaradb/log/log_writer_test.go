@@ -80,6 +80,34 @@ func TestLogWriter_Flush(t *testing.T) {
 
 		testPosition(t, l, 2, 2)
 	})
+
+	t.Run("should write to multiple pages", func(t *testing.T) {
+		t.Parallel()
+
+		l := createLogWriter(t)
+
+		count := 10
+
+		for range count - 1 {
+			_, err := l.Append(record)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+
+		lsn2, err := l.Append(record)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := l.Flush(lsn2); err != nil {
+			t.Error(err)
+		}
+
+		if p := l.PageIndex(); p != 2 {
+			t.Errorf("incorrect value: %v, expected: %v", p, 2)
+		}
+	})
 }
 
 func createLogWriter(t *testing.T) *LogWriter {

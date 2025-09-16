@@ -31,10 +31,6 @@ func TestLogReader_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
-	if p := l.PageIndex(); p != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 2)
-	}
-
 	c := 0
 	for r, err := range lr.Iterate() {
 		c++
