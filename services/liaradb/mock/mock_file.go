@@ -59,7 +59,7 @@ func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
 			Err:  errors.New("negative offset")}
 	}
 
-	if m.adjustSize(b, off) {
+	if m.remaining(b, off) {
 		err = io.EOF
 	}
 
@@ -87,6 +87,12 @@ func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
 	m.position = off + int64(len(b))
 
 	return copy(m.data[off:int(off)+len(b)], b), nil
+}
+
+func (m *mockFile) remaining(b []byte, off int64) bool {
+	l := int(off) + len(b)
+	g := l - len(m.data)
+	return g > 0
 }
 
 func (m *mockFile) adjustSize(b []byte, off int64) bool {

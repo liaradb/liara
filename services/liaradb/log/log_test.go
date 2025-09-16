@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/mock"
 )
 
 var data = []byte{0, 1, 2, 3, 4, 5}
@@ -130,9 +130,9 @@ func TestLog_Iterate(t *testing.T) {
 func createLog(t *testing.T) *Log {
 	t.Helper()
 
-	// f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
-	fs := &file.FileSystem{}
-	f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	// fs := &file.FileSystem{}
+	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 	l := &Log{
 		pageSize: 256,
 	}
