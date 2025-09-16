@@ -24,6 +24,7 @@ type Log struct {
 	f          file.File
 	recordBuf  *bytes.Buffer
 	page       *LogPage
+	lpReader   *LogPageReader
 }
 
 func (l *Log) PageIndex() LogPageID         { return l.pageIndex }
@@ -34,6 +35,7 @@ func (l *Log) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
 	l.page = newLogPage(l.pageSize)
+	l.lpReader = newLogPageReader(l.pageSize)
 }
 
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
@@ -41,23 +43,21 @@ func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 }
 
 func (l *Log) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
-	lp := newLogPage(l.pageSize)
-	// TODO: What is the correct TimeLineID?
-	lp.init(pid, l.timeLineID)
-	if err := lp.Seek(l.f); err != nil {
+	lpr := newLogPageReader(l.pageSize)
+	if err := lpr.Seek(l.f, pid); err != nil {
 		return errorIterator[*LogRecord](err)
 	}
 
 	return func(yield func(*LogRecord, error) bool) {
 		for {
-			if err := lp.Read(l.f); err != nil {
+			if _, err := lpr.Read(l.f); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			for lr, err := range lp.Records() {
+			for lr, err := range lpr.Records() {
 				if err != nil {
 					yield(nil, err)
 					return

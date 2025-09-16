@@ -24,6 +24,16 @@ func newLogPageReader(
 	}
 }
 
+func (lp *LogPageReader) Seek(w io.WriteSeeker, pid LogPageID) error {
+	_, err := w.Seek(lp.position(pid, lp.size), io.SeekStart)
+	return err
+}
+
+// TODO: Should we store this on the header struct?
+func (lp *LogPageReader) position(pid LogPageID, size int64) int64 {
+	return int64(pid) * (size + PageHeaderSize)
+}
+
 func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {
 	if err := lp.page.Read(r); err != nil {
 		return nil, err
