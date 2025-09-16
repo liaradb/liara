@@ -11,7 +11,7 @@ import (
 const (
 	BlockSize        = 1024
 	SegmentSize      = 1024
-	PageHeaderSize   = 4 + 8 + 4
+	PageHeaderSize   = 4 + 8 + 4 + 4
 	RecordHeaderSize = 4 + 4
 )
 
@@ -117,7 +117,7 @@ func (l *Log) AppendOrNext(crc CRC, data []byte) error {
 
 		l.pageIndex++
 		l.page = newLogPageWriter(l.pageSize)
-		l.page.init(l.pageIndex, l.timeLineID)
+		l.page.init(l.pageIndex, l.timeLineID, 0)
 		return l.page.append(crc, data)
 	}
 
@@ -133,11 +133,4 @@ func (l *Log) Flush(lsn LogSequenceNumber) error {
 	lsn = min(lsn, l.highWater)
 	l.lowWater = lsn
 	return nil
-}
-
-func errorIterator[T any](err error) iter.Seq2[T, error] {
-	return func(yield func(T, error) bool) {
-		var v T
-		yield(v, err)
-	}
 }

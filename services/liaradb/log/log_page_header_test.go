@@ -40,5 +40,5 @@ func testLogPageHeader(
 	t.Helper()
 	assert.Getter(t, lph.ID, lpid, "ID")
 	assert.Getter(t, lph.TimeLineID, tlid, "TimeLineID")
-	// assert.Getter(t, lph.LengthRemaining, rem, "LengthRemaining")
+	assert.Getter(t, lph.LengthRemaining, rem, "LengthRemaining")
 }

@@ -11,7 +11,7 @@ import (
 
 func TestLogPageWriter(t *testing.T) {
 	r, w := assert.NewReaderWriter()
-	lpid, tlid, lp := createPage()
+	lpid, tlid, rem, lp := createPage()
 
 	if err := lp.Write(w); err != nil {
 		t.Fatal(err)
@@ -21,18 +21,18 @@ func TestLogPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := &LogPageWriter{}
-	if err := lp2.Read(r); err != nil {
+	lpr := newLogPageReader(256)
+	p, err := lpr.Read(r)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Getter(t, lp2.ID, lpid, "ID")
-	assert.Getter(t, lp2.TimeLineID, tlid, "TimeLineID")
+	testLogPageHeader(t, p, lpid, tlid, rem)
 }
 
 func TestLogPageWriter_Append(t *testing.T) {
 	r, w := assert.NewReaderWriter()
-	lpid, tlid, lp := createPage()
+	lpid, tlid, rem, lp := createPage()
 
 	lr, data, err := createRecord()
 	if err != nil {
@@ -57,18 +57,16 @@ func TestLogPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := newLogPageWriter(256)
-	if err := lp2.Read(r); err != nil {
+	lpr := newLogPageReader(256)
+	p, err := lpr.Read(r)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	assert.Getter(t, lp2.ID, lpid, "ID")
-	assert.Getter(t, lp2.TimeLineID, tlid, "TimeLineID")
-	// TODO: This is not using the public API
-	assert.EqualsArray(t, lp.data, lp2.data, "data")
+	testLogPageHeader(t, p, lpid, tlid, rem)
 
 	count := 0
-	for r, err := range lp2.Records() {
+	for r, err := range lpr.Records() {
 		count++
 		if err != nil {
 			t.Fatal(err)
@@ -84,14 +82,15 @@ func TestLogPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (LogPageID, TimeLineID, *LogPageWriter) {
+func createPage() (LogPageID, TimeLineID, LogRecordLength, *LogPageWriter) {
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
+	rem := LogRecordLength(3)
 
 	lp := createEmptyPage()
-	lp.init(lpid, tlid)
+	lp.init(lpid, tlid, rem)
 
-	return lpid, tlid, lp
+	return lpid, tlid, rem, lp
 }
 
 func createEmptyPage() *LogPageWriter {
