@@ -37,8 +37,16 @@ func (l *Log) Open(f file.File) {
 }
 
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
-	_, _ = l.f.Seek(0, 0)
+	return l.IterateFrom(0)
+}
+
+func (l *Log) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 	lp := newLogPage(l.pageSize)
+	// TODO: What is the correct TimeLineID?
+	lp.init(pid, l.timeLineID)
+	if err := lp.Seek(l.f); err != nil {
+		return errorIterator[*LogRecord](err)
+	}
 
 	return func(yield func(*LogRecord, error) bool) {
 		for {
@@ -126,4 +134,11 @@ func (l *Log) Flush(lsn LogSequenceNumber) error {
 	lsn = min(lsn, l.highWater)
 	l.lowWater = lsn
 	return nil
+}
+
+func errorIterator[T any](err error) iter.Seq2[T, error] {
+	return func(yield func(T, error) bool) {
+		var v T
+		yield(v, err)
+	}
 }

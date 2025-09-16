@@ -100,11 +100,16 @@ func (lp *LogPage) Flush(w interface {
 	io.Writer
 	io.Seeker
 }) error {
-	if _, err := w.Seek(lp.position(), io.SeekStart); err != nil {
+	if err := lp.Seek(w); err != nil {
 		return err
 	}
 
 	return lp.Write(w)
+}
+
+func (lp *LogPage) Seek(w io.WriteSeeker) error {
+	_, err := w.Seek(lp.position(), io.SeekStart)
+	return err
 }
 
 func (lp *LogPage) position() int64 {
