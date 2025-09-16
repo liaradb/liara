@@ -23,8 +23,7 @@ type Log struct {
 	lowWater   LogSequenceNumber
 	f          file.File
 	recordBuf  *bytes.Buffer
-	page       *LogPage
-	lpReader   *LogPageReader
+	page       *LogPageWriter
 }
 
 func (l *Log) PageIndex() LogPageID         { return l.pageIndex }
@@ -34,8 +33,7 @@ func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
 func (l *Log) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
-	l.page = newLogPage(l.pageSize)
-	l.lpReader = newLogPageReader(l.pageSize)
+	l.page = newLogPageWriter(l.pageSize)
 }
 
 func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
@@ -43,12 +41,13 @@ func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
 }
 
 func (l *Log) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
-	lpr := newLogPageReader(l.pageSize)
-	if err := lpr.Seek(l.f, pid); err != nil {
-		return errorIterator[*LogRecord](err)
-	}
-
 	return func(yield func(*LogRecord, error) bool) {
+		lpr := newLogPageReader(l.pageSize)
+		if err := lpr.Seek(l.f, pid); err != nil {
+			yield(nil, err)
+			return
+		}
+
 		for {
 			if _, err := lpr.Read(l.f); err != nil {
 				if err != io.EOF {
@@ -117,7 +116,7 @@ func (l *Log) AppendOrNext(crc CRC, data []byte) error {
 		}
 
 		l.pageIndex++
-		l.page = newLogPage(l.pageSize)
+		l.page = newLogPageWriter(l.pageSize)
 		l.page.init(l.pageIndex, l.timeLineID)
 		return l.page.append(crc, data)
 	}

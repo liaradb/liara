@@ -19,7 +19,7 @@ func TestLogPageReader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := &LogPage{}
+	lp2 := &LogPageWriter{}
 	if err := lp2.Read(r); err != nil {
 		t.Fatal(err)
 	}

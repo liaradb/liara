@@ -7,7 +7,7 @@ import (
 	"iter"
 )
 
-type LogPage struct {
+type LogPageWriter struct {
 	size            int64
 	id              LogPageID
 	timeLineID      TimeLineID
@@ -18,12 +18,12 @@ type LogPage struct {
 	writeBuf        *bufio.Writer
 }
 
-func newLogPage(
+func newLogPageWriter(
 	size int64,
-) *LogPage {
+) *LogPageWriter {
 	body := size - PageHeaderSize
 	writer := bytes.NewBuffer(make([]byte, 0, body))
-	return &LogPage{
+	return &LogPageWriter{
 		size:     body,
 		data:     make([]byte, body),
 		writer:   writer,
@@ -31,23 +31,23 @@ func newLogPage(
 	}
 }
 
-func (lp *LogPage) ID() LogPageID                    { return lp.id }
-func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
-func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
+func (lp *LogPageWriter) ID() LogPageID                    { return lp.id }
+func (lp *LogPageWriter) TimeLineID() TimeLineID           { return lp.timeLineID }
+func (lp *LogPageWriter) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
 
 // TODO: This is slow
-func (lp *LogPage) Data() []byte {
+func (lp *LogPageWriter) Data() []byte {
 	clear(lp.data)
 	copy(lp.data, lp.writer.Bytes())
 	return lp.data
 }
 
-func (lp *LogPage) init(id LogPageID, timeLineID TimeLineID) {
+func (lp *LogPageWriter) init(id LogPageID, timeLineID TimeLineID) {
 	lp.id = id
 	lp.timeLineID = timeLineID
 }
 
-func (lp *LogPage) append(crc CRC, data []byte) error {
+func (lp *LogPageWriter) append(crc CRC, data []byte) error {
 	if !lp.canInsert(data) {
 		return ErrInsufficientSpace
 	}
@@ -60,23 +60,23 @@ func (lp *LogPage) append(crc CRC, data []byte) error {
 	return nil
 }
 
-func (lp *LogPage) reset() {
+func (lp *LogPageWriter) reset() {
 	lp.writeBuf.Reset(lp.writer)
 }
 
-func (lp *LogPage) canInsert(data []byte) bool {
+func (lp *LogPageWriter) canInsert(data []byte) bool {
 	return lp.recordSize(data) <= lp.available()
 }
 
-func (*LogPage) recordSize(data []byte) int {
+func (*LogPageWriter) recordSize(data []byte) int {
 	return RecordHeaderSize + len(data)
 }
 
-func (lp *LogPage) available() int {
+func (lp *LogPageWriter) available() int {
 	return int(lp.size) - lp.writer.Len()
 }
 
-func (lp *LogPage) insert(crc CRC, data []byte) error {
+func (lp *LogPageWriter) insert(crc CRC, data []byte) error {
 	if err := crc.Write(lp.writeBuf); err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (lp *LogPage) insert(crc CRC, data []byte) error {
 	return lp.writeBuf.Flush()
 }
 
-func (lp *LogPage) Flush(w interface {
+func (lp *LogPageWriter) Flush(w interface {
 	io.Writer
 	io.Seeker
 }) error {
@@ -107,16 +107,16 @@ func (lp *LogPage) Flush(w interface {
 	return lp.Write(w)
 }
 
-func (lp *LogPage) Seek(w io.WriteSeeker) error {
+func (lp *LogPageWriter) Seek(w io.WriteSeeker) error {
 	_, err := w.Seek(lp.position(), io.SeekStart)
 	return err
 }
 
-func (lp *LogPage) position() int64 {
+func (lp *LogPageWriter) position() int64 {
 	return int64(lp.id) * (lp.size + PageHeaderSize)
 }
 
-func (lp *LogPage) Write(w io.Writer) error {
+func (lp *LogPageWriter) Write(w io.Writer) error {
 	if err := LogMagicPage.Write(w); err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (lp *LogPage) Write(w io.Writer) error {
 	return nil
 }
 
-func (lp *LogPage) Read(r io.Reader) error {
+func (lp *LogPageWriter) Read(r io.Reader) error {
 	if err := LogMagicPage.ReadIsPage(r); err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func (lp *LogPage) Read(r io.Reader) error {
 	return nil
 }
 
-func (lp *LogPage) initReader() {
+func (lp *LogPageWriter) initReader() {
 	if lp.reader == nil {
 		lp.reader = bytes.NewReader(lp.data)
 	} else {
@@ -170,7 +170,7 @@ func (lp *LogPage) initReader() {
 	}
 }
 
-func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
+func (lp *LogPageWriter) Records() iter.Seq2[*LogRecord, error] {
 	r := bufio.NewReader(lp.reader)
 	lr := &LogRecord{}
 
@@ -199,7 +199,7 @@ func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {
 	}
 }
 
-func (*LogPage) validateCRC(r *bufio.Reader) error {
+func (*LogPageWriter) validateCRC(r *bufio.Reader) error {
 	var c CRC
 	if err := c.Read(r); err != nil {
 		return err

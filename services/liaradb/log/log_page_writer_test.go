@@ -9,7 +9,7 @@ import (
 	"github.com/cardboardrobots/assert"
 )
 
-func TestLogPage(t *testing.T) {
+func TestLogPageWriter(t *testing.T) {
 	r, w := assert.NewReaderWriter()
 	lpid, tlid, lp := createPage()
 
@@ -21,7 +21,7 @@ func TestLogPage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := &LogPage{}
+	lp2 := &LogPageWriter{}
 	if err := lp2.Read(r); err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +30,7 @@ func TestLogPage(t *testing.T) {
 	assert.Getter(t, lp2.TimeLineID, tlid, "TimeLineID")
 }
 
-func TestLogPage_Append(t *testing.T) {
+func TestLogPageWriter_Append(t *testing.T) {
 	r, w := assert.NewReaderWriter()
 	lpid, tlid, lp := createPage()
 
@@ -57,7 +57,7 @@ func TestLogPage_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lp2 := newLogPage(256)
+	lp2 := newLogPageWriter(256)
 	if err := lp2.Read(r); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestLogPage_Append(t *testing.T) {
 	}
 }
 
-func createPage() (LogPageID, TimeLineID, *LogPage) {
+func createPage() (LogPageID, TimeLineID, *LogPageWriter) {
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
 
@@ -94,8 +94,8 @@ func createPage() (LogPageID, TimeLineID, *LogPage) {
 	return lpid, tlid, lp
 }
 
-func createEmptyPage() *LogPage {
-	return newLogPage(256)
+func createEmptyPage() *LogPageWriter {
+	return newLogPageWriter(256)
 }
 
 func createRecord() (*LogRecord, []byte, error) {
