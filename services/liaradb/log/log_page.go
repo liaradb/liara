@@ -7,38 +7,8 @@ import (
 	"iter"
 )
 
-// # Log Records
-//
-// ## Common to all
-// - prevLSN
-// - transID
-// - type
-//
-// ## Update records
-// - pageID
-// - length
-// - offset
-// - beforeImage
-// - afterImage
-//
-// # Transaction table
-// - pageID
-// - recLSN
-//
-// # Dirty page table
-// - transID
-// - lastLSN
-
-const (
-	BlockSize        = 1024
-	SegmentSize      = 1024
-	PageHeaderSize   = 4 + 8 + 4
-	RecordHeaderSize = 4 + 4
-)
-
 type LogPage struct {
 	size            int64
-	magic           LogMagic
 	id              LogPageID
 	timeLineID      TimeLineID
 	lengthRemaining LogRecordLength
@@ -65,7 +35,7 @@ func (lp *LogPage) ID() LogPageID                    { return lp.id }
 func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
 func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
 
-func (lp *LogPage) Position() int64 {
+func (lp *LogPage) position() int64 {
 	return int64(lp.id) * (lp.size + PageHeaderSize)
 }
 
@@ -134,7 +104,7 @@ func (lp *LogPage) Flush(w interface {
 	io.Writer
 	io.Seeker
 }) error {
-	if _, err := w.Seek(lp.Position(), io.SeekStart); err != nil {
+	if _, err := w.Seek(lp.position(), io.SeekStart); err != nil {
 		return err
 	}
 
@@ -182,34 +152,17 @@ func (lp *LogPage) Read(r io.Reader) error {
 		return err
 	}
 
-	lp.initReader(lp.data)
+	lp.initReader()
 
 	return nil
 }
 
-func (lp *LogPage) Parse(data []byte) error {
-	lp.initReader(data)
-	return lp.checkMagic()
-}
-
-func (lp *LogPage) initReader(data []byte) {
+func (lp *LogPage) initReader() {
 	if lp.reader == nil {
-		lp.reader = bytes.NewReader(data)
+		lp.reader = bytes.NewReader(lp.data)
 	} else {
-		lp.reader.Reset(data)
+		lp.reader.Reset(lp.data)
 	}
-}
-
-func (lp *LogPage) checkMagic() error {
-	if err := lp.magic.Read(lp.reader); err != nil && err != io.EOF {
-		return err
-	}
-
-	if lp.magic != LogMagicPage {
-		return ErrNotPage
-	}
-
-	return nil
 }
 
 func (lp *LogPage) Records() iter.Seq2[*LogRecord, error] {

@@ -8,6 +8,13 @@ import (
 	"github.com/liaradb/liaradb/file"
 )
 
+const (
+	BlockSize        = 1024
+	SegmentSize      = 1024
+	PageHeaderSize   = 4 + 8 + 4
+	RecordHeaderSize = 4 + 4
+)
+
 type Log struct {
 	pageSize  int64
 	pageIndex LogPageID
@@ -71,11 +78,6 @@ func (l *Log) recordToBytes(lr *LogRecord) ([]byte, error) {
 	}
 
 	return l.recordBuf.Bytes(), nil
-}
-
-func (l *Log) appendPage(lp *LogPage) error {
-	l.pageIndex++
-	return lp.Write(l.f)
 }
 
 func (l *Log) append(data []byte) (LogSequenceNumber, error) {
