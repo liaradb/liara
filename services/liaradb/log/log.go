@@ -94,7 +94,7 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 		return 0, err
 	}
 
-	if err := l.AppendOrNext(crc, data); err != nil {
+	if err := l.appendOrNext(crc, data); err != nil {
 		return 0, err
 	}
 
@@ -102,7 +102,7 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 	return l.highWater, nil
 }
 
-func (l *Log) AppendOrNext(crc CRC, data []byte) error {
+func (l *Log) appendOrNext(crc CRC, data []byte) error {
 	err := l.page.append(crc, data)
 	if err == nil {
 		return nil

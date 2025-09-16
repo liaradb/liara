@@ -40,6 +40,7 @@ func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {
 	}
 
 	// TODO: Do we need to verify read length?
+	// TODO: Should we make a new slice?
 	if _, err := r.Read(lp.data); err != nil {
 		return nil, err
 	}
