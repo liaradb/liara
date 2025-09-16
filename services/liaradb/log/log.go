@@ -2,8 +2,6 @@ package log
 
 import (
 	"bytes"
-	"io"
-	"iter"
 
 	"github.com/liaradb/liaradb/file"
 )
@@ -34,40 +32,6 @@ func (l *Log) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
 	l.page = newLogPageWriter(l.pageSize)
-}
-
-func (l *Log) Iterate() iter.Seq2[*LogRecord, error] {
-	return l.IterateFrom(0)
-}
-
-func (l *Log) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
-	return func(yield func(*LogRecord, error) bool) {
-		lpr := newLogPageReader(l.pageSize)
-		if err := lpr.Seek(l.f, pid); err != nil {
-			yield(nil, err)
-			return
-		}
-
-		for {
-			if _, err := lpr.Read(l.f); err != nil {
-				if err != io.EOF {
-					yield(nil, err)
-				}
-				return
-			}
-
-			for lr, err := range lpr.Records() {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				if !yield(lr, nil) {
-					return
-				}
-			}
-		}
-	}
 }
 
 func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
@@ -116,6 +80,7 @@ func (l *Log) appendOrNext(crc CRC, data []byte) error {
 		}
 
 		l.pageIndex++
+		// TODO: Don't replace LogPageWriter
 		l.page = newLogPageWriter(l.pageSize)
 		l.page.init(l.pageIndex, l.timeLineID, 0)
 		return l.page.append(crc, data)
