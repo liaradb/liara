@@ -16,13 +16,14 @@ const (
 )
 
 type Log struct {
-	pageSize  int64
-	pageIndex LogPageID
-	highWater LogSequenceNumber
-	lowWater  LogSequenceNumber
-	f         file.File
-	recordBuf *bytes.Buffer
-	page      *LogPage
+	pageSize   int64
+	pageIndex  LogPageID
+	timeLineID TimeLineID
+	highWater  LogSequenceNumber
+	lowWater   LogSequenceNumber
+	f          file.File
+	recordBuf  *bytes.Buffer
+	page       *LogPage
 }
 
 func (l *Log) PageIndex() LogPageID         { return l.pageIndex }
@@ -109,7 +110,7 @@ func (l *Log) AppendOrNext(crc CRC, data []byte) error {
 
 		l.pageIndex++
 		l.page = newLogPage(l.pageSize)
-		l.page.id = l.pageIndex
+		l.page.init(l.pageIndex, l.timeLineID)
 		return l.page.append(crc, data)
 	}
 

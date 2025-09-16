@@ -35,10 +35,6 @@ func (lp *LogPage) ID() LogPageID                    { return lp.id }
 func (lp *LogPage) TimeLineID() TimeLineID           { return lp.timeLineID }
 func (lp *LogPage) LengthRemaining() LogRecordLength { return lp.lengthRemaining }
 
-func (lp *LogPage) position() int64 {
-	return int64(lp.id) * (lp.size + PageHeaderSize)
-}
-
 // TODO: This is slow
 func (lp *LogPage) Data() []byte {
 	clear(lp.data)
@@ -49,10 +45,6 @@ func (lp *LogPage) Data() []byte {
 func (lp *LogPage) init(id LogPageID, timeLineID TimeLineID) {
 	lp.id = id
 	lp.timeLineID = timeLineID
-}
-
-func (lp *LogPage) reset() {
-	lp.writeBuf.Reset(lp.writer)
 }
 
 func (lp *LogPage) append(crc CRC, data []byte) error {
@@ -66,6 +58,10 @@ func (lp *LogPage) append(crc CRC, data []byte) error {
 	}
 
 	return nil
+}
+
+func (lp *LogPage) reset() {
+	lp.writeBuf.Reset(lp.writer)
 }
 
 func (lp *LogPage) canInsert(data []byte) bool {
@@ -109,6 +105,10 @@ func (lp *LogPage) Flush(w interface {
 	}
 
 	return lp.Write(w)
+}
+
+func (lp *LogPage) position() int64 {
+	return int64(lp.id) * (lp.size + PageHeaderSize)
 }
 
 func (lp *LogPage) Write(w io.Writer) error {

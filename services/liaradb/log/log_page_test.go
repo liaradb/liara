@@ -10,13 +10,8 @@ import (
 )
 
 func TestLogPage(t *testing.T) {
-	lpid := LogPageID(1)
-	tlid := TimeLineID(2)
-
-	lp := newLogPage(256)
-	lp.init(lpid, tlid)
-
 	r, w := assert.NewReaderWriter()
+	lpid, tlid, lp := createPage()
 
 	if err := lp.Write(w); err != nil {
 		t.Fatal(err)
@@ -37,11 +32,7 @@ func TestLogPage(t *testing.T) {
 
 func TestLogPage_Append(t *testing.T) {
 	r, w := assert.NewReaderWriter()
-
-	lpid := LogPageID(1)
-	tlid := TimeLineID(2)
-	lp := newLogPage(256)
-	lp.init(lpid, tlid)
+	lpid, tlid, lp := createPage()
 
 	lr, data, err := createRecord()
 	if err != nil {
@@ -91,6 +82,20 @@ func TestLogPage_Append(t *testing.T) {
 	if count != 2 {
 		t.Errorf("incorrect count: %v, expected: %v", count, 2)
 	}
+}
+
+func createPage() (LogPageID, TimeLineID, *LogPage) {
+	lpid := LogPageID(1)
+	tlid := TimeLineID(2)
+
+	lp := createEmptyPage()
+	lp.init(lpid, tlid)
+
+	return lpid, tlid, lp
+}
+
+func createEmptyPage() *LogPage {
+	return newLogPage(256)
 }
 
 func createRecord() (*LogRecord, []byte, error) {
