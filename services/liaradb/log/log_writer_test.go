@@ -12,18 +12,18 @@ var data = []byte{0, 1, 2, 3, 4, 5}
 var reverse = []byte{6, 7, 8, 9, 10, 11}
 var record = newLogRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
-func TestLog_Default(t *testing.T) {
+func TestLogWriter_Default(t *testing.T) {
 	t.Parallel()
 
-	l := createLog(t)
+	l := createLogWriter(t)
 
 	testPosition(t, l, 0, 0)
 }
 
-func TestLog_Append(t *testing.T) {
+func TestLogWriter_Append(t *testing.T) {
 	t.Parallel()
 
-	l := createLog(t)
+	l := createLogWriter(t)
 
 	if lsn, err := l.Append(record); err != nil {
 		t.Error(err)
@@ -34,13 +34,13 @@ func TestLog_Append(t *testing.T) {
 	testPosition(t, l, 0, 1)
 }
 
-func TestLog_Flush(t *testing.T) {
+func TestLogWriter_Flush(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
-		l := createLog(t)
+		l := createLogWriter(t)
 
 		lsn1, err := l.Append(record)
 		if err != nil {
@@ -62,7 +62,7 @@ func TestLog_Flush(t *testing.T) {
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
 		t.Parallel()
 
-		l := createLog(t)
+		l := createLogWriter(t)
 
 		_, err := l.Append(record)
 		if err != nil {
@@ -82,13 +82,13 @@ func TestLog_Flush(t *testing.T) {
 	})
 }
 
-func createLog(t *testing.T) *Log {
+func createLogWriter(t *testing.T) *LogWriter {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
-	l := &Log{
+	l := &LogWriter{
 		pageSize: 256,
 	}
 	l.Open(f)
@@ -96,7 +96,7 @@ func createLog(t *testing.T) *Log {
 	return l
 }
 
-func testPosition(t *testing.T, l *Log, lw, hw LogSequenceNumber) {
+func testPosition(t *testing.T, l *LogWriter, lw, hw LogSequenceNumber) {
 	if h := l.HighWater(); h != hw {
 		t.Errorf("incorrect value: %v, expected: %v", h, hw)
 	}

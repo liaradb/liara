@@ -52,13 +52,13 @@ func TestLogReader_Iterate(t *testing.T) {
 	}
 }
 
-func createLogReaderWriter(t *testing.T) (*LogReader, *Log) {
+func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
-	l := &Log{
+	l := &LogWriter{
 		pageSize: 256,
 	}
 	l.Open(f)

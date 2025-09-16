@@ -13,7 +13,7 @@ const (
 	RecordHeaderSize = 4 + 4
 )
 
-type Log struct {
+type LogWriter struct {
 	pageSize   int64
 	pageIndex  LogPageID
 	timeLineID TimeLineID
@@ -24,17 +24,17 @@ type Log struct {
 	page       *LogPageWriter
 }
 
-func (l *Log) PageIndex() LogPageID         { return l.pageIndex }
-func (l *Log) HighWater() LogSequenceNumber { return l.highWater }
-func (l *Log) LowWater() LogSequenceNumber  { return l.lowWater }
+func (l *LogWriter) PageIndex() LogPageID         { return l.pageIndex }
+func (l *LogWriter) HighWater() LogSequenceNumber { return l.highWater }
+func (l *LogWriter) LowWater() LogSequenceNumber  { return l.lowWater }
 
-func (l *Log) Open(f file.File) {
+func (l *LogWriter) Open(f file.File) {
 	l.f = f
 	l.recordBuf = bytes.NewBuffer(nil)
 	l.page = newLogPageWriter(l.pageSize)
 }
 
-func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
+func (l *LogWriter) Append(lr *LogRecord) (LogSequenceNumber, error) {
 	data, err := l.recordToBytes(lr)
 	if err != nil {
 		return 0, err
@@ -43,7 +43,7 @@ func (l *Log) Append(lr *LogRecord) (LogSequenceNumber, error) {
 	return l.append(data)
 }
 
-func (l *Log) recordToBytes(lr *LogRecord) ([]byte, error) {
+func (l *LogWriter) recordToBytes(lr *LogRecord) ([]byte, error) {
 	l.recordBuf.Reset()
 	if err := lr.Write(l.recordBuf); err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (l *Log) recordToBytes(lr *LogRecord) ([]byte, error) {
 	return l.recordBuf.Bytes(), nil
 }
 
-func (l *Log) append(data []byte) (LogSequenceNumber, error) {
+func (l *LogWriter) append(data []byte) (LogSequenceNumber, error) {
 	crc := NewCRC(data)
 	if err := crc.Write(l.f); err != nil {
 		return 0, err
@@ -66,7 +66,7 @@ func (l *Log) append(data []byte) (LogSequenceNumber, error) {
 	return l.highWater, nil
 }
 
-func (l *Log) appendOrNext(crc CRC, data []byte) error {
+func (l *LogWriter) appendOrNext(crc CRC, data []byte) error {
 	err := l.page.append(crc, data)
 	if err == nil {
 		return nil
@@ -89,7 +89,7 @@ func (l *Log) appendOrNext(crc CRC, data []byte) error {
 	return err
 }
 
-func (l *Log) Flush(lsn LogSequenceNumber) error {
+func (l *LogWriter) Flush(lsn LogSequenceNumber) error {
 	if err := l.page.Flush(l.f); err != nil {
 		return err
 	}
