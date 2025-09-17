@@ -25,7 +25,7 @@ func TestListSegments(t *testing.T) {
 
 	want := createNames(10)
 	if !reflect.DeepEqual(want, names) {
-		t.Error("files do not match")
+		t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
 	}
 }
 
