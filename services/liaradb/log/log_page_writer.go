@@ -93,10 +93,7 @@ func (lp *LogPageWriter) insert(crc CRC, data []byte) error {
 	return lp.writeBuf.Flush()
 }
 
-func (lp *LogPageWriter) Flush(w interface {
-	io.Writer
-	io.Seeker
-}) error {
+func (lp *LogPageWriter) Flush(w io.WriteSeeker) error {
 	if err := lp.seek(w); err != nil {
 		return err
 	}
@@ -104,7 +101,7 @@ func (lp *LogPageWriter) Flush(w interface {
 	return lp.Write(w)
 }
 
-func (lp *LogPageWriter) seek(w io.WriteSeeker) error {
+func (lp *LogPageWriter) seek(w io.Seeker) error {
 	_, err := w.Seek(lp.position(), io.SeekStart)
 	return err
 }

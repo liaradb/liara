@@ -24,14 +24,43 @@ func newLogPageReader(
 	}
 }
 
-func (lp *LogPageReader) Seek(w io.WriteSeeker, pid LogPageID) error {
-	_, err := w.Seek(lp.position(pid, lp.size), io.SeekStart)
+func (lp *LogPageReader) Seek(r io.ReadSeeker, pid LogPageID) error {
+	_, err := r.Seek(lp.position(pid, lp.size), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
 func (lp *LogPageReader) position(pid LogPageID, size int64) int64 {
 	return int64(pid) * (size + pageHeaderSize)
+}
+
+func (lpr *LogPageReader) IterateFrom(r io.ReadSeeker, pid LogPageID) iter.Seq2[*LogRecord, error] {
+	return func(yield func(*LogRecord, error) bool) {
+		if err := lpr.Seek(r, pid); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		for {
+			if _, err := lpr.Read(r); err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
+				return
+			}
+
+			for lr, err := range lpr.Records() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				if !yield(lr, nil) {
+					return
+				}
+			}
+		}
+	}
 }
 
 func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {
