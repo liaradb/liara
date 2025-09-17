@@ -15,7 +15,7 @@ type LogPageReader struct {
 	page       LogPageHeader
 }
 
-func newLogPageReader(
+func NewLogPageReader(
 	size int64,
 	r io.ReadSeeker,
 ) *LogPageReader {
