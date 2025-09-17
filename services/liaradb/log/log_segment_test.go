@@ -23,15 +23,16 @@ func TestListSegments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(createNames(10), names) {
-		t.Error("files to not match")
+	want := createNames(10)
+	if !reflect.DeepEqual(want, names) {
+		t.Error("files do not match")
 	}
 }
 
-func createNames(count int) []LogSegmentName {
-	names := make([]LogSegmentName, 0, count)
+func createNames(count int) []string {
+	names := make([]string, 0, count)
 	for i := range count {
-		names = append(names, NewLogSegmentName(i))
+		names = append(names, NewLogSegmentName(i).String())
 	}
 	return names
 }
