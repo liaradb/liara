@@ -23,6 +23,6 @@ func (l *LogReader) Iterate() iter.Seq2[*LogRecord, error] {
 }
 
 func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
-	lpr := newLogPageReader(l.pageSize)
-	return lpr.IterateFrom(l.file, pid)
+	lpr := newLogPageReader(l.pageSize, l.file)
+	return lpr.IterateFrom(pid)
 }

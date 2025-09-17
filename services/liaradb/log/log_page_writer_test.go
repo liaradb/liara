@@ -2,27 +2,29 @@ package log
 
 import (
 	"bytes"
+	"io"
+	"path"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/mock"
 )
 
 func TestLogPageWriter(t *testing.T) {
-	r, w := assert.NewReaderWriter()
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	lpid, tlid, rem, lp := createPage()
 
-	if err := lp.Write(w); err != nil {
+	if err := lp.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := w.Flush(); err != nil {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
-	lpr := newLogPageReader(256)
-	p, err := lpr.Read(r)
+	lpr := newLogPageReader(256, f)
+	p, err := lpr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +33,7 @@ func TestLogPageWriter(t *testing.T) {
 }
 
 func TestLogPageWriter_Append(t *testing.T) {
-	r, w := assert.NewReaderWriter()
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	lpid, tlid, rem, lp := createPage()
 
 	lr, data, err := createRecord()
@@ -49,16 +51,16 @@ func TestLogPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := lp.Write(w); err != nil {
+	if err := lp.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := w.Flush(); err != nil {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
-	lpr := newLogPageReader(256)
-	p, err := lpr.Read(r)
+	lpr := newLogPageReader(256, f)
+	p, err := lpr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}

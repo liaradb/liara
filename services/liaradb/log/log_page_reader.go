@@ -8,24 +8,27 @@ import (
 )
 
 type LogPageReader struct {
-	size   int64
-	data   []byte
-	reader *bytes.Reader
-	page   LogPageHeader
+	size       int64
+	reader     io.ReadSeeker
+	data       []byte
+	pageReader *bytes.Reader
+	page       LogPageHeader
 }
 
 func newLogPageReader(
 	size int64,
+	r io.ReadSeeker,
 ) *LogPageReader {
 	body := size - pageHeaderSize
 	return &LogPageReader{
-		size: body,
-		data: make([]byte, body),
+		size:   body,
+		reader: r,
+		data:   make([]byte, body),
 	}
 }
 
-func (lp *LogPageReader) Seek(r io.ReadSeeker, pid LogPageID) error {
-	_, err := r.Seek(lp.position(pid, lp.size), io.SeekStart)
+func (lp *LogPageReader) Seek(pid LogPageID) error {
+	_, err := lp.reader.Seek(lp.position(pid, lp.size), io.SeekStart)
 	return err
 }
 
@@ -34,15 +37,19 @@ func (lp *LogPageReader) position(pid LogPageID, size int64) int64 {
 	return int64(pid) * (size + pageHeaderSize)
 }
 
-func (lpr *LogPageReader) IterateFrom(r io.ReadSeeker, pid LogPageID) iter.Seq2[*LogRecord, error] {
+func (lpr *LogPageReader) Iterate() iter.Seq2[*LogRecord, error] {
+	return lpr.IterateFrom(0)
+}
+
+func (lpr *LogPageReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 	return func(yield func(*LogRecord, error) bool) {
-		if err := lpr.Seek(r, pid); err != nil {
+		if err := lpr.Seek(pid); err != nil {
 			yield(nil, err)
 			return
 		}
 
 		for {
-			if _, err := lpr.Read(r); err != nil {
+			if _, err := lpr.Read(); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -63,14 +70,14 @@ func (lpr *LogPageReader) IterateFrom(r io.ReadSeeker, pid LogPageID) iter.Seq2[
 	}
 }
 
-func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {
-	if err := lp.page.Read(r); err != nil {
+func (lp *LogPageReader) Read() (*LogPageHeader, error) {
+	if err := lp.page.Read(lp.reader); err != nil {
 		return nil, err
 	}
 
 	// TODO: Do we need to verify read length?
 	// TODO: Should we make a new slice?
-	if _, err := r.Read(lp.data); err != nil {
+	if _, err := lp.reader.Read(lp.data); err != nil {
 		return nil, err
 	}
 
@@ -80,15 +87,15 @@ func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {
 }
 
 func (lp *LogPageReader) initReader() {
-	if lp.reader == nil {
-		lp.reader = bytes.NewReader(lp.data)
+	if lp.pageReader == nil {
+		lp.pageReader = bytes.NewReader(lp.data)
 	} else {
-		lp.reader.Reset(lp.data)
+		lp.pageReader.Reset(lp.data)
 	}
 }
 
 func (lp *LogPageReader) Records() iter.Seq2[*LogRecord, error] {
-	r := bufio.NewReader(lp.reader)
+	r := bufio.NewReader(lp.pageReader)
 	lr := &LogRecord{}
 
 	return func(yield func(*LogRecord, error) bool) {
