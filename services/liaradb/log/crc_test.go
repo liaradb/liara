@@ -8,6 +8,8 @@ import (
 )
 
 func TestCRC(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var c CRC = NewCRC([]byte{1, 2, 3, 4, 5})
@@ -30,6 +32,8 @@ func TestCRC(t *testing.T) {
 }
 
 func TestCRC_Compare(t *testing.T) {
+	t.Parallel()
+
 	a := []byte{1, 2, 3, 4, 5}
 	b := []byte{6, 7, 8, 9, 0}
 

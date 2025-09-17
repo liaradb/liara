@@ -12,6 +12,8 @@ import (
 )
 
 func TestLogPageWriter(t *testing.T) {
+	t.Parallel()
+
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	lpid, tlid, rem, lp := createPage()
 
@@ -33,6 +35,8 @@ func TestLogPageWriter(t *testing.T) {
 }
 
 func TestLogPageWriter_Append(t *testing.T) {
+	t.Parallel()
+
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
 	lpid, tlid, rem, lp := createPage()
 

@@ -7,6 +7,8 @@ import (
 )
 
 func TestLogData(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	want := "abcde"

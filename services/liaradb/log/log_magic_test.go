@@ -8,6 +8,8 @@ import (
 )
 
 func TestLogMagic(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var l LogMagic = LogMagicPage
@@ -30,6 +32,8 @@ func TestLogMagic(t *testing.T) {
 }
 
 func TestLogMagicPage(t *testing.T) {
+	t.Parallel()
+
 	if s := LogMagicPage.String(); s != "PAGE" {
 		t.Error("value is incorrect")
 	}

@@ -9,6 +9,8 @@ import (
 )
 
 func TestLogRecord(t *testing.T) {
+	t.Parallel()
+
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
@@ -25,6 +27,8 @@ func TestLogRecord(t *testing.T) {
 }
 
 func TestLogRecord_Write(t *testing.T) {
+	t.Parallel()
+
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
@@ -56,6 +60,8 @@ func TestLogRecord_Write(t *testing.T) {
 }
 
 func TestLogRecord_Time(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	lr := LogRecord{

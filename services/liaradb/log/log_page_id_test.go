@@ -8,6 +8,8 @@ import (
 )
 
 func TestLogPageIDTest(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var lpid LogPageID = 123456

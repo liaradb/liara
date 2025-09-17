@@ -7,6 +7,8 @@ import (
 )
 
 func TestLogPageHeader(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)

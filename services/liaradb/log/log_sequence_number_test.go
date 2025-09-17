@@ -8,6 +8,8 @@ import (
 )
 
 func TestLogSequenceNumber(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var lsn LogSequenceNumber = 123456

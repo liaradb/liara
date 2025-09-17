@@ -8,6 +8,8 @@ import (
 )
 
 func TestLogRecordLength(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var lrl LogRecordLength = NewLogRecordLength([]byte{1, 2, 3, 4, 5})

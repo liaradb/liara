@@ -8,6 +8,8 @@ import (
 )
 
 func TestTransactionID(t *testing.T) {
+	t.Parallel()
+
 	r, w := assert.NewReaderWriter()
 
 	var tid TransactionID = 123456
