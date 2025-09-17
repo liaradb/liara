@@ -17,7 +17,7 @@ type LogPageReader struct {
 func newLogPageReader(
 	size int64,
 ) *LogPageReader {
-	body := size - PageHeaderSize
+	body := size - pageHeaderSize
 	return &LogPageReader{
 		size: body,
 		data: make([]byte, body),
@@ -31,7 +31,7 @@ func (lp *LogPageReader) Seek(w io.WriteSeeker, pid LogPageID) error {
 
 // TODO: Should we store this on the header struct?
 func (lp *LogPageReader) position(pid LogPageID, size int64) int64 {
-	return int64(pid) * (size + PageHeaderSize)
+	return int64(pid) * (size + pageHeaderSize)
 }
 
 func (lp *LogPageReader) Read(r io.Reader) (*LogPageHeader, error) {

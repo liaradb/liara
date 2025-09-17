@@ -2,6 +2,12 @@ package log
 
 import "io"
 
+const pageHeaderSize = 0 +
+	logMagicSize +
+	logPageIDSize +
+	timeLineIDSize +
+	logRecordLengthSize
+
 type LogPageHeader struct {
 	id              LogPageID
 	timeLineID      TimeLineID
@@ -26,7 +32,7 @@ func (lph LogPageHeader) LengthRemaining() LogRecordLength { return lph.lengthRe
 
 // TODO: Should we store this on the header struct?
 func (lp LogPageHeader) position(size int64) int64 {
-	return int64(lp.id) * (size + PageHeaderSize)
+	return int64(lp.id) * (size + pageHeaderSize)
 }
 
 func (lph *LogPageHeader) Read(r io.Reader) error {

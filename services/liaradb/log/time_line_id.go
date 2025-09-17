@@ -7,6 +7,8 @@ import (
 
 type TimeLineID uint32
 
+const timeLineIDSize = 4
+
 func (tlid TimeLineID) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, tlid)
 }

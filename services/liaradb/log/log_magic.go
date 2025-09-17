@@ -7,6 +7,8 @@ import (
 
 type LogMagic uint32
 
+const logMagicSize = 4
+
 var (
 	LogMagicPage = LogMagic(binary.BigEndian.Uint32([]byte("PAGE")))
 )

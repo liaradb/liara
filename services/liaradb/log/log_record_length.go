@@ -7,6 +7,8 @@ import (
 
 type LogRecordLength uint32
 
+const logRecordLengthSize = 4
+
 func NewLogRecordLength(d []byte) LogRecordLength {
 	return LogRecordLength(len(d))
 }

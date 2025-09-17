@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+const recordHeaderSize = crcSize + logRecordLengthSize
+
 type LogPageWriter struct {
 	size     int64
 	data     []byte
@@ -17,7 +19,7 @@ type LogPageWriter struct {
 func newLogPageWriter(
 	size int64,
 ) *LogPageWriter {
-	body := size - PageHeaderSize
+	body := size - pageHeaderSize
 	writer := bytes.NewBuffer(make([]byte, 0, body))
 	return &LogPageWriter{
 		size:     body,
@@ -64,7 +66,7 @@ func (lp *LogPageWriter) canInsert(data []byte) bool {
 }
 
 func (*LogPageWriter) recordSize(data []byte) int {
-	return RecordHeaderSize + len(data)
+	return recordHeaderSize + len(data)
 }
 
 func (lp *LogPageWriter) available() int {

@@ -8,6 +8,8 @@ import (
 
 type CRC uint32
 
+const crcSize = 4
+
 var table = crc32.MakeTable(crc32.Castagnoli)
 
 func NewCRC(data []byte) CRC {

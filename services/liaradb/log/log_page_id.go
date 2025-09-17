@@ -7,6 +7,8 @@ import (
 
 type LogPageID uint64
 
+const logPageIDSize = 8
+
 func (lpid LogPageID) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, lpid)
 }

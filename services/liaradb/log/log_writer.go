@@ -7,10 +7,8 @@ import (
 )
 
 const (
-	BlockSize        = 1024
-	SegmentSize      = 1024
-	PageHeaderSize   = 4 + 8 + 4 + 4
-	RecordHeaderSize = 4 + 4
+	BlockSize   = 1024
+	SegmentSize = 1024
 )
 
 type LogWriter struct {
