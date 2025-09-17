@@ -23,7 +23,7 @@ func TestLogPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lpr := NewLogPageReader(256, f)
+	lpr := NewLogReader(256, f)
 	p, err := lpr.Read()
 	if err != nil {
 		t.Fatal(err)
@@ -59,7 +59,7 @@ func TestLogPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lpr := NewLogPageReader(256, f)
+	lpr := NewLogReader(256, f)
 	p, err := lpr.Read()
 	if err != nil {
 		t.Fatal(err)
