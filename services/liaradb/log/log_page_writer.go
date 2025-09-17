@@ -13,7 +13,7 @@ type LogPageWriter struct {
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
-	page     LogPageHeader
+	header   LogPageHeader
 }
 
 func newLogPageWriter(
@@ -29,9 +29,9 @@ func newLogPageWriter(
 	}
 }
 
-func (lp *LogPageWriter) ID() LogPageID                    { return lp.page.ID() }
-func (lp *LogPageWriter) TimeLineID() TimeLineID           { return lp.page.TimeLineID() }
-func (lp *LogPageWriter) LengthRemaining() LogRecordLength { return lp.page.LengthRemaining() }
+func (lp *LogPageWriter) ID() LogPageID                    { return lp.header.ID() }
+func (lp *LogPageWriter) TimeLineID() TimeLineID           { return lp.header.TimeLineID() }
+func (lp *LogPageWriter) LengthRemaining() LogRecordLength { return lp.header.LengthRemaining() }
 
 // TODO: This is slow
 func (lp *LogPageWriter) Data() []byte {
@@ -41,7 +41,7 @@ func (lp *LogPageWriter) Data() []byte {
 }
 
 func (lp *LogPageWriter) init(id LogPageID, tlid TimeLineID, rem LogRecordLength) {
-	lp.page = newLogPageHeader(id, tlid, rem)
+	lp.header = newLogPageHeader(id, tlid, rem)
 }
 
 func (lp *LogPageWriter) append(crc CRC, data []byte) error {
@@ -107,11 +107,11 @@ func (lp *LogPageWriter) seek(w io.Seeker) error {
 }
 
 func (lp *LogPageWriter) position() int64 {
-	return lp.page.position(lp.size)
+	return lp.header.position(lp.size)
 }
 
 func (lp *LogPageWriter) Write(w io.Writer) error {
-	if err := lp.page.Write(w); err != nil {
+	if err := lp.header.Write(w); err != nil {
 		return err
 	}
 

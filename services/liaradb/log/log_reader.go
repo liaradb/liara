@@ -12,7 +12,7 @@ type LogReader struct {
 	reader     io.ReadSeeker
 	data       []byte
 	pageReader *bytes.Reader
-	page       LogPageHeader
+	header     LogPageHeader
 }
 
 func NewLogReader(
@@ -71,7 +71,7 @@ func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 }
 
 func (l *LogReader) Read() (*LogPageHeader, error) {
-	if err := l.page.Read(l.reader); err != nil {
+	if err := l.header.Read(l.reader); err != nil {
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (l *LogReader) Read() (*LogPageHeader, error) {
 
 	l.initReader()
 
-	return &l.page, nil
+	return &l.header, nil
 }
 
 func (l *LogReader) initReader() {
