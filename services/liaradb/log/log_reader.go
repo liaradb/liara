@@ -9,13 +9,13 @@ import (
 
 type LogReader struct {
 	pageSize int64
-	f        file.File
+	file     file.File
 }
 
 func NewLogReader(pageSize int64, f file.File) *LogReader {
 	return &LogReader{
 		pageSize: pageSize,
-		f:        f,
+		file:     f,
 	}
 }
 
@@ -26,13 +26,13 @@ func (l *LogReader) Iterate() iter.Seq2[*LogRecord, error] {
 func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 	return func(yield func(*LogRecord, error) bool) {
 		lpr := newLogPageReader(l.pageSize)
-		if err := lpr.Seek(l.f, pid); err != nil {
+		if err := lpr.Seek(l.file, pid); err != nil {
 			yield(nil, err)
 			return
 		}
 
 		for {
-			if _, err := lpr.Read(l.f); err != nil {
+			if _, err := lpr.Read(l.file); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}

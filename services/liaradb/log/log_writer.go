@@ -17,7 +17,7 @@ type LogWriter struct {
 	timeLineID TimeLineID
 	highWater  LogSequenceNumber
 	lowWater   LogSequenceNumber
-	f          file.File
+	file       file.File
 	recordBuf  *bytes.Buffer
 	page       *LogPageWriter
 }
@@ -25,7 +25,7 @@ type LogWriter struct {
 func NewLogWriter(pageSize int64, f file.File) *LogWriter {
 	return &LogWriter{
 		pageSize:  pageSize,
-		f:         f,
+		file:      f,
 		recordBuf: bytes.NewBuffer(nil),
 		page:      newLogPageWriter(pageSize),
 	}
@@ -55,7 +55,7 @@ func (l *LogWriter) recordToBytes(lr *LogRecord) ([]byte, error) {
 
 func (l *LogWriter) append(data []byte) (LogSequenceNumber, error) {
 	crc := NewCRC(data)
-	if err := crc.Write(l.f); err != nil {
+	if err := crc.Write(l.file); err != nil {
 		return 0, err
 	}
 
@@ -76,7 +76,7 @@ func (l *LogWriter) appendOrNext(crc CRC, data []byte) error {
 	if err == ErrInsufficientSpace {
 		// flush and start new page
 		// TODO: Can we use Write, or do we need Flush?
-		if err := l.page.Flush(l.f); err != nil {
+		if err := l.page.Flush(l.file); err != nil {
 			return err
 		}
 
@@ -91,7 +91,7 @@ func (l *LogWriter) appendOrNext(crc CRC, data []byte) error {
 }
 
 func (l *LogWriter) Flush(lsn LogSequenceNumber) error {
-	if err := l.page.Flush(l.f); err != nil {
+	if err := l.page.Flush(l.file); err != nil {
 		return err
 	}
 
