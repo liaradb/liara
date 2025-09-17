@@ -67,26 +67,29 @@ func (l *LogWriter) append(data []byte) (LogSequenceNumber, error) {
 }
 
 func (l *LogWriter) appendOrNext(crc CRC, data []byte) error {
-	err := l.page.append(crc, data)
-	if err == nil {
-		return nil
-	}
-
-	if err == ErrInsufficientSpace {
-		// flush and start new page
-		// TODO: Can we use Write, or do we need Flush?
-		if err := l.page.Flush(l.writer); err != nil {
+	if err := l.page.append(crc, data); err != nil {
+		if err != ErrInsufficientSpace {
 			return err
 		}
 
-		l.pageIndex++
-		// TODO: Don't replace LogPageWriter
-		l.page = newLogPageWriter(l.pageSize)
-		l.page.init(l.pageIndex, l.timeLineID, 0)
-		return l.page.append(crc, data)
+		return l.next(crc, data)
 	}
 
-	return err
+	return nil
+}
+
+func (l *LogWriter) next(crc CRC, data []byte) error {
+	// flush and start new page
+	// TODO: Can we use Write, or do we need Flush?
+	if err := l.page.Flush(l.writer); err != nil {
+		return err
+	}
+
+	l.pageIndex++
+	// TODO: Don't replace LogPageWriter
+	l.page = newLogPageWriter(l.pageSize)
+	l.page.init(l.pageIndex, l.timeLineID, 0)
+	return l.page.append(crc, data)
 }
 
 func (l *LogWriter) Flush(lsn LogSequenceNumber) error {
