@@ -31,7 +31,7 @@ func TestListSegments(t *testing.T) {
 func createNames(count int) []LogSegmentName {
 	names := make([]LogSegmentName, 0, count)
 	for i := range count {
-		names = append(names, NewLogSegmentName(i))
+		names = append(names, NewLogSegmentName(i, 0))
 	}
 	return names
 }
@@ -46,7 +46,7 @@ func createFiles(dir string, count int) error {
 }
 
 func createFile(dir string, index int) error {
-	name := path.Join(dir, NewLogSegmentName(index).String())
+	name := path.Join(dir, NewLogSegmentName(index, 0).String())
 	f, err := os.Create(name)
 	if err != nil {
 		return err

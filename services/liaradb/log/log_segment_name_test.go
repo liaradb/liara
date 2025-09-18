@@ -7,19 +7,32 @@ func TestLogSegmentName(t *testing.T) {
 
 	for message, test := range map[string]struct {
 		index int
+		lsn   LogSequenceNumber
 		name  string
 	}{
-		"should handle 0":         {0, "segment_000.lr"},
-		"should add padding":      {1, "segment_001.lr"},
-		"should handle full size": {234, "segment_234.lr"},
-		"should overflow":         {1234, "segment_1234.lr"},
+		"should handle index 0":         {0, 0, "segment_000_000.lr"},
+		"should add index padding":      {1, 0, "segment_001_000.lr"},
+		"should handle full size index": {234, 0, "segment_234_000.lr"},
+		"should overflow index":         {1234, 0, "segment_1234_000.lr"},
+		"should handle lsn 0":           {0, 0, "segment_000_000.lr"},
+		"should add lsn padding":        {0, 1, "segment_000_001.lr"},
+		"should handle full size lsn":   {0, 234, "segment_000_234.lr"},
+		"should overflow osn":           {0, 1234, "segment_000_1234.lr"},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			lsn := NewLogSegmentName(test.index)
-			if lsn != LogSegmentName(test.name) {
-				t.Errorf("%v: incorrect value: %v, expected: %v", message, lsn, test.name)
+			sn := NewLogSegmentName(test.index, test.lsn)
+			if sn != LogSegmentName(test.name) {
+				t.Errorf("%v: incorrect value: %v, expected: %v", message, sn, test.name)
+			}
+
+			i, l := sn.Value()
+			if i != test.index {
+				t.Errorf("%v: incorrect index: %v, expected: %v", message, i, test.index)
+			}
+			if l != test.lsn {
+				t.Errorf("%v: incorrect log sequence number: %v, expected: %v", message, l, test.lsn)
 			}
 		})
 	}
