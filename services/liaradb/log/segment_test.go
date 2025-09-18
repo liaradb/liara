@@ -9,8 +9,8 @@ import (
 
 func TestGetSegmentForLSN(t *testing.T) {
 	fsys := fstest.MapFS{
-		NewLogSegmentName(1, 10).String(): {},
-		NewLogSegmentName(2, 20).String(): {},
+		NewSegmentName(1, 10).String(): {},
+		NewSegmentName(2, 20).String(): {},
 	}
 	names, err := ListSegments(fsys, ".")
 	if err != nil {
@@ -65,7 +65,7 @@ func TestListSegments(t *testing.T) {
 func createNames(count SegmentID) []SegmentName {
 	names := make([]SegmentName, 0, count)
 	for i := range count {
-		names = append(names, NewLogSegmentName(i, 0))
+		names = append(names, NewSegmentName(i, 0))
 	}
 	return names
 }
@@ -73,7 +73,7 @@ func createNames(count SegmentID) []SegmentName {
 func createFiles(count SegmentID) fs.FS {
 	fsys := fstest.MapFS{}
 	for i := range count {
-		fsys[NewLogSegmentName(i, 0).String()] = &fstest.MapFile{}
+		fsys[NewSegmentName(i, 0).String()] = &fstest.MapFile{}
 	}
 	return fsys
 }

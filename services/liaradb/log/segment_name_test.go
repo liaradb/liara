@@ -22,8 +22,8 @@ func TestSegmentName(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sn := NewLogSegmentName(test.index, test.lsn)
-			if sn != ParseLogSegmentName(test.name) {
+			sn := NewSegmentName(test.index, test.lsn)
+			if sn != ParseSegmentName(test.name) {
 				t.Errorf("%v: incorrect value: %v, expected: %v", message, sn, test.name)
 			}
 

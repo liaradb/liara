@@ -13,14 +13,14 @@ type SegmentName struct {
 	lsn LogSequenceNumber
 }
 
-func NewLogSegmentName(id SegmentID, lsn LogSequenceNumber) SegmentName {
+func NewSegmentName(id SegmentID, lsn LogSequenceNumber) SegmentName {
 	return SegmentName{
 		id:  id,
 		lsn: lsn,
 	}
 }
 
-func ParseLogSegmentName(value string) SegmentName {
+func ParseSegmentName(value string) SegmentName {
 	matches := segmentRegexp.FindStringSubmatch(value)
 	if len(matches) < 3 {
 		return SegmentName{}
@@ -29,7 +29,7 @@ func ParseLogSegmentName(value string) SegmentName {
 	i, _ := strconv.Atoi(matches[1])
 	l, _ := strconv.Atoi(matches[2])
 
-	return NewLogSegmentName(SegmentID(i), LogSequenceNumber(l))
+	return NewSegmentName(SegmentID(i), LogSequenceNumber(l))
 }
 
 func (sn SegmentName) ID() SegmentID                        { return sn.id }

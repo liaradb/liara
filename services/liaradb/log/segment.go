@@ -27,7 +27,7 @@ func ListSegments(fsys fs.FS, dir string) ([]SegmentName, error) {
 	names := make([]SegmentName, 0, len(files))
 	for _, f := range files {
 		if !f.IsDir() {
-			names = append(names, ParseLogSegmentName(f.Name()))
+			names = append(names, ParseSegmentName(f.Name()))
 		}
 	}
 
