@@ -1,14 +1,14 @@
 package log
 
 import (
-	"os"
+	"io/fs"
 )
 
 type LogSegment struct {
 }
 
-func ListSegments(dir string) ([]LogSegmentName, error) {
-	files, err := os.ReadDir(dir)
+func ListSegments(dir string, fsys fs.FS) ([]LogSegmentName, error) {
+	files, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -19,5 +19,6 @@ func ListSegments(dir string) ([]LogSegmentName, error) {
 			names = append(names, ParseLogSegmentName(f.Name()))
 		}
 	}
+
 	return names, nil
 }

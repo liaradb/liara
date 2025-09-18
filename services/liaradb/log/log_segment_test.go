@@ -1,10 +1,10 @@
 package log
 
 import (
-	"os"
-	"path"
+	"io/fs"
 	"reflect"
 	"testing"
+	"testing/fstest"
 )
 
 func TestListSegments(t *testing.T) {
@@ -12,12 +12,8 @@ func TestListSegments(t *testing.T) {
 
 	count := 10
 
-	dir := t.TempDir()
-	if err := createFiles(dir, count); err != nil {
-		t.Fatal(err)
-	}
-
-	names, err := ListSegments(dir)
+	fsys := createFiles(count)
+	names, err := ListSegments(".", fsys)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,21 +32,10 @@ func createNames(count int) []LogSegmentName {
 	return names
 }
 
-func createFiles(dir string, count int) error {
+func createFiles(count int) fs.FS {
+	fsys := fstest.MapFS{}
 	for i := range count {
-		if err := createFile(dir, i); err != nil {
-			return err
-		}
+		fsys[NewLogSegmentName(i, 0).String()] = &fstest.MapFile{}
 	}
-	return nil
-}
-
-func createFile(dir string, index int) error {
-	name := path.Join(dir, NewLogSegmentName(index, 0).String())
-	f, err := os.Create(name)
-	if err != nil {
-		return err
-	}
-
-	return f.Close()
+	return fsys
 }
