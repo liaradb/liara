@@ -7,7 +7,18 @@ import (
 type LogSegment struct {
 }
 
-func ListSegments(dir string, fsys fs.FS) ([]LogSegmentName, error) {
+func GetSegmentForLSN(names []LogSegmentName, lsn LogSequenceNumber) (LogSegmentName, bool) {
+	for i := len(names) - 1; i >= 0; i-- {
+		n := names[i]
+		if lsn >= n.logSequenceNumber {
+			return n, true
+		}
+	}
+
+	return LogSegmentName{}, false
+}
+
+func ListSegments(fsys fs.FS, dir string) ([]LogSegmentName, error) {
 	files, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return nil, err

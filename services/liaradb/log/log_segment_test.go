@@ -7,13 +7,51 @@ import (
 	"testing/fstest"
 )
 
+func TestGetSegmentForLSN(t *testing.T) {
+	fsys := fstest.MapFS{
+		NewLogSegmentName(1, 10).String(): {},
+		NewLogSegmentName(2, 20).String(): {},
+	}
+	names, err := ListSegments(fsys, ".")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for message, test := range map[string]struct {
+		search LogSequenceNumber
+		found  bool
+		result LogSequenceNumber
+	}{
+		"should not find low value": {1, false, 0},
+		"should find exact value":   {10, true, 10},
+		"should find middle value":  {15, true, 10},
+		"should find high value":    {50, true, 20},
+	} {
+		t.Run(message, func(t *testing.T) {
+			lsn, ok := GetSegmentForLSN(names, test.search)
+			if test.found {
+				if !ok {
+					t.Error("should find LSN")
+				}
+				if lsn.logSequenceNumber != test.result {
+					t.Error("wrong LSN")
+				}
+			} else {
+				if ok {
+					t.Error("should not find LSN")
+				}
+			}
+		})
+	}
+}
+
 func TestListSegments(t *testing.T) {
 	t.Parallel()
 
 	count := 10
 
 	fsys := createFiles(count)
-	names, err := ListSegments(".", fsys)
+	names, err := ListSegments(fsys, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
