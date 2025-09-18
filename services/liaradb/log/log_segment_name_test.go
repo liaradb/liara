@@ -23,15 +23,15 @@ func TestLogSegmentName(t *testing.T) {
 			t.Parallel()
 
 			sn := NewLogSegmentName(test.index, test.lsn)
-			if sn != LogSegmentName(test.name) {
+			if sn != ParseLogSegmentName(test.name) {
 				t.Errorf("%v: incorrect value: %v, expected: %v", message, sn, test.name)
 			}
 
-			i, l := sn.Value()
-			if i != test.index {
+			if i := sn.Index(); i != test.index {
 				t.Errorf("%v: incorrect index: %v, expected: %v", message, i, test.index)
 			}
-			if l != test.lsn {
+
+			if l := sn.LogSequenceNumber(); l != test.lsn {
 				t.Errorf("%v: incorrect log sequence number: %v, expected: %v", message, l, test.lsn)
 			}
 		})
