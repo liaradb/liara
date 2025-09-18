@@ -114,30 +114,45 @@ func TestListSegments(t *testing.T) {
 
 	var count SegmentID = 10
 
-	fsys := createFiles(count)
-	names, err := ListSegments(fsys, ".")
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("should list segments", func(t *testing.T) {
+		fsys := createFiles(0, count)
+		names, err := ListSegments(fsys, ".")
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	want := createNames(count)
-	if !reflect.DeepEqual(want, names) {
-		t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
-	}
+		want := createNames(0, count)
+		if !reflect.DeepEqual(want, names) {
+			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
+		}
+	})
+
+	t.Run("should list segments in order", func(t *testing.T) {
+		fsys := createFiles(9998, count)
+		names, err := ListSegments(fsys, ".")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		want := createNames(9998, count)
+		if !reflect.DeepEqual(want, names) {
+			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
+		}
+	})
 }
 
-func createNames(count SegmentID) []SegmentName {
+func createNames(start SegmentID, count SegmentID) []SegmentName {
 	names := make([]SegmentName, 0, count)
 	for i := range count {
-		names = append(names, NewSegmentName(i, 0))
+		names = append(names, NewSegmentName(start+i, 0))
 	}
 	return names
 }
 
-func createFiles(count SegmentID) fs.ReadDirFS {
+func createFiles(start SegmentID, count SegmentID) fs.ReadDirFS {
 	fsys := fstest.MapFS{}
 	for i := range count {
-		fsys[NewSegmentName(i, 0).String()] = &fstest.MapFile{}
+		fsys[NewSegmentName(start+i, 0).String()] = &fstest.MapFile{}
 	}
 	return fsys
 }

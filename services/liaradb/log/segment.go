@@ -2,6 +2,7 @@ package log
 
 import (
 	"io/fs"
+	"slices"
 )
 
 type Segment struct {
@@ -54,6 +55,10 @@ func ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
 			names = append(names, ParseSegmentName(f.Name()))
 		}
 	}
+
+	slices.SortFunc(names, func(a, b SegmentName) int {
+		return int(a.ID()) - int(b.ID())
+	})
 
 	return names, nil
 }

@@ -36,5 +36,5 @@ func (sn SegmentName) ID() SegmentID                        { return sn.id }
 func (sn SegmentName) LogSequenceNumber() LogSequenceNumber { return sn.lsn }
 
 func (sn SegmentName) String() string {
-	return fmt.Sprintf("segment_%03v_%03v.lr", sn.id, sn.lsn)
+	return fmt.Sprintf("segment_%04v_%04v.lr", sn.id, sn.lsn)
 }
