@@ -8,18 +8,38 @@ import (
 )
 
 func TestSegment(t *testing.T) {
-	s := NewSegment(1, 2)
+	t.Parallel()
 
-	if v := s.Size(); v != 1 {
-		t.Errorf("incorrect size: %v, expected: %v", v, 1)
-	}
+	t.Run("should handle default", func(t *testing.T) {
+		t.Parallel()
+		s := NewSegment(0, 0)
 
-	if v := s.PageSize(); v != 2 {
-		t.Errorf("incorrect page size: %v, expected: %v", v, 2)
-	}
+		if v := s.Size(); v != 0 {
+			t.Errorf("incorrect size: %v, expected: %v", v, 0)
+		}
+
+		if v := s.PageSize(); v != 0 {
+			t.Errorf("incorrect page size: %v, expected: %v", v, 0)
+		}
+	})
+
+	t.Run("should handle values", func(t *testing.T) {
+		t.Parallel()
+		s := NewSegment(1, 2)
+
+		if v := s.Size(); v != 1 {
+			t.Errorf("incorrect size: %v, expected: %v", v, 1)
+		}
+
+		if v := s.PageSize(); v != 2 {
+			t.Errorf("incorrect page size: %v, expected: %v", v, 2)
+		}
+	})
 }
 
 func TestGetSegmentForLSN(t *testing.T) {
+	t.Parallel()
+
 	fsys := fstest.MapFS{
 		NewSegmentName(1, 10).String(): {},
 		NewSegmentName(2, 20).String(): {},
