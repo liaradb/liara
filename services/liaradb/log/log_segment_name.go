@@ -20,9 +20,6 @@ func NewLogSegmentName(index int, lsn LogSequenceNumber) LogSegmentName {
 	}
 }
 
-func (lsn LogSegmentName) Index() int                           { return lsn.index }
-func (lsn LogSegmentName) LogSequenceNumber() LogSequenceNumber { return lsn.logSequenceNumber }
-
 func ParseLogSegmentName(value string) LogSegmentName {
 	matches := logSegmentRegexp.FindStringSubmatch(value)
 	if len(matches) < 3 {
@@ -34,6 +31,9 @@ func ParseLogSegmentName(value string) LogSegmentName {
 
 	return NewLogSegmentName(i, LogSequenceNumber(l))
 }
+
+func (lsn LogSegmentName) Index() int                           { return lsn.index }
+func (lsn LogSegmentName) LogSequenceNumber() LogSequenceNumber { return lsn.logSequenceNumber }
 
 func (lsn LogSegmentName) String() string {
 	return fmt.Sprintf("segment_%03v_%03v.lr", lsn.index, lsn.logSequenceNumber)
