@@ -5,7 +5,8 @@ import (
 	"io/fs"
 )
 
-type FS interface {
+type FileSystem interface {
+	ReadDir(name string) ([]fs.DirEntry, error)
 	Open(name string) (File, error)
 }
 

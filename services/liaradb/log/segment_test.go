@@ -42,7 +42,7 @@ func TestGetLatestSegment(t *testing.T) {
 
 	for message, test := range map[string]struct {
 		result SegmentID
-		fsys   fs.FS
+		fsys   fs.ReadDirFS
 	}{
 		"should handle no files": {0, fstest.MapFS{}},
 		"should handle one file": {1, fstest.MapFS{
@@ -134,7 +134,7 @@ func createNames(count SegmentID) []SegmentName {
 	return names
 }
 
-func createFiles(count SegmentID) fs.FS {
+func createFiles(count SegmentID) fs.ReadDirFS {
 	fsys := fstest.MapFS{}
 	for i := range count {
 		fsys[NewSegmentName(i, 0).String()] = &fstest.MapFile{}

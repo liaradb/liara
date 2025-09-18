@@ -16,7 +16,7 @@ type Storage struct {
 	bm       *BufferManager
 }
 
-func NewStorage(fs file.FS, max int, bs int64) *Storage {
+func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
 		requests: make(chan *request),
 		returns:  make(chan *Buffer, max),

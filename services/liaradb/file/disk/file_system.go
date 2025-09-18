@@ -2,6 +2,7 @@ package disk
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 
 	"github.com/liaradb/liaradb/file"
@@ -17,6 +18,10 @@ func (fs *FileSystem) Close() error {
 		errs = append(errs, fs.CloseFile(n))
 	}
 	return errors.Join(errs...)
+}
+
+func (fs *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
+	return os.ReadDir(name)
 }
 
 func (fs *FileSystem) Open(name string) (file.File, error) {

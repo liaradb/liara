@@ -9,12 +9,12 @@ import (
 
 type BufferManager struct {
 	bufferSize int64
-	fs         file.FS
+	fs         file.FileSystem
 	requests   chan *Buffer
 }
 
 // TODO: Should this be public?
-func NewBufferManager(fs file.FS, bs int64) *BufferManager {
+func NewBufferManager(fs file.FileSystem, bs int64) *BufferManager {
 	return &BufferManager{
 		bufferSize: bs,
 		fs:         fs,

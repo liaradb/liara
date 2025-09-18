@@ -38,8 +38,12 @@ func GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, 
 	return SegmentName{}, false
 }
 
-func ListSegments(fsys fs.FS, dir string) ([]SegmentName, error) {
-	files, err := fs.ReadDir(fsys, dir)
+type ReadDir interface {
+	ReadDir(name string) ([]fs.DirEntry, error)
+}
+
+func ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
+	files, err := fsys.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
