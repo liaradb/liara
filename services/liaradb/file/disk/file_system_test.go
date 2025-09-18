@@ -1,4 +1,4 @@
-package file
+package disk
 
 import (
 	"path"

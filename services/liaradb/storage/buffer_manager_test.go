@@ -4,7 +4,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/disk"
 )
 
 func TestBufferManager(t *testing.T) {
@@ -60,7 +60,7 @@ func TestBufferManager(t *testing.T) {
 
 func testCreateBuffer(t *testing.T) (*Buffer, BlockID, func() error) {
 	dir := t.TempDir()
-	fs := &file.FileSystem{}
+	fs := &disk.FileSystem{}
 
 	return NewBuffer(NewStorage(fs, 2, 1024)),
 		BlockID{FileName: path.Join(dir, "testfile"), Position: 0},

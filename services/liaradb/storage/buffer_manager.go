@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/disk"
 )
 
 type BufferManager struct {
@@ -14,7 +14,7 @@ type BufferManager struct {
 }
 
 type FS interface {
-	Open(name string) (file.File, error)
+	Open(name string) (disk.File, error)
 }
 
 // TODO: Should this be public?
@@ -57,7 +57,7 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 	return err
 }
 
-func (bm *BufferManager) openFile(b *Buffer) (file.File, error) {
+func (bm *BufferManager) openFile(b *Buffer) (disk.File, error) {
 	return bm.fs.Open(b.blockID.FileName)
 }
 
