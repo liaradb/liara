@@ -2,11 +2,11 @@ package log
 
 import "testing"
 
-func TestLogSegmentName(t *testing.T) {
+func TestSegmentName(t *testing.T) {
 	t.Parallel()
 
 	for message, test := range map[string]struct {
-		index int
+		index SegmentID
 		lsn   LogSequenceNumber
 		name  string
 	}{
@@ -27,7 +27,7 @@ func TestLogSegmentName(t *testing.T) {
 				t.Errorf("%v: incorrect value: %v, expected: %v", message, sn, test.name)
 			}
 
-			if i := sn.Index(); i != test.index {
+			if i := sn.ID(); i != test.index {
 				t.Errorf("%v: incorrect index: %v, expected: %v", message, i, test.index)
 			}
 

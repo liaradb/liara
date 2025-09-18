@@ -4,27 +4,27 @@ import (
 	"io/fs"
 )
 
-type LogSegment struct {
+type Segment struct {
 }
 
-func GetSegmentForLSN(names []LogSegmentName, lsn LogSequenceNumber) (LogSegmentName, bool) {
+func GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, bool) {
 	for i := len(names) - 1; i >= 0; i-- {
 		n := names[i]
-		if lsn >= n.logSequenceNumber {
+		if lsn >= n.lsn {
 			return n, true
 		}
 	}
 
-	return LogSegmentName{}, false
+	return SegmentName{}, false
 }
 
-func ListSegments(fsys fs.FS, dir string) ([]LogSegmentName, error) {
+func ListSegments(fsys fs.FS, dir string) ([]SegmentName, error) {
 	files, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		return nil, err
 	}
 
-	names := make([]LogSegmentName, 0, len(files))
+	names := make([]SegmentName, 0, len(files))
 	for _, f := range files {
 		if !f.IsDir() {
 			names = append(names, ParseLogSegmentName(f.Name()))

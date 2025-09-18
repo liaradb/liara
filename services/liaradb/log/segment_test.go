@@ -33,7 +33,7 @@ func TestGetSegmentForLSN(t *testing.T) {
 				if !ok {
 					t.Error("should find LSN")
 				}
-				if lsn.logSequenceNumber != test.result {
+				if lsn.lsn != test.result {
 					t.Error("wrong LSN")
 				}
 			} else {
@@ -48,7 +48,7 @@ func TestGetSegmentForLSN(t *testing.T) {
 func TestListSegments(t *testing.T) {
 	t.Parallel()
 
-	count := 10
+	var count SegmentID = 10
 
 	fsys := createFiles(count)
 	names, err := ListSegments(fsys, ".")
@@ -62,15 +62,15 @@ func TestListSegments(t *testing.T) {
 	}
 }
 
-func createNames(count int) []LogSegmentName {
-	names := make([]LogSegmentName, 0, count)
+func createNames(count SegmentID) []SegmentName {
+	names := make([]SegmentName, 0, count)
 	for i := range count {
 		names = append(names, NewLogSegmentName(i, 0))
 	}
 	return names
 }
 
-func createFiles(count int) fs.FS {
+func createFiles(count SegmentID) fs.FS {
 	fsys := fstest.MapFS{}
 	for i := range count {
 		fsys[NewLogSegmentName(i, 0).String()] = &fstest.MapFile{}
