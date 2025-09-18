@@ -4,21 +4,17 @@ import (
 	"context"
 	"io"
 
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/file"
 )
 
 type BufferManager struct {
 	bufferSize int64
-	fs         FS
+	fs         file.FS
 	requests   chan *Buffer
 }
 
-type FS interface {
-	Open(name string) (disk.File, error)
-}
-
 // TODO: Should this be public?
-func NewBufferManager(fs FS, bs int64) *BufferManager {
+func NewBufferManager(fs file.FS, bs int64) *BufferManager {
 	return &BufferManager{
 		bufferSize: bs,
 		fs:         fs,
@@ -57,7 +53,7 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 	return err
 }
 
-func (bm *BufferManager) openFile(b *Buffer) (disk.File, error) {
+func (bm *BufferManager) openFile(b *Buffer) (file.File, error) {
 	return bm.fs.Open(b.blockID.FileName)
 }
 

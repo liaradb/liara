@@ -2,22 +2,13 @@ package disk
 
 import (
 	"errors"
-	"io"
-	"io/fs"
 	"os"
+
+	"github.com/liaradb/liaradb/file"
 )
 
-type File interface {
-	fs.File
-	io.Reader
-	io.ReaderAt
-	io.Writer
-	io.WriterAt
-	io.Seeker
-}
-
 type FileSystem struct {
-	files map[string]File
+	files map[string]file.File
 }
 
 func (fs *FileSystem) Close() error {
@@ -28,7 +19,7 @@ func (fs *FileSystem) Close() error {
 	return errors.Join(errs...)
 }
 
-func (fs *FileSystem) Open(name string) (File, error) {
+func (fs *FileSystem) Open(name string) (file.File, error) {
 	f, ok := fs.files[name]
 	if ok {
 		return f, nil
@@ -40,7 +31,7 @@ func (fs *FileSystem) Open(name string) (File, error) {
 	}
 
 	if fs.files == nil {
-		fs.files = map[string]File{}
+		fs.files = map[string]file.File{}
 	}
 	fs.files[name] = f
 	return f, nil
