@@ -26,12 +26,14 @@ func TestGetLatestSegment(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			names, err := ListSegments(test.fsys, ".")
+			sl := NewSegmentList(nil, "")
+
+			names, err := sl.ListSegments(test.fsys, ".")
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			sn := GetLatestSegment(names)
+			sn := sl.GetLatestSegment(names)
 			if id := sn.ID(); id != test.result {
 				t.Errorf("wrong id: %v, expected: %v", id, test.result)
 			}
@@ -46,7 +48,9 @@ func TestGetSegmentForLSN(t *testing.T) {
 		NewSegmentName(1, 10).String(): {},
 		NewSegmentName(2, 20).String(): {},
 	}
-	names, err := ListSegments(fsys, ".")
+	sl := NewSegmentList(nil, "")
+
+	names, err := sl.ListSegments(fsys, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +66,9 @@ func TestGetSegmentForLSN(t *testing.T) {
 		"should find high value":    {50, true, 20},
 	} {
 		t.Run(message, func(t *testing.T) {
-			sn, ok := GetSegmentForLSN(names, test.search)
+			sl := NewSegmentList(nil, "")
+
+			sn, ok := sl.GetSegmentForLSN(names, test.search)
 			if test.found {
 				if !ok {
 					t.Error("should find log sequence number")
@@ -86,7 +92,8 @@ func TestListSegments(t *testing.T) {
 
 	t.Run("should list segments", func(t *testing.T) {
 		fsys := createFiles(0, count)
-		names, err := ListSegments(fsys, ".")
+		sl := NewSegmentList(nil, "")
+		names, err := sl.ListSegments(fsys, ".")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -99,7 +106,8 @@ func TestListSegments(t *testing.T) {
 
 	t.Run("should list segments in order", func(t *testing.T) {
 		fsys := createFiles(9998, count)
-		names, err := ListSegments(fsys, ".")
+		sl := NewSegmentList(nil, "")
+		names, err := sl.ListSegments(fsys, ".")
 		if err != nil {
 			t.Fatal(err)
 		}

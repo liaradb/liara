@@ -7,7 +7,26 @@ import (
 	"github.com/liaradb/liaradb/file"
 )
 
-func GetLatestSegment(names []SegmentName) SegmentName {
+type SegmentList struct {
+	fsys file.FileSystem
+	dir  string
+}
+
+type ReadDir interface {
+	ReadDir(name string) ([]fs.DirEntry, error)
+}
+
+func NewSegmentList(
+	fsys file.FileSystem,
+	dir string,
+) *SegmentList {
+	return &SegmentList{
+		fsys: fsys,
+		dir:  dir,
+	}
+}
+
+func (sl *SegmentList) GetLatestSegment(names []SegmentName) SegmentName {
 	if len(names) > 0 {
 		return names[len(names)-1]
 	}
@@ -15,7 +34,7 @@ func GetLatestSegment(names []SegmentName) SegmentName {
 	return SegmentName{}
 }
 
-func GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, bool) {
+func (sl *SegmentList) GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, bool) {
 	for i := len(names) - 1; i >= 0; i-- {
 		n := names[i]
 		if lsn >= n.lsn {
@@ -26,11 +45,7 @@ func GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, 
 	return SegmentName{}, false
 }
 
-type ReadDir interface {
-	ReadDir(name string) ([]fs.DirEntry, error)
-}
-
-func ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
+func (sl *SegmentList) ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
 	files, err := fsys.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -50,12 +65,12 @@ func ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
 	return names, nil
 }
 
-func OpenLatestSegment(fsys file.FileSystem, dir string) (file.File, error) {
-	names, err := ListSegments(fsys, ".")
+func (sl *SegmentList) OpenLatestSegment(fsys file.FileSystem, dir string) (file.File, error) {
+	names, err := sl.ListSegments(fsys, ".")
 	if err != nil {
 		return nil, err
 	}
 
-	sn := GetLatestSegment(names)
+	sn := sl.GetLatestSegment(names)
 	return fsys.Open(sn.String())
 }
