@@ -7,6 +7,18 @@ import (
 	"testing/fstest"
 )
 
+func TestSegment(t *testing.T) {
+	s := NewSegment(1, 2)
+
+	if v := s.Size(); v != 1 {
+		t.Errorf("incorrect size: %v, expected: %v", v, 1)
+	}
+
+	if v := s.PageSize(); v != 2 {
+		t.Errorf("incorrect page size: %v, expected: %v", v, 2)
+	}
+}
+
 func TestGetSegmentForLSN(t *testing.T) {
 	fsys := fstest.MapFS{
 		NewSegmentName(1, 10).String(): {},
