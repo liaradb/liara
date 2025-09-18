@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liaradb/liaradb/mock"
+	"github.com/liaradb/liaradb/file/mock"
 )
 
 func TestLogPageWriter(t *testing.T) {

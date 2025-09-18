@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/liaradb/liaradb/mock"
+	"github.com/liaradb/liaradb/file/mock"
 )
 
 func TestLogReader_Iterate(t *testing.T) {
