@@ -37,6 +37,38 @@ func TestSegment(t *testing.T) {
 	})
 }
 
+func TestGetLatestSegment(t *testing.T) {
+	t.Parallel()
+
+	for message, test := range map[string]struct {
+		result SegmentID
+		fsys   fs.FS
+	}{
+		"should handle no files": {0, fstest.MapFS{}},
+		"should handle one file": {1, fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+		}},
+		"should handle multiple files": {2, fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		}},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+
+			names, err := ListSegments(test.fsys, ".")
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			sn := GetLatestSegment(names)
+			if id := sn.ID(); id != test.result {
+				t.Errorf("wrong id: %v, expected: %v", id, test.result)
+			}
+		})
+	}
+}
+
 func TestGetSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
@@ -60,17 +92,17 @@ func TestGetSegmentForLSN(t *testing.T) {
 		"should find high value":    {50, true, 20},
 	} {
 		t.Run(message, func(t *testing.T) {
-			lsn, ok := GetSegmentForLSN(names, test.search)
+			sn, ok := GetSegmentForLSN(names, test.search)
 			if test.found {
 				if !ok {
-					t.Error("should find LSN")
+					t.Error("should find log sequence number")
 				}
-				if lsn.lsn != test.result {
-					t.Error("wrong LSN")
+				if lsn := sn.LogSequenceNumber(); lsn != test.result {
+					t.Errorf("wrong log sequence number: %v, expected: %v", lsn, test.result)
 				}
 			} else {
 				if ok {
-					t.Error("should not find LSN")
+					t.Error("should not find log sequence number")
 				}
 			}
 		})

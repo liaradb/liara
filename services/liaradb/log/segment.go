@@ -19,6 +19,14 @@ func NewSegment(size int, pageSize int) *Segment {
 func (s *Segment) Size() int     { return s.size }
 func (s *Segment) PageSize() int { return s.pageSize }
 
+func GetLatestSegment(names []SegmentName) SegmentName {
+	if len(names) > 0 {
+		return names[len(names)-1]
+	}
+
+	return SegmentName{}
+}
+
 func GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, bool) {
 	for i := len(names) - 1; i >= 0; i-- {
 		n := names[i]
