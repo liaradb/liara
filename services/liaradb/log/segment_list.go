@@ -7,6 +7,8 @@ import (
 	"github.com/liaradb/liaradb/file"
 )
 
+// TODO: Remove files before LSN
+
 type SegmentList struct {
 	fsys  file.FileSystem
 	dir   string

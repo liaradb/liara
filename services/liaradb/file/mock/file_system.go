@@ -33,7 +33,8 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		mfs.dirs[dir] = d
 	}
 
-	m, ok := d[name]
+	base := path.Base(name)
+	m, ok := d[base]
 	if !ok {
 		m = NewMockFile(name)
 		f, ok := mfs.MapFS[dir]
@@ -41,7 +42,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 			m.data = f.Data
 			m.modTime = f.ModTime
 		}
-		d[name] = m
+		d[base] = m
 	}
 
 	mfs.MapFS[name] = &fstest.MapFile{
@@ -50,4 +51,14 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	}
 
 	return m, nil
+}
+
+func (mfs *FileSystem) DeleteFile(name string) error {
+	d, ok := mfs.dirs[path.Dir(name)]
+	if ok {
+		delete(d, path.Base(name))
+	}
+
+	delete(mfs.MapFS, name)
+	return nil
 }

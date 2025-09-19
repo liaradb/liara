@@ -59,3 +59,7 @@ func (fs *FileSystem) CloseFile(name string) error {
 func (fs *FileSystem) Count() int {
 	return len(fs.files)
 }
+
+func (fs *FileSystem) DeleteFile(name string) error {
+	return os.Remove(name)
+}

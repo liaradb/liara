@@ -6,8 +6,9 @@ import (
 )
 
 type FileSystem interface {
-	ReadDir(name string) ([]fs.DirEntry, error)
+	DeleteFile(name string) error
 	OpenFile(name string) (File, error)
+	ReadDir(name string) ([]fs.DirEntry, error)
 }
 
 type File interface {
