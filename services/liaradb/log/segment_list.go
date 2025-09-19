@@ -7,8 +7,6 @@ import (
 	"github.com/liaradb/liaradb/file"
 )
 
-// TODO: Remove files before LSN
-
 type SegmentList struct {
 	fsys  file.FileSystem
 	dir   string
@@ -51,6 +49,26 @@ func (*SegmentList) filesToNames(files []fs.DirEntry) []SegmentName {
 		return int(a.ID() - b.ID())
 	})
 	return names
+}
+
+func (sl *SegmentList) OpenNextSegment(lsn LogSequenceNumber) (SegmentName, file.File, error) {
+	sn := sl.getNextSegment(lsn)
+	f, err := sl.fsys.OpenFile(sn.String())
+	if err != nil {
+		return SegmentName{}, nil, err
+	}
+
+	sl.names = append(sl.names, sn)
+
+	return sn, f, err
+}
+
+func (sl *SegmentList) getNextSegment(lsn LogSequenceNumber) SegmentName {
+	if len(sl.names) > 0 {
+		return sl.names[len(sl.names)-1].Next(lsn)
+	}
+
+	return SegmentName{}
 }
 
 func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {

@@ -35,6 +35,13 @@ func ParseSegmentName(value string) SegmentName {
 func (sn SegmentName) ID() SegmentID                        { return sn.id }
 func (sn SegmentName) LogSequenceNumber() LogSequenceNumber { return sn.lsn }
 
+func (sn SegmentName) Next(lsn LogSequenceNumber) SegmentName {
+	return SegmentName{
+		id:  sn.id + 1,
+		lsn: lsn,
+	}
+}
+
 func (sn SegmentName) String() string {
 	return fmt.Sprintf("segment_%016x_%016x.lr", sn.id, sn.lsn)
 }

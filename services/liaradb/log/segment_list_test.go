@@ -150,6 +150,37 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	}
 }
 
+func TestSegmentList_OpenNextSegment(t *testing.T) {
+	t.Parallel()
+
+	fsys := mock.NewFileSystem(fstest.MapFS{
+		NewSegmentName(1, 10).String(): {},
+		NewSegmentName(2, 20).String(): {},
+	})
+	sl := NewSegmentList(fsys, ".")
+
+	if err := sl.Open(); err != nil {
+		t.Fatal(err)
+	}
+
+	sn, f, err := sl.OpenNextSegment(30)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if id := sn.ID(); id != 3 {
+		t.Errorf("wrong id: %v, expected: %v", id, 3)
+	}
+
+	if f == nil {
+		t.Error("file should not be nil")
+	}
+
+	if names := sl.Names(); len(names) <= 3 && !slices.Contains(names, sn) {
+		t.Errorf("segment list does not contain segment: %v", sn)
+	}
+}
+
 func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
 	t.Parallel()
 
