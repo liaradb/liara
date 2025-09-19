@@ -2,6 +2,7 @@ package log
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 	"testing/fstest"
 
@@ -87,6 +88,10 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 
 			if f == nil {
 				t.Error("file should not be nil")
+			}
+
+			if names := sl.Names(); !slices.Contains(names, sn) {
+				t.Errorf("segment list does not contain segment: %v", sn)
 			}
 		})
 	}

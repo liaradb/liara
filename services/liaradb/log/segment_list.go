@@ -55,17 +55,25 @@ func (*SegmentList) filesToNames(files []fs.DirEntry) []SegmentName {
 }
 
 func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {
-	sn := sl.getLatestSegment()
+	sn, ok := sl.getLatestSegment()
 	f, err := sl.fsys.OpenFile(sn.String())
+	if err != nil {
+		return SegmentName{}, nil, err
+	}
+
+	if !ok {
+		sl.names = append(sl.names, sn)
+	}
+
 	return sn, f, err
 }
 
-func (sl *SegmentList) getLatestSegment() SegmentName {
+func (sl *SegmentList) getLatestSegment() (SegmentName, bool) {
 	if len(sl.names) > 0 {
-		return sl.names[len(sl.names)-1]
+		return sl.names[len(sl.names)-1], true
 	}
 
-	return SegmentName{}
+	return SegmentName{}, false
 }
 
 func (sl *SegmentList) OpenSegmentForLSN(lsn LogSequenceNumber) (SegmentName, file.File, error) {
