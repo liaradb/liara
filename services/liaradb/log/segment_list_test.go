@@ -150,6 +150,37 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	}
 }
 
+func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
+	t.Parallel()
+
+	fsys := mock.NewFileSystem(fstest.MapFS{
+		NewSegmentName(1, 10).String(): {},
+		NewSegmentName(2, 20).String(): {},
+	})
+	sl := NewSegmentList(fsys, ".")
+
+	if err := sl.Open(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := sl.RemoveSegmentBeforeLSN(20); err != nil {
+		t.Fatal(err)
+	}
+
+	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
+		t.Errorf("segment list is incorrect: %v", names)
+	}
+
+	// Open again to verify
+	if err := sl.Open(); err != nil {
+		t.Fatal(err)
+	}
+
+	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
+		t.Errorf("segment list is incorrect: %v", names)
+	}
+}
+
 func createNames(start SegmentID, count SegmentID) []SegmentName {
 	names := make([]SegmentName, 0, count)
 	for i := range count {

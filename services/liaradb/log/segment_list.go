@@ -15,10 +15,6 @@ type SegmentList struct {
 	names []SegmentName
 }
 
-type ReadDir interface {
-	ReadDir(name string) ([]fs.DirEntry, error)
-}
-
 func NewSegmentList(fsys file.FileSystem, dir string) *SegmentList {
 	return &SegmentList{
 		fsys: fsys,
@@ -97,4 +93,35 @@ func (sl *SegmentList) getSegmentForLSN(lsn LogSequenceNumber) (SegmentName, boo
 	}
 
 	return SegmentName{}, false
+}
+
+func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn LogSequenceNumber) error {
+	sn, index, ok := sl.getSegmentBeforeLSN(lsn)
+	if !ok {
+		return ErrNoSegmentFile
+	}
+
+	sl.names = sl.names[index:]
+
+	return sl.fsys.Remove(sn.String())
+}
+
+func (sl *SegmentList) getSegmentBeforeLSN(lsn LogSequenceNumber) (SegmentName, int, bool) {
+	index := sl.getIndexForLSN(lsn)
+	if index > 0 {
+		return sl.names[index-1], index, true
+	}
+
+	return SegmentName{}, 0, false
+}
+
+func (sl *SegmentList) getIndexForLSN(lsn LogSequenceNumber) int {
+	for i := len(sl.names) - 1; i >= 0; i-- {
+		n := sl.names[i]
+		if lsn >= n.lsn {
+			return i
+		}
+	}
+
+	return 0
 }
