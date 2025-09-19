@@ -19,10 +19,12 @@ func TestSegmentList_Open(t *testing.T) {
 
 		fsys := createFiles(0, count)
 		sl := NewSegmentList(fsys, ".")
-		names, err := sl.Open()
-		if err != nil {
+
+		if err := sl.Open(); err != nil {
 			t.Fatal(err)
 		}
+
+		names := sl.Names()
 
 		want := createNames(0, count)
 		if !reflect.DeepEqual(want, names) {
@@ -35,10 +37,12 @@ func TestSegmentList_Open(t *testing.T) {
 
 		fsys := createFiles(9998, count)
 		sl := NewSegmentList(fsys, ".")
-		names, err := sl.Open()
-		if err != nil {
+
+		if err := sl.Open(); err != nil {
 			t.Fatal(err)
 		}
+
+		names := sl.Names()
 
 		want := createNames(9998, count)
 		if !reflect.DeepEqual(want, names) {
@@ -68,12 +72,11 @@ func TestGetLatestSegment(t *testing.T) {
 
 			sl := NewSegmentList(test.fsys, ".")
 
-			names, err := sl.Open()
-			if err != nil {
+			if err := sl.Open(); err != nil {
 				t.Fatal(err)
 			}
 
-			sn := sl.GetLatestSegment(names)
+			sn := sl.GetLatestSegment()
 			if id := sn.ID(); id != test.result {
 				t.Errorf("wrong id: %v, expected: %v", id, test.result)
 			}
@@ -90,8 +93,7 @@ func TestGetSegmentForLSN(t *testing.T) {
 	})
 	sl := NewSegmentList(fsys, ".")
 
-	names, err := sl.Open()
-	if err != nil {
+	if err := sl.Open(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,9 +110,7 @@ func TestGetSegmentForLSN(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sl := NewSegmentList(nil, "")
-
-			sn, ok := sl.GetSegmentForLSN(names, test.search)
+			sn, ok := sl.GetSegmentForLSN(test.search)
 			if test.found {
 				if !ok {
 					t.Error("should find log sequence number")

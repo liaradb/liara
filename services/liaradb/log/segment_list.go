@@ -8,8 +8,9 @@ import (
 )
 
 type SegmentList struct {
-	fsys file.FileSystem
-	dir  string
+	fsys  file.FileSystem
+	dir   string
+	names []SegmentName
 }
 
 type ReadDir interface {
@@ -26,10 +27,12 @@ func NewSegmentList(
 	}
 }
 
-func (sl *SegmentList) Open() ([]SegmentName, error) {
+func (sl *SegmentList) Names() []SegmentName { return sl.names }
+
+func (sl *SegmentList) Open() error {
 	files, err := sl.fsys.ReadDir(sl.dir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	names := make([]SegmentName, 0, len(files))
@@ -43,20 +46,22 @@ func (sl *SegmentList) Open() ([]SegmentName, error) {
 		return int(a.ID()) - int(b.ID())
 	})
 
-	return names, nil
+	sl.names = names
+
+	return nil
 }
 
-func (sl *SegmentList) GetLatestSegment(names []SegmentName) SegmentName {
-	if len(names) > 0 {
-		return names[len(names)-1]
+func (sl *SegmentList) GetLatestSegment() SegmentName {
+	if len(sl.names) > 0 {
+		return sl.names[len(sl.names)-1]
 	}
 
 	return SegmentName{}
 }
 
-func (sl *SegmentList) GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumber) (SegmentName, bool) {
-	for i := len(names) - 1; i >= 0; i-- {
-		n := names[i]
+func (sl *SegmentList) GetSegmentForLSN(lsn LogSequenceNumber) (SegmentName, bool) {
+	for i := len(sl.names) - 1; i >= 0; i-- {
+		n := sl.names[i]
 		if lsn >= n.lsn {
 			return n, true
 		}
@@ -66,12 +71,6 @@ func (sl *SegmentList) GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumb
 }
 
 // TODO: Test this
-func (sl *SegmentList) OpenLatestSegment(fsys file.FileSystem, dir string) (file.File, error) {
-	names, err := sl.Open()
-	if err != nil {
-		return nil, err
-	}
-
-	sn := sl.GetLatestSegment(names)
-	return fsys.OpenFile(sn.String())
+func (sl *SegmentList) OpenLatestSegment() (file.File, error) {
+	return sl.fsys.OpenFile(sl.GetLatestSegment().String())
 }
