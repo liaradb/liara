@@ -10,14 +10,12 @@ func TestSegmentName(t *testing.T) {
 		lsn   LogSequenceNumber
 		name  string
 	}{
-		"should handle index 0":         {0, 0, "segment_000_000.lr"},
-		"should add index padding":      {1, 0, "segment_001_000.lr"},
-		"should handle full size index": {234, 0, "segment_234_000.lr"},
-		"should overflow index":         {1234, 0, "segment_1234_000.lr"},
-		"should handle lsn 0":           {0, 0, "segment_000_000.lr"},
-		"should add lsn padding":        {0, 1, "segment_000_001.lr"},
-		"should handle full size lsn":   {0, 234, "segment_000_234.lr"},
-		"should overflow osn":           {0, 1234, "segment_000_1234.lr"},
+		"should handle index 0":         {0, 0, "segment_0000000000000000_0000000000000000.lr"},
+		"should add index padding":      {1, 0, "segment_0000000000000001_0000000000000000.lr"},
+		"should handle full size index": {234, 0, "segment_00000000000000ea_0000000000000000.lr"},
+		"should handle lsn 0":           {0, 0, "segment_0000000000000000_0000000000000000.lr"},
+		"should add lsn padding":        {0, 1, "segment_0000000000000000_0000000000000001.lr"},
+		"should handle full size lsn":   {0, 234, "segment_0000000000000000_00000000000000ea.lr"},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()

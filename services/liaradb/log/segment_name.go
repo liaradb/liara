@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-var segmentRegexp = regexp.MustCompile("segment_([0-9]*)_([0-9]*).lr")
+var segmentRegexp = regexp.MustCompile("segment_([0-9a-f]*)_([0-9a-f]*).lr")
 
 type SegmentName struct {
 	id  SegmentID
@@ -26,8 +26,8 @@ func ParseSegmentName(value string) SegmentName {
 		return SegmentName{}
 	}
 
-	i, _ := strconv.Atoi(matches[1])
-	l, _ := strconv.Atoi(matches[2])
+	i, _ := strconv.ParseUint(matches[1], 16, 64)
+	l, _ := strconv.ParseUint(matches[2], 16, 64)
 
 	return NewSegmentName(SegmentID(i), LogSequenceNumber(l))
 }
@@ -36,5 +36,5 @@ func (sn SegmentName) ID() SegmentID                        { return sn.id }
 func (sn SegmentName) LogSequenceNumber() LogSequenceNumber { return sn.lsn }
 
 func (sn SegmentName) String() string {
-	return fmt.Sprintf("segment_%04v_%04v.lr", sn.id, sn.lsn)
+	return fmt.Sprintf("segment_%016x_%016x.lr", sn.id, sn.lsn)
 }

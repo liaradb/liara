@@ -50,8 +50,9 @@ func (*SegmentList) filesToNames(files []fs.DirEntry) []SegmentName {
 			names = append(names, ParseSegmentName(f.Name()))
 		}
 	}
+	// TODO: Do we need to sort?
 	slices.SortFunc(names, func(a, b SegmentName) int {
-		return int(a.ID()) - int(b.ID())
+		return int(a.ID() - b.ID())
 	})
 	return names
 }
