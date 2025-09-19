@@ -7,7 +7,7 @@ import (
 
 type FileSystem interface {
 	ReadDir(name string) ([]fs.DirEntry, error)
-	Open(name string) (File, error)
+	OpenFile(name string) (File, error)
 }
 
 type File interface {

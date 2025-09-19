@@ -24,7 +24,7 @@ func (fs *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 	return os.ReadDir(name)
 }
 
-func (fs *FileSystem) Open(name string) (file.File, error) {
+func (fs *FileSystem) OpenFile(name string) (file.File, error) {
 	f, ok := fs.files[name]
 	if ok {
 		return f, nil

@@ -1,34 +1,74 @@
 package log
 
 import (
-	"io/fs"
 	"reflect"
 	"testing"
 	"testing/fstest"
+
+	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/mock"
 )
+
+func TestSegmentList_Open(t *testing.T) {
+	t.Parallel()
+
+	var count SegmentID = 10
+
+	t.Run("should list segments", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := createFiles(0, count)
+		sl := NewSegmentList(fsys, ".")
+		names, err := sl.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		want := createNames(0, count)
+		if !reflect.DeepEqual(want, names) {
+			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
+		}
+	})
+
+	t.Run("should list segments in order", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := createFiles(9998, count)
+		sl := NewSegmentList(fsys, ".")
+		names, err := sl.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		want := createNames(9998, count)
+		if !reflect.DeepEqual(want, names) {
+			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
+		}
+	})
+}
 
 func TestGetLatestSegment(t *testing.T) {
 	t.Parallel()
 
 	for message, test := range map[string]struct {
 		result SegmentID
-		fsys   fs.ReadDirFS
+		fsys   file.FileSystem
 	}{
-		"should handle no files": {0, fstest.MapFS{}},
-		"should handle one file": {1, fstest.MapFS{
+		"should handle no files": {0, mock.NewFileSystem(fstest.MapFS{})},
+		"should handle one file": {1, mock.NewFileSystem(fstest.MapFS{
 			NewSegmentName(1, 10).String(): {},
-		}},
-		"should handle multiple files": {2, fstest.MapFS{
+		})},
+		"should handle multiple files": {2, mock.NewFileSystem(fstest.MapFS{
 			NewSegmentName(1, 10).String(): {},
 			NewSegmentName(2, 20).String(): {},
-		}},
+		})},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sl := NewSegmentList(nil, "")
+			sl := NewSegmentList(test.fsys, ".")
 
-			names, err := sl.ListSegments(test.fsys, ".")
+			names, err := sl.Open()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -44,13 +84,13 @@ func TestGetLatestSegment(t *testing.T) {
 func TestGetSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
-	fsys := fstest.MapFS{
+	fsys := mock.NewFileSystem(fstest.MapFS{
 		NewSegmentName(1, 10).String(): {},
 		NewSegmentName(2, 20).String(): {},
-	}
-	sl := NewSegmentList(nil, "")
+	})
+	sl := NewSegmentList(fsys, ".")
 
-	names, err := sl.ListSegments(fsys, ".")
+	names, err := sl.Open()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,6 +106,8 @@ func TestGetSegmentForLSN(t *testing.T) {
 		"should find high value":    {50, true, 20},
 	} {
 		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+
 			sl := NewSegmentList(nil, "")
 
 			sn, ok := sl.GetSegmentForLSN(names, test.search)
@@ -85,40 +127,6 @@ func TestGetSegmentForLSN(t *testing.T) {
 	}
 }
 
-func TestListSegments(t *testing.T) {
-	t.Parallel()
-
-	var count SegmentID = 10
-
-	t.Run("should list segments", func(t *testing.T) {
-		fsys := createFiles(0, count)
-		sl := NewSegmentList(nil, "")
-		names, err := sl.ListSegments(fsys, ".")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		want := createNames(0, count)
-		if !reflect.DeepEqual(want, names) {
-			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
-		}
-	})
-
-	t.Run("should list segments in order", func(t *testing.T) {
-		fsys := createFiles(9998, count)
-		sl := NewSegmentList(nil, "")
-		names, err := sl.ListSegments(fsys, ".")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		want := createNames(9998, count)
-		if !reflect.DeepEqual(want, names) {
-			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
-		}
-	})
-}
-
 func createNames(start SegmentID, count SegmentID) []SegmentName {
 	names := make([]SegmentName, 0, count)
 	for i := range count {
@@ -127,10 +135,10 @@ func createNames(start SegmentID, count SegmentID) []SegmentName {
 	return names
 }
 
-func createFiles(start SegmentID, count SegmentID) fs.ReadDirFS {
-	fsys := fstest.MapFS{}
+func createFiles(start SegmentID, count SegmentID) *mock.FileSystem {
+	fsys := &mock.FileSystem{MapFS: fstest.MapFS{}}
 	for i := range count {
-		fsys[NewSegmentName(start+i, 0).String()] = &fstest.MapFile{}
+		fsys.MapFS[NewSegmentName(start+i, 0).String()] = &fstest.MapFile{}
 	}
 	return fsys
 }

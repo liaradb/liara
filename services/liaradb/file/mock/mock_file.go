@@ -3,10 +3,11 @@ package mock
 import (
 	"errors"
 	"io"
-	"io/fs"
 	"os"
 	"slices"
 	"time"
+
+	"github.com/liaradb/liaradb/file"
 )
 
 type mockFile struct {
@@ -16,16 +17,7 @@ type mockFile struct {
 	modTime  time.Time
 }
 
-type file interface {
-	fs.File
-	io.Reader
-	io.ReaderAt
-	io.Writer
-	io.WriterAt
-	io.Seeker
-}
-
-var _ file = (*mockFile)(nil)
+var _ file.File = (*mockFile)(nil)
 
 func NewMockFile(name string) *mockFile {
 	return &mockFile{

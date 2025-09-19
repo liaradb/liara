@@ -15,7 +15,7 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
 	}
 
-	if f, err := fs.Open(p); err != nil {
+	if f, err := fs.OpenFile(p); err != nil {
 		t.Error(err)
 	} else if f == nil {
 		t.Error("file should not be nil")
@@ -25,7 +25,7 @@ func TestFileSystem(t *testing.T) {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
 	}
 
-	if f, err := fs.Open(p); err != nil {
+	if f, err := fs.OpenFile(p); err != nil {
 		t.Error(err)
 	} else if f == nil {
 		t.Error("file should not be nil")
@@ -52,7 +52,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 
 		p := path.Join(t.TempDir(), "file")
 		fs := &FileSystem{}
-		if f, err := fs.Open(p); err != nil {
+		if f, err := fs.OpenFile(p); err != nil {
 			t.Error(err)
 		} else if f == nil {
 			t.Error("file should not be nil")
@@ -79,7 +79,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		p := path.Join(t.TempDir(), "file")
 		fs := &FileSystem{}
 
-		f, err := fs.Open(p)
+		f, err := fs.OpenFile(p)
 		if err != nil {
 			t.Error(err)
 		} else if f == nil {

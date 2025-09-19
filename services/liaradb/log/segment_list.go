@@ -26,6 +26,26 @@ func NewSegmentList(
 	}
 }
 
+func (sl *SegmentList) Open() ([]SegmentName, error) {
+	files, err := sl.fsys.ReadDir(sl.dir)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]SegmentName, 0, len(files))
+	for _, f := range files {
+		if !f.IsDir() {
+			names = append(names, ParseSegmentName(f.Name()))
+		}
+	}
+
+	slices.SortFunc(names, func(a, b SegmentName) int {
+		return int(a.ID()) - int(b.ID())
+	})
+
+	return names, nil
+}
+
 func (sl *SegmentList) GetLatestSegment(names []SegmentName) SegmentName {
 	if len(names) > 0 {
 		return names[len(names)-1]
@@ -45,32 +65,13 @@ func (sl *SegmentList) GetSegmentForLSN(names []SegmentName, lsn LogSequenceNumb
 	return SegmentName{}, false
 }
 
-func (sl *SegmentList) ListSegments(fsys ReadDir, dir string) ([]SegmentName, error) {
-	files, err := fsys.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	names := make([]SegmentName, 0, len(files))
-	for _, f := range files {
-		if !f.IsDir() {
-			names = append(names, ParseSegmentName(f.Name()))
-		}
-	}
-
-	slices.SortFunc(names, func(a, b SegmentName) int {
-		return int(a.ID()) - int(b.ID())
-	})
-
-	return names, nil
-}
-
+// TODO: Test this
 func (sl *SegmentList) OpenLatestSegment(fsys file.FileSystem, dir string) (file.File, error) {
-	names, err := sl.ListSegments(fsys, ".")
+	names, err := sl.Open()
 	if err != nil {
 		return nil, err
 	}
 
 	sn := sl.GetLatestSegment(names)
-	return fsys.Open(sn.String())
+	return fsys.OpenFile(sn.String())
 }

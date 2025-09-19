@@ -54,7 +54,7 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 }
 
 func (bm *BufferManager) openFile(b *Buffer) (file.File, error) {
-	return bm.fs.Open(b.blockID.FileName)
+	return bm.fs.OpenFile(b.blockID.FileName)
 }
 
 func (bm *BufferManager) offset(bid BlockID) int64 {
