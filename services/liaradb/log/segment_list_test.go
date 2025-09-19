@@ -51,7 +51,7 @@ func TestSegmentList_Open(t *testing.T) {
 	})
 }
 
-func TestGetLatestSegment(t *testing.T) {
+func TestSegmentList_OpenLatestSegment(t *testing.T) {
 	t.Parallel()
 
 	for message, test := range map[string]struct {
@@ -76,15 +76,23 @@ func TestGetLatestSegment(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			sn := sl.GetLatestSegment()
+			sn, f, err := sl.OpenLatestSegment()
+			if err != nil {
+				t.Fatal(err)
+			}
+
 			if id := sn.ID(); id != test.result {
 				t.Errorf("wrong id: %v, expected: %v", id, test.result)
+			}
+
+			if f == nil {
+				t.Error("file should not be nil")
 			}
 		})
 	}
 }
 
-func TestGetSegmentForLSN(t *testing.T) {
+func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
 	fsys := mock.NewFileSystem(fstest.MapFS{
@@ -110,17 +118,27 @@ func TestGetSegmentForLSN(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sn, ok := sl.GetSegmentForLSN(test.search)
+			sn, f, err := sl.OpenSegmentForLSN(test.search)
 			if test.found {
-				if !ok {
-					t.Error("should find log sequence number")
+				if err != nil {
+					if err == ErrNoSegmentFile {
+						t.Error("should find log sequence number")
+					} else {
+						t.Error(err)
+					}
 				}
 				if lsn := sn.LogSequenceNumber(); lsn != test.result {
 					t.Errorf("wrong log sequence number: %v, expected: %v", lsn, test.result)
 				}
+				if f == nil {
+					t.Error("file should not be nil")
+				}
 			} else {
-				if ok {
+				if err != ErrNoSegmentFile {
 					t.Error("should not find log sequence number")
+				}
+				if f != nil {
+					t.Error("file should be nil")
 				}
 			}
 		})
