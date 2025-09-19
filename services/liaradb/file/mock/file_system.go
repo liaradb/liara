@@ -53,7 +53,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	return m, nil
 }
 
-func (mfs *FileSystem) DeleteFile(name string) error {
+func (mfs *FileSystem) Remove(name string) error {
 	d, ok := mfs.dirs[path.Dir(name)]
 	if ok {
 		delete(d, path.Base(name))

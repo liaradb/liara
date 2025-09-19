@@ -60,6 +60,6 @@ func (fs *FileSystem) Count() int {
 	return len(fs.files)
 }
 
-func (fs *FileSystem) DeleteFile(name string) error {
+func (fs *FileSystem) Remove(name string) error {
 	return os.Remove(name)
 }
