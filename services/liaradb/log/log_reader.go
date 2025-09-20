@@ -3,6 +3,7 @@ package log
 import (
 	"bufio"
 	"bytes"
+	"container/list"
 	"io"
 	"iter"
 )
@@ -41,6 +42,7 @@ func (l *LogReader) Iterate() iter.Seq2[*LogRecord, error] {
 	return l.IterateFrom(0)
 }
 
+// TODO: Test this
 func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 	return func(yield func(*LogRecord, error) bool) {
 		if err := l.Seek(pid); err != nil {
@@ -70,6 +72,51 @@ func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 	}
 }
 
+// TODO: Change page structure to make reversing easier
+func (l *LogReader) Reverse() iter.Seq2[*LogRecord, error] {
+	return func(yield func(*LogRecord, error) bool) {
+		if err := l.Seek(0); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		q := list.New()
+
+		for {
+			if _, err := l.Read(); err != nil {
+				if err == io.EOF {
+					break
+				}
+				yield(nil, err)
+				return
+			}
+
+			for lr, err := range l.Records() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				q.PushBack(lr)
+			}
+		}
+
+		for {
+			e := q.Back()
+			if e == nil {
+				return
+			}
+
+			v := e.Value.(*LogRecord)
+			q.Remove(e)
+			if !yield(v, nil) {
+				return
+			}
+		}
+	}
+}
+
+// TODO: Should we asynchronously prefetch pages?
 func (l *LogReader) Read() (*LogPageHeader, error) {
 	if err := l.header.Read(l.reader); err != nil {
 		return nil, err
@@ -96,7 +143,6 @@ func (l *LogReader) initReader() {
 
 func (l *LogReader) Records() iter.Seq2[*LogRecord, error] {
 	r := bufio.NewReader(l.pageReader)
-	lr := &LogRecord{}
 
 	return func(yield func(*LogRecord, error) bool) {
 		for {
@@ -107,6 +153,9 @@ func (l *LogReader) Records() iter.Seq2[*LogRecord, error] {
 				}
 				return
 			}
+
+			// TODO: Should we create a new record each time?
+			lr := &LogRecord{}
 
 			// TODO: Use a buffer
 			if err := lr.Read(r); err != nil {
