@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-const recordHeaderSize = crcSize + logRecordLengthSize
+const recordHeaderSize = crcSize + recordLengthSize
 
 type LogPageWriter struct {
 	size     int64
@@ -29,9 +29,9 @@ func newLogPageWriter(
 	}
 }
 
-func (lp *LogPageWriter) ID() LogPageID                    { return lp.header.ID() }
-func (lp *LogPageWriter) TimeLineID() TimeLineID           { return lp.header.TimeLineID() }
-func (lp *LogPageWriter) LengthRemaining() LogRecordLength { return lp.header.LengthRemaining() }
+func (lp *LogPageWriter) ID() LogPageID                 { return lp.header.ID() }
+func (lp *LogPageWriter) TimeLineID() TimeLineID        { return lp.header.TimeLineID() }
+func (lp *LogPageWriter) LengthRemaining() RecordLength { return lp.header.LengthRemaining() }
 
 // TODO: This is slow
 func (lp *LogPageWriter) Data() []byte {
@@ -40,7 +40,7 @@ func (lp *LogPageWriter) Data() []byte {
 	return lp.data
 }
 
-func (lp *LogPageWriter) init(id LogPageID, tlid TimeLineID, rem LogRecordLength) {
+func (lp *LogPageWriter) init(id LogPageID, tlid TimeLineID, rem RecordLength) {
 	lp.header = newLogPageHeader(id, tlid, rem)
 }
 
@@ -78,7 +78,7 @@ func (lp *LogPageWriter) insert(crc CRC, data []byte) error {
 		return err
 	}
 
-	if err := NewLogRecordLength(data).Write(lp.writeBuf); err != nil {
+	if err := NewRecordLength(data).Write(lp.writeBuf); err != nil {
 		return err
 	}
 

@@ -163,7 +163,7 @@ func (*LogReader) validateCRC(r *bufio.Reader) error {
 		return err
 	}
 
-	lrl := LogRecordLength(0)
+	lrl := RecordLength(0)
 	if err := lrl.Read(r); err != nil {
 		return err
 	}

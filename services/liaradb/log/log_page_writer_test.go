@@ -88,10 +88,10 @@ func TestLogPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (LogPageID, TimeLineID, LogRecordLength, *LogPageWriter) {
+func createPage() (LogPageID, TimeLineID, RecordLength, *LogPageWriter) {
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
-	rem := LogRecordLength(3)
+	rem := RecordLength(3)
 
 	lp := createEmptyPage()
 	lp.init(lpid, tlid, rem)

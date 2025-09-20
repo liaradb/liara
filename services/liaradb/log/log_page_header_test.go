@@ -12,7 +12,7 @@ func TestLogPageHeader(t *testing.T) {
 	r, w := assert.NewReaderWriter()
 	lpid := LogPageID(1)
 	tlid := TimeLineID(2)
-	rem := LogRecordLength(3)
+	rem := RecordLength(3)
 
 	lph := newLogPageHeader(lpid, tlid, rem)
 
@@ -37,7 +37,7 @@ func testLogPageHeader(
 	lph *LogPageHeader,
 	lpid LogPageID,
 	tlid TimeLineID,
-	rem LogRecordLength,
+	rem RecordLength,
 ) {
 	t.Helper()
 	assert.Getter(t, lph.ID, lpid, "ID")

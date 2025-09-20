@@ -6,18 +6,18 @@ const pageHeaderSize = 0 +
 	logMagicSize +
 	logPageIDSize +
 	timeLineIDSize +
-	logRecordLengthSize
+	recordLengthSize
 
 type LogPageHeader struct {
 	id              LogPageID
 	timeLineID      TimeLineID
-	lengthRemaining LogRecordLength
+	lengthRemaining RecordLength
 }
 
 func newLogPageHeader(
 	id LogPageID,
 	timeLineID TimeLineID,
-	lengthRemaining LogRecordLength,
+	lengthRemaining RecordLength,
 ) LogPageHeader {
 	return LogPageHeader{
 		id:              id,
@@ -26,9 +26,9 @@ func newLogPageHeader(
 	}
 }
 
-func (lph LogPageHeader) ID() LogPageID                    { return lph.id }
-func (lph LogPageHeader) TimeLineID() TimeLineID           { return lph.timeLineID }
-func (lph LogPageHeader) LengthRemaining() LogRecordLength { return lph.lengthRemaining }
+func (lph LogPageHeader) ID() LogPageID                 { return lph.id }
+func (lph LogPageHeader) TimeLineID() TimeLineID        { return lph.timeLineID }
+func (lph LogPageHeader) LengthRemaining() RecordLength { return lph.lengthRemaining }
 
 // TODO: Should we store this on the header struct?
 func (lp LogPageHeader) position(size int64) int64 {
