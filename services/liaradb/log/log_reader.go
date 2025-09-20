@@ -75,30 +75,15 @@ func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 // TODO: Change page structure to make reversing easier
 func (l *LogReader) Reverse() iter.Seq2[*LogRecord, error] {
 	return func(yield func(*LogRecord, error) bool) {
-		if err := l.Seek(0); err != nil {
-			yield(nil, err)
-			return
-		}
-
 		q := list.New()
 
-		for {
-			if _, err := l.Read(); err != nil {
-				if err == io.EOF {
-					break
-				}
+		for lr, err := range l.Iterate() {
+			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for lr, err := range l.Records() {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				q.PushBack(lr)
-			}
+			q.PushBack(lr)
 		}
 
 		for {
