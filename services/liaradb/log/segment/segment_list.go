@@ -78,6 +78,7 @@ func (sl *SegmentList) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentNam
 		return SegmentName{}, nil, err
 	}
 
+	sl.file = f
 	sl.names = append(sl.names, sn)
 
 	return sn, f, err
@@ -102,6 +103,7 @@ func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {
 		return SegmentName{}, nil, err
 	}
 
+	sl.file = f
 	if !ok {
 		sl.names = append(sl.names, sn)
 	}
@@ -127,6 +129,12 @@ func (sl *SegmentList) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentN
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 	f, err := sl.fsys.OpenFile(sn.String())
+	if err != nil {
+		return SegmentName{}, nil, err
+	}
+
+	sl.file = f
+
 	return sn, f, err
 }
 

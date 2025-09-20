@@ -28,6 +28,10 @@ func NewMockFile(name string) *mockFile {
 	}
 }
 
+func (m *mockFile) Open() {
+	m.isOpen = true
+}
+
 func (m *mockFile) Close() error {
 	m.isOpen = false
 	return nil

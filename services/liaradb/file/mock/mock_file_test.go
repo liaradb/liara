@@ -9,6 +9,7 @@ func TestMockFile(t *testing.T) {
 	t.Parallel()
 
 	m := NewMockFile("file")
+	m.Open()
 
 	wb := make([]byte, 8)
 	binary.LittleEndian.PutUint64(wb, 12345)

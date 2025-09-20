@@ -118,6 +118,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	f.Open()
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
