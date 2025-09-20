@@ -43,6 +43,10 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 			m.modTime = f.ModTime
 		}
 		d[base] = m
+	} else {
+		// Clone
+		var m2 File = *m
+		m = &m2
 	}
 
 	mfs.MapFS[name] = &fstest.MapFile{
