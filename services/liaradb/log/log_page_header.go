@@ -3,7 +3,7 @@ package log
 import "io"
 
 const pageHeaderSize = 0 +
-	logMagicSize +
+	magicSize +
 	logPageIDSize +
 	timeLineIDSize +
 	recordLengthSize
@@ -36,7 +36,7 @@ func (lp LogPageHeader) position(size int64) int64 {
 }
 
 func (lph *LogPageHeader) Read(r io.Reader) error {
-	if err := LogMagicPage.ReadIsPage(r); err != nil {
+	if err := MagicPage.ReadIsPage(r); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (lph *LogPageHeader) Read(r io.Reader) error {
 }
 
 func (lph *LogPageHeader) Write(w io.Writer) error {
-	if err := LogMagicPage.Write(w); err != nil {
+	if err := MagicPage.Write(w); err != nil {
 		return err
 	}
 

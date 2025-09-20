@@ -7,12 +7,12 @@ import (
 	"github.com/cardboardrobots/assert"
 )
 
-func TestLogMagic(t *testing.T) {
+func TestMagic(t *testing.T) {
 	t.Parallel()
 
 	r, w := assert.NewReaderWriter()
 
-	var l LogMagic = LogMagicPage
+	var l Magic = MagicPage
 	if err := l.Write(w); err != nil {
 		t.Fatal(err)
 	}
@@ -21,7 +21,7 @@ func TestLogMagic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var l2 LogMagic
+	var l2 Magic
 	if err := l2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
@@ -31,10 +31,10 @@ func TestLogMagic(t *testing.T) {
 	}
 }
 
-func TestLogMagicPage(t *testing.T) {
+func TestMagicPage(t *testing.T) {
 	t.Parallel()
 
-	if s := LogMagicPage.String(); s != "PAGE" {
+	if s := MagicPage.String(); s != "PAGE" {
 		t.Error("value is incorrect")
 	}
 }
