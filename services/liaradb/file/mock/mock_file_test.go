@@ -5,15 +5,15 @@ import (
 	"testing"
 )
 
-func TestMockFile(t *testing.T) {
+func TestFile(t *testing.T) {
 	t.Parallel()
 
-	m := NewMockFile("file")
-	m.Open()
+	f := NewMockFile("file")
+	f.Open()
 
 	wb := make([]byte, 8)
 	binary.LittleEndian.PutUint64(wb, 12345)
-	count, err := m.WriteAt(wb, 100)
+	count, err := f.WriteAt(wb, 100)
 	if count != 8 {
 		t.Fatal("wrong count")
 	}
@@ -22,7 +22,7 @@ func TestMockFile(t *testing.T) {
 	}
 
 	rb := make([]byte, 8)
-	count, err = m.ReadAt(rb, 100)
+	count, err = f.ReadAt(rb, 100)
 	if count != 8 {
 		t.Fatal("wrong count")
 	}
@@ -35,7 +35,7 @@ func TestMockFile(t *testing.T) {
 		t.Fatal("wrong value")
 	}
 
-	s, err := m.Stat()
+	s, err := f.Stat()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,7 +1,6 @@
 package segment
 
 import (
-	"io/fs"
 	"reflect"
 	"slices"
 	"testing"
@@ -119,7 +118,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+		if f.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -198,7 +197,7 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+		if f.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -256,7 +255,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+		if f.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})

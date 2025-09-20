@@ -9,7 +9,7 @@ import (
 
 type FileSystem struct {
 	fstest.MapFS
-	dirs map[string]map[string]*mockFile
+	dirs map[string]map[string]*File
 }
 
 func NewFileSystem(fs fstest.MapFS) *FileSystem {
@@ -23,13 +23,13 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		mfs.MapFS = make(fstest.MapFS)
 	}
 	if mfs.dirs == nil {
-		mfs.dirs = make(map[string]map[string]*mockFile)
+		mfs.dirs = make(map[string]map[string]*File)
 	}
 
 	dir := path.Dir(name)
 	d, ok := mfs.dirs[dir]
 	if !ok {
-		d = make(map[string]*mockFile)
+		d = make(map[string]*File)
 		mfs.dirs[dir] = d
 	}
 
