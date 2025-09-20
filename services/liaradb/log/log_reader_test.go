@@ -94,13 +94,13 @@ func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	return NewLogReader(256, f), NewLogWriter(256, f)
 }
 
-func createRecords(count record.LogSequenceNumber) ([]*Record, record.LogSequenceNumber) {
+func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	records := make([]*Record, 0, count)
+	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, newRecord(i, 2, time.UnixMicro(1234567890), data, reverse))
+		records = append(records, record.NewRecord(i, 2, time.UnixMicro(1234567890), data, reverse))
 	}
 	return records, count - 1
 }

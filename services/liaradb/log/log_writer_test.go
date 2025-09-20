@@ -23,7 +23,7 @@ func TestLogWriter_Append(t *testing.T) {
 	l := createLogWriter(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
+	var rec = record.NewRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
 	if lsn, err := l.Append(rec); err != nil {
 		t.Error(err)
@@ -39,7 +39,7 @@ func TestLogWriter_Flush(t *testing.T) {
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
+	var rec = record.NewRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()

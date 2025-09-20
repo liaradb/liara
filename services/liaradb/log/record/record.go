@@ -1,23 +1,24 @@
-package log
+package record
 
 import (
 	"encoding/binary"
 	"io"
 	"time"
-
-	"github.com/liaradb/liaradb/log/record"
 )
 
+const RecordHeaderSize = CrcSize + RecordLengthSize
+
 type Record struct {
-	logSequenceNumber record.LogSequenceNumber
+	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID
 	time              time.Time
 	data              LogData
 	reverse           LogData
 }
 
-func newRecord(
-	lsn record.LogSequenceNumber,
+// TODO: Should this be private?
+func NewRecord(
+	lsn LogSequenceNumber,
 	tid TransactionID,
 	time time.Time,
 	data []byte,
@@ -32,11 +33,11 @@ func newRecord(
 	}
 }
 
-func (rc *Record) LogSequenceNumber() record.LogSequenceNumber { return rc.logSequenceNumber }
-func (rc *Record) TransactionID() TransactionID                { return rc.transactionID }
-func (rc *Record) Time() time.Time                             { return rc.time }
-func (rc *Record) Data() []byte                                { return rc.data.Bytes() }
-func (rc *Record) Reverse() []byte                             { return rc.reverse.Bytes() }
+func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
+func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
+func (rc *Record) Time() time.Time                      { return rc.time }
+func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
+func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
 func (rc *Record) Write(w io.Writer) error {
 	if err := rc.logSequenceNumber.Write(w); err != nil {

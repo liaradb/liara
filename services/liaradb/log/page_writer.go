@@ -4,22 +4,22 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-)
 
-const recordHeaderSize = crcSize + recordLengthSize
+	"github.com/liaradb/liaradb/log/record"
+)
 
 type PageWriter struct {
 	size     int64
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
-	header   PageHeader
+	header   record.PageHeader
 }
 
 func newPageWriter(
 	size int64,
 ) *PageWriter {
-	body := size - pageHeaderSize
+	body := size - record.PageHeaderSize
 	writer := bytes.NewBuffer(make([]byte, 0, body))
 	return &PageWriter{
 		size:     body,
@@ -29,9 +29,9 @@ func newPageWriter(
 	}
 }
 
-func (pw *PageWriter) ID() PageID                    { return pw.header.ID() }
-func (pw *PageWriter) TimeLineID() TimeLineID        { return pw.header.TimeLineID() }
-func (pw *PageWriter) LengthRemaining() RecordLength { return pw.header.LengthRemaining() }
+func (pw *PageWriter) ID() record.PageID                    { return pw.header.ID() }
+func (pw *PageWriter) TimeLineID() record.TimeLineID        { return pw.header.TimeLineID() }
+func (pw *PageWriter) LengthRemaining() record.RecordLength { return pw.header.LengthRemaining() }
 
 // TODO: This is slow
 func (pw *PageWriter) Data() []byte {
@@ -40,11 +40,11 @@ func (pw *PageWriter) Data() []byte {
 	return pw.data
 }
 
-func (pw *PageWriter) init(id PageID, tlid TimeLineID, rem RecordLength) {
-	pw.header = newPageHeader(id, tlid, rem)
+func (pw *PageWriter) init(id record.PageID, tlid record.TimeLineID, rem record.RecordLength) {
+	pw.header = record.NewPageHeader(id, tlid, rem)
 }
 
-func (pw *PageWriter) append(crc CRC, data []byte) error {
+func (pw *PageWriter) append(crc record.CRC, data []byte) error {
 	if !pw.canInsert(data) {
 		return ErrInsufficientSpace
 	}
@@ -66,19 +66,19 @@ func (pw *PageWriter) canInsert(data []byte) bool {
 }
 
 func (*PageWriter) recordSize(data []byte) int {
-	return recordHeaderSize + len(data)
+	return record.RecordHeaderSize + len(data)
 }
 
 func (pw *PageWriter) available() int {
 	return int(pw.size) - pw.writer.Len()
 }
 
-func (pw *PageWriter) insert(crc CRC, data []byte) error {
+func (pw *PageWriter) insert(crc record.CRC, data []byte) error {
 	if err := crc.Write(pw.writeBuf); err != nil {
 		return err
 	}
 
-	if err := NewRecordLength(data).Write(pw.writeBuf); err != nil {
+	if err := record.NewRecordLength(data).Write(pw.writeBuf); err != nil {
 		return err
 	}
 
@@ -107,7 +107,7 @@ func (pw *PageWriter) seek(w io.Seeker) error {
 }
 
 func (pw *PageWriter) position() int64 {
-	return pw.header.position(pw.size)
+	return pw.header.Position(pw.size)
 }
 
 func (pw *PageWriter) Write(w io.Writer) error {

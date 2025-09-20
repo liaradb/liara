@@ -1,4 +1,4 @@
-package log
+package record
 
 import (
 	"io"
@@ -6,19 +6,18 @@ import (
 	"time"
 
 	"github.com/cardboardrobots/assert"
-	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestRecord(t *testing.T) {
 	t.Parallel()
 
-	lsn := record.LogSequenceNumber(1)
+	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := newRecord(lsn, tid, now, data, reverse)
+	rc := NewRecord(lsn, tid, now, data, reverse)
 
 	assert.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
 	assert.Getter(t, rc.TransactionID, tid, "TransactionID")
@@ -30,13 +29,13 @@ func TestRecord(t *testing.T) {
 func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
-	lsn := record.LogSequenceNumber(1)
+	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := newRecord(lsn, tid, now, data, reverse)
+	rc := NewRecord(lsn, tid, now, data, reverse)
 
 	r, w := assert.NewReaderWriter()
 

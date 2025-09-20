@@ -6,6 +6,8 @@ import (
 	"container/list"
 	"io"
 	"iter"
+
+	"github.com/liaradb/liaradb/log/record"
 )
 
 type LogReader struct {
@@ -13,14 +15,14 @@ type LogReader struct {
 	reader     io.ReadSeeker
 	data       []byte
 	pageReader *bytes.Reader
-	pageHeader PageHeader
+	pageHeader record.PageHeader
 }
 
 func NewLogReader(
 	size int64,
 	r io.ReadSeeker,
 ) *LogReader {
-	body := size - pageHeaderSize
+	body := size - record.PageHeaderSize
 	return &LogReader{
 		size:   body,
 		reader: r,
@@ -28,23 +30,23 @@ func NewLogReader(
 	}
 }
 
-func (lr *LogReader) Seek(pid PageID) error {
+func (lr *LogReader) Seek(pid record.PageID) error {
 	_, err := lr.reader.Seek(lr.position(pid, lr.size), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
-func (lr *LogReader) position(pid PageID, size int64) int64 {
-	return int64(pid) * (size + pageHeaderSize)
+func (lr *LogReader) position(pid record.PageID, size int64) int64 {
+	return int64(pid) * (size + record.PageHeaderSize)
 }
 
-func (lr *LogReader) Iterate() iter.Seq2[*Record, error] {
+func (lr *LogReader) Iterate() iter.Seq2[*record.Record, error] {
 	return lr.IterateFrom(0)
 }
 
 // TODO: Test this
-func (lr *LogReader) IterateFrom(pid PageID) iter.Seq2[*Record, error] {
-	return func(yield func(*Record, error) bool) {
+func (lr *LogReader) IterateFrom(pid record.PageID) iter.Seq2[*record.Record, error] {
+	return func(yield func(*record.Record, error) bool) {
 		if err := lr.Seek(pid); err != nil {
 			yield(nil, err)
 			return
@@ -73,8 +75,8 @@ func (lr *LogReader) IterateFrom(pid PageID) iter.Seq2[*Record, error] {
 }
 
 // TODO: Change page structure to make reversing easier
-func (lr *LogReader) Reverse() iter.Seq2[*Record, error] {
-	return func(yield func(*Record, error) bool) {
+func (lr *LogReader) Reverse() iter.Seq2[*record.Record, error] {
+	return func(yield func(*record.Record, error) bool) {
 		q := list.New()
 
 		for rc, err := range lr.Iterate() {
@@ -92,7 +94,7 @@ func (lr *LogReader) Reverse() iter.Seq2[*Record, error] {
 				return
 			}
 
-			v := e.Value.(*Record)
+			v := e.Value.(*record.Record)
 			q.Remove(e)
 			if !yield(v, nil) {
 				return
@@ -102,7 +104,7 @@ func (lr *LogReader) Reverse() iter.Seq2[*Record, error] {
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (lr *LogReader) Read() (*PageHeader, error) {
+func (lr *LogReader) Read() (*record.PageHeader, error) {
 	if err := lr.pageHeader.Read(lr.reader); err != nil {
 		return nil, err
 	}
@@ -126,10 +128,10 @@ func (lr *LogReader) initReader() {
 	}
 }
 
-func (lr *LogReader) Records() iter.Seq2[*Record, error] {
+func (lr *LogReader) Records() iter.Seq2[*record.Record, error] {
 	r := bufio.NewReader(lr.pageReader)
 
-	return func(yield func(*Record, error) bool) {
+	return func(yield func(*record.Record, error) bool) {
 		for {
 			var err error
 			if err = lr.validateCRC(r); err != nil {
@@ -140,7 +142,7 @@ func (lr *LogReader) Records() iter.Seq2[*Record, error] {
 			}
 
 			// TODO: Should we create a new record each time?
-			rc := &Record{}
+			rc := &record.Record{}
 
 			// TODO: Use a buffer
 			if err := rc.Read(r); err != nil {
@@ -158,12 +160,12 @@ func (lr *LogReader) Records() iter.Seq2[*Record, error] {
 }
 
 func (*LogReader) validateCRC(r *bufio.Reader) error {
-	var c CRC
+	var c record.CRC
 	if err := c.Read(r); err != nil {
 		return err
 	}
 
-	rl := RecordLength(0)
+	rl := record.RecordLength(0)
 	if err := rl.Read(r); err != nil {
 		return err
 	}

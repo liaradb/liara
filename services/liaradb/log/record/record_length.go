@@ -1,4 +1,4 @@
-package log
+package record
 
 import (
 	"encoding/binary"
@@ -7,7 +7,7 @@ import (
 
 type RecordLength uint32
 
-const recordLengthSize = 4
+const RecordLengthSize = 4
 
 func NewRecordLength(d []byte) RecordLength {
 	return RecordLength(len(d))

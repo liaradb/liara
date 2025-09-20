@@ -1,4 +1,4 @@
-package log
+package record
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func TestPageHeader(t *testing.T) {
 	tlid := TimeLineID(2)
 	rem := RecordLength(3)
 
-	ph := newPageHeader(pid, tlid, rem)
+	ph := NewPageHeader(pid, tlid, rem)
 
 	if err := ph.Write(w); err != nil {
 		t.Fatal(err)

@@ -14,8 +14,8 @@ const (
 
 type LogWriter struct {
 	pageSize   int64
-	pageID     PageID
-	timeLineID TimeLineID
+	pageID     record.PageID
+	timeLineID record.TimeLineID
 	highWater  record.LogSequenceNumber
 	lowWater   record.LogSequenceNumber
 	writer     io.WriteSeeker
@@ -32,11 +32,11 @@ func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
 	}
 }
 
-func (lw *LogWriter) PageID() PageID                      { return lw.pageID }
+func (lw *LogWriter) PageID() record.PageID               { return lw.pageID }
 func (lw *LogWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
 func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
 
-func (lw *LogWriter) Append(rc *Record) (record.LogSequenceNumber, error) {
+func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	data, err := lw.recordToBytes(rc)
 	if err != nil {
 		return 0, err
@@ -45,7 +45,7 @@ func (lw *LogWriter) Append(rc *Record) (record.LogSequenceNumber, error) {
 	return lw.append(data)
 }
 
-func (lw *LogWriter) recordToBytes(rc *Record) ([]byte, error) {
+func (lw *LogWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 	lw.recordBuf.Reset()
 	if err := rc.Write(lw.recordBuf); err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (lw *LogWriter) recordToBytes(rc *Record) ([]byte, error) {
 }
 
 func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
-	crc := NewCRC(data)
+	crc := record.NewCRC(data)
 	if err := crc.Write(lw.writer); err != nil {
 		return 0, err
 	}
@@ -68,7 +68,7 @@ func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	return lw.highWater, nil
 }
 
-func (lw *LogWriter) appendOrNext(crc CRC, data []byte) error {
+func (lw *LogWriter) appendOrNext(crc record.CRC, data []byte) error {
 	if err := lw.pageWriter.append(crc, data); err != nil {
 		if err != ErrInsufficientSpace {
 			return err
@@ -80,7 +80,7 @@ func (lw *LogWriter) appendOrNext(crc CRC, data []byte) error {
 	return nil
 }
 
-func (lw *LogWriter) next(crc CRC, data []byte) error {
+func (lw *LogWriter) next(crc record.CRC, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
 	if err := lw.pageWriter.Flush(lw.writer); err != nil {

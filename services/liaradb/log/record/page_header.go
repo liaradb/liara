@@ -1,12 +1,13 @@
-package log
+package record
 
 import "io"
 
-const pageHeaderSize = 0 +
+// TODO: Should this be private?
+const PageHeaderSize = 0 +
 	magicSize +
 	pageIDSize +
 	timeLineIDSize +
-	recordLengthSize
+	RecordLengthSize
 
 type PageHeader struct {
 	id              PageID
@@ -14,7 +15,7 @@ type PageHeader struct {
 	lengthRemaining RecordLength
 }
 
-func newPageHeader(
+func NewPageHeader(
 	id PageID,
 	timeLineID TimeLineID,
 	lengthRemaining RecordLength,
@@ -31,8 +32,8 @@ func (ph PageHeader) TimeLineID() TimeLineID        { return ph.timeLineID }
 func (ph PageHeader) LengthRemaining() RecordLength { return ph.lengthRemaining }
 
 // TODO: Should we store this on the header struct?
-func (ph PageHeader) position(size int64) int64 {
-	return int64(ph.id) * (size + pageHeaderSize)
+func (ph PageHeader) Position(size int64) int64 {
+	return int64(ph.id) * (size + PageHeaderSize)
 }
 
 func (ph *PageHeader) Read(r io.Reader) error {
