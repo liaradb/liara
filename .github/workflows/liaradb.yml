@@ -37,7 +37,7 @@ jobs:
         working-directory: ./services/liaradb
         run: make report-file
 
-      - name: "Upload Artifact"
+      - name: "Upload test coverage"
         uses: actions/upload-artifact@v4
         with:
           name: coverage
