@@ -1,6 +1,7 @@
 package segment
 
 import (
+	"io/fs"
 	"reflect"
 	"slices"
 	"testing"
@@ -96,6 +97,32 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("should close previous files", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		_, f, err := sl.OpenLatestSegment()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, _, err := sl.OpenLatestSegment(); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+			t.Error("previous file should be closed")
+		}
+	})
 }
 
 func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
@@ -149,37 +176,90 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("should close previous files", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		_, f, err := sl.OpenSegmentForLSN(10)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, _, err := sl.OpenSegmentForLSN(20); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+			t.Error("previous file should be closed")
+		}
+	})
 }
 
 func TestSegmentList_OpenNextSegment(t *testing.T) {
 	t.Parallel()
 
-	fsys := mock.NewFileSystem(fstest.MapFS{
-		NewSegmentName(1, 10).String(): {},
-		NewSegmentName(2, 20).String(): {},
+	t.Run("should open next segment", func(t *testing.T) {
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		sn, f, err := sl.OpenNextSegment(30)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if id := sn.ID(); id != 3 {
+			t.Errorf("wrong id: %v, expected: %v", id, 3)
+		}
+
+		if f == nil {
+			t.Error("file should not be nil")
+		}
+
+		if names := sl.Names(); len(names) <= 3 && !slices.Contains(names, sn) {
+			t.Errorf("segment list does not contain segment: %v", sn)
+		}
 	})
-	sl := NewSegmentList(fsys, ".")
 
-	if err := sl.Open(); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("should close previous files", func(t *testing.T) {
+		t.Parallel()
 
-	sn, f, err := sl.OpenNextSegment(30)
-	if err != nil {
-		t.Fatal(err)
-	}
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
 
-	if id := sn.ID(); id != 3 {
-		t.Errorf("wrong id: %v, expected: %v", id, 3)
-	}
+		_, f, err := sl.OpenNextSegment(20)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if f == nil {
-		t.Error("file should not be nil")
-	}
+		if _, _, err := sl.OpenNextSegment(30); err != nil {
+			t.Fatal(err)
+		}
 
-	if names := sl.Names(); len(names) <= 3 && !slices.Contains(names, sn) {
-		t.Errorf("segment list does not contain segment: %v", sn)
-	}
+		if _, err := f.Seek(0, 0); err != fs.ErrClosed {
+			t.Error("previous file should be closed")
+		}
+	})
 }
 
 func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {

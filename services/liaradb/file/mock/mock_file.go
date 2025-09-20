@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"slices"
 	"time"
@@ -15,6 +16,7 @@ type mockFile struct {
 	data     []byte
 	position int64
 	modTime  time.Time
+	isOpen   bool
 }
 
 var _ file.File = (*mockFile)(nil)
@@ -27,10 +29,16 @@ func NewMockFile(name string) *mockFile {
 }
 
 func (m *mockFile) Close() error {
+	m.isOpen = false
 	return nil
 }
 
 func (m *mockFile) Stat() (os.FileInfo, error) {
+	// TODO: Is this correct?
+	if !m.isOpen {
+		return nil, fs.ErrClosed
+	}
+
 	return &mockFileInfo{
 		name:    m.name,
 		size:    int64(len(m.data)),
@@ -44,6 +52,10 @@ func (m *mockFile) Read(b []byte) (n int, err error) {
 }
 
 func (m *mockFile) ReadAt(b []byte, off int64) (n int, err error) {
+	if !m.isOpen {
+		return 0, fs.ErrClosed
+	}
+
 	if off < 0 {
 		return 0, &os.PathError{
 			Op:   "readat",
@@ -67,6 +79,10 @@ func (m *mockFile) Write(b []byte) (n int, err error) {
 }
 
 func (m *mockFile) WriteAt(b []byte, off int64) (n int, err error) {
+	if !m.isOpen {
+		return 0, fs.ErrClosed
+	}
+
 	if off < 0 {
 		return 0, &os.PathError{
 			Op:   "writeat",
@@ -99,6 +115,10 @@ func (m *mockFile) adjustSize(b []byte, off int64) bool {
 }
 
 func (m *mockFile) Seek(offxset int64, whence int) (int64, error) {
+	if !m.isOpen {
+		return 0, fs.ErrClosed
+	}
+
 	m.position = m.seekPosition(offxset, whence)
 	return m.position, nil
 }
