@@ -7,26 +7,26 @@ import (
 )
 
 type Log struct {
-	size        int64
-	segmentList *segment.SegmentList
+	size int64
+	sl   *segment.SegmentList
 }
 
 func NewLog(size int64, fsys file.FileSystem, dir string) *Log {
 	return &Log{
-		size:        size,
-		segmentList: segment.NewSegmentList(fsys, dir),
+		size: size,
+		sl:   segment.NewSegmentList(fsys, dir),
 	}
 }
 
 func (l *Log) Reader(lsn record.LogSequenceNumber) (*LogReader, error) {
-	if err := l.segmentList.Open(); err != nil {
+	if err := l.sl.Open(); err != nil {
 		return nil, err
 	}
 
-	_, f, err := l.segmentList.OpenSegmentForLSN(lsn)
+	_, f, err := l.sl.OpenSegmentForLSN(lsn)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewLogReader(l.size, f), nil
+	return NewLogReader(l.size, l.sl, f), nil
 }

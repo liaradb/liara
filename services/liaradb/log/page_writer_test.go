@@ -11,12 +11,15 @@ import (
 	"github.com/cardboardrobots/assert"
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/log/segment"
 )
 
 func TestPageWriter(t *testing.T) {
 	t.Parallel()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	fsys := mock.NewFileSystem(nil)
+	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
+	sl := segment.NewSegmentList(fsys, ".")
 	pid, tlid, rem, pw := createPage()
 
 	if err := pw.Write(f); err != nil {
@@ -27,7 +30,7 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, f)
+	lr := NewLogReader(256, sl, f)
 	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)
@@ -39,7 +42,9 @@ func TestPageWriter(t *testing.T) {
 func TestPageWriter_Append(t *testing.T) {
 	t.Parallel()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	fsys := mock.NewFileSystem(nil)
+	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
+	sl := segment.NewSegmentList(fsys, ".")
 	pid, tlid, rem, pw := createPage()
 
 	rc, data, err := createRecord()
@@ -65,7 +70,7 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, f)
+	lr := NewLogReader(256, sl, f)
 	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)
