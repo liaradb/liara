@@ -12,13 +12,13 @@ const (
 
 type LogWriter struct {
 	pageSize   int64
-	pageIndex  LogPageID
+	pageIndex  PageID
 	timeLineID TimeLineID
 	highWater  LogSequenceNumber
 	lowWater   LogSequenceNumber
 	writer     io.WriteSeeker
 	recordBuf  *bytes.Buffer
-	page       *LogPageWriter
+	page       *PageWriter
 }
 
 func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
@@ -26,79 +26,79 @@ func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
 		pageSize:  pageSize,
 		writer:    w,
 		recordBuf: bytes.NewBuffer(nil),
-		page:      newLogPageWriter(pageSize),
+		page:      newPageWriter(pageSize),
 	}
 }
 
-func (l *LogWriter) PageIndex() LogPageID         { return l.pageIndex }
-func (l *LogWriter) HighWater() LogSequenceNumber { return l.highWater }
-func (l *LogWriter) LowWater() LogSequenceNumber  { return l.lowWater }
+func (lw *LogWriter) PageIndex() PageID            { return lw.pageIndex }
+func (lw *LogWriter) HighWater() LogSequenceNumber { return lw.highWater }
+func (lw *LogWriter) LowWater() LogSequenceNumber  { return lw.lowWater }
 
-func (l *LogWriter) Append(lr *Record) (LogSequenceNumber, error) {
-	data, err := l.recordToBytes(lr)
+func (lw *LogWriter) Append(rc *Record) (LogSequenceNumber, error) {
+	data, err := lw.recordToBytes(rc)
 	if err != nil {
 		return 0, err
 	}
 
-	return l.append(data)
+	return lw.append(data)
 }
 
-func (l *LogWriter) recordToBytes(lr *Record) ([]byte, error) {
-	l.recordBuf.Reset()
-	if err := lr.Write(l.recordBuf); err != nil {
+func (lw *LogWriter) recordToBytes(rc *Record) ([]byte, error) {
+	lw.recordBuf.Reset()
+	if err := rc.Write(lw.recordBuf); err != nil {
 		return nil, err
 	}
 
-	return l.recordBuf.Bytes(), nil
+	return lw.recordBuf.Bytes(), nil
 }
 
-func (l *LogWriter) append(data []byte) (LogSequenceNumber, error) {
+func (lw *LogWriter) append(data []byte) (LogSequenceNumber, error) {
 	crc := NewCRC(data)
-	if err := crc.Write(l.writer); err != nil {
+	if err := crc.Write(lw.writer); err != nil {
 		return 0, err
 	}
 
-	if err := l.appendOrNext(crc, data); err != nil {
+	if err := lw.appendOrNext(crc, data); err != nil {
 		return 0, err
 	}
 
-	l.highWater++
-	return l.highWater, nil
+	lw.highWater++
+	return lw.highWater, nil
 }
 
-func (l *LogWriter) appendOrNext(crc CRC, data []byte) error {
-	if err := l.page.append(crc, data); err != nil {
+func (lw *LogWriter) appendOrNext(crc CRC, data []byte) error {
+	if err := lw.page.append(crc, data); err != nil {
 		if err != ErrInsufficientSpace {
 			return err
 		}
 
-		return l.next(crc, data)
+		return lw.next(crc, data)
 	}
 
 	return nil
 }
 
-func (l *LogWriter) next(crc CRC, data []byte) error {
+func (lw *LogWriter) next(crc CRC, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
-	if err := l.page.Flush(l.writer); err != nil {
+	if err := lw.page.Flush(lw.writer); err != nil {
 		return err
 	}
 
-	l.pageIndex++
+	lw.pageIndex++
 	// TODO: Don't replace LogPageWriter
-	l.page = newLogPageWriter(l.pageSize)
-	l.page.init(l.pageIndex, l.timeLineID, 0)
-	return l.page.append(crc, data)
+	lw.page = newPageWriter(lw.pageSize)
+	lw.page.init(lw.pageIndex, lw.timeLineID, 0)
+	return lw.page.append(crc, data)
 }
 
-func (l *LogWriter) Flush(lsn LogSequenceNumber) error {
-	if err := l.page.Flush(l.writer); err != nil {
+func (lw *LogWriter) Flush(lsn LogSequenceNumber) error {
+	if err := lw.page.Flush(lw.writer); err != nil {
 		return err
 	}
 
 	// TODO: Is this correct?
-	lsn = min(lsn, l.highWater)
-	l.lowWater = lsn
+	lsn = min(lsn, lw.highWater)
+	lw.lowWater = lsn
 	return nil
 }

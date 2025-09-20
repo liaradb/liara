@@ -11,13 +11,13 @@ import (
 	"github.com/liaradb/liaradb/file/mock"
 )
 
-func TestLogPageWriter(t *testing.T) {
+func TestPageWriter(t *testing.T) {
 	t.Parallel()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
-	lpid, tlid, rem, lp := createPage()
+	pid, tlid, rem, pw := createPage()
 
-	if err := lp.Write(f); err != nil {
+	if err := pw.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
@@ -25,37 +25,37 @@ func TestLogPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lpr := NewLogReader(256, f)
-	p, err := lpr.Read()
+	lr := NewLogReader(256, f)
+	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testLogPageHeader(t, p, lpid, tlid, rem)
+	testPageHeader(t, ph, pid, tlid, rem)
 }
 
-func TestLogPageWriter_Append(t *testing.T) {
+func TestPageWriter_Append(t *testing.T) {
 	t.Parallel()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
-	lpid, tlid, rem, lp := createPage()
+	pid, tlid, rem, pw := createPage()
 
-	lr, data, err := createRecord()
+	rc, data, err := createRecord()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	crc := NewCRC(data)
 
-	if err := lp.append(crc, data); err != nil {
+	if err := pw.append(crc, data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := lp.append(crc, data); err != nil {
+	if err := pw.append(crc, data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := lp.Write(f); err != nil {
+	if err := pw.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
@@ -63,22 +63,22 @@ func TestLogPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lpr := NewLogReader(256, f)
-	p, err := lpr.Read()
+	lr := NewLogReader(256, f)
+	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testLogPageHeader(t, p, lpid, tlid, rem)
+	testPageHeader(t, ph, pid, tlid, rem)
 
 	count := 0
-	for r, err := range lpr.Records() {
+	for r, err := range lr.Records() {
 		count++
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if !reflect.DeepEqual(r, lr) {
+		if !reflect.DeepEqual(r, rc) {
 			t.Error("data does not match")
 		}
 	}
@@ -88,19 +88,19 @@ func TestLogPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (LogPageID, TimeLineID, RecordLength, *LogPageWriter) {
-	lpid := LogPageID(1)
+func createPage() (PageID, TimeLineID, RecordLength, *PageWriter) {
+	pid := PageID(1)
 	tlid := TimeLineID(2)
 	rem := RecordLength(3)
 
-	lp := createEmptyPage()
-	lp.init(lpid, tlid, rem)
+	pw := createEmptyPage()
+	pw.init(pid, tlid, rem)
 
-	return lpid, tlid, rem, lp
+	return pid, tlid, rem, pw
 }
 
-func createEmptyPage() *LogPageWriter {
-	return newLogPageWriter(256)
+func createEmptyPage() *PageWriter {
+	return newPageWriter(256)
 }
 
 func createRecord() (*Record, []byte, error) {
@@ -110,14 +110,14 @@ func createRecord() (*Record, []byte, error) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	lr := newRecord(lsn, tid, now, data, reverse)
-	data, err := recordToBytes(lr)
-	return lr, data, err
+	rc := newRecord(lsn, tid, now, data, reverse)
+	data, err := recordToBytes(rc)
+	return rc, data, err
 }
 
-func recordToBytes(lr *Record) ([]byte, error) {
+func recordToBytes(rc *Record) ([]byte, error) {
 	recordBuf := bytes.NewBuffer(nil)
-	if err := lr.Write(recordBuf); err != nil {
+	if err := rc.Write(recordBuf); err != nil {
 		return nil, err
 	}
 

@@ -12,19 +12,19 @@ import (
 func TestLogReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	lr, l := createLogReaderWriter(t)
+	lr, lw := createLogReaderWriter(t)
 
 	var count LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
-	for _, r := range records {
-		_, err := l.Append(r)
+	for _, rc := range records {
+		_, err := lw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := l.Flush(lsn); err != nil {
+	if err := lw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
@@ -48,24 +48,24 @@ func TestLogReader_Iterate(t *testing.T) {
 }
 
 func TestLogReader_Reverse(t *testing.T) {
-	lr, l := createLogReaderWriter(t)
+	lr, lw := createLogReaderWriter(t)
 
 	var count LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
-	for _, r := range records {
-		_, err := l.Append(r)
+	for _, rc := range records {
+		_, err := lw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := l.Flush(lsn); err != nil {
+	if err := lw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
 	var c LogSequenceNumber
-	for r, err := range lr.Reverse() {
+	for rc, err := range lr.Reverse() {
 		c++
 		if err != nil {
 			t.Fatal(err)
@@ -73,8 +73,8 @@ func TestLogReader_Reverse(t *testing.T) {
 
 		record := records[count-c]
 
-		if !reflect.DeepEqual(r, record) {
-			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", r, record)
+		if !reflect.DeepEqual(rc, record) {
+			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, record)
 		}
 	}
 

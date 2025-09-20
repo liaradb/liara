@@ -1,0 +1,32 @@
+package log
+
+import (
+	"io"
+	"testing"
+
+	"github.com/cardboardrobots/assert"
+)
+
+func TestPageIDTest(t *testing.T) {
+	t.Parallel()
+
+	r, w := assert.NewReaderWriter()
+
+	var pid PageID = 123456
+	if err := pid.Write(w); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.Flush(); err != nil {
+		t.Fatal(err)
+	}
+
+	var pid2 PageID
+	if err := pid2.Read(r); err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+
+	if pid != pid2 {
+		t.Errorf("incorrect value: %v, expected: %v", pid2, pid)
+	}
+}
