@@ -37,7 +37,6 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	m, ok := d[base]
 	if !ok {
 		m = NewMockFile(name)
-		m.Open()
 		f, ok := mfs.MapFS[dir]
 		if ok {
 			m.data = f.Data
@@ -51,6 +50,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		ModTime: m.modTime,
 	}
 
+	m.Open()
 	return m, nil
 }
 
