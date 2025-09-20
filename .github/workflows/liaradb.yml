@@ -5,33 +5,41 @@ name: LiaraDB
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - "main"
     paths:
       - .github/workflows/liaradb.yml
       - services/liaradb/**
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
     paths:
       - .github/workflows/liaradb.yml
       - services/liaradb/**
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version-file: services/liaradb/go.mod
-        cache-dependency-path: services/liaradb/go.sum
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: services/liaradb/go.mod
+          cache-dependency-path: services/liaradb/go.sum
 
-    - name: Build
-      working-directory: ./services/liaradb
-      run: go build -v ./...
+      - name: Build
+        working-directory: ./services/liaradb
+        run: go build -v ./...
 
-    - name: Test
-      working-directory: ./services/liaradb
-      run: go test -v ./...
+      - name: Test
+        working-directory: ./services/liaradb
+        run: make report-file
+
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: ./services/liaradb/cover.html
+          retention-days: 5
