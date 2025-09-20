@@ -104,7 +104,7 @@ func TestLogWriter_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if p := l.PageIndex(); p != 2 {
+		if p := l.PageID(); p != 2 {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
 	})

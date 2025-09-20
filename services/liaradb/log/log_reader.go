@@ -13,7 +13,7 @@ type LogReader struct {
 	reader     io.ReadSeeker
 	data       []byte
 	pageReader *bytes.Reader
-	header     PageHeader
+	pageHeader PageHeader
 }
 
 func NewLogReader(
@@ -28,37 +28,37 @@ func NewLogReader(
 	}
 }
 
-func (l *LogReader) Seek(pid PageID) error {
-	_, err := l.reader.Seek(l.position(pid, l.size), io.SeekStart)
+func (lr *LogReader) Seek(pid PageID) error {
+	_, err := lr.reader.Seek(lr.position(pid, lr.size), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
-func (l *LogReader) position(pid PageID, size int64) int64 {
+func (lr *LogReader) position(pid PageID, size int64) int64 {
 	return int64(pid) * (size + pageHeaderSize)
 }
 
-func (l *LogReader) Iterate() iter.Seq2[*Record, error] {
-	return l.IterateFrom(0)
+func (lr *LogReader) Iterate() iter.Seq2[*Record, error] {
+	return lr.IterateFrom(0)
 }
 
 // TODO: Test this
-func (l *LogReader) IterateFrom(pid PageID) iter.Seq2[*Record, error] {
+func (lr *LogReader) IterateFrom(pid PageID) iter.Seq2[*Record, error] {
 	return func(yield func(*Record, error) bool) {
-		if err := l.Seek(pid); err != nil {
+		if err := lr.Seek(pid); err != nil {
 			yield(nil, err)
 			return
 		}
 
 		for {
-			if _, err := l.Read(); err != nil {
+			if _, err := lr.Read(); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			for rc, err := range l.Records() {
+			for rc, err := range lr.Records() {
 				if err != nil {
 					yield(nil, err)
 					return
@@ -73,11 +73,11 @@ func (l *LogReader) IterateFrom(pid PageID) iter.Seq2[*Record, error] {
 }
 
 // TODO: Change page structure to make reversing easier
-func (l *LogReader) Reverse() iter.Seq2[*Record, error] {
+func (lr *LogReader) Reverse() iter.Seq2[*Record, error] {
 	return func(yield func(*Record, error) bool) {
 		q := list.New()
 
-		for rc, err := range l.Iterate() {
+		for rc, err := range lr.Iterate() {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -102,37 +102,37 @@ func (l *LogReader) Reverse() iter.Seq2[*Record, error] {
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (l *LogReader) Read() (*PageHeader, error) {
-	if err := l.header.Read(l.reader); err != nil {
+func (lr *LogReader) Read() (*PageHeader, error) {
+	if err := lr.pageHeader.Read(lr.reader); err != nil {
 		return nil, err
 	}
 
 	// TODO: Do we need to verify read length?
 	// TODO: Should we make a new slice?
-	if _, err := l.reader.Read(l.data); err != nil {
+	if _, err := lr.reader.Read(lr.data); err != nil {
 		return nil, err
 	}
 
-	l.initReader()
+	lr.initReader()
 
-	return &l.header, nil
+	return &lr.pageHeader, nil
 }
 
-func (l *LogReader) initReader() {
-	if l.pageReader == nil {
-		l.pageReader = bytes.NewReader(l.data)
+func (lr *LogReader) initReader() {
+	if lr.pageReader == nil {
+		lr.pageReader = bytes.NewReader(lr.data)
 	} else {
-		l.pageReader.Reset(l.data)
+		lr.pageReader.Reset(lr.data)
 	}
 }
 
-func (l *LogReader) Records() iter.Seq2[*Record, error] {
-	r := bufio.NewReader(l.pageReader)
+func (lr *LogReader) Records() iter.Seq2[*Record, error] {
+	r := bufio.NewReader(lr.pageReader)
 
 	return func(yield func(*Record, error) bool) {
 		for {
 			var err error
-			if err = l.validateCRC(r); err != nil {
+			if err = lr.validateCRC(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}

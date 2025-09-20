@@ -12,25 +12,25 @@ const (
 
 type LogWriter struct {
 	pageSize   int64
-	pageIndex  PageID
+	pageID     PageID
 	timeLineID TimeLineID
 	highWater  LogSequenceNumber
 	lowWater   LogSequenceNumber
 	writer     io.WriteSeeker
 	recordBuf  *bytes.Buffer
-	page       *PageWriter
+	pageWriter *PageWriter
 }
 
 func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
 	return &LogWriter{
-		pageSize:  pageSize,
-		writer:    w,
-		recordBuf: bytes.NewBuffer(nil),
-		page:      newPageWriter(pageSize),
+		pageSize:   pageSize,
+		writer:     w,
+		recordBuf:  bytes.NewBuffer(nil),
+		pageWriter: newPageWriter(pageSize),
 	}
 }
 
-func (lw *LogWriter) PageIndex() PageID            { return lw.pageIndex }
+func (lw *LogWriter) PageID() PageID               { return lw.pageID }
 func (lw *LogWriter) HighWater() LogSequenceNumber { return lw.highWater }
 func (lw *LogWriter) LowWater() LogSequenceNumber  { return lw.lowWater }
 
@@ -67,7 +67,7 @@ func (lw *LogWriter) append(data []byte) (LogSequenceNumber, error) {
 }
 
 func (lw *LogWriter) appendOrNext(crc CRC, data []byte) error {
-	if err := lw.page.append(crc, data); err != nil {
+	if err := lw.pageWriter.append(crc, data); err != nil {
 		if err != ErrInsufficientSpace {
 			return err
 		}
@@ -81,19 +81,19 @@ func (lw *LogWriter) appendOrNext(crc CRC, data []byte) error {
 func (lw *LogWriter) next(crc CRC, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
-	if err := lw.page.Flush(lw.writer); err != nil {
+	if err := lw.pageWriter.Flush(lw.writer); err != nil {
 		return err
 	}
 
-	lw.pageIndex++
+	lw.pageID++
 	// TODO: Don't replace LogPageWriter
-	lw.page = newPageWriter(lw.pageSize)
-	lw.page.init(lw.pageIndex, lw.timeLineID, 0)
-	return lw.page.append(crc, data)
+	lw.pageWriter = newPageWriter(lw.pageSize)
+	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)
+	return lw.pageWriter.append(crc, data)
 }
 
 func (lw *LogWriter) Flush(lsn LogSequenceNumber) error {
-	if err := lw.page.Flush(lw.writer); err != nil {
+	if err := lw.pageWriter.Flush(lw.writer); err != nil {
 		return err
 	}
 
