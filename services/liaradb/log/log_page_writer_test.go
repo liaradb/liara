@@ -103,19 +103,19 @@ func createEmptyPage() *LogPageWriter {
 	return newLogPageWriter(256)
 }
 
-func createRecord() (*LogRecord, []byte, error) {
+func createRecord() (*Record, []byte, error) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	lr := newLogRecord(lsn, tid, now, data, reverse)
+	lr := newRecord(lsn, tid, now, data, reverse)
 	data, err := recordToBytes(lr)
 	return lr, data, err
 }
 
-func recordToBytes(lr *LogRecord) ([]byte, error) {
+func recordToBytes(lr *Record) ([]byte, error) {
 	recordBuf := bytes.NewBuffer(nil)
 	if err := lr.Write(recordBuf); err != nil {
 		return nil, err

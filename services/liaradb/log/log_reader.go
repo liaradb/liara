@@ -38,13 +38,13 @@ func (l *LogReader) position(pid LogPageID, size int64) int64 {
 	return int64(pid) * (size + pageHeaderSize)
 }
 
-func (l *LogReader) Iterate() iter.Seq2[*LogRecord, error] {
+func (l *LogReader) Iterate() iter.Seq2[*Record, error] {
 	return l.IterateFrom(0)
 }
 
 // TODO: Test this
-func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
-	return func(yield func(*LogRecord, error) bool) {
+func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*Record, error] {
+	return func(yield func(*Record, error) bool) {
 		if err := l.Seek(pid); err != nil {
 			yield(nil, err)
 			return
@@ -73,8 +73,8 @@ func (l *LogReader) IterateFrom(pid LogPageID) iter.Seq2[*LogRecord, error] {
 }
 
 // TODO: Change page structure to make reversing easier
-func (l *LogReader) Reverse() iter.Seq2[*LogRecord, error] {
-	return func(yield func(*LogRecord, error) bool) {
+func (l *LogReader) Reverse() iter.Seq2[*Record, error] {
+	return func(yield func(*Record, error) bool) {
 		q := list.New()
 
 		for lr, err := range l.Iterate() {
@@ -92,7 +92,7 @@ func (l *LogReader) Reverse() iter.Seq2[*LogRecord, error] {
 				return
 			}
 
-			v := e.Value.(*LogRecord)
+			v := e.Value.(*Record)
 			q.Remove(e)
 			if !yield(v, nil) {
 				return
@@ -126,10 +126,10 @@ func (l *LogReader) initReader() {
 	}
 }
 
-func (l *LogReader) Records() iter.Seq2[*LogRecord, error] {
+func (l *LogReader) Records() iter.Seq2[*Record, error] {
 	r := bufio.NewReader(l.pageReader)
 
-	return func(yield func(*LogRecord, error) bool) {
+	return func(yield func(*Record, error) bool) {
 		for {
 			var err error
 			if err = l.validateCRC(r); err != nil {
@@ -140,7 +140,7 @@ func (l *LogReader) Records() iter.Seq2[*LogRecord, error] {
 			}
 
 			// TODO: Should we create a new record each time?
-			lr := &LogRecord{}
+			lr := &Record{}
 
 			// TODO: Use a buffer
 			if err := lr.Read(r); err != nil {

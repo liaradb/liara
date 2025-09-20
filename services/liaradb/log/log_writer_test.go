@@ -10,7 +10,7 @@ import (
 
 var data = []byte{0, 1, 2, 3, 4, 5}
 var reverse = []byte{6, 7, 8, 9, 10, 11}
-var record = newLogRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
+var record = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
 func TestLogWriter_Default(t *testing.T) {
 	t.Parallel()

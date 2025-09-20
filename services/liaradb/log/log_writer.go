@@ -34,7 +34,7 @@ func (l *LogWriter) PageIndex() LogPageID         { return l.pageIndex }
 func (l *LogWriter) HighWater() LogSequenceNumber { return l.highWater }
 func (l *LogWriter) LowWater() LogSequenceNumber  { return l.lowWater }
 
-func (l *LogWriter) Append(lr *LogRecord) (LogSequenceNumber, error) {
+func (l *LogWriter) Append(lr *Record) (LogSequenceNumber, error) {
 	data, err := l.recordToBytes(lr)
 	if err != nil {
 		return 0, err
@@ -43,7 +43,7 @@ func (l *LogWriter) Append(lr *LogRecord) (LogSequenceNumber, error) {
 	return l.append(data)
 }
 
-func (l *LogWriter) recordToBytes(lr *LogRecord) ([]byte, error) {
+func (l *LogWriter) recordToBytes(lr *Record) ([]byte, error) {
 	l.recordBuf.Reset()
 	if err := lr.Write(l.recordBuf); err != nil {
 		return nil, err
