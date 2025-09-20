@@ -1,20 +1,24 @@
 package log
 
-import "github.com/liaradb/liaradb/file"
+import (
+	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/log/segment"
+)
 
 type Log struct {
 	size        int64
-	segmentList *SegmentList
+	segmentList *segment.SegmentList
 }
 
 func NewLog(size int64, fsys file.FileSystem, dir string) *Log {
 	return &Log{
 		size:        size,
-		segmentList: NewSegmentList(fsys, dir),
+		segmentList: segment.NewSegmentList(fsys, dir),
 	}
 }
 
-func (l *Log) Reader(lsn LogSequenceNumber) (*LogReader, error) {
+func (l *Log) Reader(lsn record.LogSequenceNumber) (*LogReader, error) {
 	if err := l.segmentList.Open(); err != nil {
 		return nil, err
 	}

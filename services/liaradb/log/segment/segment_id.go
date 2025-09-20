@@ -1,3 +1,3 @@
-package log
+package segment
 
 type SegmentID uint32

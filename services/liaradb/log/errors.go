@@ -6,5 +6,4 @@ var (
 	ErrInvalidCRC        = errors.New("invalid CRC")
 	ErrNotPage           = errors.New("not page")
 	ErrInsufficientSpace = errors.New("insufficient space")
-	ErrNoSegmentFile     = errors.New("no segment file")
 )

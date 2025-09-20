@@ -1,4 +1,4 @@
-package log
+package segment
 
 import (
 	"reflect"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestSegmentList_Open(t *testing.T) {
@@ -111,9 +112,9 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	}
 
 	for message, test := range map[string]struct {
-		search LogSequenceNumber
+		search record.LogSequenceNumber
 		found  bool
-		result LogSequenceNumber
+		result record.LogSequenceNumber
 	}{
 		"should not find low value": {1, false, 0},
 		"should find exact value":   {10, true, 10},

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestLogReader_Iterate(t *testing.T) {
@@ -14,7 +15,7 @@ func TestLogReader_Iterate(t *testing.T) {
 
 	lr, lw := createLogReaderWriter(t)
 
-	var count LogSequenceNumber = 10
+	var count record.LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
@@ -28,17 +29,17 @@ func TestLogReader_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
-	var c LogSequenceNumber
-	for r, err := range lr.Iterate() {
+	var c record.LogSequenceNumber
+	for rc, err := range lr.Iterate() {
 		c++
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		record := records[c-1]
+		rec := records[c-1]
 
-		if !reflect.DeepEqual(r, record) {
-			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", r, record)
+		if !reflect.DeepEqual(rc, rec) {
+			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
 		}
 	}
 
@@ -50,7 +51,7 @@ func TestLogReader_Iterate(t *testing.T) {
 func TestLogReader_Reverse(t *testing.T) {
 	lr, lw := createLogReaderWriter(t)
 
-	var count LogSequenceNumber = 10
+	var count record.LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
@@ -64,17 +65,17 @@ func TestLogReader_Reverse(t *testing.T) {
 		t.Error(err)
 	}
 
-	var c LogSequenceNumber
+	var c record.LogSequenceNumber
 	for rc, err := range lr.Reverse() {
 		c++
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		record := records[count-c]
+		rec := records[count-c]
 
-		if !reflect.DeepEqual(rc, record) {
-			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, record)
+		if !reflect.DeepEqual(rc, rec) {
+			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
 		}
 	}
 
@@ -93,7 +94,10 @@ func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	return NewLogReader(256, f), NewLogWriter(256, f)
 }
 
-func createRecords(count LogSequenceNumber) ([]*Record, LogSequenceNumber) {
+func createRecords(count record.LogSequenceNumber) ([]*Record, record.LogSequenceNumber) {
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
 	records := make([]*Record, 0, count)
 	for i := range count {
 		records = append(records, newRecord(i, 2, time.UnixMicro(1234567890), data, reverse))

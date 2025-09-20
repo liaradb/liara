@@ -1,4 +1,4 @@
-package log
+package segment
 
 type Segment struct {
 	size     int // number of pages

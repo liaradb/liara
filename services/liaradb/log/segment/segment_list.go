@@ -1,10 +1,11 @@
-package log
+package segment
 
 import (
 	"io/fs"
 	"slices"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 type SegmentList struct {
@@ -51,7 +52,7 @@ func (*SegmentList) filesToNames(files []fs.DirEntry) []SegmentName {
 	return names
 }
 
-func (sl *SegmentList) OpenNextSegment(lsn LogSequenceNumber) (SegmentName, file.File, error) {
+func (sl *SegmentList) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
 	sn := sl.getNextSegment(lsn)
 	f, err := sl.fsys.OpenFile(sn.String())
 	if err != nil {
@@ -63,7 +64,7 @@ func (sl *SegmentList) OpenNextSegment(lsn LogSequenceNumber) (SegmentName, file
 	return sn, f, err
 }
 
-func (sl *SegmentList) getNextSegment(lsn LogSequenceNumber) SegmentName {
+func (sl *SegmentList) getNextSegment(lsn record.LogSequenceNumber) SegmentName {
 	if len(sl.names) > 0 {
 		return sl.names[len(sl.names)-1].Next(lsn)
 	}
@@ -93,7 +94,7 @@ func (sl *SegmentList) getLatestSegment() (SegmentName, bool) {
 	return SegmentName{}, false
 }
 
-func (sl *SegmentList) OpenSegmentForLSN(lsn LogSequenceNumber) (SegmentName, file.File, error) {
+func (sl *SegmentList) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
 	sn, ok := sl.getSegmentForLSN(lsn)
 	if !ok {
 		return SegmentName{}, nil, ErrNoSegmentFile
@@ -102,7 +103,7 @@ func (sl *SegmentList) OpenSegmentForLSN(lsn LogSequenceNumber) (SegmentName, fi
 	return sn, f, err
 }
 
-func (sl *SegmentList) getSegmentForLSN(lsn LogSequenceNumber) (SegmentName, bool) {
+func (sl *SegmentList) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, bool) {
 	for i := len(sl.names) - 1; i >= 0; i-- {
 		n := sl.names[i]
 		if lsn >= n.lsn {
@@ -113,7 +114,7 @@ func (sl *SegmentList) getSegmentForLSN(lsn LogSequenceNumber) (SegmentName, boo
 	return SegmentName{}, false
 }
 
-func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn LogSequenceNumber) error {
+func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 	sn, index, ok := sl.getSegmentBeforeLSN(lsn)
 	if !ok {
 		return ErrNoSegmentFile
@@ -124,7 +125,7 @@ func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn LogSequenceNumber) error {
 	return sl.fsys.Remove(sn.String())
 }
 
-func (sl *SegmentList) getSegmentBeforeLSN(lsn LogSequenceNumber) (SegmentName, int, bool) {
+func (sl *SegmentList) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, int, bool) {
 	index := sl.getIndexForLSN(lsn)
 	if index > 0 {
 		return sl.names[index-1], index, true
@@ -133,7 +134,7 @@ func (sl *SegmentList) getSegmentBeforeLSN(lsn LogSequenceNumber) (SegmentName, 
 	return SegmentName{}, 0, false
 }
 
-func (sl *SegmentList) getIndexForLSN(lsn LogSequenceNumber) int {
+func (sl *SegmentList) getIndexForLSN(lsn record.LogSequenceNumber) int {
 	for i := len(sl.names) - 1; i >= 0; i-- {
 		n := sl.names[i]
 		if lsn >= n.lsn {

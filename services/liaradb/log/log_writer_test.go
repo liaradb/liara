@@ -6,11 +6,8 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/log/record"
 )
-
-var data = []byte{0, 1, 2, 3, 4, 5}
-var reverse = []byte{6, 7, 8, 9, 10, 11}
-var record = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
 func TestLogWriter_Default(t *testing.T) {
 	t.Parallel()
@@ -24,8 +21,11 @@ func TestLogWriter_Append(t *testing.T) {
 	t.Parallel()
 
 	l := createLogWriter(t)
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+	var rec = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
 
-	if lsn, err := l.Append(record); err != nil {
+	if lsn, err := l.Append(rec); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -37,17 +37,21 @@ func TestLogWriter_Append(t *testing.T) {
 func TestLogWriter_Flush(t *testing.T) {
 	t.Parallel()
 
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+	var rec = newRecord(1, 2, time.UnixMicro(1234567890), data, reverse)
+
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
 		l := createLogWriter(t)
 
-		lsn1, err := l.Append(record)
+		lsn1, err := l.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(record)
+		_, err = l.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -64,12 +68,12 @@ func TestLogWriter_Flush(t *testing.T) {
 
 		l := createLogWriter(t)
 
-		_, err := l.Append(record)
+		_, err := l.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(record)
+		_, err = l.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -89,13 +93,13 @@ func TestLogWriter_Flush(t *testing.T) {
 		count := 10
 
 		for range count - 1 {
-			_, err := l.Append(record)
+			_, err := l.Append(rec)
 			if err != nil {
 				t.Error(err)
 			}
 		}
 
-		lsn2, err := l.Append(record)
+		lsn2, err := l.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -120,7 +124,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	return NewLogWriter(256, f)
 }
 
-func testPosition(t *testing.T, l *LogWriter, lw, hw LogSequenceNumber) {
+func testPosition(t *testing.T, l *LogWriter, lw, hw record.LogSequenceNumber) {
 	if h := l.HighWater(); h != hw {
 		t.Errorf("incorrect value: %v, expected: %v", h, hw)
 	}

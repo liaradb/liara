@@ -3,6 +3,8 @@ package log
 import (
 	"bytes"
 	"io"
+
+	"github.com/liaradb/liaradb/log/record"
 )
 
 const (
@@ -14,8 +16,8 @@ type LogWriter struct {
 	pageSize   int64
 	pageID     PageID
 	timeLineID TimeLineID
-	highWater  LogSequenceNumber
-	lowWater   LogSequenceNumber
+	highWater  record.LogSequenceNumber
+	lowWater   record.LogSequenceNumber
 	writer     io.WriteSeeker
 	recordBuf  *bytes.Buffer
 	pageWriter *PageWriter
@@ -30,11 +32,11 @@ func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
 	}
 }
 
-func (lw *LogWriter) PageID() PageID               { return lw.pageID }
-func (lw *LogWriter) HighWater() LogSequenceNumber { return lw.highWater }
-func (lw *LogWriter) LowWater() LogSequenceNumber  { return lw.lowWater }
+func (lw *LogWriter) PageID() PageID                      { return lw.pageID }
+func (lw *LogWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
+func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
 
-func (lw *LogWriter) Append(rc *Record) (LogSequenceNumber, error) {
+func (lw *LogWriter) Append(rc *Record) (record.LogSequenceNumber, error) {
 	data, err := lw.recordToBytes(rc)
 	if err != nil {
 		return 0, err
@@ -52,7 +54,7 @@ func (lw *LogWriter) recordToBytes(rc *Record) ([]byte, error) {
 	return lw.recordBuf.Bytes(), nil
 }
 
-func (lw *LogWriter) append(data []byte) (LogSequenceNumber, error) {
+func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	crc := NewCRC(data)
 	if err := crc.Write(lw.writer); err != nil {
 		return 0, err
@@ -92,7 +94,7 @@ func (lw *LogWriter) next(crc CRC, data []byte) error {
 	return lw.pageWriter.append(crc, data)
 }
 
-func (lw *LogWriter) Flush(lsn LogSequenceNumber) error {
+func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 	if err := lw.pageWriter.Flush(lw.writer); err != nil {
 		return err
 	}

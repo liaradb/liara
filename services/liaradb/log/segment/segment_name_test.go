@@ -1,13 +1,17 @@
-package log
+package segment
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/liaradb/liaradb/log/record"
+)
 
 func TestSegmentName(t *testing.T) {
 	t.Parallel()
 
 	for message, test := range map[string]struct {
 		id   SegmentID
-		lsn  LogSequenceNumber
+		lsn  record.LogSequenceNumber
 		name string
 	}{
 		"should handle index 0":         {0, 0, "segment_0000000000000000_0000000000000000.lr"},

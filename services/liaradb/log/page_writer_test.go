@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestPageWriter(t *testing.T) {
@@ -104,7 +105,7 @@ func createEmptyPage() *PageWriter {
 }
 
 func createRecord() (*Record, []byte, error) {
-	lsn := LogSequenceNumber(1)
+	lsn := record.LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")

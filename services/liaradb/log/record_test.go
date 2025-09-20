@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestRecord(t *testing.T) {
 	t.Parallel()
 
-	lsn := LogSequenceNumber(1)
+	lsn := record.LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
@@ -29,7 +30,7 @@ func TestRecord(t *testing.T) {
 func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
-	lsn := LogSequenceNumber(1)
+	lsn := record.LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
