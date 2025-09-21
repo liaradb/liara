@@ -21,11 +21,7 @@ func NewLog(size int64, fsys file.FileSystem, dir string) *Log {
 }
 
 func (l *Log) Open() error {
-	if err := l.sl.Open(); err != nil {
-		return err
-	}
-
-	return nil
+	return l.sl.Open()
 }
 
 func (l *Log) Close() error {
@@ -51,6 +47,18 @@ func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	return lsn, nil
 }
 
+func (l *Log) Recover() error {
+	// TODO: Implement this
+	panic("unimplemented")
+}
+
+// TODO: Create SegmentList reverse iterator
+func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
+	// TODO: Implement this
+	panic("unimplemented")
+}
+
+// TODO: Create SegmentList iterator
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		lr, err := l.reader(lsn)

@@ -149,6 +149,26 @@ func (sl *SegmentList) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentNa
 	return SegmentName{}, false
 }
 
+func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
+	if err := sl.Close(); err != nil {
+		return SegmentName{}, nil, err
+	}
+
+	sn, _, ok := sl.getSegmentBeforeLSN(lsn)
+	if !ok {
+		return SegmentName{}, nil, ErrNoSegmentFile
+	}
+
+	f, err := sl.fsys.OpenFile(sn.String())
+	if err != nil {
+		return SegmentName{}, nil, err
+	}
+
+	sl.file = f
+	return sn, f, nil
+}
+
+// TODO: Handle if this file is open
 func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 	sn, index, ok := sl.getSegmentBeforeLSN(lsn)
 	if !ok {

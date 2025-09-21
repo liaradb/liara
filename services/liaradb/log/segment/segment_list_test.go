@@ -97,7 +97,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 		})
 	}
 
-	t.Run("should close previous files", func(t *testing.T) {
+	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
@@ -176,7 +176,7 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 		})
 	}
 
-	t.Run("should close previous files", func(t *testing.T) {
+	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
@@ -235,7 +235,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 		}
 	})
 
-	t.Run("should close previous files", func(t *testing.T) {
+	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
@@ -252,6 +252,65 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 		}
 
 		if _, _, err := sl.OpenNextSegment(30); err != nil {
+			t.Fatal(err)
+		}
+
+		if f.(*mock.File).IsOpen() {
+			t.Error("previous file should be closed")
+		}
+	})
+}
+
+func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should open segment", func(t *testing.T) {
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		sn, f, err := sl.OpenSegmentBeforeLSN(20)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if id := sn.ID(); id != 1 {
+			t.Errorf("wrong id: %v, expected: %v", id, 1)
+		}
+
+		if f == nil {
+			t.Error("file should not be nil")
+		}
+
+		if names := sl.Names(); !slices.Contains(names, sn) {
+			t.Errorf("segment list does not contain segment: %v", sn)
+		}
+	})
+
+	t.Run("should close previous file", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			NewSegmentName(1, 10).String(): {},
+			NewSegmentName(2, 20).String(): {},
+		})
+		sl := NewSegmentList(fsys, ".")
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		_, f, err := sl.OpenSegmentBeforeLSN(20)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if _, _, err := sl.OpenSegmentBeforeLSN(20); err != nil {
 			t.Fatal(err)
 		}
 
