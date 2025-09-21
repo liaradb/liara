@@ -122,12 +122,12 @@ func (f *File) adjustSize(b []byte, off int64) bool {
 	return false
 }
 
-func (f *File) Seek(offxset int64, whence int) (int64, error) {
+func (f *File) Seek(offset int64, whence int) (int64, error) {
 	if !f.isOpen {
 		return 0, ErrClosed
 	}
 
-	f.position = f.seekPosition(offxset, whence)
+	f.position = f.seekPosition(offset, whence)
 	return f.position, nil
 }
 
