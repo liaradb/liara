@@ -7,6 +7,7 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
@@ -17,7 +18,7 @@ type LogReader struct {
 	sl         *segment.SegmentList
 	data       []byte
 	pageReader *bytes.Reader
-	pageHeader record.PageHeader
+	pageHeader page.PageHeader
 }
 
 func NewLogReader(
@@ -25,7 +26,7 @@ func NewLogReader(
 	sl *segment.SegmentList,
 	r io.ReadSeeker,
 ) *LogReader {
-	body := size - record.PageHeaderSize
+	body := size - page.PageHeaderSize
 	return &LogReader{
 		size:   body,
 		sl:     sl,
@@ -34,14 +35,14 @@ func NewLogReader(
 	}
 }
 
-func (lr *LogReader) Seek(pid record.PageID) error {
+func (lr *LogReader) Seek(pid page.PageID) error {
 	_, err := lr.reader.Seek(lr.position(pid, lr.size), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
-func (lr *LogReader) position(pid record.PageID, size int64) int64 {
-	return int64(pid) * (size + record.PageHeaderSize)
+func (lr *LogReader) position(pid page.PageID, size int64) int64 {
+	return int64(pid) * (size + page.PageHeaderSize)
 }
 
 func (lr *LogReader) Iterate() iter.Seq2[*record.Record, error] {
@@ -49,7 +50,7 @@ func (lr *LogReader) Iterate() iter.Seq2[*record.Record, error] {
 }
 
 // TODO: Test this
-func (lr *LogReader) IterateFrom(pid record.PageID) iter.Seq2[*record.Record, error] {
+func (lr *LogReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		if err := lr.Seek(pid); err != nil {
 			yield(nil, err)
@@ -108,7 +109,7 @@ func (lr *LogReader) Reverse() iter.Seq2[*record.Record, error] {
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (lr *LogReader) Read() (*record.PageHeader, error) {
+func (lr *LogReader) Read() (*page.PageHeader, error) {
 	if err := lr.pageHeader.Read(lr.reader); err != nil {
 		return nil, err
 	}
@@ -164,12 +165,12 @@ func (lr *LogReader) Records() iter.Seq2[*record.Record, error] {
 }
 
 func (*LogReader) validateCRC(r *bufio.Reader) error {
-	var c record.CRC
+	var c page.CRC
 	if err := c.Read(r); err != nil {
 		return err
 	}
 
-	rl := record.RecordLength(0)
+	rl := page.RecordLength(0)
 	if err := rl.Read(r); err != nil {
 		return err
 	}

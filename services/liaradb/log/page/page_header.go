@@ -1,6 +1,8 @@
-package record
+package page
 
 import "io"
+
+const RecordHeaderSize = CrcSize + RecordLengthSize
 
 // TODO: Should this be private?
 const PageHeaderSize = 0 +

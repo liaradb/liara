@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const RecordHeaderSize = CrcSize + RecordLengthSize
-
 type Record struct {
 	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID

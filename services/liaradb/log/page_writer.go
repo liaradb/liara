@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/log/page"
 )
 
 type PageWriter struct {
@@ -13,13 +13,13 @@ type PageWriter struct {
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
-	header   record.PageHeader
+	header   page.PageHeader
 }
 
 func newPageWriter(
 	size int64,
 ) *PageWriter {
-	body := size - record.PageHeaderSize
+	body := size - page.PageHeaderSize
 	writer := bytes.NewBuffer(make([]byte, 0, body))
 	return &PageWriter{
 		size:     body,
@@ -29,9 +29,9 @@ func newPageWriter(
 	}
 }
 
-func (pw *PageWriter) ID() record.PageID                    { return pw.header.ID() }
-func (pw *PageWriter) TimeLineID() record.TimeLineID        { return pw.header.TimeLineID() }
-func (pw *PageWriter) LengthRemaining() record.RecordLength { return pw.header.LengthRemaining() }
+func (pw *PageWriter) ID() page.PageID                    { return pw.header.ID() }
+func (pw *PageWriter) TimeLineID() page.TimeLineID        { return pw.header.TimeLineID() }
+func (pw *PageWriter) LengthRemaining() page.RecordLength { return pw.header.LengthRemaining() }
 
 // TODO: This is slow
 func (pw *PageWriter) Data() []byte {
@@ -40,11 +40,11 @@ func (pw *PageWriter) Data() []byte {
 	return pw.data
 }
 
-func (pw *PageWriter) init(id record.PageID, tlid record.TimeLineID, rem record.RecordLength) {
-	pw.header = record.NewPageHeader(id, tlid, rem)
+func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem page.RecordLength) {
+	pw.header = page.NewPageHeader(id, tlid, rem)
 }
 
-func (pw *PageWriter) append(crc record.CRC, data []byte) error {
+func (pw *PageWriter) append(crc page.CRC, data []byte) error {
 	if !pw.canInsert(data) {
 		return ErrInsufficientSpace
 	}
@@ -66,19 +66,19 @@ func (pw *PageWriter) canInsert(data []byte) bool {
 }
 
 func (*PageWriter) recordSize(data []byte) int {
-	return record.RecordHeaderSize + len(data)
+	return page.RecordHeaderSize + len(data)
 }
 
 func (pw *PageWriter) available() int {
 	return int(pw.size) - pw.writer.Len()
 }
 
-func (pw *PageWriter) insert(crc record.CRC, data []byte) error {
+func (pw *PageWriter) insert(crc page.CRC, data []byte) error {
 	if err := crc.Write(pw.writeBuf); err != nil {
 		return err
 	}
 
-	if err := record.NewRecordLength(data).Write(pw.writeBuf); err != nil {
+	if err := page.NewRecordLength(data).Write(pw.writeBuf); err != nil {
 		return err
 	}
 
