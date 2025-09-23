@@ -2,7 +2,6 @@ package segment
 
 import (
 	"container/list"
-	"fmt"
 	"io/fs"
 	"iter"
 	"slices"
@@ -105,12 +104,46 @@ func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (Segme
 	return sn, f, nil
 }
 
+// TODO: Test this
+func (sl *SegmentList) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File, error] {
+	return func(yield func(file.File, error) bool) {
+		if err := sl.Close(); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		_, e, ok := sl.getSegmentForLSN(lsn)
+		if !ok {
+			return
+		}
+
+		for {
+			if e == nil {
+				return
+			}
+
+			sn := e.Value.(SegmentName)
+			f, err := sl.sf.Open(sn)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(f, nil) {
+				return
+			}
+
+			e = e.Next()
+		}
+	}
+}
+
 func (sl *SegmentList) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
 	if err := sl.Close(); err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	sn, ok := sl.getSegmentForLSN(lsn)
+	sn, _, ok := sl.getSegmentForLSN(lsn)
 	if !ok {
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
@@ -189,15 +222,14 @@ func (sl *SegmentList) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (Segmen
 	return SegmentName{}, nil, false
 }
 
-func (sl *SegmentList) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, bool) {
-	for n := range sl.reverse() {
-		fmt.Printf("%v, %v, %v\n", lsn, n.lsn, lsn >= n.lsn)
+func (sl *SegmentList) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
+	for n, e := range sl.reverse() {
 		if lsn >= n.lsn {
-			return n, true
+			return n, e, true
 		}
 	}
 
-	return SegmentName{}, false
+	return SegmentName{}, nil, false
 }
 
 func (sl *SegmentList) iterate() iter.Seq2[SegmentName, *list.Element] {
@@ -221,8 +253,8 @@ func (sl *SegmentList) iterate() iter.Seq2[SegmentName, *list.Element] {
 	}
 }
 
-func (sl *SegmentList) reverse() iter.Seq[SegmentName] {
-	return func(yield func(SegmentName) bool) {
+func (sl *SegmentList) reverse() iter.Seq2[SegmentName, *list.Element] {
+	return func(yield func(SegmentName, *list.Element) bool) {
 		if sl.names == nil {
 			return
 		}
@@ -233,7 +265,7 @@ func (sl *SegmentList) reverse() iter.Seq[SegmentName] {
 				return
 			}
 
-			if !yield(e.Value.(SegmentName)) {
+			if !yield(e.Value.(SegmentName), e) {
 				return
 			}
 
