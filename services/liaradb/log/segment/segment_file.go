@@ -2,18 +2,16 @@ package segment
 
 import (
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/log/record"
 )
 
 type segmentFile struct {
-	sn   SegmentName
-	fsys file.FileSystem
 	file file.File
+	fsys file.FileSystem
+	sn   SegmentName
 }
 
-func newSegmentFile(sn SegmentName, fsys file.FileSystem) *segmentFile {
+func newSegmentFile(fsys file.FileSystem) *segmentFile {
 	return &segmentFile{
-		sn:   sn,
 		fsys: fsys,
 	}
 }
@@ -34,20 +32,29 @@ func (sf *segmentFile) Close() error {
 	return nil
 }
 
-func (sf *segmentFile) Next(lsn record.LogSequenceNumber) *segmentFile {
-	return newSegmentFile(sf.sn.Next(lsn), sf.fsys)
-}
-
-func (sf *segmentFile) Open() error {
-	if sf.file != nil {
-		return nil
+func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
+	// TODO: Test this
+	if sf.sn == sn && sf.file != nil {
+		return sf.file, nil
 	}
+
+	if err := sf.Close(); err != nil {
+		return nil, err
+	}
+
+	sf.reset(sn)
 
 	f, err := sf.fsys.OpenFile(sf.sn.String())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	sf.file = f
-	return nil
+	return f, nil
+}
+
+func (sf *segmentFile) reset(sn SegmentName) {
+	sf.sn = sn
+	sf.file = nil
+
 }

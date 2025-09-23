@@ -13,28 +13,24 @@ import (
 
 type SegmentList struct {
 	dir   string
-	file  file.File
 	fsys  file.FileSystem
 	names *list.List
+	sf    segmentFile
 }
 
 func NewSegmentList(fsys file.FileSystem, dir string) *SegmentList {
 	return &SegmentList{
 		dir:  dir,
 		fsys: fsys,
+		sf:   *newSegmentFile(fsys),
 	}
 }
 
 func (sl *SegmentList) Close() error {
-	if sl.file == nil {
-		return nil
-	}
-
-	if err := sl.file.Close(); err != nil {
+	if err := sl.sf.Close(); err != nil {
 		return err
 	}
 
-	sl.file = nil
 	return nil
 }
 
@@ -63,12 +59,11 @@ func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {
 	}
 
 	sn, ok := sl.getLatestSegment()
-	f, err := sl.fsys.OpenFile(sn.String())
+	f, err := sl.sf.Open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	sl.file = f
 	if !ok {
 		sl.names.PushBack(sn)
 	}
@@ -82,12 +77,11 @@ func (sl *SegmentList) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentNam
 	}
 
 	sn := sl.getNextSegment(lsn)
-	f, err := sl.fsys.OpenFile(sn.String())
+	f, err := sl.sf.Open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	sl.file = f
 	sl.names.PushBack(sn)
 
 	return sn, f, err
@@ -103,12 +97,11 @@ func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (Segme
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 
-	f, err := sl.fsys.OpenFile(sn.String())
+	f, err := sl.sf.Open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	sl.file = f
 	return sn, f, nil
 }
 
@@ -121,12 +114,11 @@ func (sl *SegmentList) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentN
 	if !ok {
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
-	f, err := sl.fsys.OpenFile(sn.String())
+
+	f, err := sl.sf.Open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
-
-	sl.file = f
 
 	return sn, f, err
 }
