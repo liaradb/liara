@@ -61,30 +61,23 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 // TODO: Create SegmentList iterator
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		lr, err := l.reader(lsn)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
-
-		for rc, err := range lr.Iterate() {
+		for f, err := range l.sl.IterateFromLSN(lsn) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(rc, nil) {
-				return
+			lr := NewLogReader(l.size, f)
+			for rc, err := range lr.Iterate() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				if !yield(rc, nil) {
+					return
+				}
 			}
 		}
 	}
-}
-
-func (l *Log) reader(lsn record.LogSequenceNumber) (*LogReader, error) {
-	_, f, err := l.sl.OpenSegmentForLSN(lsn)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewLogReader(l.size, f), nil
 }
