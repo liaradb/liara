@@ -20,21 +20,20 @@ func (sf *segmentFile) SegmentName() SegmentName { return sf.sn }
 func (sf *segmentFile) File() file.File          { return sf.file }
 
 func (sf *segmentFile) Close() error {
-	if sf.file == nil {
+	if !sf.hasFile() {
 		return nil
 	}
 
-	if err := sf.file.Close(); err != nil {
+	if err := sf.closeFile(); err != nil {
 		return err
 	}
 
-	sf.file = nil
 	return nil
 }
 
 func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
 	// TODO: Test this
-	if sf.sn == sn && sf.file != nil {
+	if sf.isCurrentAndOpen(sn) {
 		return sf.file, nil
 	}
 
@@ -42,20 +41,16 @@ func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
 		return nil, err
 	}
 
-	sf.reset(sn)
-
-	f, err := sf.fsys.OpenFile(sf.sn.String())
-	if err != nil {
+	if err := sf.openFile(sn); err != nil {
 		return nil, err
 	}
 
-	sf.file = f
-	return f, nil
+	return sf.file, nil
 }
 
 func (sf *segmentFile) Remove(sn SegmentName) error {
 	// TODO: Test this
-	if sn == sf.sn {
+	if sf.isCurrent(sn) {
 		sf.Close()
 	}
 
@@ -66,8 +61,34 @@ func (sf *segmentFile) Remove(sn SegmentName) error {
 	return nil
 }
 
-func (sf *segmentFile) reset(sn SegmentName) {
-	sf.sn = sn
-	sf.file = nil
+func (sf *segmentFile) closeFile() error {
+	if err := sf.file.Close(); err != nil {
+		return err
+	}
 
+	sf.file = nil
+	return nil
+}
+
+func (sf *segmentFile) hasFile() bool {
+	return sf.file != nil
+}
+
+func (sf *segmentFile) isCurrent(sn SegmentName) bool {
+	return sf.sn == sn
+}
+
+func (sf *segmentFile) isCurrentAndOpen(sn SegmentName) bool {
+	return sf.isCurrent(sn) && sf.file != nil
+}
+
+func (sf *segmentFile) openFile(sn SegmentName) error {
+	f, err := sf.fsys.OpenFile(sn.String())
+	if err != nil {
+		return err
+	}
+
+	sf.sn = sn
+	sf.file = f
+	return nil
 }
