@@ -53,6 +53,19 @@ func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
 	return f, nil
 }
 
+func (sf *segmentFile) Remove(sn SegmentName) error {
+	// TODO: Test this
+	if sn == sf.sn {
+		sf.Close()
+	}
+
+	if err := sf.fsys.Remove(sn.String()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (sf *segmentFile) reset(sn SegmentName) {
 	sf.sn = sn
 	sf.file = nil
