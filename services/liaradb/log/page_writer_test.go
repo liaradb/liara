@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
 )
 
 func TestPageWriter(t *testing.T) {
@@ -20,7 +19,6 @@ func TestPageWriter(t *testing.T) {
 
 	fsys := mock.NewFileSystem(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	sl := segment.NewSegmentList(fsys, ".")
 	pid, tlid, rem, pw := createPage()
 
 	if err := pw.Write(f); err != nil {
@@ -31,7 +29,7 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, sl, f)
+	lr := NewLogReader(256, f)
 	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +43,6 @@ func TestPageWriter_Append(t *testing.T) {
 
 	fsys := mock.NewFileSystem(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	sl := segment.NewSegmentList(fsys, ".")
 	pid, tlid, rem, pw := createPage()
 
 	rc, data, err := createRecord()
@@ -71,7 +68,7 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, sl, f)
+	lr := NewLogReader(256, f)
 	ph, err := lr.Read()
 	if err != nil {
 		t.Fatal(err)

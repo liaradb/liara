@@ -8,7 +8,6 @@ import (
 
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
 )
 
 func TestLogReader_Iterate(t *testing.T) {
@@ -92,9 +91,8 @@ func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
-	sl := segment.NewSegmentList(fsys, ".")
 
-	return NewLogReader(256, sl, f), NewLogWriter(256, f)
+	return NewLogReader(256, f), NewLogWriter(256, f)
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

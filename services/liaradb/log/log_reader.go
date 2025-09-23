@@ -9,13 +9,11 @@ import (
 
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
 )
 
 type LogReader struct {
 	size       int64
 	reader     io.ReadSeeker
-	sl         *segment.SegmentList
 	data       []byte
 	pageReader *bytes.Reader
 	pageHeader page.PageHeader
@@ -23,13 +21,11 @@ type LogReader struct {
 
 func NewLogReader(
 	size int64,
-	sl *segment.SegmentList,
 	r io.ReadSeeker,
 ) *LogReader {
 	body := size - page.PageHeaderSize
 	return &LogReader{
 		size:   body,
-		sl:     sl,
 		reader: r,
 		data:   make([]byte, body),
 	}

@@ -86,5 +86,5 @@ func (l *Log) reader(lsn record.LogSequenceNumber) (*LogReader, error) {
 		return nil, err
 	}
 
-	return NewLogReader(l.size, l.sl, f), nil
+	return NewLogReader(l.size, f), nil
 }
