@@ -20,7 +20,7 @@ func (sf *segmentFile) SegmentName() SegmentName { return sf.sn }
 func (sf *segmentFile) File() file.File          { return sf.file }
 
 func (sf *segmentFile) Close() error {
-	if !sf.hasFile() {
+	if !sf.isOpen() {
 		return nil
 	}
 
@@ -70,16 +70,16 @@ func (sf *segmentFile) closeFile() error {
 	return nil
 }
 
-func (sf *segmentFile) hasFile() bool {
-	return sf.file != nil
-}
-
 func (sf *segmentFile) isCurrent(sn SegmentName) bool {
 	return sf.sn == sn
 }
 
 func (sf *segmentFile) isCurrentAndOpen(sn SegmentName) bool {
-	return sf.isCurrent(sn) && sf.file != nil
+	return sf.isCurrent(sn) && sf.isOpen()
+}
+
+func (sf *segmentFile) isOpen() bool {
+	return sf.file != nil
 }
 
 func (sf *segmentFile) openFile(sn SegmentName) error {
