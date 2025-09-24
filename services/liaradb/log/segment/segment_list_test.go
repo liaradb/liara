@@ -114,6 +114,10 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if _, _, err = sl.OpenNextSegment(30); err != nil {
+			t.Fatal(err)
+		}
+
 		if _, _, err := sl.OpenLatestSegment(); err != nil {
 			t.Fatal(err)
 		}

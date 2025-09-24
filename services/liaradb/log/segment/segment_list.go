@@ -53,10 +53,6 @@ func (sl *SegmentList) Open() error {
 }
 
 func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {
-	if err := sl.Close(); err != nil {
-		return SegmentName{}, nil, err
-	}
-
 	sn, ok := sl.getLatestSegment()
 	f, err := sl.sf.Open(sn)
 	if err != nil {
@@ -71,10 +67,6 @@ func (sl *SegmentList) OpenLatestSegment() (SegmentName, file.File, error) {
 }
 
 func (sl *SegmentList) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
-	if err := sl.Close(); err != nil {
-		return SegmentName{}, nil, err
-	}
-
 	sn := sl.getNextSegment(lsn)
 	f, err := sl.sf.Open(sn)
 	if err != nil {
@@ -103,11 +95,6 @@ func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (Segme
 // TODO: Test this
 func (sl *SegmentList) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File, error] {
 	return func(yield func(file.File, error) bool) {
-		if err := sl.Close(); err != nil {
-			yield(nil, err)
-			return
-		}
-
 		_, e, ok := sl.getSegmentForLSN(lsn)
 		if !ok {
 			return
@@ -135,10 +122,6 @@ func (sl *SegmentList) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[fi
 }
 
 func (sl *SegmentList) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
-	if err := sl.Close(); err != nil {
-		return SegmentName{}, nil, err
-	}
-
 	sn, _, ok := sl.getSegmentForLSN(lsn)
 	if !ok {
 		return SegmentName{}, nil, ErrNoSegmentFile
