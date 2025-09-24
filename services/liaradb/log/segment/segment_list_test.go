@@ -124,6 +124,41 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 	})
 }
 
+func TestSegmentList_IterateFromLSN(t *testing.T) {
+	t.Parallel()
+
+	sn0 := NewSegmentName(1, 10)
+	sn1 := NewSegmentName(2, 20)
+	names := []SegmentName{sn0, sn1}
+	fsys := mock.NewFileSystem(fstest.MapFS{
+		sn0.String(): {},
+		sn1.String(): {},
+	})
+	sl := NewSegmentList(fsys, ".")
+
+	if err := sl.Open(); err != nil {
+		t.Fatal(err)
+	}
+
+	c := 0
+	n := make([]SegmentName, 0, 2)
+	for f, err := range sl.IterateFromLSN(10) {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		m, _ := f.(*mock.File).Stat()
+		n = append(n, ParseSegmentName(m.Name()))
+		c++
+	}
+	if c != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 2)
+	}
+	if !reflect.DeepEqual(names, n) {
+		t.Error("names do not match")
+	}
+}
+
 func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
