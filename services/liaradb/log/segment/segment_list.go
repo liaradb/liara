@@ -87,10 +87,6 @@ func (sl *SegmentList) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentNam
 }
 
 func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
-	if err := sl.Close(); err != nil {
-		return SegmentName{}, nil, err
-	}
-
 	sn, _, ok := sl.getSegmentBeforeLSN(lsn)
 	if !ok {
 		return SegmentName{}, nil, ErrNoSegmentFile
@@ -213,8 +209,13 @@ func (sl *SegmentList) getNextSegment(lsn record.LogSequenceNumber) SegmentName 
 }
 
 func (sl *SegmentList) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
-	for n, e := range sl.iterate() {
+	for n, e := range sl.reverse() {
 		if lsn >= n.lsn {
+			e = e.Prev()
+			if e == nil {
+				return SegmentName{}, nil, false
+			}
+			n = e.Value.(SegmentName)
 			return n, e, true
 		}
 	}

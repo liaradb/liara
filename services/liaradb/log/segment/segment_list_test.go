@@ -303,6 +303,7 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 		fsys := mock.NewFileSystem(fstest.MapFS{
 			NewSegmentName(1, 10).String(): {},
 			NewSegmentName(2, 20).String(): {},
+			NewSegmentName(3, 30).String(): {},
 		})
 		sl := NewSegmentList(fsys, ".")
 
@@ -310,13 +311,13 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sn, f, err := sl.OpenSegmentBeforeLSN(20)
+		sn, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if id := sn.ID(); id != 1 {
-			t.Errorf("wrong id: %v, expected: %v", id, 1)
+		if id := sn.ID(); id != 2 {
+			t.Errorf("wrong id: %v, expected: %v", id, 2)
 		}
 
 		if f == nil {
@@ -334,13 +335,14 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 		fsys := mock.NewFileSystem(fstest.MapFS{
 			NewSegmentName(1, 10).String(): {},
 			NewSegmentName(2, 20).String(): {},
+			NewSegmentName(3, 30).String(): {},
 		})
 		sl := NewSegmentList(fsys, ".")
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
 		}
 
-		_, f, err := sl.OpenSegmentBeforeLSN(20)
+		_, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
 			t.Fatal(err)
 		}
