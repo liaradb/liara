@@ -92,7 +92,6 @@ func (sl *SegmentList) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (Segme
 	return sn, f, nil
 }
 
-// TODO: Test this
 func (sl *SegmentList) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File, error] {
 	return func(yield func(file.File, error) bool) {
 		_, e, ok := sl.getSegmentForLSN(lsn)
@@ -147,6 +146,22 @@ func (sl *SegmentList) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) erro
 
 	sl.names.Remove(e)
 	return nil
+}
+
+func (sl *SegmentList) Reverse() iter.Seq2[file.File, error] {
+	return func(yield func(file.File, error) bool) {
+		for sn := range sl.reverse() {
+			f, err := sl.sf.Open(sn)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(f, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (*SegmentList) filesToNames(files []fs.DirEntry) *list.List {

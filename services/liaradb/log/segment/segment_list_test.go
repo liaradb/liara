@@ -133,10 +133,12 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 
 	sn0 := NewSegmentName(1, 10)
 	sn1 := NewSegmentName(2, 20)
-	names := []SegmentName{sn0, sn1}
+	sn2 := NewSegmentName(3, 30)
+	names := []SegmentName{sn0, sn1, sn2}
 	fsys := mock.NewFileSystem(fstest.MapFS{
 		sn0.String(): {},
 		sn1.String(): {},
+		sn2.String(): {},
 	})
 	sl := NewSegmentList(fsys, ".")
 
@@ -145,7 +147,7 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 	}
 
 	c := 0
-	n := make([]SegmentName, 0, 2)
+	n := make([]SegmentName, 0, 3)
 	for f, err := range sl.IterateFromLSN(10) {
 		if err != nil {
 			t.Fatal(err)
@@ -155,8 +157,8 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 		n = append(n, ParseSegmentName(m.Name()))
 		c++
 	}
-	if c != 2 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 2)
+	if c != 3 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 3)
 	}
 	if !reflect.DeepEqual(names, n) {
 		t.Error("names do not match")
@@ -389,6 +391,44 @@ func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
 
 	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
 		t.Errorf("segment list is incorrect: %v", names)
+	}
+}
+
+func TestSegmentList_Reverse(t *testing.T) {
+	t.Parallel()
+
+	sn0 := NewSegmentName(1, 10)
+	sn1 := NewSegmentName(2, 20)
+	sn2 := NewSegmentName(3, 30)
+	names := []SegmentName{sn0, sn1, sn2}
+	slices.Reverse(names)
+	fsys := mock.NewFileSystem(fstest.MapFS{
+		sn0.String(): {},
+		sn1.String(): {},
+		sn2.String(): {},
+	})
+	sl := NewSegmentList(fsys, ".")
+
+	if err := sl.Open(); err != nil {
+		t.Fatal(err)
+	}
+
+	c := 0
+	n := make([]SegmentName, 0, 3)
+	for f, err := range sl.Reverse() {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		m, _ := f.(*mock.File).Stat()
+		n = append(n, ParseSegmentName(m.Name()))
+		c++
+	}
+	if c != 3 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 3)
+	}
+	if !reflect.DeepEqual(names, n) {
+		t.Error("names do not match")
 	}
 }
 
