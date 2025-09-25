@@ -75,10 +75,27 @@ func (l *Log) Recover() error {
 	panic("unimplemented")
 }
 
-// TODO: Create SegmentList reverse iterator
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	// TODO: Implement this
-	panic("unimplemented")
+	return func(yield func(*record.Record, error) bool) {
+		for f, err := range l.sl.Reverse() {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			lr := NewLogReader(l.pageSize, f)
+			for rc, err := range lr.Reverse() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				if !yield(rc, nil) {
+					return
+				}
+			}
+		}
+	}
 }
 
 // TODO: Create SegmentList iterator
