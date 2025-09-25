@@ -15,7 +15,7 @@ func TestLog_EmptyReader(t *testing.T) {
 
 	fsys := createFiles(0, 0)
 
-	l := NewLog(256, fsys, ".")
+	l := NewLog(256, 2, fsys, ".")
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func TestLog_Iterate(t *testing.T) {
 
 	fsys := createFiles(0, 0)
 
-	l := NewLog(256, fsys, ".")
+	l := NewLog(256, 2, fsys, ".")
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}

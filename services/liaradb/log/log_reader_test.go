@@ -92,7 +92,7 @@ func createLogReaderWriter(t *testing.T) (*LogReader, *LogWriter) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	return NewLogReader(256, f), NewLogWriter(256, f)
+	return NewLogReader(256, f), NewLogWriter(256, 2, f)
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

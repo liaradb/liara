@@ -14,22 +14,28 @@ const (
 )
 
 type LogWriter struct {
-	pageSize   int64
-	pageID     page.PageID
-	timeLineID page.TimeLineID
-	highWater  record.LogSequenceNumber
-	lowWater   record.LogSequenceNumber
-	writer     io.WriteSeeker
-	recordBuf  *bytes.Buffer
-	pageWriter *PageWriter
+	pageSize    int64
+	segmentSize page.PageID
+	pageID      page.PageID
+	timeLineID  page.TimeLineID
+	highWater   record.LogSequenceNumber
+	lowWater    record.LogSequenceNumber
+	writer      io.WriteSeeker
+	recordBuf   *bytes.Buffer
+	pageWriter  *PageWriter
 }
 
-func NewLogWriter(pageSize int64, w io.WriteSeeker) *LogWriter {
+func NewLogWriter(
+	pageSize int64,
+	segmentSize page.PageID,
+	w io.WriteSeeker,
+) *LogWriter {
 	return &LogWriter{
-		pageSize:   pageSize,
-		writer:     w,
-		recordBuf:  bytes.NewBuffer(nil),
-		pageWriter: newPageWriter(pageSize),
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
+		writer:      w,
+		recordBuf:   bytes.NewBuffer(nil),
+		pageWriter:  newPageWriter(pageSize),
 	}
 }
 
@@ -62,6 +68,10 @@ func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	}
 
 	if err := lw.appendOrNext(crc, data); err != nil {
+		if err == ErrInsufficientSpace {
+			// TODO: Fix this
+			return lw.highWater + 1, err
+		}
 		return 0, err
 	}
 
@@ -89,6 +99,10 @@ func (lw *LogWriter) next(crc page.CRC, data []byte) error {
 	}
 
 	lw.pageID++
+	if lw.pageID > lw.segmentSize {
+		return ErrInsufficientSpace
+	}
+
 	// TODO: Don't replace LogPageWriter
 	lw.pageWriter = newPageWriter(lw.pageSize)
 	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)

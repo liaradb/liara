@@ -4,20 +4,28 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
 
 type Log struct {
-	size   int64
-	sl     *segment.SegmentList
-	writer *LogWriter
+	pageSize    int64
+	segmentSize page.PageID
+	sl          *segment.SegmentList
+	writer      *LogWriter
 }
 
-func NewLog(size int64, fsys file.FileSystem, dir string) *Log {
+func NewLog(
+	pageSize int64,
+	segmentSize page.PageID,
+	fsys file.FileSystem,
+	dir string,
+) *Log {
 	return &Log{
-		size: size,
-		sl:   segment.NewSegmentList(fsys, dir),
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
+		sl:          segment.NewSegmentList(fsys, dir),
 	}
 }
 
@@ -35,12 +43,25 @@ func (l *Log) StartWriter() error {
 		return err
 	}
 
-	l.writer = NewLogWriter(l.size, f)
+	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
 	return nil
 }
 
+// TODO: Clean this
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	return l.writer.Append(rc)
+	lsn, err := l.writer.Append(rc)
+	if err != nil {
+		if err == ErrInsufficientSpace {
+			_, f, err := l.sl.OpenNextSegment(lsn)
+			if err != nil {
+				return 0, err
+			}
+			l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
+			return l.writer.Append(rc)
+		}
+	}
+
+	return lsn, nil
 }
 
 func (l *Log) Flush(lsn record.LogSequenceNumber) error {
@@ -67,7 +88,7 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 				return
 			}
 
-			lr := NewLogReader(l.size, f)
+			lr := NewLogReader(l.pageSize, f)
 			for rc, err := range lr.Iterate() {
 				if err != nil {
 					yield(nil, err)

@@ -122,7 +122,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	return NewLogWriter(256, f)
+	return NewLogWriter(256, 2, f)
 }
 
 func testPosition(t *testing.T, l *LogWriter, lw, hw record.LogSequenceNumber) {
