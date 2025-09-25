@@ -9,8 +9,9 @@ import (
 )
 
 type Log struct {
-	size int64
-	sl   *segment.SegmentList
+	size   int64
+	sl     *segment.SegmentList
+	writer *LogWriter
 }
 
 func NewLog(size int64, fsys file.FileSystem, dir string) *Log {
@@ -28,23 +29,22 @@ func (l *Log) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+func (l *Log) StartWriter() error {
 	_, f, err := l.sl.OpenLatestSegment()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	lw := NewLogWriter(l.size, f)
-	lsn, err := lw.Append(rc)
-	if err != nil {
-		return 0, err
-	}
+	l.writer = NewLogWriter(l.size, f)
+	return nil
+}
 
-	if err := lw.Flush(lsn); err != nil {
-		return 0, err
-	}
+func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+	return l.writer.Append(rc)
+}
 
-	return lsn, nil
+func (l *Log) Flush(lsn record.LogSequenceNumber) error {
+	return l.writer.Flush(lsn)
 }
 
 func (l *Log) Recover() error {

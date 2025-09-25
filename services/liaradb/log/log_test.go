@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 	"testing/fstest"
-	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
@@ -50,20 +49,39 @@ func TestLog_Iterate(t *testing.T) {
 		}
 	}()
 
-	rec := record.NewRecord(1, 2, time.UnixMicro(1234567890), []byte{1, 2, 3, 4, 5, 6}, []byte{7, 8, 9, 10, 11, 12})
-	_, err := l.Append(rec)
-	if err != nil {
+	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
 
+	records, _ := createRecords(100)
+	var lsn record.LogSequenceNumber
+	var err error
+	for _, rec := range records {
+		lsn, err = l.Append(rec)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = l.Flush(lsn); err != nil {
+		t.Fatal(err)
+	}
+
+	i := 0
 	for rc, err := range l.Iterate(0) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		rec := records[i]
+
 		if !reflect.DeepEqual(rc, rec) {
 			t.Error("records do not match")
 		}
+		i++
+	}
+	if i != 100 {
+		t.Errorf("incorrect count: %v, expected: %v", i, 100)
 	}
 }
 
