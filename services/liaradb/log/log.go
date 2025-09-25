@@ -47,21 +47,23 @@ func (l *Log) StartWriter() error {
 	return nil
 }
 
-// TODO: Clean this
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	lsn, err := l.writer.Append(rc)
-	if err != nil {
-		if err == ErrInsufficientSpace {
-			_, f, err := l.sl.OpenNextSegment(lsn)
-			if err != nil {
-				return 0, err
-			}
-			l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
-			return l.writer.Append(rc)
-		}
+	if err == ErrInsufficientSpace {
+		return l.appendToNextSegment(lsn, rc)
 	}
 
-	return lsn, nil
+	return lsn, err
+}
+
+func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
+	_, f, err := l.sl.OpenNextSegment(lsn)
+	if err != nil {
+		return 0, err
+	}
+
+	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
+	return l.writer.Append(rc)
 }
 
 func (l *Log) Flush(lsn record.LogSequenceNumber) error {
