@@ -8,11 +8,12 @@ import (
 type Action uint32
 
 const (
-	ActionCheckpoint Action = 1 + iota
-	ActionCommit
-	ActionInsert
-	ActionUpdate
-	ActionRemove
+	ActionCheckpoint Action = 1
+	ActionCommit     Action = 2
+	ActionRollback   Action = 3
+	ActionInsert     Action = 4
+	ActionUpdate     Action = 5
+	ActionRemove     Action = 6
 )
 
 func (a Action) Write(w io.Writer) error {
@@ -29,6 +30,8 @@ func (a Action) String() string {
 		return "Checkpoint"
 	case ActionCommit:
 		return "Commit"
+	case ActionRollback:
+		return "Rollback"
 	case ActionInsert:
 		return "Insert"
 	case ActionRemove:
