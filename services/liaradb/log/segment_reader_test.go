@@ -101,7 +101,7 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, record.NewRecord(i, 2, time.UnixMicro(1234567890), data, reverse))
+		records = append(records, record.NewRecord(i, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
 	return records, count - 1
 }

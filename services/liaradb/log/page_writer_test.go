@@ -115,7 +115,7 @@ func createRecord() (*record.Record, []byte, error) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := record.NewRecord(lsn, tid, now, data, reverse)
+	rc := record.NewRecord(lsn, tid, now, record.ActionInsert, data, reverse)
 	data, err := recordToBytes(rc)
 	return rc, data, err
 }

@@ -10,6 +10,7 @@ type Record struct {
 	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID
 	time              time.Time
+	action            Action
 	data              LogData
 	reverse           LogData
 }
@@ -19,6 +20,7 @@ func NewRecord(
 	lsn LogSequenceNumber,
 	tid TransactionID,
 	time time.Time,
+	action Action,
 	data []byte,
 	reverse []byte,
 ) *Record {
@@ -26,6 +28,7 @@ func NewRecord(
 		logSequenceNumber: lsn,
 		transactionID:     tid,
 		time:              time,
+		action:            action,
 		data:              LogData{data},
 		reverse:           LogData{reverse},
 	}
@@ -34,6 +37,7 @@ func NewRecord(
 func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
 func (rc *Record) Time() time.Time                      { return rc.time }
+func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
@@ -47,6 +51,10 @@ func (rc *Record) Write(w io.Writer) error {
 	}
 
 	if err := rc.writeTime(w); err != nil {
+		return err
+	}
+
+	if err := rc.action.Write(w); err != nil {
 		return err
 	}
 
@@ -71,6 +79,10 @@ func (rc *Record) Read(r io.Reader) error {
 	}
 
 	if err := rc.readTime(r); err != nil {
+		return err
+	}
+
+	if err := rc.action.Read(r); err != nil {
 		return err
 	}
 

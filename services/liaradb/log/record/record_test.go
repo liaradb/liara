@@ -14,14 +14,16 @@ func TestRecord(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
+	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := NewRecord(lsn, tid, now, data, reverse)
+	rc := NewRecord(lsn, tid, now, action, data, reverse)
 
 	assert.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
 	assert.Getter(t, rc.TransactionID, tid, "TransactionID")
 	assert.Getter(t, rc.Time, now, "Time")
+	assert.Getter(t, rc.Action, action, "Action")
 	assert.GetterArray(t, rc.Data, data, "Data")
 	assert.GetterArray(t, rc.Reverse, reverse, "Reverse")
 }
@@ -32,10 +34,11 @@ func TestRecord_Write(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
+	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := NewRecord(lsn, tid, now, data, reverse)
+	rc := NewRecord(lsn, tid, now, action, data, reverse)
 
 	r, w := assert.NewReaderWriter()
 
@@ -55,6 +58,7 @@ func TestRecord_Write(t *testing.T) {
 	assert.Getter(t, rc2.LogSequenceNumber, lsn, "LogSequenceNumber")
 	assert.Getter(t, rc2.TransactionID, tid, "TransactionID")
 	assert.Getter(t, rc.Time, now, "Time")
+	assert.Getter(t, rc.Action, action, "Action")
 	assert.GetterArray(t, rc2.Data, data, "Data")
 	assert.GetterArray(t, rc2.Reverse, reverse, "Reverse")
 }
