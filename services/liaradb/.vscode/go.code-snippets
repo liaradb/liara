@@ -16,6 +16,23 @@
 	// 	"description": "Log output to console"
 	// }
 
+	"Struct object": {
+		"scope": "go",
+		"description": "struct object",
+		"prefix": "structobj",
+		"body": [
+			"type $1 struct {",
+			"\t$2",
+			"}",
+			"",
+			"func New$1() ${3:*}$1 {",
+			"\treturn ${4:&}$1{",
+			"\t\t$0",
+			"\t}",
+			"}"
+		]
+	},
+
 	"Table test": {
 		"scope": "go",
 		"description": "table testing",
