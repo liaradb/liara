@@ -1,6 +1,7 @@
 package log
 
 import (
+	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/file"
@@ -70,9 +71,53 @@ func (l *Log) Flush(lsn record.LogSequenceNumber) error {
 	return l.writer.Flush(lsn)
 }
 
+// TODO: Test this
+// Iterate in reverse until record type.
+//
+// Then iterate forward entil end of log.
+//
+// Then start writer
 func (l *Log) Recover() error {
-	// TODO: Implement this
-	panic("unimplemented")
+	var pivot *record.Record
+outerReverse:
+	for f, err := range l.sl.Reverse() {
+		if err != nil {
+			return err
+		}
+
+		lr := NewLogReader(l.pageSize, f)
+		for rc, err := range lr.Reverse() {
+			if err != nil {
+				return err
+			}
+
+			pivot = rc
+			goto outerReverse
+		}
+	}
+
+	if pivot == nil {
+		return errors.New("not found")
+	}
+
+outerForward:
+	for f, err := range l.sl.IterateFromLSN(pivot.LogSequenceNumber()) {
+		if err != nil {
+			return err
+		}
+
+		lr := NewLogReader(l.pageSize, f)
+		// TODO: Need PageID
+		for _, err := range lr.IterateFrom(0) {
+			if err != nil {
+				return err
+			}
+
+			goto outerForward
+		}
+	}
+
+	return nil
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
@@ -98,7 +143,6 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-// TODO: Create SegmentList iterator
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range l.sl.IterateFromLSN(lsn) {
