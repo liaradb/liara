@@ -29,8 +29,8 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, f)
-	ph, err := lr.Read()
+	sr := NewSegmentReader(256, f)
+	ph, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +68,8 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lr := NewLogReader(256, f)
-	ph, err := lr.Read()
+	sr := NewSegmentReader(256, f)
+	ph, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestPageWriter_Append(t *testing.T) {
 	testPageHeader(t, ph, pid, tlid, rem)
 
 	count := 0
-	for r, err := range lr.Records() {
+	for r, err := range sr.Records() {
 		count++
 		if err != nil {
 			t.Fatal(err)

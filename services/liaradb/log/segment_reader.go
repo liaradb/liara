@@ -11,7 +11,7 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-type LogReader struct {
+type SegmentReader struct {
 	size       int64
 	reader     io.ReadSeeker
 	data       []byte
@@ -19,49 +19,49 @@ type LogReader struct {
 	pageHeader page.PageHeader
 }
 
-func NewLogReader(
+func NewSegmentReader(
 	size int64,
 	r io.ReadSeeker,
-) *LogReader {
+) *SegmentReader {
 	body := size - page.PageHeaderSize
-	return &LogReader{
+	return &SegmentReader{
 		size:   body,
 		reader: r,
 		data:   make([]byte, body),
 	}
 }
 
-func (lr *LogReader) Seek(pid page.PageID) error {
-	_, err := lr.reader.Seek(lr.position(pid, lr.size), io.SeekStart)
+func (sr *SegmentReader) Seek(pid page.PageID) error {
+	_, err := sr.reader.Seek(sr.position(pid, sr.size), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
-func (lr *LogReader) position(pid page.PageID, size int64) int64 {
+func (sr *SegmentReader) position(pid page.PageID, size int64) int64 {
 	return int64(pid) * (size + page.PageHeaderSize)
 }
 
-func (lr *LogReader) Iterate() iter.Seq2[*record.Record, error] {
-	return lr.IterateFrom(0)
+func (sr *SegmentReader) Iterate() iter.Seq2[*record.Record, error] {
+	return sr.IterateFrom(0)
 }
 
 // TODO: Test this
-func (lr *LogReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
+func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		if err := lr.Seek(pid); err != nil {
+		if err := sr.Seek(pid); err != nil {
 			yield(nil, err)
 			return
 		}
 
 		for {
-			if _, err := lr.Read(); err != nil {
+			if _, err := sr.Read(); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			for rc, err := range lr.Records() {
+			for rc, err := range sr.Records() {
 				if err != nil {
 					yield(nil, err)
 					return
@@ -76,11 +76,11 @@ func (lr *LogReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, erro
 }
 
 // TODO: Change page structure to make reversing easier
-func (lr *LogReader) Reverse() iter.Seq2[*record.Record, error] {
+func (sr *SegmentReader) Reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		q := list.New()
 
-		for rc, err := range lr.Iterate() {
+		for rc, err := range sr.Iterate() {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -105,37 +105,37 @@ func (lr *LogReader) Reverse() iter.Seq2[*record.Record, error] {
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (lr *LogReader) Read() (*page.PageHeader, error) {
-	if err := lr.pageHeader.Read(lr.reader); err != nil {
+func (sr *SegmentReader) Read() (*page.PageHeader, error) {
+	if err := sr.pageHeader.Read(sr.reader); err != nil {
 		return nil, err
 	}
 
 	// TODO: Do we need to verify read length?
 	// TODO: Should we make a new slice?
-	if _, err := lr.reader.Read(lr.data); err != nil {
+	if _, err := sr.reader.Read(sr.data); err != nil {
 		return nil, err
 	}
 
-	lr.initReader()
+	sr.initReader()
 
-	return &lr.pageHeader, nil
+	return &sr.pageHeader, nil
 }
 
-func (lr *LogReader) initReader() {
-	if lr.pageReader == nil {
-		lr.pageReader = bytes.NewReader(lr.data)
+func (sr *SegmentReader) initReader() {
+	if sr.pageReader == nil {
+		sr.pageReader = bytes.NewReader(sr.data)
 	} else {
-		lr.pageReader.Reset(lr.data)
+		sr.pageReader.Reset(sr.data)
 	}
 }
 
-func (lr *LogReader) Records() iter.Seq2[*record.Record, error] {
-	r := bufio.NewReader(lr.pageReader)
+func (sr *SegmentReader) Records() iter.Seq2[*record.Record, error] {
+	r := bufio.NewReader(sr.pageReader)
 
 	return func(yield func(*record.Record, error) bool) {
 		for {
 			var err error
-			if err = lr.validateCRC(r); err != nil {
+			if err = sr.validateCRC(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -160,7 +160,7 @@ func (lr *LogReader) Records() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (*LogReader) validateCRC(r *bufio.Reader) error {
+func (*SegmentReader) validateCRC(r *bufio.Reader) error {
 	var c page.CRC
 	if err := c.Read(r); err != nil {
 		return err

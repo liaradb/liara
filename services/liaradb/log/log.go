@@ -85,8 +85,8 @@ outerReverse:
 			return err
 		}
 
-		lr := NewLogReader(l.pageSize, f)
-		for rc, err := range lr.Reverse() {
+		sr := NewSegmentReader(l.pageSize, f)
+		for rc, err := range sr.Reverse() {
 			if err != nil {
 				return err
 			}
@@ -106,9 +106,9 @@ outerForward:
 			return err
 		}
 
-		lr := NewLogReader(l.pageSize, f)
+		sr := NewSegmentReader(l.pageSize, f)
 		// TODO: Need PageID
-		for _, err := range lr.IterateFrom(0) {
+		for _, err := range sr.IterateFrom(0) {
 			if err != nil {
 				return err
 			}
@@ -128,8 +128,8 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			lr := NewLogReader(l.pageSize, f)
-			for rc, err := range lr.Reverse() {
+			sr := NewSegmentReader(l.pageSize, f)
+			for rc, err := range sr.Reverse() {
 				if err != nil {
 					yield(nil, err)
 					return
@@ -151,8 +151,8 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 				return
 			}
 
-			lr := NewLogReader(l.pageSize, f)
-			for rc, err := range lr.Iterate() {
+			sr := NewSegmentReader(l.pageSize, f)
+			for rc, err := range sr.Iterate() {
 				if err != nil {
 					yield(nil, err)
 					return
