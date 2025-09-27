@@ -1,7 +1,7 @@
 package log
 
 import (
-	"errors"
+	"container/list"
 	"iter"
 
 	"github.com/liaradb/liaradb/file"
@@ -75,54 +75,34 @@ func (l *Log) Flush(lsn record.LogSequenceNumber) error {
 // Iterate in reverse until record type.
 //
 // Then iterate forward entil end of log.
-//
-// Then start writer
-func (l *Log) Recover() error {
-	var pivot *record.Record
-outerReverse:
+func (l *Log) Recover() (iter.Seq[*record.Record], error) {
+	r := list.New()
+
 	for f, err := range l.sl.Reverse() {
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		stat, err := f.Stat()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		sr := NewSegmentReader(l.pageSize, l.segmentSize, f)
 		for rc, err := range sr.Reverse(stat.Size()) {
 			if err != nil {
-				return err
+				return nil, err
 			}
 
-			pivot = rc
-			goto outerReverse
-		}
-	}
-
-	if pivot == nil {
-		return errors.New("not found")
-	}
-
-outerForward:
-	for f, err := range l.sl.IterateFromLSN(pivot.LogSequenceNumber()) {
-		if err != nil {
-			return err
-		}
-
-		sr := NewSegmentReader(l.pageSize, l.segmentSize, f)
-		// TODO: Need PageID
-		for _, err := range sr.IterateFrom(0) {
-			if err != nil {
-				return err
+			if rc.Action() == record.ActionCheckpoint {
+				return listToIterator[*record.Record](r), nil
 			}
 
-			goto outerForward
+			r.PushBack(rc)
 		}
 	}
 
-	return nil
+	return listToIterator[*record.Record](r), nil
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
@@ -172,6 +152,16 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 				if !yield(rc, nil) {
 					return
 				}
+			}
+		}
+	}
+}
+
+func listToIterator[T any](l *list.List) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for e := l.Back(); e != nil; e = e.Prev() {
+			if !yield(e.Value.(T)) {
+				return
 			}
 		}
 	}
