@@ -10,7 +10,7 @@ import (
 )
 
 type PageWriter struct {
-	size     int64
+	bodySize int64
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
@@ -23,7 +23,7 @@ func newPageWriter(
 	body := size - page.PageHeaderSize
 	writer := bytes.NewBuffer(make([]byte, 0, body))
 	return &PageWriter{
-		size:     body,
+		bodySize: body,
 		data:     make([]byte, body),
 		writer:   writer,
 		writeBuf: bufio.NewWriter(writer),
@@ -71,7 +71,7 @@ func (*PageWriter) recordSize(data []byte) int {
 }
 
 func (pw *PageWriter) available() int {
-	return int(pw.size) - pw.writer.Len()
+	return int(pw.bodySize) - pw.writer.Len()
 }
 
 func (pw *PageWriter) insert(crc page.CRC, data []byte) error {
@@ -108,7 +108,7 @@ func (pw *PageWriter) seek(w io.Seeker) error {
 }
 
 func (pw *PageWriter) position() int64 {
-	return pw.header.Position(pw.size)
+	return pw.header.ID().Size(pw.bodySize + page.PageHeaderSize)
 }
 
 func (pw *PageWriter) Write(w io.Writer) error {
@@ -118,7 +118,7 @@ func (pw *PageWriter) Write(w io.Writer) error {
 
 	if n, err := w.Write(pw.Data()); err != nil {
 		return err
-	} else if n < int(pw.size) {
+	} else if n < int(pw.bodySize) {
 		// TODO: Do we need to verify write length?
 		return io.ErrShortWrite
 	}

@@ -33,11 +33,6 @@ func (ph PageHeader) ID() PageID                    { return ph.id }
 func (ph PageHeader) TimeLineID() TimeLineID        { return ph.timeLineID }
 func (ph PageHeader) LengthRemaining() RecordLength { return ph.lengthRemaining }
 
-// TODO: Should we store this on the header struct?
-func (ph PageHeader) Position(size int64) int64 {
-	return int64(ph.id) * (size + PageHeaderSize)
-}
-
 func (ph *PageHeader) Read(r io.Reader) error {
 	if err := MagicPage.ReadIsPage(r); err != nil {
 		return err

@@ -129,10 +129,10 @@ func createLogWriter(t *testing.T) *LogWriter {
 
 func testPosition(t *testing.T, l *LogWriter, lw, hw record.LogSequenceNumber) {
 	if h := l.HighWater(); h != hw {
-		t.Errorf("incorrect value: %v, expected: %v", h, hw)
+		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
 	}
 
 	if l := l.LowWater(); l != lw {
-		t.Errorf("incorrect value: %v, expected: %v", l, lw)
+		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
 	}
 }

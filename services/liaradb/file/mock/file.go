@@ -75,7 +75,10 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 		err = io.EOF
 	}
 
-	n = copy(b, f.data[off:])
+	if off <= int64(len(f.data)) {
+		n = copy(b, f.data[off:])
+	}
+
 	f.position = off + int64(len(b))
 
 	return
