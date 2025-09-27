@@ -28,6 +28,10 @@ func NewActivePageIDFromSize(size int64, pageSize int64) PageID {
 	return PageID(pid)
 }
 
+func (pid PageID) Size(pageSize int64) int64 {
+	return int64(pid) * pageSize
+}
+
 func (pid PageID) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, pid)
 }

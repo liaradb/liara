@@ -37,13 +37,8 @@ func NewSegmentReader(
 }
 
 func (sr *SegmentReader) Seek(pid page.PageID) error {
-	_, err := sr.reader.Seek(sr.position(pid), io.SeekStart)
+	_, err := sr.reader.Seek(pid.Size(sr.pageSize), io.SeekStart)
 	return err
-}
-
-// TODO: Should we store this on the header struct?
-func (sr *SegmentReader) position(pid page.PageID) int64 {
-	return int64(pid) * sr.pageSize
 }
 
 func (sr *SegmentReader) Iterate() iter.Seq2[*record.Record, error] {

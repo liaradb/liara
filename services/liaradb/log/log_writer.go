@@ -123,7 +123,7 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 // TODO: Test this
 func (lw *LogWriter) SeekTail(size int64) error {
 	pid := page.NewPageIDFromSize(size, lw.pageSize)
-	_, err := lw.writer.Seek(int64(pid)*lw.pageSize, io.SeekStart)
+	_, err := lw.writer.Seek(pid.Size(lw.pageSize), io.SeekStart)
 	if err != nil {
 		return err
 	}
