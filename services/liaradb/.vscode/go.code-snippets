@@ -57,7 +57,7 @@
 		],
 		"body": [
 			"if err := $1; err != nil {",
-			"\t${2|return nil,t.Error(err),t.Fatal(err)|}",
+			"\t${2|return err,t.Error(err),t.Fatal(err)|}",
 			"}$0",
 		]
 	}
