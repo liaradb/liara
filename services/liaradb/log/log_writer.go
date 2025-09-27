@@ -20,7 +20,7 @@ type LogWriter struct {
 	timeLineID  page.TimeLineID
 	highWater   record.LogSequenceNumber
 	lowWater    record.LogSequenceNumber
-	writer      io.WriteSeeker
+	readWriter  io.ReadWriteSeeker
 	recordBuf   *bytes.Buffer
 	pageWriter  *PageWriter
 }
@@ -28,12 +28,12 @@ type LogWriter struct {
 func NewLogWriter(
 	pageSize int64,
 	segmentSize page.PageID,
-	w io.WriteSeeker,
+	rw io.ReadWriteSeeker,
 ) *LogWriter {
 	return &LogWriter{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
-		writer:      w,
+		readWriter:  rw,
 		recordBuf:   bytes.NewBuffer(nil),
 		pageWriter:  newPageWriter(pageSize),
 	}
@@ -63,7 +63,7 @@ func (lw *LogWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 
 func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	crc := page.NewCRC(data)
-	if err := crc.Write(lw.writer); err != nil {
+	if err := crc.Write(lw.readWriter); err != nil {
 		return 0, err
 	}
 
@@ -94,7 +94,7 @@ func (lw *LogWriter) appendOrNext(crc page.CRC, data []byte) error {
 func (lw *LogWriter) next(crc page.CRC, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
-	if err := lw.pageWriter.Flush(lw.writer); err != nil {
+	if err := lw.pageWriter.Flush(lw.readWriter); err != nil {
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (lw *LogWriter) next(crc page.CRC, data []byte) error {
 }
 
 func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
-	if err := lw.pageWriter.Flush(lw.writer); err != nil {
+	if err := lw.pageWriter.Flush(lw.readWriter); err != nil {
 		return err
 	}
 
@@ -123,16 +123,13 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 // TODO: Test this
 func (lw *LogWriter) SeekTail(size int64) error {
 	pid := page.NewPageIDFromSize(size, lw.pageSize)
-	_, err := lw.writer.Seek(pid.Size(lw.pageSize), io.SeekStart)
+	_, err := lw.readWriter.Seek(pid.Size(lw.pageSize), io.SeekStart)
 	if err != nil {
 		return err
 	}
 
-	if err := lw.pageWriter.SeekTail(); err != nil {
-		return nil
-	}
+	// TODO: initialize or jump to tail of Page
 
-	// TODO: Jump to tail of Page
 	lw.pageID = pid
 
 	return err
