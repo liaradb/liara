@@ -44,8 +44,13 @@ func (l *Log) StartWriter() error {
 		return err
 	}
 
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
 	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
-	return nil
+	return l.writer.SeekTail(stat.Size())
 }
 
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {

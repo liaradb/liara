@@ -119,3 +119,25 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 	lw.lowWater = lsn
 	return nil
 }
+
+// TODO: Test this
+func (lw *LogWriter) SeekTail(size int64) error {
+	_, err := lw.writer.Seek(size, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Jump to tail of Page
+	lw.pageID = lw.sizeToPageID(size)
+
+	return err
+}
+
+// TODO: This is also defined on SegmentReader, but subtracted by 1
+func (lw *LogWriter) sizeToPageID(size int64) page.PageID {
+	pid := size / lw.pageSize
+	if size%lw.pageSize != 0 {
+		pid++
+	}
+	return page.PageID(pid)
+}
