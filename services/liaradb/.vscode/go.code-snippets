@@ -22,15 +22,30 @@
 		"prefix": ["table", "testtable"],
 		"body": [
 			"for message, c := range map[string]struct {",
+			"\tskip bool",
 			"\t$1",
 			"}{",
 			"\t\"${2:should ${3:...}}\": {$4},",
 			"} {",
 			"\tt.Run(message, func(t *testing.T) {",
 			"\t\tt.Parallel()",
+			"\t\tif c.skip {",
+			"\t\t\tt.Skip()",
+			"\t\t}",
 			"\t\t$0",
 			"\t})",
 			"}"
+		]
+	},
+
+	"Test error": {
+		"scope": "go",
+		"description": "Test error",
+		"prefix": [
+			"terf"
+		],
+		"body": [
+			"t.Errorf(\"incorrect ${1}: %v, expected: %v\", ${2}, ${3})${0}"
 		]
 	}
 }
