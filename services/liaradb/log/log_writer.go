@@ -127,6 +127,10 @@ func (lw *LogWriter) SeekTail(size int64) error {
 		return err
 	}
 
+	if err := lw.pageWriter.SeekTail(); err != nil {
+		return nil
+	}
+
 	// TODO: Jump to tail of Page
 	lw.pageID = lw.sizeToPageID(size)
 

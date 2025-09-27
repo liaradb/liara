@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/log/page"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 type PageWriter struct {
@@ -123,4 +124,35 @@ func (pw *PageWriter) Write(w io.Writer) error {
 	}
 
 	return nil
+}
+
+func (pw *PageWriter) SeekTail() error {
+	ph := page.PageHeader{}
+	c := page.CRC(0)
+	ph.Read(pw.writer)
+
+	rc := &record.Record{}
+	for {
+		if err := c.Read(pw.writer); err != nil {
+			return err
+		}
+
+		rl := page.RecordLength(0)
+		if err := rl.Read(pw.writer); err != nil {
+			return err
+		}
+
+		if rl == 0 {
+			return nil
+		}
+
+		// TODO: Use a buffer
+		if err := rc.Read(pw.writer); err != nil {
+			if err != io.EOF {
+				return err
+			}
+
+			return nil
+		}
+	}
 }
