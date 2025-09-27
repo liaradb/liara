@@ -45,7 +45,20 @@
 			"terf"
 		],
 		"body": [
-			"t.Errorf(\"incorrect ${1}: %v, expected: %v\", ${2}, ${3})${0}"
+			"${1|t.Errorf,t.Fatalf|}(\"incorrect ${2}: %v, expected: %v\", ${3}, ${4})${0}"
+		]
+	},
+
+	"If err inline": {
+		"scope": "go",
+		"description": "If err inline",
+		"prefix": [
+			"iferri"
+		],
+		"body": [
+			"if err := $1; err != nil {",
+			"\t${2|return nil,t.Error(err),t.Fatal(err)|}",
+			"}$0",
 		]
 	}
 }
