@@ -14,8 +14,16 @@ func NewPageIDFromSize(size int64, pageSize int64) PageID {
 		return 0
 	}
 	pid := size / pageSize
-	if size%pageSize != 0 {
-		pid++
+	return PageID(pid)
+}
+
+func NewActivePageIDFromSize(size int64, pageSize int64) PageID {
+	if pageSize == 0 || size == 0 {
+		return 0
+	}
+	pid := size / pageSize
+	if size%pageSize == 0 {
+		pid--
 	}
 	return PageID(pid)
 }

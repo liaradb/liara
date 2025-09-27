@@ -48,6 +48,10 @@ func TestPageID_NewPageIDFromSize(t *testing.T) {
 			size:     0,
 			pageSize: 10,
 			id:       0},
+		"should handle single size": {
+			size:     10,
+			pageSize: 10,
+			id:       1},
 		"should handle multiple size": {
 			size:     20,
 			pageSize: 10,
@@ -55,7 +59,7 @@ func TestPageID_NewPageIDFromSize(t *testing.T) {
 		"should handle remainder size": {
 			size:     22,
 			pageSize: 10,
-			id:       3},
+			id:       2},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
@@ -64,6 +68,50 @@ func TestPageID_NewPageIDFromSize(t *testing.T) {
 			}
 
 			id := NewPageIDFromSize(c.size, c.pageSize)
+			if id != c.id {
+				t.Errorf("%v: incorrect id: %v, expected: %v", message, id, c.id)
+			}
+		})
+	}
+}
+
+func TestPageID_NewActivePageIDFromSize(t *testing.T) {
+	t.Parallel()
+
+	for message, c := range map[string]struct {
+		skip     bool
+		size     int64
+		pageSize int64
+		id       PageID
+	}{
+		"should handle zero pageSize": {
+			size:     10,
+			pageSize: 0,
+			id:       0},
+		"should handle zero size": {
+			size:     0,
+			pageSize: 10,
+			id:       0},
+		"should handle single size": {
+			size:     10,
+			pageSize: 10,
+			id:       0},
+		"should handle multiple size": {
+			size:     20,
+			pageSize: 10,
+			id:       1},
+		"should handle remainder size": {
+			size:     22,
+			pageSize: 10,
+			id:       2},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			id := NewActivePageIDFromSize(c.size, c.pageSize)
 			if id != c.id {
 				t.Errorf("%v: incorrect id: %v, expected: %v", message, id, c.id)
 			}

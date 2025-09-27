@@ -74,7 +74,7 @@ func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, 
 }
 
 func (sr *SegmentReader) Reverse(size int64) iter.Seq2[*record.Record, error] {
-	return sr.ReverseFrom(sr.sizeToPageID(size))
+	return sr.ReverseFrom(page.NewActivePageIDFromSize(size, sr.pageSize))
 }
 
 // TODO: Change page structure to make reversing easier
@@ -143,14 +143,6 @@ func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq[error] {
 			}
 		}
 	}
-}
-
-func (sr *SegmentReader) sizeToPageID(size int64) page.PageID {
-	pid := size / sr.pageSize
-	if size%sr.pageSize != 0 {
-		pid++
-	}
-	return page.PageID(pid - 1)
 }
 
 // TODO: Should we asynchronously prefetch pages?

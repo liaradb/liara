@@ -122,7 +122,8 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 
 // TODO: Test this
 func (lw *LogWriter) SeekTail(size int64) error {
-	_, err := lw.writer.Seek(size, io.SeekStart)
+	pid := page.NewPageIDFromSize(size, lw.pageSize)
+	_, err := lw.writer.Seek(int64(pid)*lw.pageSize, io.SeekStart)
 	if err != nil {
 		return err
 	}
@@ -132,16 +133,7 @@ func (lw *LogWriter) SeekTail(size int64) error {
 	}
 
 	// TODO: Jump to tail of Page
-	lw.pageID = lw.sizeToPageID(size)
+	lw.pageID = pid
 
 	return err
-}
-
-// TODO: This is also defined on SegmentReader, but subtracted by 1
-func (lw *LogWriter) sizeToPageID(size int64) page.PageID {
-	pid := size / lw.pageSize
-	if size%lw.pageSize != 0 {
-		pid++
-	}
-	return page.PageID(pid)
 }
