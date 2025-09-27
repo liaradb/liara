@@ -35,7 +35,6 @@ func NewLogWriter(
 		segmentSize: segmentSize,
 		readWriter:  rw,
 		recordBuf:   bytes.NewBuffer(nil),
-		pageWriter:  newPageWriter(pageSize),
 	}
 }
 
@@ -128,9 +127,13 @@ func (lw *LogWriter) SeekTail(size int64) error {
 		return err
 	}
 
-	// TODO: initialize or jump to tail of Page
-
 	lw.pageID = pid
+
+	// TODO: initialize or jump to tail of Page
+	// Is page initialized?
+	// TODO: Don't replace LogPageWriter
+	lw.pageWriter = newPageWriter(lw.pageSize)
+	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)
 
 	return err
 }
