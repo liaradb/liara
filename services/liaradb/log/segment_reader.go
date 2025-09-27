@@ -12,33 +12,38 @@ import (
 )
 
 type SegmentReader struct {
-	size       int64
-	reader     io.ReadSeeker
-	data       []byte
-	pageReader *bytes.Reader
-	pageHeader page.PageHeader
+	pageSize    int64
+	bodySize    int64
+	segmentSize page.PageID
+	reader      io.ReadSeeker
+	data        []byte
+	pageReader  *bytes.Reader
+	pageHeader  page.PageHeader
 }
 
 func NewSegmentReader(
-	size int64,
+	pageSize int64,
+	segmentSize page.PageID,
 	r io.ReadSeeker,
 ) *SegmentReader {
-	body := size - page.PageHeaderSize
+	body := pageSize - page.PageHeaderSize
 	return &SegmentReader{
-		size:   body,
-		reader: r,
-		data:   make([]byte, body),
+		pageSize:    pageSize,
+		bodySize:    body,
+		segmentSize: segmentSize,
+		reader:      r,
+		data:        make([]byte, body),
 	}
 }
 
 func (sr *SegmentReader) Seek(pid page.PageID) error {
-	_, err := sr.reader.Seek(sr.position(pid, sr.size), io.SeekStart)
+	_, err := sr.reader.Seek(sr.position(pid), io.SeekStart)
 	return err
 }
 
 // TODO: Should we store this on the header struct?
-func (sr *SegmentReader) position(pid page.PageID, size int64) int64 {
-	return int64(pid) * (size + page.PageHeaderSize)
+func (sr *SegmentReader) position(pid page.PageID) int64 {
+	return int64(pid) * sr.pageSize
 }
 
 func (sr *SegmentReader) Iterate() iter.Seq2[*record.Record, error] {
@@ -76,21 +81,36 @@ func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, 
 }
 
 // TODO: Change page structure to make reversing easier
-func (sr *SegmentReader) Reverse() iter.Seq2[*record.Record, error] {
+func (sr *SegmentReader) Reverse(size int64) iter.Seq2[*record.Record, error] {
+	pid := sr.sizeToPageID(size)
 	return func(yield func(*record.Record, error) bool) {
 		q := list.New()
 
-		for rc, err := range sr.Iterate() {
-			if err != nil {
-				yield(nil, err)
+		for i := range pid + 1 {
+			if _, err := sr.ReadAt(pid - i); err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
 				return
 			}
 
-			q.PushBack(rc)
+			r := list.New()
+			for rc, err := range sr.Records() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				r.PushBack(rc)
+			}
+
+			for e := r.Back(); e != nil; e = e.Prev() {
+				q.PushBack(e.Value)
+			}
 		}
 
 		for {
-			e := q.Back()
+			e := q.Front()
 			if e == nil {
 				return
 			}
@@ -102,6 +122,14 @@ func (sr *SegmentReader) Reverse() iter.Seq2[*record.Record, error] {
 			}
 		}
 	}
+}
+
+func (sr *SegmentReader) sizeToPageID(size int64) page.PageID {
+	pid := size / sr.pageSize
+	if size%sr.pageSize != 0 {
+		pid++
+	}
+	return page.PageID(pid - 1)
 }
 
 // TODO: Should we asynchronously prefetch pages?
@@ -119,6 +147,14 @@ func (sr *SegmentReader) Read() (*page.PageHeader, error) {
 	sr.initReader()
 
 	return &sr.pageHeader, nil
+}
+
+func (sr *SegmentReader) ReadAt(pid page.PageID) (*page.PageHeader, error) {
+	if err := sr.Seek(pid); err != nil {
+		return nil, err
+	}
+
+	return sr.Read()
 }
 
 func (sr *SegmentReader) initReader() {
