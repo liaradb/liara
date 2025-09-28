@@ -155,6 +155,108 @@ func TestLog_Recover(t *testing.T) {
 	})
 }
 
+func TestLog_RecoverMany(t *testing.T) {
+	t.Parallel()
+
+	fsys := createFiles(0, 0)
+	records1, _ := createRecords(100)
+	records2, _ := createRecords(100)
+	records := append(records1, records2...)
+
+	t.Run("should append and flush", func(t *testing.T) {
+		l := NewLog(256, 2, fsys, ".")
+		if err := l.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
+
+		var lsn record.LogSequenceNumber
+		var err error
+		for _, rec := range records1 {
+			lsn, err = l.Append(rec)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if err = l.Flush(lsn); err != nil {
+			t.Fatal(err)
+		}
+
+		i := 0
+		for rc, err := range l.Iterate(0) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := records1[i]
+
+			if !reflect.DeepEqual(rc, rec) {
+				t.Error("records do not match")
+			}
+			i++
+		}
+		if i != 100 {
+			t.Errorf("incorrect count: %v, expected: %v", i, 100)
+		}
+
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("should append and flush more and iterate", func(t *testing.T) {
+		t.Skip()
+		l := NewLog(256, 2, fsys, ".")
+		if err := l.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
+
+		var lsn record.LogSequenceNumber
+		var err error
+		for _, rec := range records2 {
+			lsn, err = l.Append(rec)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if err := l.Flush(lsn); err != nil {
+			t.Fatal(err)
+		}
+
+		i := 0
+		for rc, err := range l.Iterate(0) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := records[i]
+
+			if !reflect.DeepEqual(rc, rec) {
+				t.Errorf("records do not match: %v, expected: %v",
+					rc.LogSequenceNumber(),
+					rec.LogSequenceNumber())
+			}
+			i++
+		}
+		if i != 200 {
+			t.Errorf("incorrect count: %v, expected: %v", i, 200)
+		}
+
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
 func TestLog_Reverse(t *testing.T) {
 	t.Parallel()
 
