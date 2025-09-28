@@ -90,66 +90,69 @@ func TestLog_Recover(t *testing.T) {
 	t.Parallel()
 
 	fsys := createFiles(0, 0)
-
-	l := NewLog(256, 2, fsys, ".")
-	if err := l.Open(); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
-
 	records, _ := createRecords(2)
 
-	lsn1, err := l.Append(records[0])
-	if err != nil {
-		t.Fatal(err)
-	}
+	t.Run("should append and flush", func(t *testing.T) {
+		l := NewLog(256, 2, fsys, ".")
+		if err := l.Open(); err != nil {
+			t.Fatal(err)
+		}
 
-	if err := l.Flush(lsn1); err != nil {
-		t.Fatal(err)
-	}
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
 
-	lsn2, err := l.Append(records[1])
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.Flush(lsn2); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.Close(); err != nil {
-		t.Fatal(err)
-	}
-
-	l = NewLog(256, 2, fsys, ".")
-	if err := l.Open(); err != nil {
-		t.Fatal(err)
-	}
-
-	it, err := l.Recover()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	i := 0
-	for rc := range it {
+		lsn1, err := l.Append(records[0])
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		rec := records[i]
-
-		if !reflect.DeepEqual(rc, rec) {
-			t.Error("records do not match")
+		if err := l.Flush(lsn1); err != nil {
+			t.Fatal(err)
 		}
-		i++
-	}
-	if i != 2 {
-		t.Errorf("incorrect count: %v, expected: %v", i, 2)
-	}
+
+		lsn2, err := l.Append(records[1])
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := l.Flush(lsn2); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("should recover", func(t *testing.T) {
+		l := NewLog(256, 2, fsys, ".")
+		if err := l.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		it, err := l.Recover()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		i := 0
+		for rc := range it {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rec := records[i]
+
+			if !reflect.DeepEqual(rc, rec) {
+				t.Error("records do not match")
+			}
+			i++
+		}
+		if i != 2 {
+			t.Errorf("incorrect count: %v, expected: %v", i, 2)
+		}
+	})
 }
 
 func TestLog_Reverse(t *testing.T) {
