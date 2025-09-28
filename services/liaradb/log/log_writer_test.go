@@ -112,6 +112,32 @@ func TestLogWriter_Flush(t *testing.T) {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
 	})
+
+	t.Run("should write after flushing", func(t *testing.T) {
+		t.Parallel()
+
+		l := createLogWriter(t)
+
+		lsn1, err := l.Append(rec)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := l.Flush(lsn1); err != nil {
+			t.Error(err)
+		}
+
+		lsn2, err := l.Append(rec)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := l.Flush(lsn2); err != nil {
+			t.Error(err)
+		}
+
+		testPosition(t, l, 2, 2)
+	})
 }
 
 func createLogWriter(t *testing.T) *LogWriter {
@@ -123,7 +149,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
 	lw := NewLogWriter(256, 2, f)
-	_ = lw.SeekTail(0)
+	_ = lw.Initialize()
 	return lw
 }
 

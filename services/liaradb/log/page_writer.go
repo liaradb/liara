@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"iter"
 
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
@@ -126,33 +127,96 @@ func (pw *PageWriter) Write(w io.Writer) error {
 	return nil
 }
 
-func (pw *PageWriter) SeekTail() error {
-	ph := page.PageHeader{}
-	c := page.CRC(0)
-	ph.Read(pw.writer)
+func (pw *PageWriter) SeekTail(r io.Reader) error {
+	if err := pw.skipHeader(r); err != nil {
+		return err
+	}
 
-	rc := &record.Record{}
-	for {
-		if err := c.Read(pw.writer); err != nil {
+	if err := pw.loadWriter(r); err != nil {
+		return err
+	}
+
+	for _, err := range pw.records() {
+		if err != nil {
 			return err
-		}
-
-		rl := page.RecordLength(0)
-		if err := rl.Read(pw.writer); err != nil {
-			return err
-		}
-
-		if rl == 0 {
-			return nil
-		}
-
-		// TODO: Use a buffer
-		if err := rc.Read(pw.writer); err != nil {
-			if err != io.EOF {
-				return err
-			}
-
-			return nil
 		}
 	}
+
+	pw.writeBuf = bufio.NewWriter(pw.writer)
+
+	return nil
+}
+
+func (pw *PageWriter) loadWriter(rd io.Reader) error {
+	// TODO: Do we need to verify read length?
+	// TODO: Should we handle EOF?
+	if _, err := rd.Read(pw.data); err != nil {
+		if err != io.EOF {
+			return err
+		}
+	}
+
+	data := make([]byte, len(pw.data))
+	copy(data, pw.data)
+
+	pw.writer = bytes.NewBuffer(data)
+	return nil
+}
+
+func (pw *PageWriter) skipHeader(rd io.Reader) error {
+	data := make([]byte, page.PageHeaderSize)
+	// TODO: Do we need to verify read length?
+	if _, err := rd.Read(data); err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+func (pw *PageWriter) records() iter.Seq2[*record.Record, error] {
+	return func(yield func(*record.Record, error) bool) {
+
+		for {
+			var err error
+			if err = pw.skipCRC(pw.writer); err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
+				return
+			}
+
+			// TODO: Should we create a new record each time?
+			rc := &record.Record{}
+
+			// TODO: Use a buffer
+			if err := rc.Read(pw.writer); err != nil {
+				if err != io.EOF {
+					yield(nil, err)
+				}
+				return
+			}
+
+			if !yield(rc, nil) {
+				return
+			}
+		}
+	}
+}
+
+func (*PageWriter) skipCRC(r io.Reader) error {
+	var c page.CRC
+	if err := c.Read(r); err != nil {
+		return err
+	}
+
+	rl := page.RecordLength(0)
+	if err := rl.Read(r); err != nil {
+		return err
+	}
+
+	if rl == 0 {
+		return io.EOF
+	}
+
+	return nil
 }

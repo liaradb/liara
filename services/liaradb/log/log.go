@@ -69,7 +69,7 @@ func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Recor
 	}
 
 	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
-	if err := l.writer.SeekTail(0); err != nil {
+	if err := l.writer.Initialize(); err != nil {
 		return 0, err
 	}
 

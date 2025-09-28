@@ -62,10 +62,6 @@ func (lw *LogWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 
 func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	crc := page.NewCRC(data)
-	if err := crc.Write(lw.readWriter); err != nil {
-		return 0, err
-	}
-
 	if err := lw.appendOrNext(crc, data); err != nil {
 		if err == ErrInsufficientSpace {
 			// TODO: Fix this
@@ -120,8 +116,28 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 }
 
 // TODO: Test this
+func (lw *LogWriter) Initialize() error {
+	// TODO: Do we need to seek?
+	_, err := lw.readWriter.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	lw.pageID = 0
+	// TODO: Don't replace LogPageWriter
+	lw.pageWriter = newPageWriter(lw.pageSize)
+	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)
+
+	return nil
+}
+
+// TODO: Test this
 func (lw *LogWriter) SeekTail(size int64) error {
-	pid := page.NewPageIDFromSize(size, lw.pageSize)
+	if size == 0 {
+		return lw.Initialize()
+	}
+
+	pid := page.NewActivePageIDFromSize(size, lw.pageSize)
 	_, err := lw.readWriter.Seek(pid.Size(lw.pageSize), io.SeekStart)
 	if err != nil {
 		return err
@@ -135,5 +151,5 @@ func (lw *LogWriter) SeekTail(size int64) error {
 	lw.pageWriter = newPageWriter(lw.pageSize)
 	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)
 
-	return err
+	return lw.pageWriter.SeekTail(lw.readWriter)
 }
