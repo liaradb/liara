@@ -21,7 +21,7 @@ func NewSegmentList(fsys file.FileSystem, dir string) *SegmentList {
 	return &SegmentList{
 		dir:  dir,
 		fsys: fsys,
-		sf:   *newSegmentFile(fsys),
+		sf:   *newSegmentFile(fsys, dir),
 	}
 }
 

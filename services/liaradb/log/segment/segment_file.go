@@ -1,18 +1,22 @@
 package segment
 
 import (
+	"path"
+
 	"github.com/liaradb/liaradb/file"
 )
 
 type segmentFile struct {
 	file file.File
 	fsys file.FileSystem
+	dir  string
 	sn   SegmentName
 }
 
-func newSegmentFile(fsys file.FileSystem) *segmentFile {
+func newSegmentFile(fsys file.FileSystem, dir string) *segmentFile {
 	return &segmentFile{
 		fsys: fsys,
+		dir:  dir,
 	}
 }
 
@@ -54,7 +58,7 @@ func (sf *segmentFile) Remove(sn SegmentName) error {
 		sf.Close()
 	}
 
-	if err := sf.fsys.Remove(sn.String()); err != nil {
+	if err := sf.fsys.Remove(sf.path(sn)); err != nil {
 		return err
 	}
 
@@ -83,7 +87,7 @@ func (sf *segmentFile) isOpen() bool {
 }
 
 func (sf *segmentFile) openFile(sn SegmentName) error {
-	f, err := sf.fsys.OpenFile(sn.String())
+	f, err := sf.fsys.OpenFile(sf.path(sn))
 	if err != nil {
 		return err
 	}
@@ -91,4 +95,8 @@ func (sf *segmentFile) openFile(sn SegmentName) error {
 	sf.sn = sn
 	sf.file = f
 	return nil
+}
+
+func (sf *segmentFile) path(sn SegmentName) string {
+	return path.Join(sf.dir, sn.String())
 }
