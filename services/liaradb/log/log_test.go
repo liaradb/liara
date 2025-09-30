@@ -4,9 +4,8 @@ import (
 	"reflect"
 	"slices"
 	"testing"
-	"testing/fstest"
 
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
@@ -14,9 +13,9 @@ import (
 func TestLog_EmptyReader(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles(0, 0)
+	fsys := createFiles()
 
-	l := NewLog(256, 2, fsys, ".")
+	l := NewLog(256, 2, fsys, t.TempDir())
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -37,9 +36,9 @@ func TestLog_EmptyReader(t *testing.T) {
 func TestLog_Iterate(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles(0, 0)
+	fsys := createFiles()
 
-	l := NewLog(256, 2, fsys, ".")
+	l := NewLog(256, 2, fsys, t.TempDir())
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -89,11 +88,12 @@ func TestLog_Iterate(t *testing.T) {
 func TestLog_Recover(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles(0, 0)
+	fsys := createFiles()
+	dir := t.TempDir()
 	records, _ := createRecords(2)
 
 	t.Run("should append and flush", func(t *testing.T) {
-		l := NewLog(256, 2, fsys, ".")
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -126,7 +126,7 @@ func TestLog_Recover(t *testing.T) {
 	})
 
 	t.Run("should recover", func(t *testing.T) {
-		l := NewLog(256, 2, fsys, ".")
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -158,13 +158,14 @@ func TestLog_Recover(t *testing.T) {
 func TestLog_RecoverMany(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles(0, 0)
+	fsys := createFiles()
+	dir := t.TempDir()
 	records1, _ := createRecords(100)
 	records2, _ := createRecords(100)
 	records := append(records1, records2...)
 
 	t.Run("should append and flush", func(t *testing.T) {
-		l := NewLog(256, 2, fsys, ".")
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -210,7 +211,7 @@ func TestLog_RecoverMany(t *testing.T) {
 
 	t.Run("should append and flush more and iterate", func(t *testing.T) {
 		t.Skip()
-		l := NewLog(256, 2, fsys, ".")
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -260,9 +261,9 @@ func TestLog_RecoverMany(t *testing.T) {
 func TestLog_Reverse(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles(0, 0)
+	fsys := createFiles()
 
-	l := NewLog(256, 2, fsys, ".")
+	l := NewLog(256, 2, fsys, t.TempDir())
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -310,10 +311,8 @@ func TestLog_Reverse(t *testing.T) {
 	}
 }
 
-func createFiles(start segment.SegmentID, count segment.SegmentID) *mock.FileSystem {
-	fsys := &mock.FileSystem{MapFS: fstest.MapFS{}}
-	for i := range count {
-		fsys.MapFS[segment.NewSegmentName(start+i, 0).String()] = &fstest.MapFile{}
-	}
+func createFiles() *disk.FileSystem {
+	fsys := &disk.FileSystem{}
+	// fsys := &mock.FileSystem{MapFS: fstest.MapFS{}}
 	return fsys
 }

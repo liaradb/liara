@@ -73,7 +73,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		}
 	})
 
-	t.Run("should return error if already closed", func(t *testing.T) {
+	t.Run("should noop if file already closed", func(t *testing.T) {
 		t.Parallel()
 
 		p := path.Join(t.TempDir(), "file")
@@ -90,8 +90,8 @@ func TestFileSystem_CloseFile(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := fs.CloseFile(p); err == nil {
-			t.Error("should return error")
+		if err := fs.CloseFile(p); err != nil {
+			t.Error(err)
 		}
 	})
 }

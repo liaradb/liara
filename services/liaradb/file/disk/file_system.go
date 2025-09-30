@@ -9,7 +9,7 @@ import (
 )
 
 type FileSystem struct {
-	files map[string]file.File
+	files map[string]*File
 }
 
 func (fs *FileSystem) Close() error {
@@ -25,9 +25,9 @@ func (fs *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 }
 
 func (fs *FileSystem) OpenFile(name string) (file.File, error) {
-	f, ok := fs.files[name]
+	df, ok := fs.files[name]
 	if ok {
-		return f, nil
+		return df, nil
 	}
 
 	f, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0644)
@@ -36,10 +36,14 @@ func (fs *FileSystem) OpenFile(name string) (file.File, error) {
 	}
 
 	if fs.files == nil {
-		fs.files = map[string]file.File{}
+		fs.files = map[string]*File{}
 	}
-	fs.files[name] = f
-	return f, nil
+	df = &File{
+		File: f,
+		name: name,
+		fsys: fs}
+	fs.files[name] = df
+	return df, nil
 }
 
 func (fs *FileSystem) CloseFile(name string) error {
@@ -48,7 +52,7 @@ func (fs *FileSystem) CloseFile(name string) error {
 		return nil
 	}
 
-	if err := f.Close(); err != nil {
+	if err := f.File.Close(); err != nil {
 		return err
 	}
 
