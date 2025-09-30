@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
@@ -13,9 +14,9 @@ import (
 func TestLog_EmptyReader(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles()
+	fsys, dir := createFiles(t)
 
-	l := NewLog(256, 2, fsys, t.TempDir())
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -36,9 +37,9 @@ func TestLog_EmptyReader(t *testing.T) {
 func TestLog_Iterate(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles()
+	fsys, dir := createFiles(t)
 
-	l := NewLog(256, 2, fsys, t.TempDir())
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -88,8 +89,7 @@ func TestLog_Iterate(t *testing.T) {
 func TestLog_Recover(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles()
-	dir := t.TempDir()
+	fsys, dir := createFiles(t)
 	records, _ := createRecords(2)
 
 	t.Run("should append and flush", func(t *testing.T) {
@@ -158,8 +158,8 @@ func TestLog_Recover(t *testing.T) {
 func TestLog_RecoverMany(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles()
-	dir := t.TempDir()
+	fsys, dir := createFiles(t)
+
 	records1, _ := createRecords(100)
 	records2, _ := createRecords(100)
 	records := append(records1, records2...)
@@ -261,9 +261,9 @@ func TestLog_RecoverMany(t *testing.T) {
 func TestLog_Reverse(t *testing.T) {
 	t.Parallel()
 
-	fsys := createFiles()
+	fsys, dir := createFiles(t)
 
-	l := NewLog(256, 2, fsys, t.TempDir())
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -311,8 +311,7 @@ func TestLog_Reverse(t *testing.T) {
 	}
 }
 
-func createFiles() *disk.FileSystem {
-	fsys := &disk.FileSystem{}
-	// fsys := &mock.FileSystem{MapFS: fstest.MapFS{}}
-	return fsys
+func createFiles(t *testing.T) (file.FileSystem, string) {
+	return &disk.FileSystem{}, t.TempDir()
+	// return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
 }
