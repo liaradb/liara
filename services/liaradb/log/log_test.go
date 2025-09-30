@@ -160,8 +160,11 @@ func TestLog_RecoverMany(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	records1, _ := createRecords(100)
-	records2, _ := createRecords(100)
+	var aCount1 record.LogSequenceNumber = 100
+	var aCount2 record.LogSequenceNumber = 1
+	aCount := aCount1 + aCount2
+	records1, _ := createRecords(aCount1)
+	records2, _ := createRecords(aCount2)
 	records := append(records1, records2...)
 
 	t.Run("should append and flush", func(t *testing.T) {
@@ -200,8 +203,8 @@ func TestLog_RecoverMany(t *testing.T) {
 			}
 			i++
 		}
-		if i != 100 {
-			t.Errorf("incorrect count: %v, expected: %v", i, 100)
+		if i != int(aCount1) {
+			t.Errorf("incorrect count: %v, expected: %v", i, aCount1)
 		}
 
 		if err := l.Close(); err != nil {
@@ -248,8 +251,8 @@ func TestLog_RecoverMany(t *testing.T) {
 			}
 			i++
 		}
-		if i != 200 {
-			t.Errorf("incorrect count: %v, expected: %v", i, 200)
+		if i != int(aCount) {
+			t.Errorf("incorrect count: %v, expected: %v", i, aCount)
 		}
 
 		if err := l.Close(); err != nil {
