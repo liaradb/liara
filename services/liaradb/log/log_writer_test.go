@@ -148,7 +148,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	lw := NewLogWriter(256, 2, f)
+	lw := NewLogWriter(256, 3, f)
 	_ = lw.Initialize()
 	return lw
 }

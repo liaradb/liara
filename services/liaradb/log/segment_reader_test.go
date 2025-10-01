@@ -98,9 +98,9 @@ func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *LogWri
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	lw := NewLogWriter(256, 2, f)
+	lw := NewLogWriter(256, 3, f)
 	_ = lw.Initialize()
-	return f, NewSegmentReader(256, 2, f), lw
+	return f, NewSegmentReader(256, 3, f), lw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
