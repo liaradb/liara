@@ -30,6 +30,7 @@ func NewMockFile(name string) *File {
 
 func (f *File) Open() {
 	f.isOpen = true
+	f.position = 0
 }
 
 func (f *File) IsOpen() bool {

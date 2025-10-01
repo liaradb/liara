@@ -115,18 +115,23 @@ func (pw *PageWriter) position() int64 {
 }
 
 func (pw *PageWriter) Write(w io.Writer) error {
-	if err := pw.header.Write(w); err != nil {
+	// TODO: Write entire page at once
+	// TODO: Don't create new buffer every time
+	out := bytes.NewBuffer(make([]byte, 0, pw.bodySize+page.PageHeaderSize))
+	if err := pw.header.Write(out); err != nil {
 		return err
 	}
 
-	if n, err := w.Write(pw.Data()); err != nil {
+	if n, err := out.Write(pw.Data()); err != nil {
 		return err
 	} else if n < int(pw.bodySize) {
 		// TODO: Do we need to verify write length?
 		return io.ErrShortWrite
 	}
 
-	return nil
+	// TODO: Do we need to verify write length?
+	_, err := out.WriteTo(w)
+	return err
 }
 
 func (pw *PageWriter) SeekTail(r io.Reader) error {
