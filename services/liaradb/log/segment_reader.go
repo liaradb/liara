@@ -179,6 +179,7 @@ func (sr *SegmentReader) Records() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for {
 			var err error
+			// TODO: This reads past the end of the file
 			if err = sr.validateCRC(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)

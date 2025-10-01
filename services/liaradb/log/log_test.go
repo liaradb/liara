@@ -4,9 +4,10 @@ import (
 	"reflect"
 	"slices"
 	"testing"
+	"testing/fstest"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
@@ -160,7 +161,7 @@ func TestLog_RecoverMany(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	var aCount1 record.LogSequenceNumber = 100
+	var aCount1 record.LogSequenceNumber = 1
 	var aCount2 record.LogSequenceNumber = 1
 	aCount := aCount1 + aCount2
 	records1, _ := createRecords(aCount1)
@@ -213,7 +214,6 @@ func TestLog_RecoverMany(t *testing.T) {
 	})
 
 	t.Run("should append and flush more and iterate", func(t *testing.T) {
-		t.Skip()
 		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
@@ -315,6 +315,6 @@ func TestLog_Reverse(t *testing.T) {
 }
 
 func createFiles(t *testing.T) (file.FileSystem, string) {
-	return &disk.FileSystem{}, t.TempDir()
-	// return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
+	// return &disk.FileSystem{}, t.TempDir()
+	return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
 }

@@ -37,8 +37,10 @@ func (pw *PageWriter) LengthRemaining() page.RecordLength { return pw.header.Len
 
 // TODO: This is slow
 func (pw *PageWriter) Data() []byte {
-	clear(pw.data)
-	copy(pw.data, pw.writer.Bytes())
+	// TODO: pw.data is the same backing array as pw.writer
+	data := make([]byte, len(pw.data))
+	copy(data, pw.writer.Bytes())
+	pw.data = data
 	return pw.data
 }
 
@@ -72,7 +74,7 @@ func (*PageWriter) recordSize(data []byte) int {
 }
 
 func (pw *PageWriter) available() int {
-	return int(pw.bodySize) - pw.writer.Len()
+	return pw.writer.Available()
 }
 
 func (pw *PageWriter) insert(crc page.CRC, data []byte) error {
@@ -136,16 +138,22 @@ func (pw *PageWriter) SeekTail(r io.Reader) error {
 		return err
 	}
 
-	for _, err := range pw.records() {
+	b := bytes.NewBuffer(pw.data)
+	for _, err := range pw.records(b) {
 		if err != nil {
 			return err
 		}
 	}
 
+	// TODO: Verify this
+	l := b.Cap() - (b.Available() + b.Len()) - recordBoundary
+	pw.writer = bytes.NewBuffer(pw.data[:l])
 	pw.writeBuf = bufio.NewWriter(pw.writer)
 
 	return nil
 }
+
+const recordBoundary = 8
 
 func (pw *PageWriter) loadWriter(rd io.Reader) error {
 	// TODO: Do we need to verify read length?
@@ -156,10 +164,6 @@ func (pw *PageWriter) loadWriter(rd io.Reader) error {
 		}
 	}
 
-	data := make([]byte, len(pw.data))
-	copy(data, pw.data)
-
-	pw.writer = bytes.NewBuffer(data)
 	return nil
 }
 
@@ -173,12 +177,12 @@ func (pw *PageWriter) skipHeader(rd io.Reader) error {
 	return nil
 }
 
-func (pw *PageWriter) records() iter.Seq2[*record.Record, error] {
+func (pw *PageWriter) records(rd io.Reader) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 
 		for {
 			var err error
-			if err = pw.skipCRC(pw.writer); err != nil {
+			if err = pw.skipCRC(rd); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -189,7 +193,7 @@ func (pw *PageWriter) records() iter.Seq2[*record.Record, error] {
 			rc := &record.Record{}
 
 			// TODO: Use a buffer
-			if err := rc.Read(pw.writer); err != nil {
+			if err := rc.Read(rd); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -203,6 +207,7 @@ func (pw *PageWriter) records() iter.Seq2[*record.Record, error] {
 	}
 }
 
+// TODO: We need to rewind the length
 func (*PageWriter) skipCRC(r io.Reader) error {
 	var c page.CRC
 	if err := c.Read(r); err != nil {
