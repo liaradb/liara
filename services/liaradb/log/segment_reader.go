@@ -1,9 +1,6 @@
 package log
 
 import (
-	"bufio"
-	"bytes"
-	"container/list"
 	"io"
 	"iter"
 
@@ -16,8 +13,8 @@ type SegmentReader struct {
 	bodySize   int64
 	reader     io.ReadSeeker
 	data       []byte
-	pageReader *bytes.Reader
 	pageHeader page.Header
+	pReader    *PageReader
 }
 
 func NewSegmentReader(
@@ -31,6 +28,7 @@ func NewSegmentReader(
 	body := pageSize - int64(sr.pageHeader.Size())
 	sr.bodySize = body
 	sr.data = make([]byte, body)
+	sr.pReader = NewPageReader(pageSize, r)
 	return sr
 }
 
@@ -46,13 +44,13 @@ func (sr *SegmentReader) Iterate() iter.Seq2[*record.Record, error] {
 // TODO: Test this
 func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		for err := range sr.readForward(pid) {
+		for it, err := range sr.readForward(pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for rc, err := range sr.Records() {
+			for rc, err := range it {
 				if err != nil {
 					yield(nil, err)
 					return
@@ -74,24 +72,19 @@ func (sr *SegmentReader) Reverse(size int64) iter.Seq2[*record.Record, error] {
 // TODO: Test this
 func (sr *SegmentReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		for err := range sr.readReverse(pid) {
+		for it, err := range sr.readReverse(pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			r := list.New()
-			for rc, err := range sr.Records() {
+			for rc, err := range it {
 				if err != nil {
 					yield(nil, err)
 					return
 				}
 
-				r.PushBack(rc)
-			}
-
-			for e := r.Back(); e != nil; e = e.Prev() {
-				if !yield(e.Value.(*record.Record), nil) {
+				if !yield(rc, nil) {
 					return
 				}
 			}
@@ -99,133 +92,47 @@ func (sr *SegmentReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, 
 	}
 }
 
-func (sr *SegmentReader) readForward(pid page.PageID) iter.Seq[error] {
-	return func(yield func(error) bool) {
-		if err := sr.Seek(pid); err != nil {
-			yield(err)
-			return
-		}
-
+func (sr *SegmentReader) readForward(pid page.PageID) iter.Seq2[iter.Seq2[*record.Record, error], error] {
+	return func(yield func(iter.Seq2[*record.Record, error], error) bool) {
 		for {
-			if _, err := sr.Read(); err != nil {
+			if err := sr.Seek(pid); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			it, err := sr.pReader.Iterate()
+			if err != nil {
 				if err != io.EOF {
-					yield(err)
+					yield(nil, err)
 				}
 				return
 			}
 
-			if !yield(nil) {
+			if !yield(it, nil) {
 				return
 			}
+			pid++
 		}
 	}
 }
 
-func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq[error] {
-	return func(yield func(error) bool) {
+func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq2[iter.Seq2[*record.Record, error], error] {
+	return func(yield func(iter.Seq2[*record.Record, error], error) bool) {
 		for i := range pid + 1 {
-			if _, err := sr.ReadAt(pid - i); err != nil {
-				if err != io.EOF {
-					yield(err)
-				}
+			if err := sr.Seek(pid - i); err != nil {
+				yield(nil, err)
 				return
 			}
 
-			if !yield(nil) {
-				return
-			}
-		}
-	}
-}
-
-// TODO: Should we asynchronously prefetch pages?
-func (sr *SegmentReader) Read() (*page.Header, error) {
-	if err := sr.pageHeader.Read(sr.reader); err != nil {
-		return nil, err
-	}
-
-	// TODO: Do we need to verify read length?
-	// TODO: Should we make a new slice?
-	if _, err := sr.reader.Read(sr.data); err != nil {
-		return nil, err
-	}
-
-	sr.initReader()
-
-	return &sr.pageHeader, nil
-}
-
-func (sr *SegmentReader) ReadAt(pid page.PageID) (*page.Header, error) {
-	if err := sr.Seek(pid); err != nil {
-		return nil, err
-	}
-
-	return sr.Read()
-}
-
-func (sr *SegmentReader) initReader() {
-	if sr.pageReader == nil {
-		sr.pageReader = bytes.NewReader(sr.data)
-	} else {
-		sr.pageReader.Reset(sr.data)
-	}
-}
-
-func (sr *SegmentReader) Records() iter.Seq2[*record.Record, error] {
-	r := bufio.NewReader(sr.pageReader)
-
-	return func(yield func(*record.Record, error) bool) {
-		for {
-			var err error
-			// TODO: This reads past the end of the file
-			if err = sr.validateCRC(r); err != nil {
-				if err != io.EOF {
-					yield(nil, err)
-				}
+			it, err := sr.pReader.Reverse()
+			if err != nil {
+				yield(nil, err)
 				return
 			}
 
-			// TODO: Should we create a new record each time?
-			rc := &record.Record{}
-
-			// TODO: Use a buffer
-			if err := rc.Read(r); err != nil {
-				if err != io.EOF {
-					yield(nil, err)
-				}
-				return
-			}
-
-			if !yield(rc, nil) {
+			if !yield(it, nil) {
 				return
 			}
 		}
 	}
-}
-
-func (*SegmentReader) validateCRC(r *bufio.Reader) error {
-	var c page.CRC
-	if err := c.Read(r); err != nil {
-		return err
-	}
-
-	rl := page.RecordLength(0)
-	if err := rl.Read(r); err != nil {
-		return err
-	}
-
-	if rl == 0 {
-		return io.EOF
-	}
-
-	d, err := r.Peek(int(rl))
-	if err != nil {
-		return err
-	}
-
-	if !c.Compare(d) {
-		return ErrInvalidCRC
-	}
-
-	return nil
 }
