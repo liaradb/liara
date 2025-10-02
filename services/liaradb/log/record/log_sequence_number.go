@@ -9,7 +9,7 @@ type LogSequenceNumber uint64
 
 const LogSequenceNumberSize = 8
 
-func (LogSequenceNumber) Size() int { return LogDataHeaderSize }
+func (LogSequenceNumber) Size() int { return LogSequenceNumberSize }
 
 func (lsn LogSequenceNumber) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, lsn)

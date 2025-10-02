@@ -1,6 +1,8 @@
 package record
 
 import (
+	"bufio"
+	"bytes"
 	"io"
 	"testing"
 	"time"
@@ -40,19 +42,15 @@ func TestRecord_Write(t *testing.T) {
 
 	rc := NewRecord(lsn, tid, now, action, data, reverse)
 
-	r, w := assert.NewReaderWriter()
+	r, w := newReaderWriter()
 
 	if err := rc.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
-	size := w.Size() - w.Available()
-	if l := rc.Size(); l != size {
-		t.Errorf("incorrect length: %v, expected: %v", l, size)
-	}
-
-	if err := w.Flush(); err != nil {
-		t.Fatal(err)
+	size := w.Len()
+	if s := rc.Size(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
 	rc2 := &Record{}
@@ -71,15 +69,11 @@ func TestRecord_Write(t *testing.T) {
 func TestRecord_Time(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := newReaderWriter()
 
 	rc := Record{
 		time: time.UnixMicro(1234567890)}
 	if err := rc.writeTime(w); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := w.Flush(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -91,4 +85,9 @@ func TestRecord_Time(t *testing.T) {
 	if !rc.time.Equal(rc2.time) {
 		t.Errorf("incorrect value: %v, expected: %v", rc.time, rc2.time)
 	}
+}
+
+func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
+	buffer := bytes.NewBuffer(nil)
+	return bufio.NewReader(buffer), buffer
 }

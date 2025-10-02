@@ -3,22 +3,21 @@ package record
 import (
 	"io"
 	"testing"
-
-	"github.com/cardboardrobots/assert"
 )
 
 func TestLogSequenceNumber(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := newReaderWriter()
 
 	var lsn LogSequenceNumber = 123456
 	if err := lsn.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := w.Flush(); err != nil {
-		t.Fatal(err)
+	size := w.Len()
+	if s := lsn.Size(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
 	var lsn2 LogSequenceNumber
