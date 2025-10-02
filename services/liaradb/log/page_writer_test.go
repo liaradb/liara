@@ -30,7 +30,7 @@ func TestPageWriter(t *testing.T) {
 	}
 
 	sr := NewPageReader(256, f)
-	h, err := sr.Read()
+	h, err := sr.Read(f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestPageWriter_Append(t *testing.T) {
 	}
 
 	sr := NewPageReader(256, f)
-	h, err := sr.Read()
+	h, err := sr.Read(f)
 	if err != nil {
 		t.Fatal(err)
 	}

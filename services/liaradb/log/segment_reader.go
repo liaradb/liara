@@ -100,7 +100,7 @@ func (sr *SegmentReader) readForward(pid page.PageID) iter.Seq2[iter.Seq2[*recor
 				return
 			}
 
-			it, err := sr.pReader.Iterate()
+			it, err := sr.pReader.Iterate(sr.reader)
 			if err != nil {
 				if err != io.EOF {
 					yield(nil, err)
@@ -124,7 +124,7 @@ func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq2[iter.Seq2[*recor
 				return
 			}
 
-			it, err := sr.pReader.Reverse()
+			it, err := sr.pReader.Reverse(sr.reader)
 			if err != nil {
 				yield(nil, err)
 				return

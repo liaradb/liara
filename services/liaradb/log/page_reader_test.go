@@ -35,7 +35,7 @@ func TestPageReader_Iterate(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	it, err := pr.Iterate()
+	it, err := pr.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestPageReader_Reverse(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	it, err := pr.Reverse()
+	it, err := pr.Reverse(f)
 	if err != nil {
 		t.Fatal(err)
 	}

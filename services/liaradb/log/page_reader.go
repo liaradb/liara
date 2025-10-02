@@ -14,7 +14,6 @@ import (
 type PageReader struct {
 	pageSize   int64
 	bodySize   int64
-	reader     io.Reader
 	data       []byte
 	pageReader *bytes.Reader
 	pageHeader page.Header
@@ -24,18 +23,19 @@ func NewPageReader(
 	pageSize int64,
 	r io.Reader,
 ) *PageReader {
-	pr := &PageReader{
-		pageSize: pageSize,
-		reader:   r,
+	data := make([]byte, pageSize)
+	ph := page.Header{}
+	return &PageReader{
+		pageSize:   pageSize,
+		bodySize:   pageSize - int64(ph.Size()),
+		data:       data,
+		pageReader: bytes.NewReader(data),
+		pageHeader: ph,
 	}
-	body := pageSize - int64(pr.pageHeader.Size())
-	pr.bodySize = body
-	pr.data = make([]byte, body)
-	return pr
 }
 
-func (pr *PageReader) Iterate() (iter.Seq2[*record.Record, error], error) {
-	_, err := pr.Read()
+func (pr *PageReader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
+	_, err := pr.Read(r)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func (pr *PageReader) Iterate() (iter.Seq2[*record.Record, error], error) {
 }
 
 // TODO: Change page structure to make reversing easier
-func (pr *PageReader) Reverse() (iter.Seq2[*record.Record, error], error) {
-	_, err := pr.Read()
+func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], error) {
+	_, err := pr.Read(rd)
 	if err != nil {
 		return nil, err
 	}
@@ -79,30 +79,23 @@ func (pr *PageReader) Reverse() (iter.Seq2[*record.Record, error], error) {
 	}, nil
 }
 
-// TODO: Load entire page
 // TODO: Should we asynchronously prefetch pages?
-func (pr *PageReader) Read() (*page.Header, error) {
-	if err := pr.pageHeader.Read(pr.reader); err != nil {
+func (pr *PageReader) Read(rd io.Reader) (*page.Header, error) {
+	_, err := rd.Read(pr.data)
+	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Do we need to verify read length?
-	// TODO: Should we make a new slice?
-	if _, err := pr.reader.Read(pr.data); err != nil {
+	pr.reset()
+	if err := pr.pageHeader.Read(pr.pageReader); err != nil {
 		return nil, err
 	}
-
-	pr.initReader()
 
 	return &pr.pageHeader, nil
 }
 
-func (pr *PageReader) initReader() {
-	if pr.pageReader == nil {
-		pr.pageReader = bytes.NewReader(pr.data)
-	} else {
-		pr.pageReader.Reset(pr.data)
-	}
+func (pr *PageReader) reset() {
+	pr.pageReader.Reset(pr.data)
 }
 
 func (pr *PageReader) Records() iter.Seq2[*record.Record, error] {
