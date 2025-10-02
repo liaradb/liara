@@ -18,6 +18,8 @@ const (
 	ActionRemove     Action = 6
 )
 
+func (Action) Size() int { return ActionSize }
+
 func (a Action) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, a)
 }
