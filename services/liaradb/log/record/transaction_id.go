@@ -7,6 +7,8 @@ import (
 
 type TransactionID uint64
 
+const TransactionIDSize = 8
+
 func (tid TransactionID) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, tid)
 }

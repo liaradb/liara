@@ -41,6 +41,15 @@ func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
+func (rc *Record) Size() int {
+	return LogSequenceNumberSize +
+		TransactionIDSize +
+		TimeSize +
+		ActionSize +
+		rc.data.Size() +
+		rc.reverse.Size()
+}
+
 func (rc *Record) Write(w io.Writer) error {
 	if err := rc.logSequenceNumber.Write(w); err != nil {
 		return err
@@ -96,6 +105,8 @@ func (rc *Record) Read(r io.Reader) error {
 
 	return nil
 }
+
+const TimeSize = 8
 
 func (rc *Record) writeTime(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, rc.time.UnixMicro())

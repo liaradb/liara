@@ -7,6 +7,8 @@ import (
 
 type Action uint32
 
+const ActionSize = 4
+
 const (
 	ActionCheckpoint Action = 1
 	ActionCommit     Action = 2

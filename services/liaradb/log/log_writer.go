@@ -94,6 +94,7 @@ func (lw *LogWriter) next(crc page.CRC, data []byte) error {
 	}
 
 	lw.pageID++
+	// TODO: Test this
 	if lw.pageID >= lw.segmentSize {
 		return ErrInsufficientSpace
 	}

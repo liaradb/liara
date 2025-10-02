@@ -46,6 +46,11 @@ func TestRecord_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	size := w.Size() - w.Available()
+	if l := rc.Size(); l != size {
+		t.Errorf("incorrect length: %v, expected: %v", l, size)
+	}
+
 	if err := w.Flush(); err != nil {
 		t.Fatal(err)
 	}

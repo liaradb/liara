@@ -7,6 +7,8 @@ import (
 
 type LogSequenceNumber uint64
 
+const LogSequenceNumberSize = 8
+
 func (lsn LogSequenceNumber) Write(w io.Writer) error {
 	return binary.Write(w, binary.BigEndian, lsn)
 }

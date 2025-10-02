@@ -9,6 +9,8 @@ type LogData struct {
 	data []byte
 }
 
+const LogDataHeaderSize = 4
+
 func NewLogData(data []byte) *LogData {
 	return &LogData{
 		data: data,
@@ -17,6 +19,10 @@ func NewLogData(data []byte) *LogData {
 
 func (ld *LogData) Bytes() []byte { return ld.data }
 func (ld *LogData) Length() int   { return len(ld.data) }
+
+func (ld *LogData) Size() int {
+	return ld.Length() + LogDataHeaderSize
+}
 
 func (ld *LogData) Write(w io.Writer) error {
 	if err := binary.Write(w, binary.BigEndian, uint32(len(ld.data))); err != nil {

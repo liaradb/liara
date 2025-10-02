@@ -95,22 +95,28 @@ func TestLogWriter_Flush(t *testing.T) {
 		for range count - 1 {
 			_, err := l.Append(rec)
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 		}
 
 		lsn2, err := l.Append(rec)
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		if err := l.Flush(lsn2); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		if p := l.PageID(); p != 2 {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
+	})
+
+	t.Run("should return error if appending beyond maximum", func(t *testing.T) {
+		t.Parallel()
+		t.Skip()
+		// TODO: Test this
 	})
 
 	t.Run("should write after flushing", func(t *testing.T) {
