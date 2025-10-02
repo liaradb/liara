@@ -2,8 +2,6 @@ package page
 
 import "io"
 
-const RecordHeaderSize = CrcSize + RecordLengthSize
-
 const pageHeaderSize = 0 +
 	magicSize +
 	pageIDSize +

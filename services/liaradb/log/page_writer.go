@@ -18,6 +18,8 @@ type PageWriter struct {
 	header   page.PageHeader
 }
 
+const recordHeaderSize = page.CrcSize + page.RecordLengthSize
+
 func newPageWriter(
 	size int64,
 ) *PageWriter {
@@ -72,7 +74,7 @@ func (pw *PageWriter) canInsert(data []byte) bool {
 }
 
 func (*PageWriter) recordSize(data []byte) int {
-	return page.RecordHeaderSize + len(data)
+	return recordHeaderSize + len(data)
 }
 
 func (pw *PageWriter) available() int {
