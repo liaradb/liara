@@ -29,7 +29,7 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sr := NewSegmentReader(256, 2, f)
+	sr := NewSegmentReader(256, f)
 	h, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sr := NewSegmentReader(256, 2, f)
+	sr := NewSegmentReader(256, f)
 	h, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)

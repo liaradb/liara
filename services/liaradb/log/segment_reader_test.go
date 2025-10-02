@@ -100,7 +100,7 @@ func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *LogWri
 
 	lw := NewLogWriter(256, 3, f)
 	_ = lw.Initialize()
-	return f, NewSegmentReader(256, 3, f), lw
+	return f, NewSegmentReader(256, f), lw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

@@ -12,24 +12,21 @@ import (
 )
 
 type SegmentReader struct {
-	pageSize    int64
-	bodySize    int64
-	segmentSize page.PageID
-	reader      io.ReadSeeker
-	data        []byte
-	pageReader  *bytes.Reader
-	pageHeader  page.Header
+	pageSize   int64
+	bodySize   int64
+	reader     io.ReadSeeker
+	data       []byte
+	pageReader *bytes.Reader
+	pageHeader page.Header
 }
 
 func NewSegmentReader(
 	pageSize int64,
-	segmentSize page.PageID,
 	r io.ReadSeeker,
 ) *SegmentReader {
 	sr := &SegmentReader{
-		pageSize:    pageSize,
-		segmentSize: segmentSize,
-		reader:      r,
+		pageSize: pageSize,
+		reader:   r,
 	}
 	body := pageSize - int64(sr.pageHeader.Size())
 	sr.bodySize = body

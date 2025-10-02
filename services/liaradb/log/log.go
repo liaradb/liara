@@ -97,7 +97,7 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 			return nil, err
 		}
 
-		sr := NewSegmentReader(l.pageSize, l.segmentSize, f)
+		sr := NewSegmentReader(l.pageSize, f)
 		for rc, err := range sr.Reverse(stat.Size()) {
 			if err != nil {
 				return nil, err
@@ -128,7 +128,7 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			sr := NewSegmentReader(l.pageSize, l.segmentSize, f)
+			sr := NewSegmentReader(l.pageSize, f)
 			for rc, err := range sr.Reverse(stat.Size()) {
 				if err != nil {
 					yield(nil, err)
@@ -151,7 +151,7 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 				return
 			}
 
-			sr := NewSegmentReader(l.pageSize, l.segmentSize, f)
+			sr := NewSegmentReader(l.pageSize, f)
 			for rc, err := range sr.Iterate() {
 				if err != nil {
 					yield(nil, err)
