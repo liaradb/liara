@@ -14,8 +14,7 @@ type Record struct {
 	reverse           LogData
 }
 
-// TODO: Should this be private?
-func NewRecord(
+func New(
 	lsn LogSequenceNumber,
 	tid TransactionID,
 	time time.Time,
@@ -104,16 +103,4 @@ func (rc *Record) Read(r io.Reader) error {
 	}
 
 	return nil
-}
-
-type sizer interface {
-	Size() int
-}
-
-func size(sizers ...sizer) int {
-	size := 0
-	for _, s := range sizers {
-		size += s.Size()
-	}
-	return size
 }

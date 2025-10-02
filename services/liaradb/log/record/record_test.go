@@ -19,7 +19,7 @@ func TestRecord(t *testing.T) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := NewRecord(lsn, tid, now, action, data, reverse)
+	rc := New(lsn, tid, now, action, data, reverse)
 
 	assert.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
 	assert.Getter(t, rc.TransactionID, tid, "TransactionID")
@@ -39,7 +39,7 @@ func TestRecord_Write(t *testing.T) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := NewRecord(lsn, tid, now, action, data, reverse)
+	rc := New(lsn, tid, now, action, data, reverse)
 
 	r, w := newReaderWriter()
 
