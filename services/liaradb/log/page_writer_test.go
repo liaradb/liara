@@ -30,12 +30,12 @@ func TestPageWriter(t *testing.T) {
 	}
 
 	sr := NewSegmentReader(256, 2, f)
-	ph, err := sr.Read()
+	h, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testPageHeader(t, ph, pid, tlid, rem)
+	testHeader(t, h, pid, tlid, rem)
 }
 
 func TestPageWriter_Append(t *testing.T) {
@@ -69,12 +69,12 @@ func TestPageWriter_Append(t *testing.T) {
 	}
 
 	sr := NewSegmentReader(256, 2, f)
-	ph, err := sr.Read()
+	h, err := sr.Read()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testPageHeader(t, ph, pid, tlid, rem)
+	testHeader(t, h, pid, tlid, rem)
 
 	count := 0
 	for r, err := range sr.Records() {
@@ -129,15 +129,15 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 	return recordBuf.Bytes(), nil
 }
 
-func testPageHeader(
+func testHeader(
 	t *testing.T,
-	ph *page.PageHeader,
+	h *page.Header,
 	pid page.PageID,
 	tlid page.TimeLineID,
 	rem page.RecordLength,
 ) {
 	t.Helper()
-	assert.Getter(t, ph.ID, pid, "ID")
-	assert.Getter(t, ph.TimeLineID, tlid, "TimeLineID")
-	assert.Getter(t, ph.LengthRemaining, rem, "LengthRemaining")
+	assert.Getter(t, h.ID, pid, "ID")
+	assert.Getter(t, h.TimeLineID, tlid, "TimeLineID")
+	assert.Getter(t, h.LengthRemaining, rem, "LengthRemaining")
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/cardboardrobots/assert"
 )
 
-func TestPageHeader(t *testing.T) {
+func TestHeader(t *testing.T) {
 	t.Parallel()
 
 	r, w := newReaderWriter()
@@ -16,36 +16,36 @@ func TestPageHeader(t *testing.T) {
 	tlid := TimeLineID(2)
 	rem := RecordLength(3)
 
-	ph := NewPageHeader(pid, tlid, rem)
+	h := NewHeader(pid, tlid, rem)
 
-	if err := ph.Write(w); err != nil {
+	if err := h.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	size := w.Len()
-	if s := ph.Size(); s != size {
+	if s := h.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	ph2 := &PageHeader{}
-	if err := ph2.Read(r); err != nil {
+	h2 := &Header{}
+	if err := h2.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
-	testPageHeader(t, ph2, pid, tlid, rem)
+	testHeader(t, h2, pid, tlid, rem)
 }
 
-func testPageHeader(
+func testHeader(
 	t *testing.T,
-	ph *PageHeader,
+	h *Header,
 	pid PageID,
 	tlid TimeLineID,
 	rem RecordLength,
 ) {
 	t.Helper()
-	assert.Getter(t, ph.ID, pid, "ID")
-	assert.Getter(t, ph.TimeLineID, tlid, "TimeLineID")
-	assert.Getter(t, ph.LengthRemaining, rem, "LengthRemaining")
+	assert.Getter(t, h.ID, pid, "ID")
+	assert.Getter(t, h.TimeLineID, tlid, "TimeLineID")
+	assert.Getter(t, h.LengthRemaining, rem, "LengthRemaining")
 }
 
 func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {

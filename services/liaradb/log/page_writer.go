@@ -15,7 +15,7 @@ type PageWriter struct {
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
-	header   page.PageHeader
+	header   page.Header
 }
 
 const recordHeaderSize = page.CrcSize + page.RecordLengthSize
@@ -49,7 +49,7 @@ func (pw *PageWriter) Data() []byte {
 }
 
 func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem page.RecordLength) {
-	pw.header = page.NewPageHeader(id, tlid, rem)
+	pw.header = page.NewHeader(id, tlid, rem)
 }
 
 func (pw *PageWriter) append(crc page.CRC, data []byte) error {

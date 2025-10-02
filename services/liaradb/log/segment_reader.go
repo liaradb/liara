@@ -18,7 +18,7 @@ type SegmentReader struct {
 	reader      io.ReadSeeker
 	data        []byte
 	pageReader  *bytes.Reader
-	pageHeader  page.PageHeader
+	pageHeader  page.Header
 }
 
 func NewSegmentReader(
@@ -142,7 +142,7 @@ func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq[error] {
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (sr *SegmentReader) Read() (*page.PageHeader, error) {
+func (sr *SegmentReader) Read() (*page.Header, error) {
 	if err := sr.pageHeader.Read(sr.reader); err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (sr *SegmentReader) Read() (*page.PageHeader, error) {
 	return &sr.pageHeader, nil
 }
 
-func (sr *SegmentReader) ReadAt(pid page.PageID) (*page.PageHeader, error) {
+func (sr *SegmentReader) ReadAt(pid page.PageID) (*page.Header, error) {
 	if err := sr.Seek(pid); err != nil {
 		return nil, err
 	}
