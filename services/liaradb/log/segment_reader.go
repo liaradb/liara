@@ -26,14 +26,15 @@ func NewSegmentReader(
 	segmentSize page.PageID,
 	r io.ReadSeeker,
 ) *SegmentReader {
-	body := pageSize - page.PageHeaderSize
-	return &SegmentReader{
+	sr := &SegmentReader{
 		pageSize:    pageSize,
-		bodySize:    body,
 		segmentSize: segmentSize,
 		reader:      r,
-		data:        make([]byte, body),
 	}
+	body := pageSize - int64(sr.pageHeader.Size())
+	sr.bodySize = body
+	sr.data = make([]byte, body)
+	return sr
 }
 
 func (sr *SegmentReader) Seek(pid page.PageID) error {

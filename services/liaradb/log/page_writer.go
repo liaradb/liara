@@ -21,14 +21,16 @@ type PageWriter struct {
 func newPageWriter(
 	size int64,
 ) *PageWriter {
-	body := size - page.PageHeaderSize
+	pw := &PageWriter{}
+
+	body := size - int64(pw.header.Size())
 	writer := bytes.NewBuffer(make([]byte, 0, body))
-	return &PageWriter{
-		bodySize: body,
-		data:     make([]byte, body),
-		writer:   writer,
-		writeBuf: bufio.NewWriter(writer),
-	}
+	pw.bodySize = body
+	pw.data = make([]byte, body)
+	pw.writer = writer
+	pw.writeBuf = bufio.NewWriter(writer)
+
+	return pw
 }
 
 func (pw *PageWriter) ID() page.PageID                    { return pw.header.ID() }
@@ -111,13 +113,13 @@ func (pw *PageWriter) seek(w io.Seeker) error {
 }
 
 func (pw *PageWriter) position() int64 {
-	return pw.header.ID().Size(pw.bodySize + page.PageHeaderSize)
+	return pw.header.ID().Size(pw.bodySize + int64(pw.header.Size()))
 }
 
 func (pw *PageWriter) Write(w io.Writer) error {
 	// TODO: Write entire page at once
 	// TODO: Don't create new buffer every time
-	out := bytes.NewBuffer(make([]byte, 0, pw.bodySize+page.PageHeaderSize))
+	out := bytes.NewBuffer(make([]byte, 0, pw.bodySize+int64(pw.header.Size())))
 	if err := pw.header.Write(out); err != nil {
 		return err
 	}
@@ -173,7 +175,7 @@ func (pw *PageWriter) loadWriter(rd io.Reader) error {
 }
 
 func (pw *PageWriter) skipHeader(rd io.Reader) error {
-	data := make([]byte, page.PageHeaderSize)
+	data := make([]byte, pw.header.Size())
 	// TODO: Do we need to verify read length?
 	if _, err := rd.Read(data); err != io.EOF {
 		return err

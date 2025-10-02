@@ -1,6 +1,8 @@
 package page
 
 import (
+	"bufio"
+	"bytes"
 	"testing"
 
 	"github.com/cardboardrobots/assert"
@@ -9,7 +11,7 @@ import (
 func TestPageHeader(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := newReaderWriter()
 	pid := PageID(1)
 	tlid := TimeLineID(2)
 	rem := RecordLength(3)
@@ -20,8 +22,9 @@ func TestPageHeader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := w.Flush(); err != nil {
-		t.Fatal(err)
+	size := w.Len()
+	if s := ph.Size(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
 	ph2 := &PageHeader{}
@@ -43,4 +46,9 @@ func testPageHeader(
 	assert.Getter(t, ph.ID, pid, "ID")
 	assert.Getter(t, ph.TimeLineID, tlid, "TimeLineID")
 	assert.Getter(t, ph.LengthRemaining, rem, "LengthRemaining")
+}
+
+func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
+	buffer := bytes.NewBuffer(nil)
+	return bufio.NewReader(buffer), buffer
 }

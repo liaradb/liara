@@ -4,8 +4,7 @@ import "io"
 
 const RecordHeaderSize = CrcSize + RecordLengthSize
 
-// TODO: Should this be private?
-const PageHeaderSize = 0 +
+const pageHeaderSize = 0 +
 	magicSize +
 	pageIDSize +
 	timeLineIDSize +
@@ -32,6 +31,10 @@ func NewPageHeader(
 func (ph PageHeader) ID() PageID                    { return ph.id }
 func (ph PageHeader) TimeLineID() TimeLineID        { return ph.timeLineID }
 func (ph PageHeader) LengthRemaining() RecordLength { return ph.lengthRemaining }
+
+func (ph PageHeader) Size() int {
+	return pageHeaderSize
+}
 
 func (ph *PageHeader) Read(r io.Reader) error {
 	if err := MagicPage.ReadIsPage(r); err != nil {
