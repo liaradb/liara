@@ -14,7 +14,7 @@ import (
 type PageReader struct {
 	pageSize   int64
 	bodySize   int64
-	reader     io.ReadSeeker
+	reader     io.Reader
 	data       []byte
 	pageReader *bytes.Reader
 	pageHeader page.Header
@@ -22,7 +22,7 @@ type PageReader struct {
 
 func NewPageReader(
 	pageSize int64,
-	r io.ReadSeeker,
+	r io.Reader,
 ) *PageReader {
 	pr := &PageReader{
 		pageSize: pageSize,
@@ -34,19 +34,9 @@ func NewPageReader(
 	return pr
 }
 
-func (pr *PageReader) Seek(pid page.PageID) error {
-	_, err := pr.reader.Seek(pid.Size(pr.pageSize), io.SeekStart)
-	return err
-}
-
 func (pr *PageReader) Iterate() iter.Seq2[*record.Record, error] {
-	return pr.IterateFrom(0)
-}
-
-// TODO: Test this
-func (pr *PageReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		_, err := pr.ReadAt(pid)
+		_, err := pr.Read()
 		if err != nil {
 			yield(nil, err)
 			return
@@ -65,15 +55,10 @@ func (pr *PageReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, err
 	}
 }
 
-func (pr *PageReader) Reverse(size int64) iter.Seq2[*record.Record, error] {
-	return pr.ReverseFrom(page.NewActivePageIDFromSize(size, pr.pageSize))
-}
-
 // TODO: Change page structure to make reversing easier
-// TODO: Test this
-func (pr *PageReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
+func (pr *PageReader) Reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		_, err := pr.ReadAt(pid)
+		_, err := pr.Read()
 		if err != nil {
 			yield(nil, err)
 			return
@@ -97,6 +82,7 @@ func (pr *PageReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, err
 	}
 }
 
+// TODO: Load entire page
 // TODO: Should we asynchronously prefetch pages?
 func (pr *PageReader) Read() (*page.Header, error) {
 	if err := pr.pageHeader.Read(pr.reader); err != nil {
@@ -112,14 +98,6 @@ func (pr *PageReader) Read() (*page.Header, error) {
 	pr.initReader()
 
 	return &pr.pageHeader, nil
-}
-
-func (pr *PageReader) ReadAt(pid page.PageID) (*page.Header, error) {
-	if err := pr.Seek(pid); err != nil {
-		return nil, err
-	}
-
-	return pr.Read()
 }
 
 func (pr *PageReader) initReader() {

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"path"
 	"reflect"
 	"testing"
@@ -13,7 +14,7 @@ import (
 func TestPageReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	_, lr, lw := createPageReaderWriter(t)
+	f, pr, lw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, lsn := createRecords(count)
@@ -29,8 +30,12 @@ func TestPageReader_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+
 	var c record.LogSequenceNumber
-	for rc, err := range lr.Iterate() {
+	for rc, err := range pr.Iterate() {
 		c++
 		if err != nil {
 			t.Fatal(err)
@@ -49,7 +54,7 @@ func TestPageReader_Iterate(t *testing.T) {
 }
 
 func TestPageReader_Reverse(t *testing.T) {
-	f, sr, lw := createPageReaderWriter(t)
+	f, pr, lw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, lsn := createRecords(count)
@@ -65,13 +70,12 @@ func TestPageReader_Reverse(t *testing.T) {
 		t.Error(err)
 	}
 
-	stat, err := f.Stat()
-	if err != nil {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
 	var c record.LogSequenceNumber
-	for rc, err := range sr.Reverse(stat.Size()) {
+	for rc, err := range pr.Reverse() {
 		c++
 		if err != nil {
 			t.Fatal(err)
