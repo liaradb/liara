@@ -3,7 +3,6 @@ package record
 import (
 	"bufio"
 	"bytes"
-	"io"
 	"testing"
 	"time"
 
@@ -64,27 +63,6 @@ func TestRecord_Write(t *testing.T) {
 	assert.Getter(t, rc.Action, action, "Action")
 	assert.GetterArray(t, rc2.Data, data, "Data")
 	assert.GetterArray(t, rc2.Reverse, reverse, "Reverse")
-}
-
-func TestRecord_Time(t *testing.T) {
-	t.Parallel()
-
-	r, w := newReaderWriter()
-
-	rc := Record{
-		time: time.UnixMicro(1234567890)}
-	if err := rc.writeTime(w); err != nil {
-		t.Fatal(err)
-	}
-
-	var rc2 Record
-	if err := rc2.readTime(r); err != nil && err != io.EOF {
-		t.Fatal(err)
-	}
-
-	if !rc.time.Equal(rc2.time) {
-		t.Errorf("incorrect value: %v, expected: %v", rc.time, rc2.time)
-	}
 }
 
 func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {

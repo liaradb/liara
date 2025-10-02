@@ -1,7 +1,6 @@
 package record
 
 import (
-	"encoding/binary"
 	"io"
 	"time"
 )
@@ -9,7 +8,7 @@ import (
 type Record struct {
 	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID
-	time              time.Time
+	time              Time
 	action            Action
 	data              LogData
 	reverse           LogData
@@ -27,7 +26,7 @@ func NewRecord(
 	return &Record{
 		logSequenceNumber: lsn,
 		transactionID:     tid,
-		time:              time,
+		time:              NewTime(time),
 		action:            action,
 		data:              LogData{data},
 		reverse:           LogData{reverse},
@@ -36,20 +35,19 @@ func NewRecord(
 
 func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
-func (rc *Record) Time() time.Time                      { return rc.time }
+func (rc *Record) Time() time.Time                      { return rc.time.Time }
 func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
-const TimeSize = 8
-
 func (rc *Record) Size() int {
-	return rc.logSequenceNumber.Size() +
-		rc.transactionID.Size() +
-		TimeSize +
-		rc.action.Size() +
-		rc.data.Size() +
-		rc.reverse.Size()
+	return size(
+		rc.logSequenceNumber,
+		rc.transactionID,
+		rc.time,
+		rc.action,
+		rc.data,
+		rc.reverse)
 }
 
 func (rc *Record) Write(w io.Writer) error {
@@ -61,7 +59,7 @@ func (rc *Record) Write(w io.Writer) error {
 		return err
 	}
 
-	if err := rc.writeTime(w); err != nil {
+	if err := rc.time.Write(w); err != nil {
 		return err
 	}
 
@@ -89,7 +87,7 @@ func (rc *Record) Read(r io.Reader) error {
 		return err
 	}
 
-	if err := rc.readTime(r); err != nil {
+	if err := rc.time.Read(r); err != nil {
 		return err
 	}
 
@@ -108,16 +106,14 @@ func (rc *Record) Read(r io.Reader) error {
 	return nil
 }
 
-func (rc *Record) writeTime(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, rc.time.UnixMicro())
+type sizer interface {
+	Size() int
 }
 
-func (rc *Record) readTime(r io.Reader) error {
-	var t int64
-	if err := binary.Read(r, binary.BigEndian, &t); err != nil {
-		return err
+func size(sizers ...sizer) int {
+	size := 0
+	for _, s := range sizers {
+		size += s.Size()
 	}
-
-	rc.time = time.UnixMicro(t)
-	return nil
+	return size
 }

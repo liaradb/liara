@@ -20,7 +20,7 @@ func NewLogData(data []byte) *LogData {
 func (ld *LogData) Bytes() []byte { return ld.data }
 func (ld *LogData) Length() int   { return len(ld.data) }
 
-func (ld *LogData) Size() int {
+func (ld LogData) Size() int {
 	return ld.Length() + LogDataHeaderSize
 }
 
