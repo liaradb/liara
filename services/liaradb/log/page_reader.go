@@ -34,14 +34,13 @@ func NewPageReader(
 	return pr
 }
 
-func (pr *PageReader) Iterate() iter.Seq2[*record.Record, error] {
-	return func(yield func(*record.Record, error) bool) {
-		_, err := pr.Read()
-		if err != nil {
-			yield(nil, err)
-			return
-		}
+func (pr *PageReader) Iterate() (iter.Seq2[*record.Record, error], error) {
+	_, err := pr.Read()
+	if err != nil {
+		return nil, err
+	}
 
+	return func(yield func(*record.Record, error) bool) {
 		for rc, err := range pr.Records() {
 			if err != nil {
 				yield(nil, err)
@@ -52,34 +51,32 @@ func (pr *PageReader) Iterate() iter.Seq2[*record.Record, error] {
 				return
 			}
 		}
-	}
+	}, nil
 }
 
 // TODO: Change page structure to make reversing easier
-func (pr *PageReader) Reverse() iter.Seq2[*record.Record, error] {
-	return func(yield func(*record.Record, error) bool) {
-		_, err := pr.Read()
+func (pr *PageReader) Reverse() (iter.Seq2[*record.Record, error], error) {
+	_, err := pr.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	r := list.New()
+	for rc, err := range pr.Records() {
 		if err != nil {
-			yield(nil, err)
-			return
+			return nil, err
 		}
 
-		r := list.New()
-		for rc, err := range pr.Records() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
+		r.PushBack(rc)
+	}
 
-			r.PushBack(rc)
-		}
-
+	return func(yield func(*record.Record, error) bool) {
 		for e := r.Back(); e != nil; e = e.Prev() {
 			if !yield(e.Value.(*record.Record), nil) {
 				return
 			}
 		}
-	}
+	}, nil
 }
 
 // TODO: Load entire page
