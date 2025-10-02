@@ -77,10 +77,6 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 
 			sl := NewSegmentList(test.fsys, dir)
 
-			if err := sl.Open(); err != nil {
-				t.Fatal(err)
-			}
-
 			sn, f, err := sl.OpenLatestSegment()
 			if err != nil {
 				t.Fatal(err)
@@ -108,9 +104,6 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			createPath(NewSegmentName(2, 20)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		_, f, err := sl.OpenLatestSegment()
 		if err != nil {
@@ -145,10 +138,6 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 	})
 	sl := NewSegmentList(fsys, dir)
 
-	if err := sl.Open(); err != nil {
-		t.Fatal(err)
-	}
-
 	c := 0
 	n := make([]SegmentName, 0, 3)
 	for f, err := range sl.IterateFromLSN(10) {
@@ -176,10 +165,6 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 		createPath(NewSegmentName(2, 20)): {},
 	})
 	sl := NewSegmentList(fsys, dir)
-
-	if err := sl.Open(); err != nil {
-		t.Fatal(err)
-	}
 
 	for message, test := range map[string]struct {
 		search record.LogSequenceNumber
@@ -228,9 +213,6 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 			createPath(NewSegmentName(2, 20)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		_, f, err := sl.OpenSegmentForLSN(10)
 		if err != nil {
@@ -256,10 +238,6 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 			createPath(NewSegmentName(2, 20)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		sn, f, err := sl.OpenNextSegment(30)
 		if err != nil {
@@ -295,9 +273,6 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 			createPath(NewSegmentName(1, 10)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		_, f, err := sl.OpenNextSegment(20)
 		if err != nil {
@@ -324,10 +299,6 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(NewSegmentName(3, 30)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		sn, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
@@ -356,9 +327,6 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(NewSegmentName(3, 30)): {},
 		})
 		sl := NewSegmentList(fsys, dir)
-		if err := sl.Open(); err != nil {
-			t.Fatal(err)
-		}
 
 		_, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
@@ -383,10 +351,6 @@ func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
 		createPath(NewSegmentName(2, 20)): {},
 	})
 	sl := NewSegmentList(fsys, dir)
-
-	if err := sl.Open(); err != nil {
-		t.Fatal(err)
-	}
 
 	if err := sl.RemoveSegmentBeforeLSN(20); err != nil {
 		t.Fatal(err)
@@ -420,10 +384,6 @@ func TestSegmentList_Reverse(t *testing.T) {
 		createPath(sn2): {},
 	})
 	sl := NewSegmentList(fsys, dir)
-
-	if err := sl.Open(); err != nil {
-		t.Fatal(err)
-	}
 
 	c := 0
 	n := make([]SegmentName, 0, 3)
