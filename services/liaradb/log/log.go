@@ -14,7 +14,7 @@ type Log struct {
 	pageSize    int64
 	segmentSize page.PageID
 	sl          *segment.SegmentList
-	writer      *SegmentWriter
+	writer      *LogWriter
 }
 
 func NewLog(
@@ -49,7 +49,7 @@ func (l *Log) StartWriter() error {
 		return err
 	}
 
-	l.writer = NewSegmentWriter(l.pageSize, l.segmentSize, f)
+	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
 	return l.writer.SeekTail(stat.Size())
 }
 
@@ -68,7 +68,7 @@ func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Recor
 		return 0, err
 	}
 
-	l.writer = NewSegmentWriter(l.pageSize, l.segmentSize, f)
+	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
 	if err := l.writer.Initialize(); err != nil {
 		return 0, err
 	}
