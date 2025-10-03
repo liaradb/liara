@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestHeader(t *testing.T) {
@@ -14,7 +15,7 @@ func TestHeader(t *testing.T) {
 	r, w := newReaderWriter()
 	pid := PageID(1)
 	tlid := TimeLineID(2)
-	rem := RecordLength(3)
+	rem := record.RecordLength(3)
 
 	h := NewHeader(pid, tlid, rem)
 
@@ -40,7 +41,7 @@ func testHeader(
 	h *Header,
 	pid PageID,
 	tlid TimeLineID,
-	rem RecordLength,
+	rem record.RecordLength,
 ) {
 	t.Helper()
 	assert.Getter(t, h.ID, pid, "ID")

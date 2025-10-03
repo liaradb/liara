@@ -94,7 +94,7 @@ func (pr *PageReader) reset() {
 
 func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
 	r := bufio.NewReader(pr.pageReader)
-	rb := page.RecordBoundary{}
+	rb := record.RecordBoundary{}
 	return func(yield func(*record.Record, error) bool) {
 		for {
 			var err error

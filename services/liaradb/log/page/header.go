@@ -1,23 +1,27 @@
 package page
 
-import "io"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/log/record"
+)
 
 const headerSize = 0 +
 	magicSize +
 	pageIDSize +
 	timeLineIDSize +
-	RecordLengthSize
+	record.RecordLengthSize
 
 type Header struct {
 	id              PageID
 	timeLineID      TimeLineID
-	lengthRemaining RecordLength
+	lengthRemaining record.RecordLength
 }
 
 func NewHeader(
 	id PageID,
 	timeLineID TimeLineID,
-	lengthRemaining RecordLength,
+	lengthRemaining record.RecordLength,
 ) Header {
 	return Header{
 		id:              id,
@@ -26,9 +30,9 @@ func NewHeader(
 	}
 }
 
-func (h Header) ID() PageID                    { return h.id }
-func (h Header) TimeLineID() TimeLineID        { return h.timeLineID }
-func (h Header) LengthRemaining() RecordLength { return h.lengthRemaining }
+func (h Header) ID() PageID                           { return h.id }
+func (h Header) TimeLineID() TimeLineID               { return h.timeLineID }
+func (h Header) LengthRemaining() record.RecordLength { return h.lengthRemaining }
 
 func (h Header) Size() int {
 	return headerSize

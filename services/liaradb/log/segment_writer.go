@@ -57,7 +57,7 @@ func (sw *SegmentWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 }
 
 func (sw *SegmentWriter) append(data []byte) error {
-	rb := page.NewRecordBoundary(data)
+	rb := record.NewRecordBoundary(data)
 	if err := sw.appendOrNext(rb, data); err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (sw *SegmentWriter) append(data []byte) error {
 	return nil
 }
 
-func (sw *SegmentWriter) appendOrNext(rb page.RecordBoundary, data []byte) error {
+func (sw *SegmentWriter) appendOrNext(rb record.RecordBoundary, data []byte) error {
 	if err := sw.pageWriter.append(rb, data); err != nil {
 		if err != ErrInsufficientSpace {
 			return err
@@ -77,7 +77,7 @@ func (sw *SegmentWriter) appendOrNext(rb page.RecordBoundary, data []byte) error
 	return nil
 }
 
-func (sw *SegmentWriter) next(rb page.RecordBoundary, data []byte) error {
+func (sw *SegmentWriter) next(rb record.RecordBoundary, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
 	if err := sw.pageWriter.Flush(sw.readWriter); err != nil {

@@ -50,7 +50,7 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rb := page.NewRecordBoundary(data)
+	rb := record.NewRecordBoundary(data)
 
 	if err := pw.append(rb, data); err != nil {
 		t.Fatal(err)
@@ -93,10 +93,10 @@ func TestPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (page.PageID, page.TimeLineID, page.RecordLength, *PageWriter) {
+func createPage() (page.PageID, page.TimeLineID, record.RecordLength, *PageWriter) {
 	pid := page.PageID(1)
 	tlid := page.TimeLineID(2)
-	rem := page.RecordLength(3)
+	rem := record.RecordLength(3)
 
 	pw := createEmptyPage()
 	pw.init(pid, tlid, rem)
@@ -134,7 +134,7 @@ func testHeader(
 	h page.Header,
 	pid page.PageID,
 	tlid page.TimeLineID,
-	rem page.RecordLength,
+	rem record.RecordLength,
 ) {
 	t.Helper()
 	assert.Getter(t, h.ID, pid, "ID")
