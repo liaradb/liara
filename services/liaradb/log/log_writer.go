@@ -8,7 +8,9 @@ import (
 )
 
 type LogWriter struct {
-	sw *SegmentWriter
+	highWater record.LogSequenceNumber
+	lowWater  record.LogSequenceNumber
+	sw        *SegmentWriter
 }
 
 func NewLogWriter(
@@ -21,16 +23,33 @@ func NewLogWriter(
 	}
 }
 
-func (lw *LogWriter) HighWater() record.LogSequenceNumber { return lw.sw.HighWater() }
-func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.sw.LowWater() }
+func (lw *LogWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
+func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
 func (lw *LogWriter) PageID() page.PageID                 { return lw.sw.PageID() }
 
 func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	return lw.sw.Append(rc)
+	_, err := lw.sw.Append(rc)
+	if err != nil {
+		if err == ErrInsufficientSpace {
+			// TODO: Fix this
+			return lw.highWater + 1, err
+		}
+		return 0, err
+	}
+
+	lw.highWater++
+	return lw.highWater, nil
 }
 
 func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
-	return lw.sw.Flush(lsn)
+	if err := lw.sw.Flush(lsn); err != nil {
+		return err
+	}
+
+	// TODO: Is this correct?
+	lsn = min(lsn, lw.highWater)
+	lw.lowWater = lsn
+	return nil
 }
 
 func (lw *LogWriter) Initialize() error {

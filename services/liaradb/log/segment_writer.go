@@ -18,8 +18,6 @@ type SegmentWriter struct {
 	segmentSize page.PageID
 	pageID      page.PageID
 	timeLineID  page.TimeLineID
-	highWater   record.LogSequenceNumber
-	lowWater    record.LogSequenceNumber
 	readWriter  io.ReadWriteSeeker
 	recordBuf   *bytes.Buffer
 	pageWriter  *PageWriter
@@ -38,9 +36,7 @@ func NewSegmentWriter(
 	}
 }
 
-func (sw *SegmentWriter) PageID() page.PageID                 { return sw.pageID }
-func (sw *SegmentWriter) HighWater() record.LogSequenceNumber { return sw.highWater }
-func (sw *SegmentWriter) LowWater() record.LogSequenceNumber  { return sw.lowWater }
+func (sw *SegmentWriter) PageID() page.PageID { return sw.pageID }
 
 func (sw *SegmentWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	data, err := sw.recordToBytes(rc)
@@ -63,15 +59,10 @@ func (sw *SegmentWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 func (sw *SegmentWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	rb := page.NewRecordBoundary(data)
 	if err := sw.appendOrNext(rb, data); err != nil {
-		if err == ErrInsufficientSpace {
-			// TODO: Fix this
-			return sw.highWater + 1, err
-		}
 		return 0, err
 	}
 
-	sw.highWater++
-	return sw.highWater, nil
+	return 0, nil
 }
 
 func (sw *SegmentWriter) appendOrNext(rb page.RecordBoundary, data []byte) error {
@@ -110,9 +101,6 @@ func (sw *SegmentWriter) Flush(lsn record.LogSequenceNumber) error {
 		return err
 	}
 
-	// TODO: Is this correct?
-	lsn = min(lsn, sw.highWater)
-	sw.lowWater = lsn
 	return nil
 }
 
