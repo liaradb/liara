@@ -9,40 +9,32 @@ import (
 )
 
 type SegmentReader struct {
-	pageSize   int64
-	bodySize   int64
-	reader     io.ReadSeeker
-	data       []byte
-	pageHeader page.Header
-	pReader    *PageReader
+	pageSize int64
+	reader   io.ReadSeeker
+	pReader  *PageReader
 }
 
 func NewSegmentReader(
 	pageSize int64,
 	r io.ReadSeeker,
 ) *SegmentReader {
-	sr := &SegmentReader{
+	return &SegmentReader{
 		pageSize: pageSize,
 		reader:   r,
+		pReader:  NewPageReader(pageSize, r),
 	}
-	body := pageSize - int64(sr.pageHeader.Size())
-	sr.bodySize = body
-	sr.data = make([]byte, body)
-	sr.pReader = NewPageReader(pageSize, r)
-	return sr
 }
 
-func (sr *SegmentReader) Seek(pid page.PageID) error {
+func (sr *SegmentReader) seek(pid page.PageID) error {
 	_, err := sr.reader.Seek(pid.Size(sr.pageSize), io.SeekStart)
 	return err
 }
 
 func (sr *SegmentReader) Iterate() iter.Seq2[*record.Record, error] {
-	return sr.IterateFrom(0)
+	return sr.iterateFrom(0)
 }
 
-// TODO: Test this
-func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
+func (sr *SegmentReader) iterateFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for it, err := range sr.readForward(pid) {
 			if err != nil {
@@ -65,12 +57,10 @@ func (sr *SegmentReader) IterateFrom(pid page.PageID) iter.Seq2[*record.Record, 
 }
 
 func (sr *SegmentReader) Reverse(size int64) iter.Seq2[*record.Record, error] {
-	return sr.ReverseFrom(page.NewActivePageIDFromSize(size, sr.pageSize))
+	return sr.reverseFrom(page.NewActivePageIDFromSize(size, sr.pageSize))
 }
 
-// TODO: Change page structure to make reversing easier
-// TODO: Test this
-func (sr *SegmentReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
+func (sr *SegmentReader) reverseFrom(pid page.PageID) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for it, err := range sr.readReverse(pid) {
 			if err != nil {
@@ -95,7 +85,7 @@ func (sr *SegmentReader) ReverseFrom(pid page.PageID) iter.Seq2[*record.Record, 
 func (sr *SegmentReader) readForward(pid page.PageID) iter.Seq2[iter.Seq2[*record.Record, error], error] {
 	return func(yield func(iter.Seq2[*record.Record, error], error) bool) {
 		for {
-			if err := sr.Seek(pid); err != nil {
+			if err := sr.seek(pid); err != nil {
 				yield(nil, err)
 				return
 			}
@@ -119,7 +109,7 @@ func (sr *SegmentReader) readForward(pid page.PageID) iter.Seq2[iter.Seq2[*recor
 func (sr *SegmentReader) readReverse(pid page.PageID) iter.Seq2[iter.Seq2[*record.Record, error], error] {
 	return func(yield func(iter.Seq2[*record.Record, error], error) bool) {
 		for i := range pid + 1 {
-			if err := sr.Seek(pid - i); err != nil {
+			if err := sr.seek(pid - i); err != nil {
 				yield(nil, err)
 				return
 			}
