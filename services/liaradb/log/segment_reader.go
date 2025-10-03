@@ -21,7 +21,7 @@ func NewSegmentReader(
 	return &SegmentReader{
 		pageSize: pageSize,
 		reader:   r,
-		pReader:  NewPageReader(pageSize, r),
+		pReader:  NewPageReader(pageSize),
 	}
 }
 

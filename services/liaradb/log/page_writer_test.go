@@ -29,13 +29,13 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sr := NewPageReader(256, f)
-	h, err := sr.Read(f)
+	pr := NewPageReader(256)
+	_, err := pr.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testHeader(t, h, pid, tlid, rem)
+	testHeader(t, pr.Header(), pid, tlid, rem)
 }
 
 func TestPageWriter_Append(t *testing.T) {
@@ -68,16 +68,16 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	sr := NewPageReader(256, f)
-	h, err := sr.Read(f)
+	pr := NewPageReader(256)
+	it, err := pr.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testHeader(t, h, pid, tlid, rem)
+	testHeader(t, pr.Header(), pid, tlid, rem)
 
 	count := 0
-	for r, err := range sr.Records() {
+	for r, err := range it {
 		count++
 		if err != nil {
 			t.Fatal(err)
@@ -131,7 +131,7 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 
 func testHeader(
 	t *testing.T,
-	h *page.Header,
+	h page.Header,
 	pid page.PageID,
 	tlid page.TimeLineID,
 	rem page.RecordLength,

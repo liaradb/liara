@@ -113,5 +113,5 @@ func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *LogWriter) {
 
 	lw := NewLogWriter(256, 3, f)
 	_ = lw.Initialize()
-	return f, NewPageReader(256, f), lw
+	return f, NewPageReader(256), lw
 }

@@ -12,8 +12,6 @@ import (
 )
 
 type PageReader struct {
-	pageSize   int64
-	bodySize   int64
 	data       []byte
 	pageReader *bytes.Reader
 	pageHeader page.Header
@@ -21,27 +19,25 @@ type PageReader struct {
 
 func NewPageReader(
 	pageSize int64,
-	r io.Reader,
 ) *PageReader {
 	data := make([]byte, pageSize)
-	ph := page.Header{}
 	return &PageReader{
-		pageSize:   pageSize,
-		bodySize:   pageSize - int64(ph.Size()),
 		data:       data,
 		pageReader: bytes.NewReader(data),
-		pageHeader: ph,
 	}
 }
 
+func (pr *PageReader) Header() page.Header {
+	return pr.pageHeader
+}
+
 func (pr *PageReader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
-	_, err := pr.Read(r)
-	if err != nil {
+	if _, err := pr.read(r); err != nil {
 		return nil, err
 	}
 
 	return func(yield func(*record.Record, error) bool) {
-		for rc, err := range pr.Records() {
+		for rc, err := range pr.records() {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -56,13 +52,12 @@ func (pr *PageReader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], er
 
 // TODO: Change page structure to make reversing easier
 func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], error) {
-	_, err := pr.Read(rd)
-	if err != nil {
+	if _, err := pr.read(rd); err != nil {
 		return nil, err
 	}
 
 	r := list.New()
-	for rc, err := range pr.Records() {
+	for rc, err := range pr.records() {
 		if err != nil {
 			return nil, err
 		}
@@ -80,9 +75,8 @@ func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], e
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (pr *PageReader) Read(rd io.Reader) (*page.Header, error) {
-	_, err := rd.Read(pr.data)
-	if err != nil {
+func (pr *PageReader) read(rd io.Reader) (*page.Header, error) {
+	if _, err := rd.Read(pr.data); err != nil {
 		return nil, err
 	}
 
@@ -98,7 +92,7 @@ func (pr *PageReader) reset() {
 	pr.pageReader.Reset(pr.data)
 }
 
-func (pr *PageReader) Records() iter.Seq2[*record.Record, error] {
+func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
 	r := bufio.NewReader(pr.pageReader)
 
 	return func(yield func(*record.Record, error) bool) {
