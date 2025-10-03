@@ -14,19 +14,19 @@ import (
 func TestSegmentReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	f, lr, lw := createSegmentReaderWriter(t)
+	f, lr, sw := createSegmentReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
-		_, err := lw.Append(rc)
+		_, err := sw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := lw.Flush(lsn); err != nil {
+	if err := sw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
@@ -50,19 +50,19 @@ func TestSegmentReader_Iterate(t *testing.T) {
 }
 
 func TestSegmentReader_Reverse(t *testing.T) {
-	f, sr, lw := createSegmentReaderWriter(t)
+	f, sr, sw := createSegmentReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
-		_, err := lw.Append(rc)
+		_, err := sw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := lw.Flush(lsn); err != nil {
+	if err := sw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
@@ -90,7 +90,7 @@ func TestSegmentReader_Reverse(t *testing.T) {
 	}
 }
 
-func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *LogWriter) {
+func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *SegmentWriter) {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(nil)
@@ -98,9 +98,9 @@ func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *LogWri
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	lw := NewLogWriter(256, 3, f)
-	_ = lw.Initialize()
-	return f, NewSegmentReader(256), lw
+	sw := NewSegmentWriter(256, 3, f)
+	_ = sw.Initialize()
+	return f, NewSegmentReader(256), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

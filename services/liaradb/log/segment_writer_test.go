@@ -146,7 +146,7 @@ func TestLogWriter_Flush(t *testing.T) {
 	})
 }
 
-func createLogWriter(t *testing.T) *LogWriter {
+func createLogWriter(t *testing.T) *SegmentWriter {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
@@ -154,17 +154,17 @@ func createLogWriter(t *testing.T) *LogWriter {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	lw := NewLogWriter(256, 3, f)
-	_ = lw.Initialize()
-	return lw
+	sw := NewSegmentWriter(256, 3, f)
+	_ = sw.Initialize()
+	return sw
 }
 
-func testPosition(t *testing.T, l *LogWriter, lw, hw record.LogSequenceNumber) {
-	if h := l.HighWater(); h != hw {
+func testPosition(t *testing.T, sw *SegmentWriter, lw, hw record.LogSequenceNumber) {
+	if h := sw.HighWater(); h != hw {
 		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
 	}
 
-	if l := l.LowWater(); l != lw {
+	if l := sw.LowWater(); l != lw {
 		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
 	}
 }

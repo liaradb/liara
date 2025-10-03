@@ -14,19 +14,19 @@ import (
 func TestPageReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	f, pr, lw := createPageReaderWriter(t)
+	f, pr, sw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
-		_, err := lw.Append(rc)
+		_, err := sw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := lw.Flush(lsn); err != nil {
+	if err := sw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
@@ -59,19 +59,19 @@ func TestPageReader_Iterate(t *testing.T) {
 }
 
 func TestPageReader_Reverse(t *testing.T) {
-	f, pr, lw := createPageReaderWriter(t)
+	f, pr, sw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, lsn := createRecords(count)
 
 	for _, rc := range records {
-		_, err := lw.Append(rc)
+		_, err := sw.Append(rc)
 		if err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := lw.Flush(lsn); err != nil {
+	if err := sw.Flush(lsn); err != nil {
 		t.Error(err)
 	}
 
@@ -103,7 +103,7 @@ func TestPageReader_Reverse(t *testing.T) {
 	}
 }
 
-func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *LogWriter) {
+func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *SegmentWriter) {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(nil)
@@ -111,7 +111,7 @@ func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *LogWriter) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	lw := NewLogWriter(256, 3, f)
-	_ = lw.Initialize()
-	return f, NewPageReader(256), lw
+	sw := NewSegmentWriter(256, 3, f)
+	_ = sw.Initialize()
+	return f, NewPageReader(256), sw
 }
