@@ -99,7 +99,7 @@ func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
 		for {
 			var err error
 			// TODO: This reads past the end of the file
-			if err = pr.validateCRC(r); err != nil {
+			if err = page.ValidateCRC(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -122,31 +122,4 @@ func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
 			}
 		}
 	}
-}
-
-func (*PageReader) validateCRC(r *bufio.Reader) error {
-	var c page.CRC
-	if err := c.Read(r); err != nil {
-		return err
-	}
-
-	rl := page.RecordLength(0)
-	if err := rl.Read(r); err != nil {
-		return err
-	}
-
-	if rl == 0 {
-		return io.EOF
-	}
-
-	d, err := r.Peek(int(rl))
-	if err != nil {
-		return err
-	}
-
-	if !c.Compare(d) {
-		return ErrInvalidCRC
-	}
-
-	return nil
 }

@@ -18,8 +18,6 @@ type PageWriter struct {
 	header   page.Header
 }
 
-const recordHeaderSize = page.CrcSize + page.RecordLengthSize
-
 func newPageWriter(
 	size int64,
 ) *PageWriter {
@@ -74,7 +72,7 @@ func (pw *PageWriter) canInsert(data []byte) bool {
 }
 
 func (*PageWriter) recordSize(data []byte) int {
-	return recordHeaderSize + len(data)
+	return page.RecordHeaderSize + len(data)
 }
 
 func (pw *PageWriter) available() int {
@@ -82,11 +80,7 @@ func (pw *PageWriter) available() int {
 }
 
 func (pw *PageWriter) insert(crc page.CRC, data []byte) error {
-	if err := crc.Write(pw.writeBuf); err != nil {
-		return err
-	}
-
-	if err := page.NewRecordLength(data).Write(pw.writeBuf); err != nil {
+	if err := page.WriteCRC(crc, data, pw.writeBuf); err != nil {
 		return err
 	}
 
@@ -191,7 +185,7 @@ func (pw *PageWriter) records(rd io.Reader) iter.Seq2[*record.Record, error] {
 
 		for {
 			var err error
-			if err = pw.skipCRC(rd); err != nil {
+			if err = page.SkipCRC(rd); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -214,23 +208,4 @@ func (pw *PageWriter) records(rd io.Reader) iter.Seq2[*record.Record, error] {
 			}
 		}
 	}
-}
-
-// TODO: We need to rewind the length
-func (*PageWriter) skipCRC(r io.Reader) error {
-	var c page.CRC
-	if err := c.Read(r); err != nil {
-		return err
-	}
-
-	rl := page.RecordLength(0)
-	if err := rl.Read(r); err != nil {
-		return err
-	}
-
-	if rl == 0 {
-		return io.EOF
-	}
-
-	return nil
 }
