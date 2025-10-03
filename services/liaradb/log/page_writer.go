@@ -148,15 +148,17 @@ func (pw *PageWriter) SeekTail(r io.Reader) error {
 		}
 	}
 
-	// TODO: Verify this
-	l := b.Cap() - (b.Available() + b.Len()) - recordBoundary
+	l := pw.bufferSize(b)
 	pw.writer = bytes.NewBuffer(pw.data[:l])
 	pw.writeBuf = bufio.NewWriter(pw.writer)
 
 	return nil
 }
 
-const recordBoundary = 8
+func (pw *PageWriter) bufferSize(b *bytes.Buffer) int {
+	// TODO: Verify this
+	return b.Cap() - (b.Available() + b.Len()) - page.RecordHeaderSize
+}
 
 func (pw *PageWriter) loadWriter(rd io.Reader) error {
 	// TODO: Do we need to verify read length?
