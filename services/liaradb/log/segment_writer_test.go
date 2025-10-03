@@ -17,7 +17,7 @@ func TestSegmentWriter_Append(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
-	if _, err := sw.Append(rec); err != nil {
+	if err := sw.Append(rec); err != nil {
 		t.Error(err)
 	}
 }
@@ -34,17 +34,15 @@ func TestSegmentWriter_Flush(t *testing.T) {
 
 		sw := createSegmentWriter(t)
 
-		lsn1, err := sw.Append(rec)
-		if err != nil {
+		if err := sw.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		_, err = sw.Append(rec)
-		if err != nil {
+		if err := sw.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		if err := sw.Flush(lsn1); err != nil {
+		if err := sw.Flush(); err != nil {
 			t.Error(err)
 		}
 	})
@@ -54,17 +52,15 @@ func TestSegmentWriter_Flush(t *testing.T) {
 
 		sw := createSegmentWriter(t)
 
-		_, err := sw.Append(rec)
-		if err != nil {
+		if err := sw.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		_, err = sw.Append(rec)
-		if err != nil {
+		if err := sw.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		if err := sw.Flush(10); err != nil {
+		if err := sw.Flush(); err != nil {
 			t.Error(err)
 		}
 	})
@@ -77,18 +73,16 @@ func TestSegmentWriter_Flush(t *testing.T) {
 		count := 10
 
 		for range count - 1 {
-			_, err := l.Append(rec)
-			if err != nil {
+			if err := l.Append(rec); err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := l.Append(rec)
-		if err != nil {
+		if err := l.Append(rec); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(lsn2); err != nil {
+		if err := l.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
@@ -106,27 +100,23 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should write after flushing", func(t *testing.T) {
 		t.Parallel()
 
-		l := createLogWriter(t)
+		l := createSegmentWriter(t)
 
-		lsn1, err := l.Append(rec)
-		if err != nil {
+		if err := l.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(lsn1); err != nil {
+		if err := l.Flush(); err != nil {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Append(rec)
-		if err != nil {
+		if err := l.Append(rec); err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(lsn2); err != nil {
+		if err := l.Flush(); err != nil {
 			t.Error(err)
 		}
-
-		testPosition(t, l, 2, 2)
 	})
 }
 

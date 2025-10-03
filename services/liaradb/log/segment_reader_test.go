@@ -17,16 +17,15 @@ func TestSegmentReader_Iterate(t *testing.T) {
 	f, lr, sw := createSegmentReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
-	records, lsn := createRecords(count)
+	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		_, err := sw.Append(rc)
-		if err != nil {
+		if err := sw.Append(rc); err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := sw.Flush(lsn); err != nil {
+	if err := sw.Flush(); err != nil {
 		t.Error(err)
 	}
 
@@ -53,16 +52,15 @@ func TestSegmentReader_Reverse(t *testing.T) {
 	f, sr, sw := createSegmentReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
-	records, lsn := createRecords(count)
+	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		_, err := sw.Append(rc)
-		if err != nil {
+		if err := sw.Append(rc); err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := sw.Flush(lsn); err != nil {
+	if err := sw.Flush(); err != nil {
 		t.Error(err)
 	}
 

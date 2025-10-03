@@ -38,10 +38,10 @@ func NewSegmentWriter(
 
 func (sw *SegmentWriter) PageID() page.PageID { return sw.pageID }
 
-func (sw *SegmentWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+func (sw *SegmentWriter) Append(rc *record.Record) error {
 	data, err := sw.recordToBytes(rc)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	return sw.append(data)
@@ -56,13 +56,13 @@ func (sw *SegmentWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 	return sw.recordBuf.Bytes(), nil
 }
 
-func (sw *SegmentWriter) append(data []byte) (record.LogSequenceNumber, error) {
+func (sw *SegmentWriter) append(data []byte) error {
 	rb := page.NewRecordBoundary(data)
 	if err := sw.appendOrNext(rb, data); err != nil {
-		return 0, err
+		return err
 	}
 
-	return 0, nil
+	return nil
 }
 
 func (sw *SegmentWriter) appendOrNext(rb page.RecordBoundary, data []byte) error {
@@ -96,7 +96,7 @@ func (sw *SegmentWriter) next(rb page.RecordBoundary, data []byte) error {
 	return sw.pageWriter.append(rb, data)
 }
 
-func (sw *SegmentWriter) Flush(lsn record.LogSequenceNumber) error {
+func (sw *SegmentWriter) Flush() error {
 	if err := sw.pageWriter.Flush(sw.readWriter); err != nil {
 		return err
 	}

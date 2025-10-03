@@ -28,7 +28,7 @@ func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
 func (lw *LogWriter) PageID() page.PageID                 { return lw.sw.PageID() }
 
 func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	_, err := lw.sw.Append(rc)
+	err := lw.sw.Append(rc)
 	if err != nil {
 		if err == ErrInsufficientSpace {
 			// TODO: Fix this
@@ -42,7 +42,7 @@ func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error)
 }
 
 func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
-	if err := lw.sw.Flush(lsn); err != nil {
+	if err := lw.sw.Flush(); err != nil {
 		return err
 	}
 

@@ -17,16 +17,15 @@ func TestPageReader_Iterate(t *testing.T) {
 	f, pr, sw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
-	records, lsn := createRecords(count)
+	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		_, err := sw.Append(rc)
-		if err != nil {
+		if err := sw.Append(rc); err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := sw.Flush(lsn); err != nil {
+	if err := sw.Flush(); err != nil {
 		t.Error(err)
 	}
 
@@ -62,16 +61,15 @@ func TestPageReader_Reverse(t *testing.T) {
 	f, pr, sw := createPageReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
-	records, lsn := createRecords(count)
+	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		_, err := sw.Append(rc)
-		if err != nil {
+		if err := sw.Append(rc); err != nil {
 			t.Error(err)
 		}
 	}
 
-	if err := sw.Flush(lsn); err != nil {
+	if err := sw.Flush(); err != nil {
 		t.Error(err)
 	}
 
