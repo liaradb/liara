@@ -94,12 +94,12 @@ func (pr *PageReader) reset() {
 
 func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
 	r := bufio.NewReader(pr.pageReader)
-
+	rb := page.RecordBoundary{}
 	return func(yield func(*record.Record, error) bool) {
 		for {
 			var err error
 			// TODO: This reads past the end of the file
-			if err = page.ValidateCRC(r); err != nil {
+			if err = rb.Validate(r); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}

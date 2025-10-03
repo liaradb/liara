@@ -50,12 +50,12 @@ func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem page.Record
 	pw.header = page.NewHeader(id, tlid, rem)
 }
 
-func (pw *PageWriter) append(crc page.CRC, data []byte) error {
+func (pw *PageWriter) append(rb page.RecordBoundary, data []byte) error {
 	if !pw.canInsert(data) {
 		return ErrInsufficientSpace
 	}
 
-	if err := pw.insert(crc, data); err != nil {
+	if err := pw.insert(rb, data); err != nil {
 		pw.reset()
 		return err
 	}
@@ -79,8 +79,8 @@ func (pw *PageWriter) available() int {
 	return pw.writer.Available()
 }
 
-func (pw *PageWriter) insert(crc page.CRC, data []byte) error {
-	if err := page.WriteCRC(crc, data, pw.writeBuf); err != nil {
+func (pw *PageWriter) insert(rb page.RecordBoundary, data []byte) error {
+	if err := rb.Write(pw.writeBuf); err != nil {
 		return err
 	}
 
@@ -183,11 +183,12 @@ func (pw *PageWriter) skipHeader(rd io.Reader) error {
 }
 
 func (pw *PageWriter) records(rd io.Reader) iter.Seq2[*record.Record, error] {
+	rb := &page.RecordBoundary{}
 	return func(yield func(*record.Record, error) bool) {
 
 		for {
 			var err error
-			if err = page.SkipCRC(rd); err != nil {
+			if err = rb.Skip(rd); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}

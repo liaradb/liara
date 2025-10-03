@@ -12,12 +12,16 @@ const CrcSize = 4
 
 var table = crc32.MakeTable(crc32.Castagnoli)
 
-func NewCRC(data []byte) CRC {
-	return CRC(crc32.Checksum(data, table))
+func NewCRC(d []byte) CRC {
+	return CRC(crc32.Checksum(d, table))
 }
 
-func (c CRC) Compare(data []byte) bool {
-	return NewCRC(data) == c
+func (c CRC) Size() int {
+	return CrcSize
+}
+
+func (c CRC) Compare(d []byte) bool {
+	return NewCRC(d) == c
 }
 
 func (c CRC) Write(w io.Writer) error {

@@ -61,8 +61,8 @@ func (lw *LogWriter) recordToBytes(rc *record.Record) ([]byte, error) {
 }
 
 func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
-	crc := page.NewCRC(data)
-	if err := lw.appendOrNext(crc, data); err != nil {
+	rb := page.NewRecordBoundary(data)
+	if err := lw.appendOrNext(rb, data); err != nil {
 		if err == ErrInsufficientSpace {
 			// TODO: Fix this
 			return lw.highWater + 1, err
@@ -74,19 +74,19 @@ func (lw *LogWriter) append(data []byte) (record.LogSequenceNumber, error) {
 	return lw.highWater, nil
 }
 
-func (lw *LogWriter) appendOrNext(crc page.CRC, data []byte) error {
-	if err := lw.pageWriter.append(crc, data); err != nil {
+func (lw *LogWriter) appendOrNext(rb page.RecordBoundary, data []byte) error {
+	if err := lw.pageWriter.append(rb, data); err != nil {
 		if err != ErrInsufficientSpace {
 			return err
 		}
 
-		return lw.next(crc, data)
+		return lw.next(rb, data)
 	}
 
 	return nil
 }
 
-func (lw *LogWriter) next(crc page.CRC, data []byte) error {
+func (lw *LogWriter) next(rb page.RecordBoundary, data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
 	if err := lw.pageWriter.Flush(lw.readWriter); err != nil {
@@ -102,7 +102,7 @@ func (lw *LogWriter) next(crc page.CRC, data []byte) error {
 	// TODO: Don't replace LogPageWriter
 	lw.pageWriter = newPageWriter(lw.pageSize)
 	lw.pageWriter.init(lw.pageID, lw.timeLineID, 0)
-	return lw.pageWriter.append(crc, data)
+	return lw.pageWriter.append(rb, data)
 }
 
 func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {

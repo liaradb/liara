@@ -50,13 +50,13 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	crc := page.NewCRC(data)
+	rb := page.NewRecordBoundary(data)
 
-	if err := pw.append(crc, data); err != nil {
+	if err := pw.append(rb, data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := pw.append(crc, data); err != nil {
+	if err := pw.append(rb, data); err != nil {
 		t.Fatal(err)
 	}
 

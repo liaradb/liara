@@ -5,41 +5,55 @@ import (
 	"io"
 )
 
-const RecordHeaderSize = CrcSize + RecordLengthSize
-
-func WriteCRC(crc CRC, data []byte, w *bufio.Writer) error {
-	if err := crc.Write(w); err != nil {
-		return err
-	}
-
-	if err := NewRecordLength(data).Write(w); err != nil {
-		return err
-	}
-
-	return nil
+type RecordBoundary struct {
+	crc    CRC
+	length RecordLength
 }
 
-func ValidateCRC(r *bufio.Reader) error {
-	var c CRC
-	if err := c.Read(r); err != nil {
+const RecordHeaderSize = CrcSize + RecordLengthSize
+
+func NewRecordBoundary(d []byte) RecordBoundary {
+	return RecordBoundary{
+		crc:    NewCRC(d),
+		length: NewRecordLength(d),
+	}
+}
+
+func (rb RecordBoundary) Size() int {
+	return rb.crc.Size() + rb.length.Size()
+}
+
+func (rb RecordBoundary) Write(w io.Writer) error {
+	if err := rb.crc.Write(w); err != nil {
 		return err
 	}
 
-	rl := RecordLength(0)
-	if err := rl.Read(r); err != nil {
+	return rb.length.Write(w)
+}
+
+func (rb *RecordBoundary) Read(r io.Reader) error {
+	if err := rb.crc.Read(r); err != nil {
 		return err
 	}
 
-	if rl == 0 {
+	return rb.length.Read(r)
+}
+
+func (rb *RecordBoundary) Validate(r *bufio.Reader) error {
+	if err := rb.Read(r); err != nil {
+		return err
+	}
+
+	if rb.length == 0 {
 		return io.EOF
 	}
 
-	d, err := r.Peek(int(rl))
+	d, err := r.Peek(int(rb.length))
 	if err != nil {
 		return err
 	}
 
-	if !c.Compare(d) {
+	if !rb.crc.Compare(d) {
 		return ErrInvalidCRC
 	}
 
@@ -47,18 +61,12 @@ func ValidateCRC(r *bufio.Reader) error {
 }
 
 // TODO: We need to rewind the length
-func SkipCRC(r io.Reader) error {
-	var c CRC
-	if err := c.Read(r); err != nil {
+func (rb *RecordBoundary) Skip(r io.Reader) error {
+	if err := rb.Read(r); err != nil {
 		return err
 	}
 
-	rl := RecordLength(0)
-	if err := rl.Read(r); err != nil {
-		return err
-	}
-
-	if rl == 0 {
+	if rb.length == 0 {
 		return io.EOF
 	}
 
