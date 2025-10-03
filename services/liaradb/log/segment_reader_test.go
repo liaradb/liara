@@ -14,7 +14,7 @@ import (
 func TestSegmentReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	_, lr, lw := createSegmentReaderWriter(t)
+	f, lr, lw := createSegmentReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
 	records, lsn := createRecords(count)
@@ -31,7 +31,7 @@ func TestSegmentReader_Iterate(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	for rc, err := range lr.Iterate() {
+	for rc, err := range lr.Iterate(f) {
 		c++
 		if err != nil {
 			t.Fatal(err)
@@ -72,7 +72,7 @@ func TestSegmentReader_Reverse(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	for rc, err := range sr.Reverse(stat.Size()) {
+	for rc, err := range sr.Reverse(stat.Size(), f) {
 		c++
 		if err != nil {
 			t.Fatal(err)
@@ -100,7 +100,7 @@ func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *LogWri
 
 	lw := NewLogWriter(256, 3, f)
 	_ = lw.Initialize()
-	return f, NewSegmentReader(256, f), lw
+	return f, NewSegmentReader(256), lw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
