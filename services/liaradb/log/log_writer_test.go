@@ -9,20 +9,32 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestSegmentWriter_Append(t *testing.T) {
+func TestLogWriter_Default(t *testing.T) {
 	t.Parallel()
 
-	sw := createSegmentWriter(t)
+	l := createLogWriter(t)
+
+	testPosition(t, l, 0, 0)
+}
+
+func TestLogWriter_Append(t *testing.T) {
+	t.Parallel()
+
+	lw := createLogWriter(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
-	if _, err := sw.Append(rec); err != nil {
+	if lsn, err := lw.Append(rec); err != nil {
 		t.Error(err)
+	} else if lsn != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
+
+	testPosition(t, lw, 0, 1)
 }
 
-func TestSegmentWriter_Flush(t *testing.T) {
+func TestLogWriter_Flush(t *testing.T) {
 	t.Parallel()
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -32,67 +44,71 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
-		sw := createSegmentWriter(t)
+		lw := createLogWriter(t)
 
-		lsn1, err := sw.Append(rec)
+		lsn1, err := lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = sw.Append(rec)
+		_, err = lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := sw.Flush(lsn1); err != nil {
+		if err := lw.Flush(lsn1); err != nil {
 			t.Error(err)
 		}
+
+		testPosition(t, lw, 1, 2)
 	})
 
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
 		t.Parallel()
 
-		sw := createSegmentWriter(t)
+		lw := createLogWriter(t)
 
-		_, err := sw.Append(rec)
+		_, err := lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = sw.Append(rec)
+		_, err = lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := sw.Flush(10); err != nil {
+		if err := lw.Flush(10); err != nil {
 			t.Error(err)
 		}
+
+		testPosition(t, lw, 2, 2)
 	})
 
 	t.Run("should write to multiple pages", func(t *testing.T) {
 		t.Parallel()
 
-		l := createSegmentWriter(t)
+		lw := createLogWriter(t)
 
 		count := 10
 
 		for range count - 1 {
-			_, err := l.Append(rec)
+			_, err := lw.Append(rec)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := l.Append(rec)
+		lsn2, err := lw.Append(rec)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(lsn2); err != nil {
+		if err := lw.Flush(lsn2); err != nil {
 			t.Fatal(err)
 		}
 
-		if p := l.PageID(); p != 2 {
+		if p := lw.PageID(); p != 2 {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
 	})
@@ -106,31 +122,31 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should write after flushing", func(t *testing.T) {
 		t.Parallel()
 
-		l := createLogWriter(t)
+		lw := createLogWriter(t)
 
-		lsn1, err := l.Append(rec)
+		lsn1, err := lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(lsn1); err != nil {
+		if err := lw.Flush(lsn1); err != nil {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Append(rec)
+		lsn2, err := lw.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(lsn2); err != nil {
+		if err := lw.Flush(lsn2); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, l, 2, 2)
+		testPosition(t, lw, 2, 2)
 	})
 }
 
-func createSegmentWriter(t *testing.T) *SegmentWriter {
+func createLogWriter(t *testing.T) *LogWriter {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
@@ -138,7 +154,17 @@ func createSegmentWriter(t *testing.T) *SegmentWriter {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewSegmentWriter(256, 3, f)
-	_ = sw.Initialize()
-	return sw
+	lw := NewLogWriter(256, 3, f)
+	_ = lw.Initialize()
+	return lw
+}
+
+func testPosition(t *testing.T, sw *LogWriter, lw, hw record.LogSequenceNumber) {
+	if h := sw.HighWater(); h != hw {
+		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
+	}
+
+	if l := sw.LowWater(); l != lw {
+		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
+	}
 }
