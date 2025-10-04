@@ -13,7 +13,7 @@ import (
 type Log struct {
 	pageSize    int64
 	segmentSize page.PageID
-	sl          *segment.SegmentList
+	sl          *segment.List
 	writer      *LogWriter
 }
 
@@ -26,7 +26,7 @@ func NewLog(
 	return &Log{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
-		sl:          segment.NewSegmentList(fsys, dir),
+		sl:          segment.NewList(fsys, dir),
 	}
 }
 

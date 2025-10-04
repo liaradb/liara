@@ -12,7 +12,7 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestSegmentList_Open(t *testing.T) {
+func TestList_Open(t *testing.T) {
 	t.Parallel()
 
 	var count SegmentID = 10
@@ -21,7 +21,7 @@ func TestSegmentList_Open(t *testing.T) {
 		t.Parallel()
 
 		fsys := createFiles(0, count)
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
@@ -39,7 +39,7 @@ func TestSegmentList_Open(t *testing.T) {
 		t.Parallel()
 
 		fsys := createFiles(9998, count)
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
@@ -54,7 +54,7 @@ func TestSegmentList_Open(t *testing.T) {
 	})
 }
 
-func TestSegmentList_OpenLatestSegment(t *testing.T) {
+func TestList_OpenLatestSegment(t *testing.T) {
 	t.Parallel()
 
 	for message, test := range map[string]struct {
@@ -75,7 +75,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sl := NewSegmentList(test.fsys, dir)
+			sl := NewList(test.fsys, dir)
 
 			sn, f, err := sl.OpenLatestSegment()
 			if err != nil {
@@ -91,7 +91,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			}
 
 			if names := sl.Names(); !slices.Contains(names, sn) {
-				t.Errorf("segment list does not contain segment: %v", sn)
+				t.Errorf("list does not contain segment: %v", sn)
 			}
 		})
 	}
@@ -103,7 +103,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 			createPath(NewSegmentName(1, 10)): {},
 			createPath(NewSegmentName(2, 20)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		_, f, err := sl.OpenLatestSegment()
 		if err != nil {
@@ -124,7 +124,7 @@ func TestSegmentList_OpenLatestSegment(t *testing.T) {
 	})
 }
 
-func TestSegmentList_IterateFromLSN(t *testing.T) {
+func TestList_IterateFromLSN(t *testing.T) {
 	t.Parallel()
 
 	sn0 := NewSegmentName(1, 10)
@@ -136,7 +136,7 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 		createPath(sn1): {},
 		createPath(sn2): {},
 	})
-	sl := NewSegmentList(fsys, dir)
+	sl := NewList(fsys, dir)
 
 	c := 0
 	n := make([]SegmentName, 0, 3)
@@ -157,14 +157,14 @@ func TestSegmentList_IterateFromLSN(t *testing.T) {
 	}
 }
 
-func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
+func TestList_OpenSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
 	fsys := mock.NewFileSystem(fstest.MapFS{
 		createPath(NewSegmentName(1, 10)): {},
 		createPath(NewSegmentName(2, 20)): {},
 	})
-	sl := NewSegmentList(fsys, dir)
+	sl := NewList(fsys, dir)
 
 	for message, test := range map[string]struct {
 		search record.LogSequenceNumber
@@ -212,7 +212,7 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 			createPath(NewSegmentName(1, 10)): {},
 			createPath(NewSegmentName(2, 20)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		_, f, err := sl.OpenSegmentForLSN(10)
 		if err != nil {
@@ -229,7 +229,7 @@ func TestSegmentList_OpenSegmentForLSN(t *testing.T) {
 	})
 }
 
-func TestSegmentList_OpenNextSegment(t *testing.T) {
+func TestList_OpenNextSegment(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should open next segment", func(t *testing.T) {
@@ -237,7 +237,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 			createPath(NewSegmentName(1, 10)): {},
 			createPath(NewSegmentName(2, 20)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		sn, f, err := sl.OpenNextSegment(30)
 		if err != nil {
@@ -253,7 +253,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 		}
 
 		if names := sl.Names(); len(names) <= 3 && !slices.Contains(names, sn) {
-			t.Errorf("segment list does not contain segment: %v", sn)
+			t.Errorf("list does not contain segment: %v", sn)
 		}
 
 		// Open again to verify
@@ -262,7 +262,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 		}
 
 		if names := sl.Names(); len(names) <= 3 && !slices.Contains(names, sn) {
-			t.Errorf("segment list does not contain segment: %v", sn)
+			t.Errorf("list does not contain segment: %v", sn)
 		}
 	})
 
@@ -272,7 +272,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 		fsys := mock.NewFileSystem(fstest.MapFS{
 			createPath(NewSegmentName(1, 10)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		_, f, err := sl.OpenNextSegment(20)
 		if err != nil {
@@ -289,7 +289,7 @@ func TestSegmentList_OpenNextSegment(t *testing.T) {
 	})
 }
 
-func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
+func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should open segment", func(t *testing.T) {
@@ -298,7 +298,7 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(NewSegmentName(2, 20)): {},
 			createPath(NewSegmentName(3, 30)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		sn, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
@@ -314,7 +314,7 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 		}
 
 		if names := sl.Names(); !slices.Contains(names, sn) {
-			t.Errorf("segment list does not contain segment: %v", sn)
+			t.Errorf("list does not contain segment: %v", sn)
 		}
 	})
 
@@ -326,7 +326,7 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(NewSegmentName(2, 20)): {},
 			createPath(NewSegmentName(3, 30)): {},
 		})
-		sl := NewSegmentList(fsys, dir)
+		sl := NewList(fsys, dir)
 
 		_, f, err := sl.OpenSegmentBeforeLSN(30)
 		if err != nil {
@@ -343,21 +343,21 @@ func TestSegmentList_OpenSegmentBeforeLSN(t *testing.T) {
 	})
 }
 
-func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
+func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 	t.Parallel()
 
 	fsys := mock.NewFileSystem(fstest.MapFS{
 		createPath(NewSegmentName(1, 10)): {},
 		createPath(NewSegmentName(2, 20)): {},
 	})
-	sl := NewSegmentList(fsys, dir)
+	sl := NewList(fsys, dir)
 
 	if err := sl.RemoveSegmentBeforeLSN(20); err != nil {
 		t.Fatal(err)
 	}
 
 	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
-		t.Errorf("segment list is incorrect: %v", names)
+		t.Errorf("list is incorrect: %v", names)
 	}
 
 	// Open again to verify
@@ -366,11 +366,11 @@ func TestSegmentList_RemoveSegmentBeforeLSN(t *testing.T) {
 	}
 
 	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
-		t.Errorf("segment list is incorrect: %v", names)
+		t.Errorf("list is incorrect: %v", names)
 	}
 }
 
-func TestSegmentList_Reverse(t *testing.T) {
+func TestList_Reverse(t *testing.T) {
 	t.Parallel()
 
 	sn0 := NewSegmentName(1, 10)
@@ -383,7 +383,7 @@ func TestSegmentList_Reverse(t *testing.T) {
 		createPath(sn1): {},
 		createPath(sn2): {},
 	})
-	sl := NewSegmentList(fsys, dir)
+	sl := NewList(fsys, dir)
 
 	c := 0
 	n := make([]SegmentName, 0, 3)
