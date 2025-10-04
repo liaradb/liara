@@ -20,11 +20,16 @@ func TestTransaction_Insert(t *testing.T) {
 func testTransaction_Insert(t *testing.T) {
 	l := createLog(t)
 	defer l.Close()
-	ctx := t.Context()
+	m := NewManager(l)
+
+	tx := m.Next()
 
 	var tid record.TransactionID = 1
-	tx := NewTransaction(tid, l)
+	if i := tx.ID(); i != tid {
+		t.Errorf("id does not match: %v, expected: %v", i, tid)
+	}
 
+	ctx := t.Context()
 	if err := tx.Insert(ctx, time.UnixMicro(1234567890), nil); err != nil {
 		t.Fatal(err)
 	}
@@ -59,11 +64,11 @@ func TestTransaction_Commit(t *testing.T) {
 func testTransaction_Commit(t *testing.T) {
 	l := createLog(t)
 	defer l.Close()
+	m := NewManager(l)
+
+	tx := m.Next()
+
 	ctx := t.Context()
-
-	var tid record.TransactionID = 1
-	tx := NewTransaction(tid, l)
-
 	if err := tx.Insert(ctx, time.UnixMicro(1234567890), nil); err != nil {
 		t.Fatal(err)
 	}

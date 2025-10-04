@@ -14,7 +14,7 @@ type Transaction struct {
 	log *log.Log
 }
 
-func NewTransaction(
+func newTransaction(
 	id record.TransactionID,
 	log *log.Log,
 ) *Transaction {
@@ -24,6 +24,7 @@ func NewTransaction(
 	}
 }
 
+func (t Transaction) ID() record.TransactionID                     { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
 
 func (t *Transaction) Insert(ctx context.Context, now time.Time, data []byte) error {
