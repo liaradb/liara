@@ -29,6 +29,7 @@ func NewLog(
 		segmentSize: segmentSize,
 		sl:          sl,
 		reader:      NewLogReader(pageSize, segmentSize, sl),
+		writer:      NewLogWriter(pageSize, segmentSize, sl),
 	}
 }
 
@@ -47,8 +48,7 @@ func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Recor
 		return 0, err
 	}
 
-	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
-	if err := l.writer.Initialize(); err != nil {
+	if err := l.writer.Next(f); err != nil {
 		return 0, err
 	}
 
@@ -80,16 +80,5 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 }
 
 func (l *Log) StartWriter() error {
-	_, f, err := l.sl.OpenLatestSegment()
-	if err != nil {
-		return err
-	}
-
-	stat, err := f.Stat()
-	if err != nil {
-		return err
-	}
-
-	l.writer = NewLogWriter(l.pageSize, l.segmentSize, f)
-	return l.writer.SeekTail(stat.Size())
+	return l.writer.Start()
 }

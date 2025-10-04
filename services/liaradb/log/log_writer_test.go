@@ -1,12 +1,13 @@
 package log
 
 import (
-	"path"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/log/segment"
 )
 
 func TestLogWriter_Default(t *testing.T) {
@@ -149,13 +150,20 @@ func TestLogWriter_Flush(t *testing.T) {
 func createLogWriter(t *testing.T) *LogWriter {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
-	f.Open()
-	// fs := &file.FileSystem{}
-	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
+	fsys := mock.NewFileSystem(fstest.MapFS{
+		"log/": &fstest.MapFile{},
+	})
+	// fsys := &file.FileSystem{}
 
-	lw := NewLogWriter(256, 3, f)
-	_ = lw.Initialize()
+	sl := segment.NewList(fsys, "log")
+
+	lw := NewLogWriter(256, 3, sl)
+	if err := lw.Start(); err != nil {
+		t.Fatal(err)
+	}
+	if err := lw.Initialize(); err != nil {
+		t.Fatal(err)
+	}
 	return lw
 }
 

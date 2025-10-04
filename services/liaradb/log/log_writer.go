@@ -11,16 +11,21 @@ import (
 type LogWriter struct {
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
+	pageSize      int64
+	segmentSize   page.PageID
+	sl            *segment.List
 	segmentWriter *segment.Writer
 }
 
 func NewLogWriter(
 	pageSize int64,
 	segmentSize page.PageID,
-	rw io.ReadWriteSeeker,
+	sl *segment.List,
 ) *LogWriter {
 	return &LogWriter{
-		segmentWriter: segment.NewWriter(pageSize, segmentSize, rw),
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
+		sl:          sl,
 	}
 }
 
@@ -59,4 +64,24 @@ func (lw *LogWriter) Initialize() error {
 
 func (lw *LogWriter) SeekTail(size int64) error {
 	return lw.segmentWriter.SeekTail(size)
+}
+
+func (lw *LogWriter) Start() error {
+	_, f, err := lw.sl.OpenLatestSegment()
+	if err != nil {
+		return err
+	}
+
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	lw.segmentWriter = segment.NewWriter(lw.pageSize, lw.segmentSize, f)
+	return lw.SeekTail(stat.Size())
+}
+
+func (lw *LogWriter) Next(rw io.ReadWriteSeeker) error {
+	lw.segmentWriter = segment.NewWriter(lw.pageSize, lw.segmentSize, rw)
+	return lw.Initialize()
 }
