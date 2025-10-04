@@ -96,14 +96,10 @@ func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
 	tlid := TimeLineID(2)
 	rem := record.Length(3)
 
-	pw := createEmptyWriter()
+	pw := NewWriter(256)
 	pw.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, pw
-}
-
-func createEmptyWriter() *Writer {
-	return NewWriter(256)
 }
 
 func createRecord() (*record.Record, []byte, error) {

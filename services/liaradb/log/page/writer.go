@@ -46,6 +46,8 @@ func (wr *Writer) Data() []byte {
 }
 
 func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
+	wr.writer.Reset()
+	wr.writeBuf.Reset(wr.writer)
 	wr.header = NewHeader(id, tlid, rem)
 }
 

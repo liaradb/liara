@@ -31,6 +31,7 @@ func NewWriter(
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		recordBuf:   bytes.NewBuffer(nil),
+		pageWriter:  page.NewWriter(pageSize),
 	}
 }
 
@@ -88,8 +89,6 @@ func (wr *Writer) next(rb record.Boundary, data []byte) error {
 		return page.ErrInsufficientSpace
 	}
 
-	// TODO: Don't replace LogPageWriter
-	wr.pageWriter = page.NewWriter(wr.pageSize)
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
 	return wr.pageWriter.Append(rb, data)
 }
@@ -113,8 +112,6 @@ func (wr *Writer) Initialize(rw io.ReadWriteSeeker) error {
 	}
 
 	wr.pageID = 0
-	// TODO: Don't replace LogPageWriter
-	wr.pageWriter = page.NewWriter(wr.pageSize)
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
 
 	return nil
@@ -138,8 +135,6 @@ func (wr *Writer) SeekTail(size int64, rw io.ReadWriteSeeker) error {
 
 	// TODO: initialize or jump to tail of Page
 	// Is page initialized?
-	// TODO: Don't replace LogPageWriter
-	wr.pageWriter = page.NewWriter(wr.pageSize)
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
 
 	return wr.pageWriter.SeekTail(wr.readWriter)
