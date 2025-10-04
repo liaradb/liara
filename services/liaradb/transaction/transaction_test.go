@@ -18,9 +18,7 @@ func TestTransaction_Insert(t *testing.T) {
 }
 
 func testTransaction_Insert(t *testing.T) {
-	l := createLog(t)
-	defer l.Close()
-	m := NewManager(l)
+	m, l := createManager(t)
 
 	tx := m.Next()
 
@@ -62,9 +60,7 @@ func TestTransaction_Commit(t *testing.T) {
 }
 
 func testTransaction_Commit(t *testing.T) {
-	l := createLog(t)
-	defer l.Close()
-	m := NewManager(l)
+	m, l := createManager(t)
 
 	tx := m.Next()
 
@@ -100,6 +96,17 @@ func testTransaction_Commit(t *testing.T) {
 	if c != 2 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
 	}
+}
+
+func createManager(t *testing.T) (*Manager, *log.Log) {
+	t.Helper()
+	l := createLog(t)
+	t.Cleanup(func() {
+		if err := l.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	return NewManager(l), l
 }
 
 func createLog(t *testing.T) *log.Log {

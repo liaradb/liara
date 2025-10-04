@@ -10,6 +10,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
@@ -20,10 +21,9 @@ func TestLog_Default(t *testing.T) {
 }
 
 func testLog_Default(t *testing.T) {
-	wr := createLog(t)
-	defer wr.Close()
+	l := createLogStart(t, 3)
 
-	testPosition(t, wr, 0, 0)
+	testPosition(t, l, 0, 0)
 }
 
 func TestLog_Append(t *testing.T) {
@@ -34,17 +34,17 @@ func TestLog_Append(t *testing.T) {
 func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
-	wr := createLog(t)
+	l := createLogStart(t, 3)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
+	if lsn, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, wr, 0, 1)
+	testPosition(t, l, 0, 1)
 }
 
 func TestLog_Flush(t *testing.T) {
@@ -56,71 +56,71 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should flush", func(t *testing.T) {
 		ctx := t.Context()
 
-		wr := createLog(t)
+		l := createLogStart(t, 3)
 
-		lsn1, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(ctx, lsn1); err != nil {
+		if err := l.Flush(ctx, lsn1); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, wr, 1, 2)
+		testPosition(t, l, 1, 2)
 	})
 
 	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
 		ctx := t.Context()
 
-		wr := createLog(t)
+		l := createLogStart(t, 3)
 
-		_, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(ctx, 10); err != nil {
+		if err := l.Flush(ctx, 10); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, wr, 2, 2)
+		testPosition(t, l, 2, 2)
 	})
 
 	runTest(t, "should write to multiple pages", func(t *testing.T) {
 		ctx := t.Context()
 
-		wr := createLog(t)
+		l := createLogStart(t, 3)
 
 		count := 10
 
 		for range count - 1 {
-			_, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+			_, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if err := wr.Flush(ctx, lsn2); err != nil {
+		if err := l.Flush(ctx, lsn2); err != nil {
 			t.Fatal(err)
 		}
 
-		if p := wr.PageID(); p != 2 {
+		if p := l.PageID(); p != 2 {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
 	})
@@ -133,27 +133,27 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should write after flushing", func(t *testing.T) {
 		ctx := t.Context()
 
-		wr := createLog(t)
+		l := createLogStart(t, 3)
 
-		lsn1, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(ctx, lsn1); err != nil {
+		if err := l.Flush(ctx, lsn1); err != nil {
 			t.Error(err)
 		}
 
-		lsn2, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(ctx, lsn2); err != nil {
+		if err := l.Flush(ctx, lsn2); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, wr, 2, 2)
+		testPosition(t, l, 2, 2)
 	})
 }
 
@@ -163,18 +163,7 @@ func TestLog_EmptyReader(t *testing.T) {
 }
 
 func testLog_EmptyReader(t *testing.T) {
-	fsys, dir := createFiles(t)
-
-	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		if err := l.Close(); err != nil {
-			t.Error(err)
-		}
-	}()
+	l := createLog(t, 2)
 
 	for _, err := range l.Iterate(0) {
 		if err != segment.ErrNoSegmentFile {
@@ -191,22 +180,7 @@ func TestLog_Iterate(t *testing.T) {
 func testLog_Iterate(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
-
-	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		if err := l.Close(); err != nil {
-			t.Error(err)
-		}
-	}()
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
+	l := createLogStart(t, 2)
 
 	records, _ := createRecords(100)
 	var lsn record.LogSequenceNumber
@@ -432,22 +406,7 @@ func TestLog_Reverse(t *testing.T) {
 func testLog_Reverse(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
-
-	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	defer func() {
-		if err := l.Close(); err != nil {
-			t.Error(err)
-		}
-	}()
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
+	l := createLogStart(t, 2)
 
 	records, _ := createRecords(100)
 	var lsn record.LogSequenceNumber
@@ -484,20 +443,39 @@ func testLog_Reverse(t *testing.T) {
 	}
 }
 
-func createLog(t *testing.T) *Log {
+func createLogStart(t *testing.T, segmentSize page.PageID) *Log {
 	t.Helper()
 
-	fsys, dir := createFiles(t)
-	l := NewLog(256, 3, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
+	l := createLog(t, segmentSize)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
 
 	return l
+}
+
+func createLog(t *testing.T, segmentSize page.PageID) *Log {
+	t.Helper()
+
+	fsys, dir := createFiles(t)
+	l := NewLog(256, segmentSize, fsys, dir)
+	if err := l.Open(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	cleanupLog(t, l)
+
+	return l
+}
+
+func cleanupLog(t *testing.T, l *Log) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		if err := l.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 }
 
 func createFiles(t *testing.T) (file.FileSystem, string) {
