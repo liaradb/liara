@@ -75,6 +75,7 @@ func (rd *reader) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
+			// TODO: Don't create new reader every iteration
 			sr := segment.NewReader(rd.pageSize)
 			for rc, err := range sr.Reverse(stat.Size(), f) {
 				if err != nil {

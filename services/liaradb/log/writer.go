@@ -11,8 +11,6 @@ import (
 type writer struct {
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
-	pageSize      int64
-	segmentSize   page.PageID
 	sl            *segment.List
 	segmentWriter *segment.Writer
 }
@@ -23,8 +21,6 @@ func newWriter(
 	sl *segment.List,
 ) *writer {
 	return &writer{
-		pageSize:      pageSize,
-		segmentSize:   segmentSize,
 		sl:            sl,
 		segmentWriter: segment.NewWriter(pageSize, segmentSize),
 	}
@@ -35,21 +31,12 @@ func (wr *writer) LowWater() record.LogSequenceNumber  { return wr.lowWater }
 func (wr *writer) PageID() page.PageID                 { return wr.segmentWriter.PageID() }
 
 func (wr *writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	lsn, err := wr.appendToSegment(rc)
+	err := wr.appendToSegment(rc)
 	if err == page.ErrInsufficientSpace {
-		return wr.appendToNextSegment(lsn, rc)
+		err = wr.appendToNextSegment(rc)
 	}
 
-	return lsn, err
-}
-
-func (wr *writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
-	err := wr.segmentWriter.Append(rc)
 	if err != nil {
-		if err == page.ErrInsufficientSpace {
-			// TODO: Fix this
-			return wr.highWater + 1, err
-		}
 		return 0, err
 	}
 
@@ -57,21 +44,33 @@ func (wr *writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, 
 	return wr.highWater, nil
 }
 
-func (wr *writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
-	_, f, err := wr.sl.OpenNextSegment(lsn)
+func (wr *writer) appendToSegment(rc *record.Record) error {
+	err := wr.segmentWriter.Append(rc)
 	if err != nil {
-		return 0, err
+		if err == page.ErrInsufficientSpace {
+			return err
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (wr *writer) appendToNextSegment(rc *record.Record) error {
+	_, f, err := wr.sl.OpenNextSegment(wr.highWater)
+	if err != nil {
+		return err
 	}
 
 	if err := wr.next(f); err != nil {
-		return 0, err
+		return err
 	}
 
 	return wr.appendToSegment(rc)
 }
 
 func (wr *writer) next(rw io.ReadWriteSeeker) error {
-	return wr.initialize(rw)
+	return wr.segmentWriter.Initialize(rw)
 }
 
 func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
@@ -83,14 +82,6 @@ func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
 	lsn = min(lsn, wr.highWater)
 	wr.lowWater = lsn
 	return nil
-}
-
-func (wr *writer) initialize(rw io.ReadWriteSeeker) error {
-	return wr.segmentWriter.Initialize(rw)
-}
-
-func (wr *writer) seekTail(size int64, rw io.ReadWriteSeeker) error {
-	return wr.segmentWriter.SeekTail(size, rw)
 }
 
 func (wr *writer) Start() error {
@@ -105,4 +96,8 @@ func (wr *writer) Start() error {
 	}
 
 	return wr.seekTail(stat.Size(), f)
+}
+
+func (wr *writer) seekTail(size int64, rw io.ReadWriteSeeker) error {
+	return wr.segmentWriter.SeekTail(size, rw)
 }
