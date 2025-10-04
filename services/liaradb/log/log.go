@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"iter"
 	"time"
 
@@ -16,6 +17,8 @@ type Log struct {
 	writer    *writer
 	highWater record.LogSequenceNumber
 	lowWater  record.LogSequenceNumber
+	requests  chan *request
+	cancel    context.CancelFunc
 }
 
 func NewLog(
@@ -26,9 +29,10 @@ func NewLog(
 ) *Log {
 	sl := segment.NewList(fsys, dir)
 	return &Log{
-		sl:     sl,
-		reader: newReader(pageSize, sl),
-		writer: newWriter(pageSize, segmentSize, sl),
+		sl:       sl,
+		reader:   newReader(pageSize, sl),
+		writer:   newWriter(pageSize, segmentSize, sl),
+		requests: make(chan *request),
 	}
 }
 
@@ -36,7 +40,46 @@ func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) PageID() page.PageID                 { return l.writer.PageID() }
 
+func (l *Log) run(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case r := <-l.requests:
+			l.request(r)
+		}
+	}
+}
+
+func (l *Log) request(r *request) {
+	lsn, err := l.append(r.tid, r.time, r.action, r.data, r.reverse)
+	r.Reply(lsn, err)
+}
+
 func (l *Log) Append(
+	ctx context.Context,
+	tid record.TransactionID,
+	time time.Time,
+	action record.Action,
+	data []byte,
+	reverse []byte,
+) (record.LogSequenceNumber, error) {
+	req := newRequest(tid, time, action, data, reverse)
+
+	select {
+	case l.requests <- req:
+	case <-ctx.Done():
+	}
+
+	select {
+	case res := <-req.response:
+		return res.lsn, res.err
+	case <-ctx.Done():
+		return 0, context.Canceled
+	}
+}
+
+func (l *Log) append(
 	tid record.TransactionID,
 	time time.Time,
 	action record.Action,
@@ -53,6 +96,10 @@ func (l *Log) Append(
 }
 
 func (l *Log) Close() error {
+	if l.cancel != nil {
+		l.cancel()
+	}
+
 	return l.sl.Close()
 }
 
@@ -71,8 +118,15 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 	return l.reader.Iterate(lsn)
 }
 
-func (l *Log) Open() error {
-	return l.sl.Open()
+func (l *Log) Open(ctx context.Context) error {
+	if err := l.sl.Open(); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	l.cancel = cancel
+	go l.run(ctx)
+	return nil
 }
 
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {

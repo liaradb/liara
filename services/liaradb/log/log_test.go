@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 	"testing/fstest"
+	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/file"
@@ -15,20 +16,29 @@ import (
 
 func TestLog_Default(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_Default)
+}
 
+func testLog_Default(t *testing.T) {
 	wr := createLog(t)
+	defer wr.Close()
 
 	testPosition(t, wr, 0, 0)
 }
 
 func TestLog_Append(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_Append)
+}
+
+func testLog_Append(t *testing.T) {
+	ctx := t.Context()
 
 	wr := createLog(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
+	if lsn, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -43,17 +53,17 @@ func TestLog_Flush(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	t.Run("should flush", func(t *testing.T) {
-		t.Parallel()
+	runTest(t, "should flush", func(t *testing.T) {
+		ctx := t.Context()
 
 		wr := createLog(t)
 
-		lsn1, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -65,17 +75,17 @@ func TestLog_Flush(t *testing.T) {
 		testPosition(t, wr, 1, 2)
 	})
 
-	t.Run("should not flush beyond HighWater", func(t *testing.T) {
-		t.Parallel()
+	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
+		ctx := t.Context()
 
 		wr := createLog(t)
 
-		_, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -87,21 +97,21 @@ func TestLog_Flush(t *testing.T) {
 		testPosition(t, wr, 2, 2)
 	})
 
-	t.Run("should write to multiple pages", func(t *testing.T) {
-		t.Parallel()
+	runTest(t, "should write to multiple pages", func(t *testing.T) {
+		ctx := t.Context()
 
 		wr := createLog(t)
 
 		count := 10
 
 		for range count - 1 {
-			_, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+			_, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,18 +125,17 @@ func TestLog_Flush(t *testing.T) {
 		}
 	})
 
-	t.Run("should return error if appending beyond maximum", func(t *testing.T) {
-		t.Parallel()
+	runTest(t, "should return error if appending beyond maximum", func(t *testing.T) {
 		t.Skip()
 		// TODO: Test this
 	})
 
-	t.Run("should write after flushing", func(t *testing.T) {
-		t.Parallel()
+	runTest(t, "should write after flushing", func(t *testing.T) {
+		ctx := t.Context()
 
 		wr := createLog(t)
 
-		lsn1, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -135,7 +144,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := wr.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -150,11 +159,14 @@ func TestLog_Flush(t *testing.T) {
 
 func TestLog_EmptyReader(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_EmptyReader)
+}
 
+func testLog_EmptyReader(t *testing.T) {
 	fsys, dir := createFiles(t)
 
 	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(); err != nil {
+	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -173,11 +185,16 @@ func TestLog_EmptyReader(t *testing.T) {
 
 func TestLog_Iterate(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_Iterate)
+}
+
+func testLog_Iterate(t *testing.T) {
+	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
 
 	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(); err != nil {
+	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -195,7 +212,7 @@ func TestLog_Iterate(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+		lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -214,7 +231,9 @@ func TestLog_Iterate(t *testing.T) {
 		rec := records[i]
 
 		if !reflect.DeepEqual(rc, rec) {
-			t.Error("records do not match")
+			t.Errorf("records do not match: %v, expected: %v",
+				rc.LogSequenceNumber(),
+				rec.LogSequenceNumber())
 		}
 		i++
 	}
@@ -225,15 +244,16 @@ func TestLog_Iterate(t *testing.T) {
 
 func TestLog_Recover(t *testing.T) {
 	t.Parallel()
+	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
 	records, _ := createRecords(2)
 	r0 := records[0]
 	r1 := records[1]
 
-	t.Run("should append and flush", func(t *testing.T) {
+	{ // "should append and flush"
 		l := NewLog(256, 2, fsys, dir)
-		if err := l.Open(); err != nil {
+		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -241,7 +261,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn1, err := l.Append(r0.TransactionID(), r0.Time(), r0.Action(), r0.Data(), r0.Reverse())
+		lsn1, err := l.Append(ctx, r0.TransactionID(), r0.Time(), r0.Action(), r0.Data(), r0.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -250,7 +270,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn2, err := l.Append(r1.TransactionID(), r1.Time(), r1.Action(), r1.Data(), r1.Reverse())
+		lsn2, err := l.Append(ctx, r1.TransactionID(), r1.Time(), r1.Action(), r1.Data(), r1.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -262,11 +282,11 @@ func TestLog_Recover(t *testing.T) {
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
 		}
-	})
+	}
 
-	t.Run("should recover", func(t *testing.T) {
+	{ //"should recover"
 		l := NewLog(256, 2, fsys, dir)
-		if err := l.Open(); err != nil {
+		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -284,18 +304,21 @@ func TestLog_Recover(t *testing.T) {
 			rec := records[i]
 
 			if !reflect.DeepEqual(rc, rec) {
-				t.Error("records do not match")
+				t.Errorf("records do not match: %v, expected: %v",
+					rc.LogSequenceNumber(),
+					rec.LogSequenceNumber())
 			}
 			i++
 		}
 		if i != 2 {
 			t.Errorf("incorrect count: %v, expected: %v", i, 2)
 		}
-	})
+	}
 }
 
 func TestLog_RecoverMany(t *testing.T) {
 	t.Parallel()
+	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
 
@@ -306,9 +329,9 @@ func TestLog_RecoverMany(t *testing.T) {
 	records2, _ := createRecords(aCount2)
 	records := append(records1, records2...)
 
-	t.Run("should append and flush", func(t *testing.T) {
+	{ // "should append and flush"
 		l := NewLog(256, 2, fsys, dir)
-		if err := l.Open(); err != nil {
+		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -319,7 +342,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records1 {
-			lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+			lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -338,7 +361,9 @@ func TestLog_RecoverMany(t *testing.T) {
 			rec := records1[i]
 
 			if !reflect.DeepEqual(rc, rec) {
-				t.Error("records do not match")
+				t.Errorf("records do not match: %v, expected: %v",
+					rc.LogSequenceNumber(),
+					rec.LogSequenceNumber())
 			}
 			i++
 		}
@@ -349,11 +374,11 @@ func TestLog_RecoverMany(t *testing.T) {
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
 		}
-	})
+	}
 
-	t.Run("should append and flush more and iterate", func(t *testing.T) {
+	{ // "should append and flush more and iterate"
 		l := NewLog(256, 2, fsys, dir)
-		if err := l.Open(); err != nil {
+		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -364,7 +389,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records2 {
-			lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+			lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -396,16 +421,21 @@ func TestLog_RecoverMany(t *testing.T) {
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
 		}
-	})
+	}
 }
 
 func TestLog_Reverse(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_Reverse)
+}
+
+func testLog_Reverse(t *testing.T) {
+	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
 
 	l := NewLog(256, 2, fsys, dir)
-	if err := l.Open(); err != nil {
+	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -423,7 +453,7 @@ func TestLog_Reverse(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+		lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -443,7 +473,9 @@ func TestLog_Reverse(t *testing.T) {
 		rec := records[i]
 
 		if !reflect.DeepEqual(rc, rec) {
-			t.Error("records do not match")
+			t.Errorf("records do not match: %v, expected: %v",
+				rc.LogSequenceNumber(),
+				rec.LogSequenceNumber())
 		}
 		i++
 	}
@@ -457,7 +489,7 @@ func createLog(t *testing.T) *Log {
 
 	fsys, dir := createFiles(t)
 	l := NewLog(256, 3, fsys, dir)
-	if err := l.Open(); err != nil {
+	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -492,4 +524,8 @@ func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
 	if l := l.LowWater(); l != lw {
 		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
 	}
+}
+
+func runTest(t *testing.T, message string, f func(t *testing.T)) bool {
+	return t.Run(message, func(t *testing.T) { t.Parallel(); synctest.Test(t, f) })
 }

@@ -152,6 +152,7 @@ func (wr *Writer) SeekTail(r io.Reader) error {
 		}
 	}
 
+	// TODO: Calculate this with Size methods
 	l := wr.bufferSize(b)
 	wr.writer = bytes.NewBuffer(wr.data[:l])
 	wr.writeBuf = bufio.NewWriter(wr.writer)

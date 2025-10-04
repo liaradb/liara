@@ -26,7 +26,6 @@ func newWriter(
 
 func (wr *writer) PageID() page.PageID { return wr.segmentWriter.PageID() }
 
-// TODO: Merge rc and lsn
 func (wr *writer) Append(rc *record.Record) error {
 	err := wr.appendToSegment(rc)
 	if err == page.ErrInsufficientSpace {
