@@ -9,18 +9,18 @@ import (
 	"github.com/liaradb/liaradb/log/segment"
 )
 
-type Reader struct {
+type reader struct {
 	pageSize    int64
 	segmentSize page.PageID
 	sl          *segment.List
 }
 
-func NewReader(
+func newReader(
 	pageSize int64,
 	segmentSize page.PageID,
 	sl *segment.List,
-) *Reader {
-	return &Reader{
+) *reader {
+	return &reader{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		sl:          sl,
@@ -31,7 +31,7 @@ func NewReader(
 // Iterate in reverse until record type.
 //
 // Then iterate forward entil end of log.
-func (rd *Reader) Recover() (iter.Seq[*record.Record], error) {
+func (rd *reader) Recover() (iter.Seq[*record.Record], error) {
 	rcs := list.New()
 
 	for f, err := range rd.sl.Reverse() {
@@ -61,7 +61,7 @@ func (rd *Reader) Recover() (iter.Seq[*record.Record], error) {
 	return listToIterator[*record.Record](rcs), nil
 }
 
-func (rd *Reader) Reverse() iter.Seq2[*record.Record, error] {
+func (rd *reader) Reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range rd.sl.Reverse() {
 			if err != nil {
@@ -90,7 +90,7 @@ func (rd *Reader) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (rd *Reader) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+func (rd *reader) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range rd.sl.IterateFromLSN(lsn) {
 			if err != nil {

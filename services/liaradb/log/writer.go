@@ -8,7 +8,7 @@ import (
 	"github.com/liaradb/liaradb/log/segment"
 )
 
-type Writer struct {
+type writer struct {
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
 	pageSize      int64
@@ -17,23 +17,23 @@ type Writer struct {
 	segmentWriter *segment.Writer
 }
 
-func NewWriter(
+func newWriter(
 	pageSize int64,
 	segmentSize page.PageID,
 	sl *segment.List,
-) *Writer {
-	return &Writer{
+) *writer {
+	return &writer{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		sl:          sl,
 	}
 }
 
-func (wr *Writer) HighWater() record.LogSequenceNumber { return wr.highWater }
-func (wr *Writer) LowWater() record.LogSequenceNumber  { return wr.lowWater }
-func (wr *Writer) PageID() page.PageID                 { return wr.segmentWriter.PageID() }
+func (wr *writer) HighWater() record.LogSequenceNumber { return wr.highWater }
+func (wr *writer) LowWater() record.LogSequenceNumber  { return wr.lowWater }
+func (wr *writer) PageID() page.PageID                 { return wr.segmentWriter.PageID() }
 
-func (wr *Writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+func (wr *writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	lsn, err := wr.appendToSegment(rc)
 	if err == page.ErrInsufficientSpace {
 		return wr.appendToNextSegment(lsn, rc)
@@ -42,7 +42,7 @@ func (wr *Writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	return lsn, err
 }
 
-func (wr *Writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
+func (wr *writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
 	err := wr.segmentWriter.Append(rc)
 	if err != nil {
 		if err == page.ErrInsufficientSpace {
@@ -56,20 +56,20 @@ func (wr *Writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, 
 	return wr.highWater, nil
 }
 
-func (wr *Writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
+func (wr *writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
 	_, f, err := wr.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return 0, err
 	}
 
-	if err := wr.Next(f); err != nil {
+	if err := wr.next(f); err != nil {
 		return 0, err
 	}
 
 	return wr.appendToSegment(rc)
 }
 
-func (wr *Writer) Flush(lsn record.LogSequenceNumber) error {
+func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
 	if err := wr.segmentWriter.Flush(); err != nil {
 		return err
 	}
@@ -80,15 +80,15 @@ func (wr *Writer) Flush(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (wr *Writer) Initialize() error {
+func (wr *writer) initialize() error {
 	return wr.segmentWriter.Initialize()
 }
 
-func (wr *Writer) SeekTail(size int64) error {
+func (wr *writer) seekTail(size int64) error {
 	return wr.segmentWriter.SeekTail(size)
 }
 
-func (wr *Writer) Start() error {
+func (wr *writer) Start() error {
 	_, f, err := wr.sl.OpenLatestSegment()
 	if err != nil {
 		return err
@@ -100,10 +100,10 @@ func (wr *Writer) Start() error {
 	}
 
 	wr.segmentWriter = segment.NewWriter(wr.pageSize, wr.segmentSize, f)
-	return wr.SeekTail(stat.Size())
+	return wr.seekTail(stat.Size())
 }
 
-func (wr *Writer) Next(rw io.ReadWriteSeeker) error {
+func (wr *writer) next(rw io.ReadWriteSeeker) error {
 	wr.segmentWriter = segment.NewWriter(wr.pageSize, wr.segmentSize, rw)
-	return wr.Initialize()
+	return wr.initialize()
 }
