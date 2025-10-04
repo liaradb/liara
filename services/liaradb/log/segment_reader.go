@@ -10,7 +10,7 @@ import (
 
 type SegmentReader struct {
 	pageSize int64
-	pReader  *PageReader
+	pReader  *page.PageReader
 }
 
 func NewSegmentReader(
@@ -18,7 +18,7 @@ func NewSegmentReader(
 ) *SegmentReader {
 	return &SegmentReader{
 		pageSize: pageSize,
-		pReader:  NewPageReader(pageSize),
+		pReader:  page.NewPageReader(pageSize),
 	}
 }
 

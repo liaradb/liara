@@ -55,7 +55,7 @@ func (l *Log) StartWriter() error {
 
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	lsn, err := l.writer.Append(rc)
-	if err == ErrInsufficientSpace {
+	if err == page.ErrInsufficientSpace {
 		return l.appendToNextSegment(lsn, rc)
 	}
 

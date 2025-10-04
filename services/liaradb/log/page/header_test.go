@@ -28,7 +28,7 @@ func TestHeader(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	h2 := &Header{}
+	h2 := Header{}
 	if err := h2.Read(r); err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +38,7 @@ func TestHeader(t *testing.T) {
 
 func testHeader(
 	t *testing.T,
-	h *Header,
+	h Header,
 	pid PageID,
 	tlid TimeLineID,
 	rem record.Length,

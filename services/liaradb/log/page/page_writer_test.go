@@ -1,4 +1,4 @@
-package log
+package page
 
 import (
 	"bytes"
@@ -8,9 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cardboardrobots/assert"
 	"github.com/liaradb/liaradb/file/mock"
-	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -52,11 +50,11 @@ func TestPageWriter_Append(t *testing.T) {
 
 	rb := record.NewBoundary(data)
 
-	if err := pw.append(rb, data); err != nil {
+	if err := pw.Append(rb, data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := pw.append(rb, data); err != nil {
+	if err := pw.Append(rb, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -93,19 +91,19 @@ func TestPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (page.PageID, page.TimeLineID, record.Length, *PageWriter) {
-	pid := page.PageID(1)
-	tlid := page.TimeLineID(2)
+func createPage() (PageID, TimeLineID, record.Length, *PageWriter) {
+	pid := PageID(1)
+	tlid := TimeLineID(2)
 	rem := record.Length(3)
 
 	pw := createEmptyPage()
-	pw.init(pid, tlid, rem)
+	pw.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, pw
 }
 
 func createEmptyPage() *PageWriter {
-	return newPageWriter(256)
+	return NewPageWriter(256)
 }
 
 func createRecord() (*record.Record, []byte, error) {
@@ -127,17 +125,4 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 	}
 
 	return recordBuf.Bytes(), nil
-}
-
-func testHeader(
-	t *testing.T,
-	h page.Header,
-	pid page.PageID,
-	tlid page.TimeLineID,
-	rem record.Length,
-) {
-	t.Helper()
-	assert.Getter(t, h.ID, pid, "ID")
-	assert.Getter(t, h.TimeLineID, tlid, "TimeLineID")
-	assert.Getter(t, h.LengthRemaining, rem, "LengthRemaining")
 }

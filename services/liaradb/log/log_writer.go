@@ -30,7 +30,7 @@ func (lw *LogWriter) PageID() page.PageID                 { return lw.sw.PageID(
 func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	err := lw.sw.Append(rc)
 	if err != nil {
-		if err == ErrInsufficientSpace {
+		if err == page.ErrInsufficientSpace {
 			// TODO: Fix this
 			return lw.highWater + 1, err
 		}

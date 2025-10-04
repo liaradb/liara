@@ -1,4 +1,4 @@
-package log
+package page
 
 import (
 	"bufio"
@@ -7,14 +7,13 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 )
 
 type PageReader struct {
 	data       []byte
 	pageReader *bytes.Reader
-	pageHeader page.Header
+	pageHeader Header
 }
 
 func NewPageReader(
@@ -27,7 +26,7 @@ func NewPageReader(
 	}
 }
 
-func (pr *PageReader) Header() page.Header {
+func (pr *PageReader) Header() Header {
 	return pr.pageHeader
 }
 
@@ -75,7 +74,7 @@ func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], e
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (pr *PageReader) read(rd io.Reader) (*page.Header, error) {
+func (pr *PageReader) read(rd io.Reader) (*Header, error) {
 	if _, err := rd.Read(pr.data); err != nil {
 		return nil, err
 	}

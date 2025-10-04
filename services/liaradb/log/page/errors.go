@@ -3,5 +3,6 @@ package page
 import "errors"
 
 var (
-	ErrNotPage = errors.New("not page")
+	ErrInsufficientSpace = errors.New("insufficient space")
+	ErrNotPage           = errors.New("not page")
 )

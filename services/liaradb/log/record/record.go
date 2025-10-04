@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// TODO: Move RecordBoundary to record
+// TODO: Move Boundary to record
 type Record struct {
 	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID

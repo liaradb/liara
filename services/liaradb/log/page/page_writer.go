@@ -1,4 +1,4 @@
-package log
+package page
 
 import (
 	"bufio"
@@ -6,7 +6,6 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -15,10 +14,10 @@ type PageWriter struct {
 	data     []byte
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
-	header   page.Header
+	header   Header
 }
 
-func newPageWriter(
+func NewPageWriter(
 	size int64,
 ) *PageWriter {
 	pw := &PageWriter{}
@@ -33,8 +32,8 @@ func newPageWriter(
 	return pw
 }
 
-func (pw *PageWriter) ID() page.PageID                { return pw.header.ID() }
-func (pw *PageWriter) TimeLineID() page.TimeLineID    { return pw.header.TimeLineID() }
+func (pw *PageWriter) ID() PageID                     { return pw.header.ID() }
+func (pw *PageWriter) TimeLineID() TimeLineID         { return pw.header.TimeLineID() }
 func (pw *PageWriter) LengthRemaining() record.Length { return pw.header.LengthRemaining() }
 
 // TODO: This is slow
@@ -46,11 +45,11 @@ func (pw *PageWriter) Data() []byte {
 	return pw.data
 }
 
-func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem record.Length) {
-	pw.header = page.NewHeader(id, tlid, rem)
+func (pw *PageWriter) Init(id PageID, tlid TimeLineID, rem record.Length) {
+	pw.header = NewHeader(id, tlid, rem)
 }
 
-func (pw *PageWriter) append(rb record.Boundary, data []byte) error {
+func (pw *PageWriter) Append(rb record.Boundary, data []byte) error {
 	if !pw.canInsert(data) {
 		return ErrInsufficientSpace
 	}

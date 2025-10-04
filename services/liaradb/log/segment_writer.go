@@ -20,7 +20,7 @@ type SegmentWriter struct {
 	timeLineID  page.TimeLineID
 	readWriter  io.ReadWriteSeeker
 	recordBuf   *bytes.Buffer
-	pageWriter  *PageWriter
+	pageWriter  *page.PageWriter
 }
 
 func NewSegmentWriter(
@@ -66,8 +66,8 @@ func (sw *SegmentWriter) append(data []byte) error {
 }
 
 func (sw *SegmentWriter) appendOrNext(rb record.Boundary, data []byte) error {
-	if err := sw.pageWriter.append(rb, data); err != nil {
-		if err != ErrInsufficientSpace {
+	if err := sw.pageWriter.Append(rb, data); err != nil {
+		if err != page.ErrInsufficientSpace {
 			return err
 		}
 
@@ -87,13 +87,13 @@ func (sw *SegmentWriter) next(rb record.Boundary, data []byte) error {
 	sw.pageID++
 	// TODO: Test this
 	if sw.pageID >= sw.segmentSize {
-		return ErrInsufficientSpace
+		return page.ErrInsufficientSpace
 	}
 
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = newPageWriter(sw.pageSize)
-	sw.pageWriter.init(sw.pageID, sw.timeLineID, 0)
-	return sw.pageWriter.append(rb, data)
+	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
+	return sw.pageWriter.Append(rb, data)
 }
 
 func (sw *SegmentWriter) Flush() error {
@@ -114,8 +114,8 @@ func (sw *SegmentWriter) Initialize() error {
 
 	sw.pageID = 0
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = newPageWriter(sw.pageSize)
-	sw.pageWriter.init(sw.pageID, sw.timeLineID, 0)
+	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
 
 	return nil
 }
@@ -137,8 +137,8 @@ func (sw *SegmentWriter) SeekTail(size int64) error {
 	// TODO: initialize or jump to tail of Page
 	// Is page initialized?
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = newPageWriter(sw.pageSize)
-	sw.pageWriter.init(sw.pageID, sw.timeLineID, 0)
+	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
 
 	return sw.pageWriter.SeekTail(sw.readWriter)
 }

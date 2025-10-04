@@ -1,10 +1,11 @@
-package log
+package page
 
 import (
 	"io"
 	"path"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/mock"
@@ -20,12 +21,17 @@ func TestPageReader_Iterate(t *testing.T) {
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+		d, err := recordToBytes(rc)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+			t.Fatal(err)
 		}
 	}
 
-	if err := sw.Flush(); err != nil {
+	if err := sw.Flush(f); err != nil {
 		t.Error(err)
 	}
 
@@ -64,12 +70,17 @@ func TestPageReader_Reverse(t *testing.T) {
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+		d, err := recordToBytes(rc)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+			t.Fatal(err)
 		}
 	}
 
-	if err := sw.Flush(); err != nil {
+	if err := sw.Flush(f); err != nil {
 		t.Error(err)
 	}
 
@@ -101,7 +112,7 @@ func TestPageReader_Reverse(t *testing.T) {
 	}
 }
 
-func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *SegmentWriter) {
+func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *PageWriter) {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(nil)
@@ -109,7 +120,17 @@ func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *SegmentWrite
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewSegmentWriter(256, 3, f)
-	_ = sw.Initialize()
+	sw := NewPageWriter(256)
 	return f, NewPageReader(256), sw
+}
+
+func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
+	records := make([]*record.Record, 0, count)
+	for i := range count {
+		records = append(records, record.New(i, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+	}
+	return records, count - 1
 }
