@@ -23,9 +23,10 @@ func newWriter(
 	sl *segment.List,
 ) *writer {
 	return &writer{
-		pageSize:    pageSize,
-		segmentSize: segmentSize,
-		sl:          sl,
+		pageSize:      pageSize,
+		segmentSize:   segmentSize,
+		sl:            sl,
+		segmentWriter: segment.NewWriter(pageSize, segmentSize),
 	}
 }
 
@@ -69,6 +70,10 @@ func (wr *writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.R
 	return wr.appendToSegment(rc)
 }
 
+func (wr *writer) next(rw io.ReadWriteSeeker) error {
+	return wr.initialize(rw)
+}
+
 func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
 	if err := wr.segmentWriter.Flush(); err != nil {
 		return err
@@ -80,12 +85,12 @@ func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (wr *writer) initialize() error {
-	return wr.segmentWriter.Initialize()
+func (wr *writer) initialize(rw io.ReadWriteSeeker) error {
+	return wr.segmentWriter.Initialize(rw)
 }
 
-func (wr *writer) seekTail(size int64) error {
-	return wr.segmentWriter.SeekTail(size)
+func (wr *writer) seekTail(size int64, rw io.ReadWriteSeeker) error {
+	return wr.segmentWriter.SeekTail(size, rw)
 }
 
 func (wr *writer) Start() error {
@@ -99,11 +104,5 @@ func (wr *writer) Start() error {
 		return err
 	}
 
-	wr.segmentWriter = segment.NewWriter(wr.pageSize, wr.segmentSize, f)
-	return wr.seekTail(stat.Size())
-}
-
-func (wr *writer) next(rw io.ReadWriteSeeker) error {
-	wr.segmentWriter = segment.NewWriter(wr.pageSize, wr.segmentSize, rw)
-	return wr.initialize()
+	return wr.seekTail(stat.Size(), f)
 }

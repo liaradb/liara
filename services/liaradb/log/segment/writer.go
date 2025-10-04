@@ -26,12 +26,10 @@ type Writer struct {
 func NewWriter(
 	pageSize int64,
 	segmentSize page.PageID,
-	rw io.ReadWriteSeeker,
 ) *Writer {
 	return &Writer{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
-		readWriter:  rw,
 		recordBuf:   bytes.NewBuffer(nil),
 	}
 }
@@ -105,7 +103,9 @@ func (wr *Writer) Flush() error {
 }
 
 // TODO: Test this
-func (wr *Writer) Initialize() error {
+func (wr *Writer) Initialize(rw io.ReadWriteSeeker) error {
+	wr.reset(rw)
+
 	// TODO: Do we need to seek?
 	_, err := wr.readWriter.Seek(0, io.SeekStart)
 	if err != nil {
@@ -121,9 +121,11 @@ func (wr *Writer) Initialize() error {
 }
 
 // TODO: Test this
-func (wr *Writer) SeekTail(size int64) error {
+func (wr *Writer) SeekTail(size int64, rw io.ReadWriteSeeker) error {
 	if size == 0 {
-		return wr.Initialize()
+		return wr.Initialize(rw)
+	} else {
+		wr.reset(rw)
 	}
 
 	pid := page.NewActivePageIDFromSize(size, wr.pageSize)
@@ -141,4 +143,9 @@ func (wr *Writer) SeekTail(size int64) error {
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
 
 	return wr.pageWriter.SeekTail(wr.readWriter)
+}
+
+func (wr *Writer) reset(rw io.ReadWriteSeeker) {
+	wr.readWriter = rw
+	wr.recordBuf.Reset()
 }
