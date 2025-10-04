@@ -35,3 +35,14 @@ func (t *Transaction) Insert(ctx context.Context, now time.Time, data []byte) er
 	t.lsn = lsn
 	return nil
 }
+
+func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	t.lsn = lsn
+	// TODO: Is this correct?
+	return t.log.Flush(ctx, lsn)
+}
