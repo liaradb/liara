@@ -14,7 +14,7 @@ func TestSharedPool(t *testing.T) {
 
 func testSharedPool(t *testing.T) {
 	sp := NewSharedPool[string, *testItem](2)
-	defer sp.Close()
+	t.Cleanup(sp.Close)
 
 	for i := range 2 {
 		sp.Add(&testItem{id: i})

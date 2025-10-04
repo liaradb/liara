@@ -2,12 +2,11 @@ package transaction
 
 import (
 	"testing"
-	"testing/fstest"
 	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/record"
 )
@@ -127,5 +126,5 @@ func createLog(t *testing.T) *log.Log {
 
 func createFiles(t *testing.T) (file.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
-	return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
+	return filetesting.NewMockFileSystem(t, nil), "."
 }

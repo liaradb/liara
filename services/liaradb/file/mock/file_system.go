@@ -12,9 +12,9 @@ type FileSystem struct {
 	dirs map[string]map[string]*File
 }
 
-func NewFileSystem(fs fstest.MapFS) *FileSystem {
+func NewFileSystem(fsys fstest.MapFS) *FileSystem {
 	return &FileSystem{
-		MapFS: fs,
+		MapFS: fsys,
 	}
 }
 

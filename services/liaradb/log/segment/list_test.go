@@ -9,6 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -20,7 +21,7 @@ func TestList_Open(t *testing.T) {
 	t.Run("should list segments", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := createFiles(0, count)
+		fsys := createFiles(t, 0, count)
 		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
@@ -38,7 +39,7 @@ func TestList_Open(t *testing.T) {
 	t.Run("should list segments in order", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := createFiles(9998, count)
+		fsys := createFiles(t, 9998, count)
 		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
@@ -412,8 +413,8 @@ func createNames(start SegmentID, count SegmentID) []SegmentName {
 	return names
 }
 
-func createFiles(start SegmentID, count SegmentID) *mock.FileSystem {
-	fsys := &mock.FileSystem{MapFS: fstest.MapFS{}}
+func createFiles(t *testing.T, start SegmentID, count SegmentID) *mock.FileSystem {
+	fsys := filetesting.NewMockFileSystem(t, fstest.MapFS{})
 	for i := range count {
 		fsys.MapFS[createPath(NewSegmentName(start+i, 0))] = &fstest.MapFile{}
 	}

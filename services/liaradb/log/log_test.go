@@ -4,12 +4,11 @@ import (
 	"reflect"
 	"slices"
 	"testing"
-	"testing/fstest"
 	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
@@ -480,7 +479,7 @@ func cleanupLog(t *testing.T, l *Log) {
 
 func createFiles(t *testing.T) (file.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
-	return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
+	return filetesting.NewMockFileSystem(t, nil), "."
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

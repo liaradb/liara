@@ -4,14 +4,13 @@ import (
 	"path"
 	"testing"
 
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/filetesting"
 )
 
 func TestBufferManager(t *testing.T) {
 	t.Parallel()
 
-	b, bid, close := testCreateBuffer(t)
-	defer close()
+	b, bid := testCreateBuffer(t)
 
 	if b.Dirty() {
 		t.Error("should not be dirty")
@@ -58,11 +57,8 @@ func TestBufferManager(t *testing.T) {
 	}
 }
 
-func testCreateBuffer(t *testing.T) (*Buffer, BlockID, func() error) {
-	dir := t.TempDir()
-	fs := &disk.FileSystem{}
-
-	return NewBuffer(NewStorage(fs, 2, 1024)),
-		BlockID{FileName: path.Join(dir, "testfile"), Position: 0},
-		fs.Close
+func testCreateBuffer(t *testing.T) (*Buffer, BlockID) {
+	fsys := filetesting.NewDiskFileSystem(t)
+	return NewBuffer(NewStorage(fsys, 2, 1024)),
+		BlockID{FileName: path.Join(t.TempDir(), "testfile"), Position: 0}
 }

@@ -7,7 +7,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/filetesting"
 )
 
 func TestStorage(t *testing.T) {
@@ -16,7 +16,8 @@ func TestStorage(t *testing.T) {
 }
 
 func testStorage(t *testing.T) {
-	s := NewStorage(&disk.FileSystem{}, 2, 1024)
+	fsys := filetesting.NewDiskFileSystem(t)
+	s := NewStorage(fsys, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)
@@ -55,7 +56,8 @@ func TestStorage_CancelRun(t *testing.T) {
 }
 
 func testStorage_CancelRun(t *testing.T) {
-	s := NewStorage(&disk.FileSystem{}, 2, 1024)
+	fsys := filetesting.NewDiskFileSystem(t)
+	s := NewStorage(fsys, 2, 1024)
 
 	ctx, cancel := context.WithCancel(t.Context())
 	s.Run(ctx)
@@ -80,7 +82,8 @@ func testStorage_CancelRun(t *testing.T) {
 func TestStorage_Pinned(t *testing.T) {
 	t.Parallel()
 
-	s := NewStorage(&disk.FileSystem{}, 2, 1024)
+	fsys := filetesting.NewDiskFileSystem(t)
+	s := NewStorage(fsys, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)
@@ -121,7 +124,8 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	s := NewStorage(&disk.FileSystem{}, 2, 1024)
+	fsys := filetesting.NewDiskFileSystem(t)
+	s := NewStorage(fsys, 2, 1024)
 
 	ctx := t.Context()
 	s.Run(ctx)

@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log/record"
 )
 
 func TestWriter(t *testing.T) {
 	t.Parallel()
 
-	fsys := mock.NewFileSystem(nil)
+	fsys := filetesting.NewMockFileSystem(t, nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	pid, tlid, rem, wr := createWriter()
 
@@ -39,7 +39,7 @@ func TestWriter(t *testing.T) {
 func TestWriter_Append(t *testing.T) {
 	t.Parallel()
 
-	fsys := mock.NewFileSystem(nil)
+	fsys := filetesting.NewMockFileSystem(t, nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	pid, tlid, rem, pw := createWriter()
 

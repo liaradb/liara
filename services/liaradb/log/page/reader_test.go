@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -115,7 +115,7 @@ func TestReader_Reverse(t *testing.T) {
 func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	t.Helper()
 
-	fsys := mock.NewFileSystem(nil)
+	fsys := filetesting.NewMockFileSystem(t, nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
