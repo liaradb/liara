@@ -34,24 +34,6 @@ func NewLog(
 }
 
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	lsn, err := l.writer.Append(rc)
-	if err == page.ErrInsufficientSpace {
-		return l.appendToNextSegment(lsn, rc)
-	}
-
-	return lsn, err
-}
-
-func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
-	_, f, err := l.sl.OpenNextSegment(lsn)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := l.writer.Next(f); err != nil {
-		return 0, err
-	}
-
 	return l.writer.Append(rc)
 }
 

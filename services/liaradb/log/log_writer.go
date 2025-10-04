@@ -34,6 +34,29 @@ func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
 func (lw *LogWriter) PageID() page.PageID                 { return lw.segmentWriter.PageID() }
 
 func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+	lsn, err := lw.AppendToSegment(rc)
+	if err == page.ErrInsufficientSpace {
+		return lw.appendToNextSegment(lsn, rc)
+	}
+
+	return lsn, err
+}
+
+func (lw *LogWriter) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
+	_, f, err := lw.sl.OpenNextSegment(lsn)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := lw.Next(f); err != nil {
+		return 0, err
+	}
+
+	return lw.AppendToSegment(rc)
+}
+
+// TODO: Change to private
+func (lw *LogWriter) AppendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
 	err := lw.segmentWriter.Append(rc)
 	if err != nil {
 		if err == page.ErrInsufficientSpace {

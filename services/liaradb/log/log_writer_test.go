@@ -26,7 +26,7 @@ func TestLogWriter_Append(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
-	if lsn, err := lw.Append(rec); err != nil {
+	if lsn, err := lw.AppendToSegment(rec); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -47,12 +47,12 @@ func TestLogWriter_Flush(t *testing.T) {
 
 		lw := createLogWriter(t)
 
-		lsn1, err := lw.Append(rec)
+		lsn1, err := lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = lw.Append(rec)
+		_, err = lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -69,12 +69,12 @@ func TestLogWriter_Flush(t *testing.T) {
 
 		lw := createLogWriter(t)
 
-		_, err := lw.Append(rec)
+		_, err := lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = lw.Append(rec)
+		_, err = lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -94,13 +94,13 @@ func TestLogWriter_Flush(t *testing.T) {
 		count := 10
 
 		for range count - 1 {
-			_, err := lw.Append(rec)
+			_, err := lw.AppendToSegment(rec)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := lw.Append(rec)
+		lsn2, err := lw.AppendToSegment(rec)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -125,7 +125,7 @@ func TestLogWriter_Flush(t *testing.T) {
 
 		lw := createLogWriter(t)
 
-		lsn1, err := lw.Append(rec)
+		lsn1, err := lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
@@ -134,7 +134,7 @@ func TestLogWriter_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := lw.Append(rec)
+		lsn2, err := lw.AppendToSegment(rec)
 		if err != nil {
 			t.Error(err)
 		}
