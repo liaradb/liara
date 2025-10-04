@@ -10,33 +10,33 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-type PageReader struct {
+type Reader struct {
 	data       []byte
 	pageReader *bytes.Reader
 	pageHeader Header
 }
 
-func NewPageReader(
+func NewReader(
 	pageSize int64,
-) *PageReader {
+) *Reader {
 	data := make([]byte, pageSize)
-	return &PageReader{
+	return &Reader{
 		data:       data,
 		pageReader: bytes.NewReader(data),
 	}
 }
 
-func (pr *PageReader) Header() Header {
-	return pr.pageHeader
+func (rd *Reader) Header() Header {
+	return rd.pageHeader
 }
 
-func (pr *PageReader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
-	if _, err := pr.read(r); err != nil {
+func (rd *Reader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
+	if _, err := rd.read(r); err != nil {
 		return nil, err
 	}
 
 	return func(yield func(*record.Record, error) bool) {
-		for rc, err := range pr.records() {
+		for rc, err := range rd.records() {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -50,22 +50,22 @@ func (pr *PageReader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], er
 }
 
 // TODO: Change page structure to make reversing easier
-func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], error) {
-	if _, err := pr.read(rd); err != nil {
+func (rd *Reader) Reverse(r io.Reader) (iter.Seq2[*record.Record, error], error) {
+	if _, err := rd.read(r); err != nil {
 		return nil, err
 	}
 
-	r := list.New()
-	for rc, err := range pr.records() {
+	rcs := list.New()
+	for rc, err := range rd.records() {
 		if err != nil {
 			return nil, err
 		}
 
-		r.PushBack(rc)
+		rcs.PushBack(rc)
 	}
 
 	return func(yield func(*record.Record, error) bool) {
-		for e := r.Back(); e != nil; e = e.Prev() {
+		for e := rcs.Back(); e != nil; e = e.Prev() {
 			if !yield(e.Value.(*record.Record), nil) {
 				return
 			}
@@ -74,25 +74,25 @@ func (pr *PageReader) Reverse(rd io.Reader) (iter.Seq2[*record.Record, error], e
 }
 
 // TODO: Should we asynchronously prefetch pages?
-func (pr *PageReader) read(rd io.Reader) (*Header, error) {
-	if _, err := rd.Read(pr.data); err != nil {
+func (rd *Reader) read(r io.Reader) (*Header, error) {
+	if _, err := r.Read(rd.data); err != nil {
 		return nil, err
 	}
 
-	pr.reset()
-	if err := pr.pageHeader.Read(pr.pageReader); err != nil {
+	rd.reset()
+	if err := rd.pageHeader.Read(rd.pageReader); err != nil {
 		return nil, err
 	}
 
-	return &pr.pageHeader, nil
+	return &rd.pageHeader, nil
 }
 
-func (pr *PageReader) reset() {
-	pr.pageReader.Reset(pr.data)
+func (rd *Reader) reset() {
+	rd.pageReader.Reset(rd.data)
 }
 
-func (pr *PageReader) records() iter.Seq2[*record.Record, error] {
-	r := bufio.NewReader(pr.pageReader)
+func (rd *Reader) records() iter.Seq2[*record.Record, error] {
+	r := bufio.NewReader(rd.pageReader)
 	rb := record.Boundary{}
 	return func(yield func(*record.Record, error) bool) {
 		for {

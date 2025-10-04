@@ -9,16 +9,16 @@ import (
 )
 
 type SegmentReader struct {
-	pageSize int64
-	pReader  *page.PageReader
+	pageSize   int64
+	pageReader *page.Reader
 }
 
 func NewSegmentReader(
 	pageSize int64,
 ) *SegmentReader {
 	return &SegmentReader{
-		pageSize: pageSize,
-		pReader:  page.NewPageReader(pageSize),
+		pageSize:   pageSize,
+		pageReader: page.NewReader(pageSize),
 	}
 }
 
@@ -87,7 +87,7 @@ func (sr *SegmentReader) readForward(pid page.PageID, r io.ReadSeeker) iter.Seq2
 				return
 			}
 
-			it, err := sr.pReader.Iterate(r)
+			it, err := sr.pageReader.Iterate(r)
 			if err != nil {
 				if err != io.EOF {
 					yield(nil, err)
@@ -111,7 +111,7 @@ func (sr *SegmentReader) readReverse(pid page.PageID, r io.ReadSeeker) iter.Seq2
 				return
 			}
 
-			it, err := sr.pReader.Reverse(r)
+			it, err := sr.pageReader.Reverse(r)
 			if err != nil {
 				yield(nil, err)
 				return

@@ -12,10 +12,10 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestPageReader_Iterate(t *testing.T) {
+func TestReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	f, pr, sw := createPageReaderWriter(t)
+	f, rd, sw := createReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, _ := createRecords(count)
@@ -40,7 +40,7 @@ func TestPageReader_Iterate(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	it, err := pr.Iterate(f)
+	it, err := rd.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,8 +63,8 @@ func TestPageReader_Iterate(t *testing.T) {
 	}
 }
 
-func TestPageReader_Reverse(t *testing.T) {
-	f, pr, sw := createPageReaderWriter(t)
+func TestReader_Reverse(t *testing.T) {
+	f, rd, sw := createReaderWriter(t)
 
 	var count record.LogSequenceNumber = 3
 	records, _ := createRecords(count)
@@ -89,7 +89,7 @@ func TestPageReader_Reverse(t *testing.T) {
 	}
 
 	var c record.LogSequenceNumber
-	it, err := pr.Reverse(f)
+	it, err := rd.Reverse(f)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func TestPageReader_Reverse(t *testing.T) {
 	}
 }
 
-func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *PageWriter) {
+func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(nil)
@@ -120,8 +120,8 @@ func createPageReaderWriter(t *testing.T) (file.File, *PageReader, *PageWriter) 
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewPageWriter(256)
-	return f, NewPageReader(256), sw
+	sw := NewWriter(256)
+	return f, NewReader(256), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

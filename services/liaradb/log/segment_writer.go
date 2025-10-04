@@ -20,7 +20,7 @@ type SegmentWriter struct {
 	timeLineID  page.TimeLineID
 	readWriter  io.ReadWriteSeeker
 	recordBuf   *bytes.Buffer
-	pageWriter  *page.PageWriter
+	pageWriter  *page.Writer
 }
 
 func NewSegmentWriter(
@@ -91,7 +91,7 @@ func (sw *SegmentWriter) next(rb record.Boundary, data []byte) error {
 	}
 
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter = page.NewWriter(sw.pageSize)
 	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
 	return sw.pageWriter.Append(rb, data)
 }
@@ -114,7 +114,7 @@ func (sw *SegmentWriter) Initialize() error {
 
 	sw.pageID = 0
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter = page.NewWriter(sw.pageSize)
 	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
 
 	return nil
@@ -137,7 +137,7 @@ func (sw *SegmentWriter) SeekTail(size int64) error {
 	// TODO: initialize or jump to tail of Page
 	// Is page initialized?
 	// TODO: Don't replace LogPageWriter
-	sw.pageWriter = page.NewPageWriter(sw.pageSize)
+	sw.pageWriter = page.NewWriter(sw.pageSize)
 	sw.pageWriter.Init(sw.pageID, sw.timeLineID, 0)
 
 	return sw.pageWriter.SeekTail(sw.readWriter)

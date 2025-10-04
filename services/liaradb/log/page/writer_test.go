@@ -12,14 +12,14 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestPageWriter(t *testing.T) {
+func TestWriter(t *testing.T) {
 	t.Parallel()
 
 	fsys := mock.NewFileSystem(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	pid, tlid, rem, pw := createPage()
+	pid, tlid, rem, wr := createWriter()
 
-	if err := pw.Write(f); err != nil {
+	if err := wr.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
@@ -27,7 +27,7 @@ func TestPageWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewPageReader(256)
+	pr := NewReader(256)
 	_, err := pr.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
@@ -36,12 +36,12 @@ func TestPageWriter(t *testing.T) {
 	testHeader(t, pr.Header(), pid, tlid, rem)
 }
 
-func TestPageWriter_Append(t *testing.T) {
+func TestWriter_Append(t *testing.T) {
 	t.Parallel()
 
 	fsys := mock.NewFileSystem(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	pid, tlid, rem, pw := createPage()
+	pid, tlid, rem, pw := createWriter()
 
 	rc, data, err := createRecord()
 	if err != nil {
@@ -66,7 +66,7 @@ func TestPageWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewPageReader(256)
+	pr := NewReader(256)
 	it, err := pr.Iterate(f)
 	if err != nil {
 		t.Fatal(err)
@@ -91,19 +91,19 @@ func TestPageWriter_Append(t *testing.T) {
 	}
 }
 
-func createPage() (PageID, TimeLineID, record.Length, *PageWriter) {
+func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
 	pid := PageID(1)
 	tlid := TimeLineID(2)
 	rem := record.Length(3)
 
-	pw := createEmptyPage()
+	pw := createEmptyWriter()
 	pw.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, pw
 }
 
-func createEmptyPage() *PageWriter {
-	return NewPageWriter(256)
+func createEmptyWriter() *Writer {
+	return NewWriter(256)
 }
 
 func createRecord() (*record.Record, []byte, error) {
