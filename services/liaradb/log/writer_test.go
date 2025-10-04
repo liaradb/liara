@@ -2,40 +2,37 @@ package log
 
 import (
 	"testing"
-	"testing/fstest"
 	"time"
 
-	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
 )
 
-func TestWriter_Default(t *testing.T) {
+func TestLog_Default(t *testing.T) {
 	t.Parallel()
 
-	l := createLogWriter(t)
+	wr := createWriter(t)
 
-	testPosition(t, l, 0, 0)
+	testPosition(t, wr, 0, 0)
 }
 
-func TestWriter_Append(t *testing.T) {
+func TestLog_Append(t *testing.T) {
 	t.Parallel()
 
-	lw := createLogWriter(t)
+	wr := createWriter(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
-	if lsn, err := lw.AppendToSegment(rec); err != nil {
+	if lsn, err := wr.Append(rec); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, lw, 0, 1)
+	testPosition(t, wr, 0, 1)
 }
 
-func TestWriter_Flush(t *testing.T) {
+func TestLog_Flush(t *testing.T) {
 	t.Parallel()
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -45,71 +42,71 @@ func TestWriter_Flush(t *testing.T) {
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
-		lw := createLogWriter(t)
+		wr := createWriter(t)
 
-		lsn1, err := lw.AppendToSegment(rec)
+		lsn1, err := wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = lw.AppendToSegment(rec)
+		_, err = wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := lw.Flush(lsn1); err != nil {
+		if err := wr.Flush(lsn1); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, lw, 1, 2)
+		testPosition(t, wr, 1, 2)
 	})
 
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
 		t.Parallel()
 
-		lw := createLogWriter(t)
+		wr := createWriter(t)
 
-		_, err := lw.AppendToSegment(rec)
+		_, err := wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = lw.AppendToSegment(rec)
+		_, err = wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := lw.Flush(10); err != nil {
+		if err := wr.Flush(10); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, lw, 2, 2)
+		testPosition(t, wr, 2, 2)
 	})
 
 	t.Run("should write to multiple pages", func(t *testing.T) {
 		t.Parallel()
 
-		lw := createLogWriter(t)
+		wr := createWriter(t)
 
 		count := 10
 
 		for range count - 1 {
-			_, err := lw.AppendToSegment(rec)
+			_, err := wr.Append(rec)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := lw.AppendToSegment(rec)
+		lsn2, err := wr.Append(rec)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if err := lw.Flush(lsn2); err != nil {
+		if err := wr.Flush(lsn2); err != nil {
 			t.Fatal(err)
 		}
 
-		if p := lw.PageID(); p != 2 {
+		if p := wr.PageID(); p != 2 {
 			t.Errorf("incorrect value: %v, expected: %v", p, 2)
 		}
 	})
@@ -123,56 +120,52 @@ func TestWriter_Flush(t *testing.T) {
 	t.Run("should write after flushing", func(t *testing.T) {
 		t.Parallel()
 
-		lw := createLogWriter(t)
+		wr := createWriter(t)
 
-		lsn1, err := lw.AppendToSegment(rec)
+		lsn1, err := wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := lw.Flush(lsn1); err != nil {
+		if err := wr.Flush(lsn1); err != nil {
 			t.Error(err)
 		}
 
-		lsn2, err := lw.AppendToSegment(rec)
+		lsn2, err := wr.Append(rec)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if err := lw.Flush(lsn2); err != nil {
+		if err := wr.Flush(lsn2); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, lw, 2, 2)
+		testPosition(t, wr, 2, 2)
 	})
 }
 
-func createLogWriter(t *testing.T) *Writer {
+func createWriter(t *testing.T) *Log {
 	t.Helper()
 
-	fsys := mock.NewFileSystem(fstest.MapFS{
-		"log/": &fstest.MapFile{},
-	})
-	// fsys := &file.FileSystem{}
-
-	sl := segment.NewList(fsys, "log")
-
-	lw := NewWriter(256, 3, sl)
-	if err := lw.Start(); err != nil {
+	fsys, dir := createFiles(t)
+	l := NewLog(256, 3, fsys, dir)
+	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
-	if err := lw.Initialize(); err != nil {
+
+	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
-	return lw
+
+	return l
 }
 
-func testPosition(t *testing.T, sw *Writer, lw, hw record.LogSequenceNumber) {
-	if h := sw.HighWater(); h != hw {
+func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
+	if h := l.HighWater(); h != hw {
 		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
 	}
 
-	if l := sw.LowWater(); l != lw {
+	if l := l.LowWater(); l != lw {
 		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
 	}
 }

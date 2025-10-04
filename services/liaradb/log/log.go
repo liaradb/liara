@@ -29,6 +29,10 @@ func NewLog(
 	}
 }
 
+func (l *Log) HighWater() record.LogSequenceNumber { return l.writer.HighWater() }
+func (l *Log) LowWater() record.LogSequenceNumber  { return l.writer.LowWater() }
+func (l *Log) PageID() page.PageID                 { return l.writer.PageID() }
+
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	return l.writer.Append(rc)
 }
