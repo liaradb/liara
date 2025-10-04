@@ -99,12 +99,8 @@ func testTransaction_Commit(t *testing.T) {
 
 func createManager(t *testing.T) (*Manager, *log.Log) {
 	t.Helper()
+
 	l := createLog(t)
-	t.Cleanup(func() {
-		if err := l.Close(); err != nil {
-			t.Error(err)
-		}
-	})
 	return NewManager(l), l
 }
 
@@ -116,6 +112,12 @@ func createLog(t *testing.T) *log.Log {
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
+
+	t.Cleanup(func() {
+		if err := l.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)

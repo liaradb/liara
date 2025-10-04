@@ -23,23 +23,28 @@ type item[K comparable] interface {
 }
 
 func NewSharedPool[K comparable, V item[K]](size int) *SharedPool[K, V] {
-	ctx, cancel := context.WithCancel(context.Background())
-	sp := &SharedPool[K, V]{
+	return &SharedPool[K, V]{
 		unpinned: make(map[int]V, size),
 		claimed:  make(map[K]V, size),
 		requests: make(chan *request[K, V]),
 		in:       make(chan V),
-		ctx:      ctx,
-		cancel:   cancel,
 	}
-
-	go sp.run()
-
-	return sp
 }
 
 func (sp *SharedPool[K, V]) Close() {
+	if sp.cancel == nil {
+		return
+	}
+
 	sp.cancel()
+}
+
+func (sp *SharedPool[K, V]) Run(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	sp.ctx = ctx
+	sp.cancel = cancel
+
+	go sp.run()
 }
 
 func (sp *SharedPool[K, V]) run() {

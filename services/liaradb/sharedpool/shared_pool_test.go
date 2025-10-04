@@ -14,13 +14,14 @@ func TestSharedPool(t *testing.T) {
 
 func testSharedPool(t *testing.T) {
 	sp := NewSharedPool[string, *testItem](2)
+	sp.Run(t.Context())
 	t.Cleanup(sp.Close)
 
 	for i := range 2 {
 		sp.Add(&testItem{id: i})
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	if a, ok := sp.Request(ctx, "a"); !ok || a == nil {
 		t.Error("should get value")
