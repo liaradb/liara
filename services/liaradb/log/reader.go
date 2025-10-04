@@ -4,26 +4,22 @@ import (
 	"container/list"
 	"iter"
 
-	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
 
 type reader struct {
-	pageSize    int64
-	segmentSize page.PageID
-	sl          *segment.List
+	sl *segment.List
+	sr *segment.Reader
 }
 
 func newReader(
 	pageSize int64,
-	segmentSize page.PageID,
 	sl *segment.List,
 ) *reader {
 	return &reader{
-		pageSize:    pageSize,
-		segmentSize: segmentSize,
-		sl:          sl,
+		sl: sl,
+		sr: segment.NewReader(pageSize),
 	}
 }
 
@@ -44,8 +40,7 @@ func (rd *reader) Recover() (iter.Seq[*record.Record], error) {
 			return nil, err
 		}
 
-		sr := segment.NewReader(rd.pageSize)
-		for rc, err := range sr.Reverse(stat.Size(), f) {
+		for rc, err := range rd.sr.Reverse(stat.Size(), f) {
 			if err != nil {
 				return nil, err
 			}
@@ -75,9 +70,7 @@ func (rd *reader) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			// TODO: Don't create new reader every iteration
-			sr := segment.NewReader(rd.pageSize)
-			for rc, err := range sr.Reverse(stat.Size(), f) {
+			for rc, err := range rd.sr.Reverse(stat.Size(), f) {
 				if err != nil {
 					yield(nil, err)
 					return
@@ -99,8 +92,7 @@ func (rd *reader) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record
 				return
 			}
 
-			sr := segment.NewReader(rd.pageSize)
-			for rc, err := range sr.Iterate(f) {
+			for rc, err := range rd.sr.Iterate(f) {
 				if err != nil {
 					yield(nil, err)
 					return

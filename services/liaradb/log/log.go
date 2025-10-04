@@ -26,7 +26,7 @@ func NewLog(
 	sl := segment.NewList(fsys, dir)
 	return &Log{
 		sl:     sl,
-		reader: newReader(pageSize, segmentSize, sl),
+		reader: newReader(pageSize, sl),
 		writer: newWriter(pageSize, segmentSize, sl),
 	}
 }
