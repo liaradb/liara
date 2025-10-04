@@ -5,12 +5,13 @@ import (
 
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/log/segment"
 )
 
 type LogWriter struct {
 	highWater record.LogSequenceNumber
 	lowWater  record.LogSequenceNumber
-	sw        *SegmentWriter
+	sw        *segment.SegmentWriter
 }
 
 func NewLogWriter(
@@ -19,7 +20,7 @@ func NewLogWriter(
 	rw io.ReadWriteSeeker,
 ) *LogWriter {
 	return &LogWriter{
-		sw: NewSegmentWriter(pageSize, segmentSize, rw),
+		sw: segment.NewSegmentWriter(pageSize, segmentSize, rw),
 	}
 }
 

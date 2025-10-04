@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/mock"
@@ -317,4 +318,15 @@ func TestLog_Reverse(t *testing.T) {
 func createFiles(t *testing.T) (file.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
 	return &mock.FileSystem{MapFS: fstest.MapFS{}}, "."
+}
+
+func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
+	records := make([]*record.Record, 0, count)
+	for i := range count {
+		records = append(records, record.New(i, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+	}
+	return records, count - 1
 }
