@@ -68,7 +68,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(lsn1); err != nil {
+		if err := wr.Flush(ctx, lsn1); err != nil {
 			t.Error(err)
 		}
 
@@ -90,7 +90,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(10); err != nil {
+		if err := wr.Flush(ctx, 10); err != nil {
 			t.Error(err)
 		}
 
@@ -116,7 +116,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := wr.Flush(lsn2); err != nil {
+		if err := wr.Flush(ctx, lsn2); err != nil {
 			t.Fatal(err)
 		}
 
@@ -140,7 +140,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(lsn1); err != nil {
+		if err := wr.Flush(ctx, lsn1); err != nil {
 			t.Error(err)
 		}
 
@@ -149,7 +149,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := wr.Flush(lsn2); err != nil {
+		if err := wr.Flush(ctx, lsn2); err != nil {
 			t.Error(err)
 		}
 
@@ -218,7 +218,7 @@ func testLog_Iterate(t *testing.T) {
 		}
 	}
 
-	if err = l.Flush(lsn); err != nil {
+	if err = l.Flush(ctx, lsn); err != nil {
 		t.Fatal(err)
 	}
 
@@ -266,7 +266,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(lsn1); err != nil {
+		if err := l.Flush(ctx, lsn1); err != nil {
 			t.Fatal(err)
 		}
 
@@ -275,7 +275,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(lsn2); err != nil {
+		if err := l.Flush(ctx, lsn2); err != nil {
 			t.Fatal(err)
 		}
 
@@ -348,7 +348,7 @@ func TestLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		if err = l.Flush(lsn); err != nil {
+		if err = l.Flush(ctx, lsn); err != nil {
 			t.Fatal(err)
 		}
 
@@ -395,7 +395,7 @@ func TestLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		if err := l.Flush(lsn); err != nil {
+		if err := l.Flush(ctx, lsn); err != nil {
 			t.Fatal(err)
 		}
 
@@ -459,7 +459,7 @@ func testLog_Reverse(t *testing.T) {
 		}
 	}
 
-	if err = l.Flush(lsn); err != nil {
+	if err = l.Flush(ctx, lsn); err != nil {
 		t.Fatal(err)
 	}
 

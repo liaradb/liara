@@ -12,13 +12,14 @@ import (
 )
 
 type Log struct {
-	sl        *segment.List
-	reader    *reader
-	writer    *writer
-	highWater record.LogSequenceNumber
-	lowWater  record.LogSequenceNumber
-	requests  chan *request
-	cancel    context.CancelFunc
+	sl         *segment.List
+	reader     *reader
+	writer     *writer
+	highWater  record.LogSequenceNumber
+	lowWater   record.LogSequenceNumber
+	appendReqs chan *appendRequest
+	flushReqs  chan *flushRequest
+	cancel     context.CancelFunc
 }
 
 func NewLog(
@@ -29,10 +30,11 @@ func NewLog(
 ) *Log {
 	sl := segment.NewList(fsys, dir)
 	return &Log{
-		sl:       sl,
-		reader:   newReader(pageSize, sl),
-		writer:   newWriter(pageSize, segmentSize, sl),
-		requests: make(chan *request),
+		sl:         sl,
+		reader:     newReader(pageSize, sl),
+		writer:     newWriter(pageSize, segmentSize, sl),
+		appendReqs: make(chan *appendRequest),
+		flushReqs:  make(chan *flushRequest),
 	}
 }
 
@@ -45,15 +47,12 @@ func (l *Log) run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case r := <-l.requests:
-			l.request(r)
+		case r := <-l.appendReqs:
+			l.appendRequest(r)
+		case r := <-l.flushReqs:
+			l.flushRequest(r)
 		}
 	}
-}
-
-func (l *Log) request(r *request) {
-	lsn, err := l.append(r.tid, r.time, r.action, r.data, r.reverse)
-	r.Reply(lsn, err)
 }
 
 func (l *Log) Append(
@@ -64,10 +63,10 @@ func (l *Log) Append(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
-	req := newRequest(tid, time, action, data, reverse)
+	req := newAppendRequest(tid, time, action, data, reverse)
 
 	select {
-	case l.requests <- req:
+	case l.appendReqs <- req:
 	case <-ctx.Done():
 	}
 
@@ -77,6 +76,11 @@ func (l *Log) Append(
 	case <-ctx.Done():
 		return 0, context.Canceled
 	}
+}
+
+func (l *Log) appendRequest(r *appendRequest) {
+	lsn, err := l.append(r.tid, r.time, r.action, r.data, r.reverse)
+	r.Reply(lsn, err)
 }
 
 func (l *Log) append(
@@ -103,7 +107,28 @@ func (l *Log) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) Flush(lsn record.LogSequenceNumber) error {
+func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
+	req := newFlushRequest(lsn)
+
+	select {
+	case l.flushReqs <- req:
+	case <-ctx.Done():
+	}
+
+	select {
+	case res := <-req.response:
+		return res.err
+	case <-ctx.Done():
+		return context.Canceled
+	}
+}
+
+func (l *Log) flushRequest(r *flushRequest) {
+	err := l.flush(r.lsn)
+	r.Reply(err)
+}
+
+func (l *Log) flush(lsn record.LogSequenceNumber) error {
 	if err := l.writer.Flush(lsn); err != nil {
 		return err
 	}
