@@ -10,35 +10,35 @@ import (
 	"github.com/liaradb/liaradb/log/segment"
 )
 
-type Log struct {
+type LogReader struct {
 	pageSize    int64
 	segmentSize page.PageID
 	sl          *segment.List
 	writer      *LogWriter
 }
 
-func NewLog(
+func NewLogReader(
 	pageSize int64,
 	segmentSize page.PageID,
 	fsys file.FileSystem,
 	dir string,
-) *Log {
-	return &Log{
+) *LogReader {
+	return &LogReader{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		sl:          segment.NewList(fsys, dir),
 	}
 }
 
-func (l *Log) Open() error {
+func (l *LogReader) Open() error {
 	return l.sl.Open()
 }
 
-func (l *Log) Close() error {
+func (l *LogReader) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) StartWriter() error {
+func (l *LogReader) StartWriter() error {
 	_, f, err := l.sl.OpenLatestSegment()
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (l *Log) StartWriter() error {
 	return l.writer.SeekTail(stat.Size())
 }
 
-func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+func (l *LogReader) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	lsn, err := l.writer.Append(rc)
 	if err == page.ErrInsufficientSpace {
 		return l.appendToNextSegment(lsn, rc)
@@ -62,7 +62,7 @@ func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
 	return lsn, err
 }
 
-func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
+func (l *LogReader) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
 	_, f, err := l.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return 0, err
@@ -76,7 +76,7 @@ func (l *Log) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Recor
 	return l.writer.Append(rc)
 }
 
-func (l *Log) Flush(lsn record.LogSequenceNumber) error {
+func (l *LogReader) Flush(lsn record.LogSequenceNumber) error {
 	return l.writer.Flush(lsn)
 }
 
@@ -84,7 +84,7 @@ func (l *Log) Flush(lsn record.LogSequenceNumber) error {
 // Iterate in reverse until record type.
 //
 // Then iterate forward entil end of log.
-func (l *Log) Recover() (iter.Seq[*record.Record], error) {
+func (l *LogReader) Recover() (iter.Seq[*record.Record], error) {
 	r := list.New()
 
 	for f, err := range l.sl.Reverse() {
@@ -114,7 +114,7 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 	return listToIterator[*record.Record](r), nil
 }
 
-func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
+func (l *LogReader) Reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range l.sl.Reverse() {
 			if err != nil {
@@ -143,7 +143,7 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+func (l *LogReader) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range l.sl.IterateFromLSN(lsn) {
 			if err != nil {
