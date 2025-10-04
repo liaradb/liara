@@ -90,7 +90,6 @@ func (wr *Writer) insert(rb record.Boundary, data []byte) error {
 	if n, err := wr.writeBuf.Write(data); err != nil {
 		return err
 	} else if n != len(data) {
-		// TODO: Do we need to verify write length?
 		return io.ErrShortWrite
 	}
 
@@ -124,13 +123,16 @@ func (wr *Writer) Write(w io.Writer) error {
 	if n, err := wr.out.Write(wr.Data()); err != nil {
 		return err
 	} else if n < int(wr.bodySize) {
-		// TODO: Do we need to verify write length?
 		return io.ErrShortWrite
 	}
 
-	// TODO: Do we need to verify write length?
-	_, err := wr.out.WriteTo(w)
-	return err
+	if n, err := wr.out.WriteTo(w); err != nil {
+		return err
+	} else if n < int64(wr.out.Len()) {
+		return io.ErrShortWrite
+	}
+
+	return nil
 }
 
 func (wr *Writer) SeekTail(r io.Reader) error {
@@ -142,8 +144,9 @@ func (wr *Writer) SeekTail(r io.Reader) error {
 		return err
 	}
 
+	// TODO: Don't create a buffer here
 	b := bytes.NewBuffer(wr.data)
-	for _, err := range wr.records(b) {
+	for err := range wr.skipRecords(b) {
 		if err != nil {
 			return err
 		}
@@ -176,6 +179,7 @@ func (wr *Writer) loadWriter(rd io.Reader) error {
 func (wr *Writer) skipHeader(rd io.Reader) error {
 	data := make([]byte, wr.header.Size())
 	// TODO: Do we need to verify read length?
+	// TODO: Should we handle EOF?
 	if _, err := rd.Read(data); err != io.EOF {
 		return err
 	}
@@ -183,33 +187,32 @@ func (wr *Writer) skipHeader(rd io.Reader) error {
 	return nil
 }
 
-func (wr *Writer) records(rd io.Reader) iter.Seq2[*record.Record, error] {
-	rb := &record.Boundary{}
-	return func(yield func(*record.Record, error) bool) {
-
+func (wr *Writer) skipRecords(rd io.Reader) iter.Seq[error] {
+	return func(yield func(error) bool) {
+		rc := record.Record{}
 		for {
-			var err error
-			if err = rb.Read(rd); err != nil {
+			if err := wr.skipCRC(rd); err != nil {
 				if err != io.EOF {
-					yield(nil, err)
+					yield(err)
 				}
 				return
 			}
 
-			// TODO: Should we create a new record each time?
-			rc := &record.Record{}
-
-			// TODO: Use a buffer
 			if err := rc.Read(rd); err != nil {
 				if err != io.EOF {
-					yield(nil, err)
+					yield(err)
 				}
 				return
 			}
 
-			if !yield(rc, nil) {
+			if !yield(nil) {
 				return
 			}
 		}
 	}
+}
+
+func (wr *Writer) skipCRC(rd io.Reader) error {
+	rb := record.Boundary{}
+	return rb.Read(rd)
 }
