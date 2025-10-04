@@ -27,9 +27,8 @@ func TestLog_Append(t *testing.T) {
 	wr := createLog(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
-	if lsn, err := wr.Append(rec); err != nil {
+	if lsn, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -43,19 +42,18 @@ func TestLog_Flush(t *testing.T) {
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
 		wr := createLog(t)
 
-		lsn1, err := wr.Append(rec)
+		lsn1, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(rec)
+		_, err = wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -72,12 +70,12 @@ func TestLog_Flush(t *testing.T) {
 
 		wr := createLog(t)
 
-		_, err := wr.Append(rec)
+		_, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = wr.Append(rec)
+		_, err = wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -97,13 +95,13 @@ func TestLog_Flush(t *testing.T) {
 		count := 10
 
 		for range count - 1 {
-			_, err := wr.Append(rec)
+			_, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := wr.Append(rec)
+		lsn2, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -128,7 +126,7 @@ func TestLog_Flush(t *testing.T) {
 
 		wr := createLog(t)
 
-		lsn1, err := wr.Append(rec)
+		lsn1, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -137,7 +135,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := wr.Append(rec)
+		lsn2, err := wr.Append(2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -197,7 +195,7 @@ func TestLog_Iterate(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(rec)
+		lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -230,6 +228,8 @@ func TestLog_Recover(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 	records, _ := createRecords(2)
+	r0 := records[0]
+	r1 := records[1]
 
 	t.Run("should append and flush", func(t *testing.T) {
 		l := NewLog(256, 2, fsys, dir)
@@ -241,7 +241,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn1, err := l.Append(records[0])
+		lsn1, err := l.Append(r0.TransactionID(), r0.Time(), r0.Action(), r0.Data(), r0.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -250,7 +250,7 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn2, err := l.Append(records[1])
+		lsn2, err := l.Append(r1.TransactionID(), r1.Time(), r1.Action(), r1.Data(), r1.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -319,7 +319,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records1 {
-			lsn, err = l.Append(rec)
+			lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -364,7 +364,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records2 {
-			lsn, err = l.Append(rec)
+			lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -423,7 +423,7 @@ func TestLog_Reverse(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(rec)
+		lsn, err = l.Append(rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -479,7 +479,7 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, record.New(i, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(i+1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
 	return records, count - 1
 }

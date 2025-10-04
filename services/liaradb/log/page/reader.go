@@ -20,6 +20,7 @@ type Reader struct {
 func NewReader(
 	pageSize int64,
 ) *Reader {
+	// TODO: Using three slices/buffers is slow
 	data := make([]byte, pageSize)
 	pageReader := bytes.NewReader(data)
 	return &Reader{

@@ -2,6 +2,7 @@ package log
 
 import (
 	"iter"
+	"time"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/log/page"
@@ -35,8 +36,15 @@ func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) PageID() page.PageID                 { return l.writer.PageID() }
 
-func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	if err := l.writer.Append(rc, l.highWater+1); err != nil {
+func (l *Log) Append(
+	tid record.TransactionID,
+	time time.Time,
+	action record.Action,
+	data []byte,
+	reverse []byte,
+) (record.LogSequenceNumber, error) {
+	rc := record.New(l.highWater+1, tid, time, action, data, reverse)
+	if err := l.writer.Append(rc); err != nil {
 		return 0, err
 	}
 
