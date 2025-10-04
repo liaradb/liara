@@ -15,6 +15,7 @@ type Writer struct {
 	writer   *bytes.Buffer
 	writeBuf *bufio.Writer
 	header   Header
+	out      *bytes.Buffer
 }
 
 func NewWriter(
@@ -28,6 +29,7 @@ func NewWriter(
 	wr.data = make([]byte, body)
 	wr.writer = writer
 	wr.writeBuf = bufio.NewWriter(writer)
+	wr.out = bytes.NewBuffer(make([]byte, 0, wr.bodySize+int64(wr.header.Size())))
 
 	return wr
 }
@@ -114,14 +116,12 @@ func (wr *Writer) position() int64 {
 }
 
 func (wr *Writer) Write(w io.Writer) error {
-	// TODO: Write entire page at once
-	// TODO: Don't create new buffer every time
-	out := bytes.NewBuffer(make([]byte, 0, wr.bodySize+int64(wr.header.Size())))
-	if err := wr.header.Write(out); err != nil {
+	wr.out.Reset()
+	if err := wr.header.Write(wr.out); err != nil {
 		return err
 	}
 
-	if n, err := out.Write(wr.Data()); err != nil {
+	if n, err := wr.out.Write(wr.Data()); err != nil {
 		return err
 	} else if n < int(wr.bodySize) {
 		// TODO: Do we need to verify write length?
@@ -129,7 +129,7 @@ func (wr *Writer) Write(w io.Writer) error {
 	}
 
 	// TODO: Do we need to verify write length?
-	_, err := out.WriteTo(w)
+	_, err := wr.out.WriteTo(w)
 	return err
 }
 
