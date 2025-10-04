@@ -18,7 +18,7 @@ func TestLog_EmptyReader(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	l := NewLogReader(256, 2, fsys, dir)
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestLog_Iterate(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	l := NewLogReader(256, 2, fsys, dir)
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func TestLog_Recover(t *testing.T) {
 	records, _ := createRecords(2)
 
 	t.Run("should append and flush", func(t *testing.T) {
-		l := NewLogReader(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -128,7 +128,7 @@ func TestLog_Recover(t *testing.T) {
 	})
 
 	t.Run("should recover", func(t *testing.T) {
-		l := NewLogReader(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -170,7 +170,7 @@ func TestLog_RecoverMany(t *testing.T) {
 	records := append(records1, records2...)
 
 	t.Run("should append and flush", func(t *testing.T) {
-		l := NewLogReader(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -215,7 +215,7 @@ func TestLog_RecoverMany(t *testing.T) {
 	})
 
 	t.Run("should append and flush more and iterate", func(t *testing.T) {
-		l := NewLogReader(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir)
 		if err := l.Open(); err != nil {
 			t.Fatal(err)
 		}
@@ -267,7 +267,7 @@ func TestLog_Reverse(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	l := NewLogReader(256, 2, fsys, dir)
+	l := NewLog(256, 2, fsys, dir)
 	if err := l.Open(); err != nil {
 		t.Fatal(err)
 	}
