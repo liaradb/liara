@@ -1,7 +1,6 @@
 package record
 
 import (
-	"bufio"
 	"io"
 )
 
@@ -18,6 +17,9 @@ func NewBoundary(d []byte) Boundary {
 		length: NewLength(d),
 	}
 }
+
+func (b Boundary) CRC() CRC       { return b.crc }
+func (b Boundary) Length() Length { return b.length }
 
 func (b Boundary) Size() int {
 	return b.crc.Size() + b.length.Size()
@@ -36,34 +38,7 @@ func (b *Boundary) Read(r io.Reader) error {
 		return err
 	}
 
-	return b.length.Read(r)
-}
-
-// TODO: This reads past the end of the file
-func (b *Boundary) Validate(r *bufio.Reader) error {
-	if err := b.Read(r); err != nil {
-		return err
-	}
-
-	if b.length == 0 {
-		return io.EOF
-	}
-
-	d, err := r.Peek(int(b.length))
-	if err != nil {
-		return err
-	}
-
-	if !b.crc.Compare(d) {
-		return ErrInvalidCRC
-	}
-
-	return nil
-}
-
-// TODO: We need to rewind the length
-func (b *Boundary) Skip(r io.Reader) error {
-	if err := b.Read(r); err != nil {
+	if err := b.length.Read(r); err != nil {
 		return err
 	}
 

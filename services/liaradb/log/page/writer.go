@@ -189,7 +189,7 @@ func (wr *Writer) records(rd io.Reader) iter.Seq2[*record.Record, error] {
 
 		for {
 			var err error
-			if err = rb.Skip(rd); err != nil {
+			if err = rb.Read(rd); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}

@@ -8,6 +8,8 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
+// TODO: Should we asynchronously prefetch pages?
+
 type Reader struct {
 	pageSize   int64
 	pageReader *page.Reader

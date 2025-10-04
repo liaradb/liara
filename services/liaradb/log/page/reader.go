@@ -29,9 +29,7 @@ func NewReader(
 	}
 }
 
-func (rd *Reader) Header() Header {
-	return rd.pageHeader
-}
+func (rd *Reader) Header() Header { return rd.pageHeader }
 
 func (rd *Reader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
 	if _, err := rd.read(r); err != nil {
@@ -76,15 +74,12 @@ func (rd *Reader) Reverse(r io.Reader) (iter.Seq2[*record.Record, error], error)
 	}, nil
 }
 
-// TODO: Should we asynchronously prefetch pages?
 func (rd *Reader) read(r io.Reader) (*Header, error) {
-	// Read into slice
 	if _, err := r.Read(rd.data); err != nil {
 		return nil, err
 	}
 
-	// Move slice into pageReader
-	rd.reset()
+	rd.pageReader.Reset(rd.data)
 	if err := rd.pageHeader.Read(rd.pageReader); err != nil {
 		return nil, err
 	}
@@ -92,20 +87,11 @@ func (rd *Reader) read(r io.Reader) (*Header, error) {
 	return &rd.pageHeader, nil
 }
 
-func (rd *Reader) reset() {
-	rd.pageReader.Reset(rd.data)
-}
-
-func (rd *Reader) resetReader() {
-	rd.reader.Reset(rd.pageReader)
-}
-
 func (rd *Reader) records() iter.Seq2[*record.Record, error] {
-	rd.resetReader()
-	rb := record.Boundary{}
 	return func(yield func(*record.Record, error) bool) {
+		rd.reader.Reset(rd.pageReader)
 		for {
-			if err := rb.Validate(rd.reader); err != nil {
+			if err := rd.validateCRC(); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
@@ -125,4 +111,22 @@ func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 			}
 		}
 	}
+}
+
+func (rd *Reader) validateCRC() error {
+	rb := record.Boundary{}
+	if err := rb.Read(rd.reader); err != nil {
+		return err
+	}
+
+	d, err := rd.reader.Peek(int(rb.Length()))
+	if err != nil {
+		return err
+	}
+
+	if !rb.CRC().Compare(d) {
+		return ErrInvalidCRC
+	}
+
+	return nil
 }
