@@ -10,11 +10,9 @@ import (
 )
 
 type Log struct {
-	pageSize    int64
-	segmentSize page.PageID
-	sl          *segment.List
-	reader      *LogReader
-	writer      *LogWriter
+	sl     *segment.List
+	reader *Reader
+	writer *Writer
 }
 
 func NewLog(
@@ -25,11 +23,9 @@ func NewLog(
 ) *Log {
 	sl := segment.NewList(fsys, dir)
 	return &Log{
-		pageSize:    pageSize,
-		segmentSize: segmentSize,
-		sl:          sl,
-		reader:      NewLogReader(pageSize, segmentSize, sl),
-		writer:      NewLogWriter(pageSize, segmentSize, sl),
+		sl:     sl,
+		reader: NewReader(pageSize, segmentSize, sl),
+		writer: NewWriter(pageSize, segmentSize, sl),
 	}
 }
 

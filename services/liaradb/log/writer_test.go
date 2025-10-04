@@ -10,7 +10,7 @@ import (
 	"github.com/liaradb/liaradb/log/segment"
 )
 
-func TestLogWriter_Default(t *testing.T) {
+func TestWriter_Default(t *testing.T) {
 	t.Parallel()
 
 	l := createLogWriter(t)
@@ -18,7 +18,7 @@ func TestLogWriter_Default(t *testing.T) {
 	testPosition(t, l, 0, 0)
 }
 
-func TestLogWriter_Append(t *testing.T) {
+func TestWriter_Append(t *testing.T) {
 	t.Parallel()
 
 	lw := createLogWriter(t)
@@ -35,7 +35,7 @@ func TestLogWriter_Append(t *testing.T) {
 	testPosition(t, lw, 0, 1)
 }
 
-func TestLogWriter_Flush(t *testing.T) {
+func TestWriter_Flush(t *testing.T) {
 	t.Parallel()
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -147,7 +147,7 @@ func TestLogWriter_Flush(t *testing.T) {
 	})
 }
 
-func createLogWriter(t *testing.T) *LogWriter {
+func createLogWriter(t *testing.T) *Writer {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(fstest.MapFS{
@@ -157,7 +157,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 
 	sl := segment.NewList(fsys, "log")
 
-	lw := NewLogWriter(256, 3, sl)
+	lw := NewWriter(256, 3, sl)
 	if err := lw.Start(); err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func createLogWriter(t *testing.T) *LogWriter {
 	return lw
 }
 
-func testPosition(t *testing.T, sw *LogWriter, lw, hw record.LogSequenceNumber) {
+func testPosition(t *testing.T, sw *Writer, lw, hw record.LogSequenceNumber) {
 	if h := sw.HighWater(); h != hw {
 		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
 	}
