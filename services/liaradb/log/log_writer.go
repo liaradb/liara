@@ -9,9 +9,9 @@ import (
 )
 
 type LogWriter struct {
-	highWater record.LogSequenceNumber
-	lowWater  record.LogSequenceNumber
-	sw        *segment.SegmentWriter
+	highWater     record.LogSequenceNumber
+	lowWater      record.LogSequenceNumber
+	segmentWriter *segment.Writer
 }
 
 func NewLogWriter(
@@ -20,16 +20,16 @@ func NewLogWriter(
 	rw io.ReadWriteSeeker,
 ) *LogWriter {
 	return &LogWriter{
-		sw: segment.NewSegmentWriter(pageSize, segmentSize, rw),
+		segmentWriter: segment.NewWriter(pageSize, segmentSize, rw),
 	}
 }
 
 func (lw *LogWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
 func (lw *LogWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
-func (lw *LogWriter) PageID() page.PageID                 { return lw.sw.PageID() }
+func (lw *LogWriter) PageID() page.PageID                 { return lw.segmentWriter.PageID() }
 
 func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	err := lw.sw.Append(rc)
+	err := lw.segmentWriter.Append(rc)
 	if err != nil {
 		if err == page.ErrInsufficientSpace {
 			// TODO: Fix this
@@ -43,7 +43,7 @@ func (lw *LogWriter) Append(rc *record.Record) (record.LogSequenceNumber, error)
 }
 
 func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
-	if err := lw.sw.Flush(); err != nil {
+	if err := lw.segmentWriter.Flush(); err != nil {
 		return err
 	}
 
@@ -54,9 +54,9 @@ func (lw *LogWriter) Flush(lsn record.LogSequenceNumber) error {
 }
 
 func (lw *LogWriter) Initialize() error {
-	return lw.sw.Initialize()
+	return lw.segmentWriter.Initialize()
 }
 
 func (lw *LogWriter) SeekTail(size int64) error {
-	return lw.sw.SeekTail(size)
+	return lw.segmentWriter.SeekTail(size)
 }

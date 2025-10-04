@@ -9,10 +9,10 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestSegmentWriter_Append(t *testing.T) {
+func TestWriter_Append(t *testing.T) {
 	t.Parallel()
 
-	sw := createSegmentWriter(t)
+	sw := createWriter(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 	var rec = record.New(1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
@@ -22,7 +22,7 @@ func TestSegmentWriter_Append(t *testing.T) {
 	}
 }
 
-func TestSegmentWriter_Flush(t *testing.T) {
+func TestWriter_Flush(t *testing.T) {
 	t.Parallel()
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -32,7 +32,7 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 
-		sw := createSegmentWriter(t)
+		sw := createWriter(t)
 
 		if err := sw.Append(rec); err != nil {
 			t.Error(err)
@@ -50,7 +50,7 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
 		t.Parallel()
 
-		sw := createSegmentWriter(t)
+		sw := createWriter(t)
 
 		if err := sw.Append(rec); err != nil {
 			t.Error(err)
@@ -68,7 +68,7 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should write to multiple pages", func(t *testing.T) {
 		t.Parallel()
 
-		l := createSegmentWriter(t)
+		l := createWriter(t)
 
 		count := 10
 
@@ -100,7 +100,7 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	t.Run("should write after flushing", func(t *testing.T) {
 		t.Parallel()
 
-		l := createSegmentWriter(t)
+		l := createWriter(t)
 
 		if err := l.Append(rec); err != nil {
 			t.Error(err)
@@ -120,7 +120,7 @@ func TestSegmentWriter_Flush(t *testing.T) {
 	})
 }
 
-func createSegmentWriter(t *testing.T) *SegmentWriter {
+func createWriter(t *testing.T) *Writer {
 	t.Helper()
 
 	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
@@ -128,7 +128,7 @@ func createSegmentWriter(t *testing.T) *SegmentWriter {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewSegmentWriter(256, 3, f)
+	sw := NewWriter(256, 3, f)
 	_ = sw.Initialize()
 	return sw
 }

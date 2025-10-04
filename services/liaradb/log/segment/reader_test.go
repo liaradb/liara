@@ -11,10 +11,10 @@ import (
 	"github.com/liaradb/liaradb/log/record"
 )
 
-func TestSegmentReader_Iterate(t *testing.T) {
+func TestReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	f, lr, sw := createSegmentReaderWriter(t)
+	f, lr, sw := createReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
 	records, _ := createRecords(count)
@@ -48,8 +48,8 @@ func TestSegmentReader_Iterate(t *testing.T) {
 	}
 }
 
-func TestSegmentReader_Reverse(t *testing.T) {
-	f, sr, sw := createSegmentReaderWriter(t)
+func TestReader_Reverse(t *testing.T) {
+	f, sr, sw := createReaderWriter(t)
 
 	var count record.LogSequenceNumber = 10
 	records, _ := createRecords(count)
@@ -88,7 +88,7 @@ func TestSegmentReader_Reverse(t *testing.T) {
 	}
 }
 
-func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *SegmentWriter) {
+func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	t.Helper()
 
 	fsys := mock.NewFileSystem(nil)
@@ -96,9 +96,9 @@ func createSegmentReaderWriter(t *testing.T) (file.File, *SegmentReader, *Segmen
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewSegmentWriter(256, 3, f)
+	sw := NewWriter(256, 3, f)
 	_ = sw.Initialize()
-	return f, NewSegmentReader(256), sw
+	return f, NewReader(256), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
