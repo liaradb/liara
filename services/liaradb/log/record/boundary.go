@@ -39,6 +39,7 @@ func (b *Boundary) Read(r io.Reader) error {
 	return b.length.Read(r)
 }
 
+// TODO: This reads past the end of the file
 func (b *Boundary) Validate(r *bufio.Reader) error {
 	if err := b.Read(r); err != nil {
 		return err

@@ -13,6 +13,7 @@ import (
 type Reader struct {
 	data       []byte
 	pageReader *bytes.Reader
+	reader     *bufio.Reader
 	pageHeader Header
 }
 
@@ -20,9 +21,11 @@ func NewReader(
 	pageSize int64,
 ) *Reader {
 	data := make([]byte, pageSize)
+	pageReader := bytes.NewReader(data)
 	return &Reader{
 		data:       data,
-		pageReader: bytes.NewReader(data),
+		pageReader: pageReader,
+		reader:     bufio.NewReaderSize(nil, int(pageSize)),
 	}
 }
 
@@ -75,10 +78,12 @@ func (rd *Reader) Reverse(r io.Reader) (iter.Seq2[*record.Record, error], error)
 
 // TODO: Should we asynchronously prefetch pages?
 func (rd *Reader) read(r io.Reader) (*Header, error) {
+	// Read into slice
 	if _, err := r.Read(rd.data); err != nil {
 		return nil, err
 	}
 
+	// Move slice into pageReader
 	rd.reset()
 	if err := rd.pageHeader.Read(rd.pageReader); err != nil {
 		return nil, err
@@ -91,25 +96,24 @@ func (rd *Reader) reset() {
 	rd.pageReader.Reset(rd.data)
 }
 
+func (rd *Reader) resetReader() {
+	rd.reader.Reset(rd.pageReader)
+}
+
 func (rd *Reader) records() iter.Seq2[*record.Record, error] {
-	r := bufio.NewReader(rd.pageReader)
+	rd.resetReader()
 	rb := record.Boundary{}
 	return func(yield func(*record.Record, error) bool) {
 		for {
-			var err error
-			// TODO: This reads past the end of the file
-			if err = rb.Validate(r); err != nil {
+			if err := rb.Validate(rd.reader); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
 				return
 			}
 
-			// TODO: Should we create a new record each time?
 			rc := &record.Record{}
-
-			// TODO: Use a buffer
-			if err := rc.Read(r); err != nil {
+			if err := rc.Read(rd.reader); err != nil {
 				if err != io.EOF {
 					yield(nil, err)
 				}
