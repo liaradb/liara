@@ -9,8 +9,6 @@ import (
 )
 
 type writer struct {
-	highWater     record.LogSequenceNumber
-	lowWater      record.LogSequenceNumber
 	sl            *segment.List
 	segmentWriter *segment.Writer
 }
@@ -26,22 +24,16 @@ func newWriter(
 	}
 }
 
-func (wr *writer) HighWater() record.LogSequenceNumber { return wr.highWater }
-func (wr *writer) LowWater() record.LogSequenceNumber  { return wr.lowWater }
-func (wr *writer) PageID() page.PageID                 { return wr.segmentWriter.PageID() }
+func (wr *writer) PageID() page.PageID { return wr.segmentWriter.PageID() }
 
-func (wr *writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
+// TODO: Merge rc and lsn
+func (wr *writer) Append(rc *record.Record, lsn record.LogSequenceNumber) error {
 	err := wr.appendToSegment(rc)
 	if err == page.ErrInsufficientSpace {
-		err = wr.appendToNextSegment(rc)
+		err = wr.appendToNextSegment(rc, lsn)
 	}
 
-	if err != nil {
-		return 0, err
-	}
-
-	wr.highWater++
-	return wr.highWater, nil
+	return err
 }
 
 func (wr *writer) appendToSegment(rc *record.Record) error {
@@ -56,8 +48,8 @@ func (wr *writer) appendToSegment(rc *record.Record) error {
 	return nil
 }
 
-func (wr *writer) appendToNextSegment(rc *record.Record) error {
-	_, f, err := wr.sl.OpenNextSegment(wr.highWater)
+func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) error {
+	_, f, err := wr.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return err
 	}
@@ -74,14 +66,7 @@ func (wr *writer) next(rw io.ReadWriteSeeker) error {
 }
 
 func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
-	if err := wr.segmentWriter.Flush(); err != nil {
-		return err
-	}
-
-	// TODO: Is this correct?
-	lsn = min(lsn, wr.highWater)
-	wr.lowWater = lsn
-	return nil
+	return wr.segmentWriter.Flush()
 }
 
 func (wr *writer) Start() error {

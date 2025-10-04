@@ -10,9 +10,11 @@ import (
 )
 
 type Log struct {
-	sl     *segment.List
-	reader *reader
-	writer *writer
+	sl        *segment.List
+	reader    *reader
+	writer    *writer
+	highWater record.LogSequenceNumber
+	lowWater  record.LogSequenceNumber
 }
 
 func NewLog(
@@ -29,12 +31,17 @@ func NewLog(
 	}
 }
 
-func (l *Log) HighWater() record.LogSequenceNumber { return l.writer.HighWater() }
-func (l *Log) LowWater() record.LogSequenceNumber  { return l.writer.LowWater() }
+func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
+func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) PageID() page.PageID                 { return l.writer.PageID() }
 
 func (l *Log) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	return l.writer.Append(rc)
+	if err := l.writer.Append(rc, l.highWater+1); err != nil {
+		return 0, err
+	}
+
+	l.highWater++
+	return l.highWater, nil
 }
 
 func (l *Log) Close() error {
@@ -42,7 +49,14 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) Flush(lsn record.LogSequenceNumber) error {
-	return l.writer.Flush(lsn)
+	if err := l.writer.Flush(lsn); err != nil {
+		return err
+	}
+
+	// TODO: Is this correct?
+	lsn = min(lsn, l.highWater)
+	l.lowWater = lsn
+	return nil
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
