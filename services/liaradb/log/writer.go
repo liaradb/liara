@@ -34,12 +34,26 @@ func (wr *Writer) LowWater() record.LogSequenceNumber  { return wr.lowWater }
 func (wr *Writer) PageID() page.PageID                 { return wr.segmentWriter.PageID() }
 
 func (wr *Writer) Append(rc *record.Record) (record.LogSequenceNumber, error) {
-	lsn, err := wr.AppendToSegment(rc)
+	lsn, err := wr.appendToSegment(rc)
 	if err == page.ErrInsufficientSpace {
 		return wr.appendToNextSegment(lsn, rc)
 	}
 
 	return lsn, err
+}
+
+func (wr *Writer) appendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
+	err := wr.segmentWriter.Append(rc)
+	if err != nil {
+		if err == page.ErrInsufficientSpace {
+			// TODO: Fix this
+			return wr.highWater + 1, err
+		}
+		return 0, err
+	}
+
+	wr.highWater++
+	return wr.highWater, nil
 }
 
 func (wr *Writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.Record) (record.LogSequenceNumber, error) {
@@ -52,22 +66,7 @@ func (wr *Writer) appendToNextSegment(lsn record.LogSequenceNumber, rc *record.R
 		return 0, err
 	}
 
-	return wr.AppendToSegment(rc)
-}
-
-// TODO: Change to private
-func (wr *Writer) AppendToSegment(rc *record.Record) (record.LogSequenceNumber, error) {
-	err := wr.segmentWriter.Append(rc)
-	if err != nil {
-		if err == page.ErrInsufficientSpace {
-			// TODO: Fix this
-			return wr.highWater + 1, err
-		}
-		return 0, err
-	}
-
-	wr.highWater++
-	return wr.highWater, nil
+	return wr.appendToSegment(rc)
 }
 
 func (wr *Writer) Flush(lsn record.LogSequenceNumber) error {
