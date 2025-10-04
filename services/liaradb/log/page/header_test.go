@@ -15,7 +15,7 @@ func TestHeader(t *testing.T) {
 	r, w := newReaderWriter()
 	pid := PageID(1)
 	tlid := TimeLineID(2)
-	rem := record.RecordLength(3)
+	rem := record.Length(3)
 
 	h := NewHeader(pid, tlid, rem)
 
@@ -41,7 +41,7 @@ func testHeader(
 	h *Header,
 	pid PageID,
 	tlid TimeLineID,
-	rem record.RecordLength,
+	rem record.Length,
 ) {
 	t.Helper()
 	assert.Getter(t, h.ID, pid, "ID")

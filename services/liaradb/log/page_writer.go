@@ -33,9 +33,9 @@ func newPageWriter(
 	return pw
 }
 
-func (pw *PageWriter) ID() page.PageID                      { return pw.header.ID() }
-func (pw *PageWriter) TimeLineID() page.TimeLineID          { return pw.header.TimeLineID() }
-func (pw *PageWriter) LengthRemaining() record.RecordLength { return pw.header.LengthRemaining() }
+func (pw *PageWriter) ID() page.PageID                { return pw.header.ID() }
+func (pw *PageWriter) TimeLineID() page.TimeLineID    { return pw.header.TimeLineID() }
+func (pw *PageWriter) LengthRemaining() record.Length { return pw.header.LengthRemaining() }
 
 // TODO: This is slow
 func (pw *PageWriter) Data() []byte {
@@ -46,11 +46,11 @@ func (pw *PageWriter) Data() []byte {
 	return pw.data
 }
 
-func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem record.RecordLength) {
+func (pw *PageWriter) init(id page.PageID, tlid page.TimeLineID, rem record.Length) {
 	pw.header = page.NewHeader(id, tlid, rem)
 }
 
-func (pw *PageWriter) append(rb record.RecordBoundary, data []byte) error {
+func (pw *PageWriter) append(rb record.Boundary, data []byte) error {
 	if !pw.canInsert(data) {
 		return ErrInsufficientSpace
 	}
@@ -72,14 +72,14 @@ func (pw *PageWriter) canInsert(data []byte) bool {
 }
 
 func (*PageWriter) recordSize(data []byte) int {
-	return record.RecordHeaderSize + len(data)
+	return record.BoundarySize + len(data)
 }
 
 func (pw *PageWriter) available() int {
 	return pw.writer.Available()
 }
 
-func (pw *PageWriter) insert(rb record.RecordBoundary, data []byte) error {
+func (pw *PageWriter) insert(rb record.Boundary, data []byte) error {
 	if err := rb.Write(pw.writeBuf); err != nil {
 		return err
 	}
@@ -157,7 +157,7 @@ func (pw *PageWriter) SeekTail(r io.Reader) error {
 
 func (pw *PageWriter) bufferSize(b *bytes.Buffer) int {
 	// TODO: Verify this
-	return b.Cap() - (b.Available() + b.Len()) - record.RecordHeaderSize
+	return b.Cap() - (b.Available() + b.Len()) - record.BoundarySize
 }
 
 func (pw *PageWriter) loadWriter(rd io.Reader) error {
@@ -183,7 +183,7 @@ func (pw *PageWriter) skipHeader(rd io.Reader) error {
 }
 
 func (pw *PageWriter) records(rd io.Reader) iter.Seq2[*record.Record, error] {
-	rb := &record.RecordBoundary{}
+	rb := &record.Boundary{}
 	return func(yield func(*record.Record, error) bool) {
 
 		for {

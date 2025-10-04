@@ -10,18 +10,18 @@ const headerSize = 0 +
 	magicSize +
 	pageIDSize +
 	timeLineIDSize +
-	record.RecordLengthSize
+	record.LengthSize
 
 type Header struct {
 	id              PageID
 	timeLineID      TimeLineID
-	lengthRemaining record.RecordLength
+	lengthRemaining record.Length
 }
 
 func NewHeader(
 	id PageID,
 	timeLineID TimeLineID,
-	lengthRemaining record.RecordLength,
+	lengthRemaining record.Length,
 ) Header {
 	return Header{
 		id:              id,
@@ -30,9 +30,9 @@ func NewHeader(
 	}
 }
 
-func (h Header) ID() PageID                           { return h.id }
-func (h Header) TimeLineID() TimeLineID               { return h.timeLineID }
-func (h Header) LengthRemaining() record.RecordLength { return h.lengthRemaining }
+func (h Header) ID() PageID                     { return h.id }
+func (h Header) TimeLineID() TimeLineID         { return h.timeLineID }
+func (h Header) LengthRemaining() record.Length { return h.lengthRemaining }
 
 func (h Header) Size() int {
 	return headerSize
