@@ -75,7 +75,8 @@ func (l *Log) Append(
 }
 
 func (l *Log) appendRequest(r *appendRequest) {
-	lsn, err := l.append(r.tid, r.time, r.action, r.data, r.reverse)
+	v := r.Value()
+	lsn, err := l.append(v.tid, v.time, v.action, v.data, v.reverse)
 	r.Reply(lsn, err)
 }
 
@@ -112,12 +113,13 @@ func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
 		return context.Canceled
 	}
 
-	return req.Wait(ctx)
+	_, err := req.Wait(ctx)
+	return err
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
-	err := l.flush(r.lsn)
-	r.Reply(err)
+	err := l.flush(r.Value())
+	r.Reply(struct{}{}, err)
 }
 
 func (l *Log) flush(lsn record.LogSequenceNumber) error {
