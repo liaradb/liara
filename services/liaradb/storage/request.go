@@ -3,40 +3,39 @@ package storage
 import "context"
 
 type request struct {
-	blockID BlockID
-	ctx     context.Context
-	out     chan *response
+	ctx      context.Context
+	value    BlockID
+	response chan *response
 }
 
 type response struct {
-	buffer *Buffer
-	err    error
+	value *Buffer
+	err   error
 }
 
 // External thread
 func newRequest(ctx context.Context, bid BlockID) *request {
 	return &request{
-		blockID: bid,
-		ctx:     ctx,
-		out:     make(chan *response, 1), // TODO: Test this async
+		ctx:      ctx,
+		value:    bid,
+		response: make(chan *response, 1), // TODO: Test this async
 	}
 }
 
-func (r *request) respond(ctx context.Context, b *Buffer, err error) {
+func (r *request) respond(b *Buffer, err error) {
 	select {
-	case r.out <- &response{
-		buffer: b,
-		err:    err,
-	}:
-	case <-ctx.Done():
+	case <-r.ctx.Done():
+	case r.response <- &response{
+		value: b,
+		err:   err}:
 	}
 }
 
 // External thread
 func (r *request) wait(ctx context.Context) (*Buffer, error) {
 	select {
-	case o := <-r.out:
-		return o.buffer, o.err
+	case res := <-r.response:
+		return res.value, res.err
 	case <-ctx.Done():
 		return nil, context.Canceled
 	}

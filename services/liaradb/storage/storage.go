@@ -55,8 +55,8 @@ func (s *Storage) respond(r *request) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	b, err := s.getBuffer(r.ctx, r.blockID)
-	r.respond(r.ctx, b, err)
+	b, err := s.getBuffer(r.ctx, r.value)
+	r.respond(b, err)
 }
 
 func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
