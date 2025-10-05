@@ -7,23 +7,17 @@ type Command[T any] struct {
 	response chan response[T, struct{}]
 }
 
-func NewCommand[T any](
-	value T,
-) *Command[T] {
+func NewCommand[T any](value T) *Command[T] {
 	return &Command[T]{
 		value:    value,
 		response: make(chan response[T, struct{}], 1),
 	}
 }
 
-func (r *Command[T]) Value() T {
-	return r.value
-}
+func (r *Command[T]) Value() T { return r.value }
 
 func (r *Command[T]) Reply(err error) {
-	r.response <- response[T, struct{}]{
-		err: err,
-	}
+	r.response <- response[T, struct{}]{err: err}
 }
 
 func (r *Command[T]) Wait(ctx context.Context) error {

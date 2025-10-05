@@ -12,18 +12,14 @@ type response[T any, U any] struct {
 	err   error
 }
 
-func NewRequest[T any, U any](
-	value T,
-) *Request[T, U] {
+func NewRequest[T any, U any](value T) *Request[T, U] {
 	return &Request[T, U]{
 		value:    value,
 		response: make(chan response[T, U], 1),
 	}
 }
 
-func (r *Request[T, U]) Value() T {
-	return r.value
-}
+func (r *Request[T, U]) Value() T { return r.value }
 
 func (r *Request[T, U]) Reply(value U, err error) {
 	r.response <- response[T, U]{
