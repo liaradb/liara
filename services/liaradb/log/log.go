@@ -68,14 +68,10 @@ func (l *Log) Append(
 	select {
 	case l.appendReqs <- req:
 	case <-ctx.Done():
-	}
-
-	select {
-	case res := <-req.response:
-		return res.lsn, res.err
-	case <-ctx.Done():
 		return 0, context.Canceled
 	}
+
+	return req.Wait(ctx)
 }
 
 func (l *Log) appendRequest(r *appendRequest) {
@@ -113,14 +109,10 @@ func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
 	select {
 	case l.flushReqs <- req:
 	case <-ctx.Done():
-	}
-
-	select {
-	case res := <-req.response:
-		return res.err
-	case <-ctx.Done():
 		return context.Canceled
 	}
+
+	return req.Wait(ctx)
 }
 
 func (l *Log) flushRequest(r *flushRequest) {

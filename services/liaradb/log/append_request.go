@@ -1,6 +1,7 @@
 package log
 
 import (
+	"context"
 	"time"
 
 	"github.com/liaradb/liaradb/log/record"
@@ -41,5 +42,14 @@ func (r *appendRequest) Reply(lsn record.LogSequenceNumber, err error) {
 	r.response <- appendResponse{
 		lsn: lsn,
 		err: err,
+	}
+}
+
+func (r *appendRequest) Wait(ctx context.Context) (record.LogSequenceNumber, error) {
+	select {
+	case res := <-r.response:
+		return res.lsn, res.err
+	case <-ctx.Done():
+		return 0, context.Canceled
 	}
 }
