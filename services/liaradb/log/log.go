@@ -23,7 +23,7 @@ type Log struct {
 	cancel     context.CancelFunc
 }
 
-type flushRequest = async.Request[record.LogSequenceNumber, struct{}]
+type flushRequest = async.Command[record.LogSequenceNumber]
 
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 
@@ -124,7 +124,7 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	req := async.NewRequest[record.LogSequenceNumber, struct{}](lsn)
+	req := async.NewCommand(lsn)
 
 	select {
 	case l.flushReqs <- req:
@@ -132,13 +132,12 @@ func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
 		return context.Canceled
 	}
 
-	_, err := req.Wait(ctx)
-	return err
+	return req.Wait(ctx)
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
 	err := l.flush(r.Value())
-	r.Reply(struct{}{}, err)
+	r.Reply(err)
 }
 
 func (l *Log) flush(lsn record.LogSequenceNumber) error {
