@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage/queue"
 )
@@ -10,15 +11,17 @@ import (
 type Storage struct {
 	pinned   map[BlockID]*Buffer
 	unpinned queue.MapQueue[BlockID, *Buffer]
-	requests chan *request
+	requests chan *bufferRequest
 	returns  chan *Buffer
 	max      int
 	bm       *BufferManager
 }
 
+type bufferRequest = async.Request[BlockID, *Buffer]
+
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
-		requests: make(chan *request),
+		requests: make(chan *bufferRequest),
 		returns:  make(chan *Buffer, max),
 		pinned:   make(map[BlockID]*Buffer, max),
 		bm:       NewBufferManager(fs, bs),
@@ -51,12 +54,12 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) respond(r *request) {
+func (s *Storage) respond(r *bufferRequest) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	b, err := s.getBuffer(r.ctx, r.value)
-	r.respond(b, err)
+	b, err := s.getBuffer(r.Context(), r.Value())
+	r.Reply(b, err)
 }
 
 func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
@@ -163,14 +166,14 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 		return nil, ErrNotInitialized
 	}
 
-	r := newRequest(ctx, bid)
+	r := async.NewRequest[BlockID, *Buffer](ctx, bid)
 	select {
 	case s.requests <- r:
 	case <-ctx.Done():
 		return nil, context.Canceled
 	}
 
-	return r.wait(ctx)
+	return r.Wait(ctx)
 }
 
 // External thread

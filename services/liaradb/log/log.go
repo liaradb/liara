@@ -76,7 +76,7 @@ func (l *Log) Append(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
-	req := async.NewRequest[appendValue, record.LogSequenceNumber](appendValue{
+	req := async.NewRequest[appendValue, record.LogSequenceNumber](ctx, appendValue{
 		tid:     tid,
 		time:    time,
 		action:  action,
