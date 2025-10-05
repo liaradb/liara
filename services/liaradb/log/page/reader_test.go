@@ -9,6 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -130,7 +131,7 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, record.New(i, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(i, 2, time.UnixMicro(1234567890), action.ActionInsert, data, reverse))
 	}
 	return records, count - 1
 }

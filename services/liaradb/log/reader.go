@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"iter"
 
+	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
@@ -45,7 +46,7 @@ func (rd *reader) Recover() (iter.Seq[*record.Record], error) {
 				return nil, err
 			}
 
-			if rc.Action() == record.ActionCheckpoint {
+			if rc.Action() == action.ActionCheckpoint {
 				return listToIterator[*record.Record](rcs), nil
 			}
 

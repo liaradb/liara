@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -109,7 +110,7 @@ func createRecord() (*record.Record, []byte, error) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := record.New(lsn, tid, now, record.ActionInsert, data, reverse)
+	rc := record.New(lsn, tid, now, action.ActionInsert, data, reverse)
 	data, err := recordToBytes(rc)
 	return rc, data, err
 }

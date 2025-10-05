@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/log/action"
 )
 
 func TestRecord(t *testing.T) {
@@ -15,7 +16,7 @@ func TestRecord(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
-	action := ActionInsert
+	action := action.ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -35,7 +36,7 @@ func TestRecord_Write(t *testing.T) {
 	lsn := LogSequenceNumber(1)
 	tid := TransactionID(2)
 	now := time.UnixMicro(1234567890)
-	action := ActionInsert
+	action := action.ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
