@@ -5,6 +5,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
@@ -20,6 +21,18 @@ type Log struct {
 	appendReqs chan *appendRequest
 	flushReqs  chan *flushRequest
 	cancel     context.CancelFunc
+}
+
+type flushRequest = async.Request[record.LogSequenceNumber, struct{}]
+
+type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
+
+type appendValue struct {
+	tid     record.TransactionID
+	time    time.Time
+	action  record.Action
+	data    []byte
+	reverse []byte
 }
 
 func NewLog(
@@ -63,7 +76,13 @@ func (l *Log) Append(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
-	req := newAppendRequest(tid, time, action, data, reverse)
+	req := async.NewRequest[appendValue, record.LogSequenceNumber](appendValue{
+		tid:     tid,
+		time:    time,
+		action:  action,
+		data:    data,
+		reverse: reverse,
+	})
 
 	select {
 	case l.appendReqs <- req:
@@ -105,7 +124,7 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	req := newFlushRequest(lsn)
+	req := async.NewRequest[record.LogSequenceNumber, struct{}](lsn)
 
 	select {
 	case l.flushReqs <- req:
