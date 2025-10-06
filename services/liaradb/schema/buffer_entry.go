@@ -1,4 +1,4 @@
-package storage
+package schema
 
 import (
 	"github.com/liaradb/liaradb/raw"

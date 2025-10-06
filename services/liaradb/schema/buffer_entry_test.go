@@ -1,4 +1,4 @@
-package storage
+package schema
 
 import (
 	"path"

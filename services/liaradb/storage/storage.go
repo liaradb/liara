@@ -160,6 +160,13 @@ func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
 	}
 }
 
+func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
+	return s.Request(ctx, BlockID{
+		FileName: fileName,
+		Position: -1,
+	})
+}
+
 // External thread
 func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if s.requests == nil {

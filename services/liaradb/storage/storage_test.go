@@ -124,8 +124,8 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024)
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	s := NewStorage(fsys, 2, 16)
 
 	ctx := t.Context()
 	s.Run(ctx)
@@ -159,6 +159,10 @@ func testStorage_Flush(t *testing.T) {
 	_, err = s.Request(ctx2, bid2)
 	if err != context.Canceled {
 		t.Error("should be cancelled")
+	}
+
+	if err := b1.WriteUint64(12345, 0); err != nil {
+		t.Fatal(err)
 	}
 
 	// TODO: Prove this is non-blocking
