@@ -41,7 +41,7 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 		return errTransactionFailed(t.id, err)
 	}
 
-	lsn, err := t.log.Append(ctx, t.id, now, action.ActionInsert, data, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
 		return errTransactionFailed(t.id, err)
 	}
@@ -51,7 +51,7 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 }
 
 func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.id, now, action.ActionCommit, nil, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
 	if err != nil {
 		return errTransactionFailed(t.id, err)
 	}

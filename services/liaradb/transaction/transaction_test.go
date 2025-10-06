@@ -5,7 +5,6 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 )
 
@@ -66,7 +65,7 @@ func testTransaction_Commit(t *testing.T) {
 	}
 
 	lsns := []record.LogSequenceNumber{1, 2}
-	actions := []action.Action{action.ActionInsert, action.ActionCommit}
+	actions := []record.Action{record.ActionInsert, record.ActionCommit}
 
 	c := 0
 	for rc, err := range l.Iterate(0) {

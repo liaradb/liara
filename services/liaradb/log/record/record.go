@@ -3,15 +3,13 @@ package record
 import (
 	"io"
 	"time"
-
-	"github.com/liaradb/liaradb/log/action"
 )
 
 type Record struct {
 	logSequenceNumber LogSequenceNumber
 	transactionID     TransactionID
 	time              Time
-	action            action.Action
+	action            Action
 	data              LogData
 	reverse           LogData
 }
@@ -20,7 +18,7 @@ func New(
 	lsn LogSequenceNumber,
 	tid TransactionID,
 	time time.Time,
-	action action.Action,
+	action Action,
 	data []byte,
 	reverse []byte,
 ) *Record {
@@ -37,7 +35,7 @@ func New(
 func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
 func (rc *Record) Time() time.Time                      { return rc.time.Time }
-func (rc *Record) Action() action.Action                { return rc.action }
+func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 

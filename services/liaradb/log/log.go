@@ -7,7 +7,6 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
@@ -31,7 +30,7 @@ type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 type appendValue struct {
 	tid     record.TransactionID
 	time    time.Time
-	action  action.Action
+	action  record.Action
 	data    []byte
 	reverse []byte
 }
@@ -73,7 +72,7 @@ func (l *Log) Append(
 	ctx context.Context,
 	tid record.TransactionID,
 	time time.Time,
-	action action.Action,
+	action record.Action,
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
@@ -103,7 +102,7 @@ func (l *Log) appendRequest(r *appendRequest) {
 func (l *Log) append(
 	tid record.TransactionID,
 	time time.Time,
-	action action.Action,
+	action record.Action,
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
