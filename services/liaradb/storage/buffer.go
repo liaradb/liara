@@ -28,8 +28,9 @@ func NewBuffer(s *Storage) *Buffer {
 	}
 }
 
-func (b *Buffer) Dirty() bool { return b.status == BufferStatusDirty }
-func (b *Buffer) Pins() int   { return b.pins }
+func (b *Buffer) BlockID() BlockID { return b.blockID }
+func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
+func (b *Buffer) Pins() int        { return b.pins }
 
 func (b *Buffer) pin() {
 	b.pins++

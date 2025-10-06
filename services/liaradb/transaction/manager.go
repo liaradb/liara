@@ -29,5 +29,9 @@ func NewManager(
 
 func (m *Manager) Next() *Transaction {
 	m.transactionID++
-	return newTransaction(m.transactionID, m.log, m.storage, m.concurrencyMgr)
+	return newTransaction(
+		m.transactionID,
+		m.log,
+		storage.NewBufferList(m.storage),
+		m.concurrencyMgr)
 }
