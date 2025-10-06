@@ -46,6 +46,30 @@ func testLog_Append(t *testing.T) {
 	testPosition(t, l, 0, 1)
 }
 
+// TODO: Should not create next Segment if cannot fit
+func TestLog_Append__Large(t *testing.T) {
+
+	t.Parallel()
+	synctest.Test(t, testLog_Append__Large)
+}
+
+func testLog_Append__Large(t *testing.T) {
+	ctx := t.Context()
+
+	l := createLogStart(t, 3)
+	var data = make([]byte, 0, 1024)
+	for i := range 1024 {
+		data = append(data, byte(i%255))
+	}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
+	if _, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != page.ErrInsufficientSpace {
+		t.Errorf("should return %v", page.ErrInsufficientSpace)
+	}
+
+	testPosition(t, l, 0, 0)
+}
+
 func TestLog_Flush(t *testing.T) {
 	t.Parallel()
 
