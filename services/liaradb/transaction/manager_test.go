@@ -5,8 +5,11 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/log"
+	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestManager(t *testing.T) {
@@ -30,14 +33,17 @@ func TestManager(t *testing.T) {
 func createManager(t *testing.T) (*Manager, *log.Log) {
 	t.Helper()
 
-	l := createLog(t)
-	return NewManager(l), l
+	fsys, dir := createFiles(t)
+	l := createLog(t, fsys, dir)
+	s := createStorage(t, fsys)
+	lt := createLockTable(t)
+	c := createConcurrencyMgr(lt)
+	return NewManager(l, s, c), l
 }
 
-func createLog(t *testing.T) *log.Log {
+func createLog(t *testing.T, fsys file.FileSystem, dir string) *log.Log {
 	t.Helper()
 
-	fsys, dir := createFiles(t)
 	l := log.NewLog(256, 3, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
@@ -54,6 +60,22 @@ func createLog(t *testing.T) *log.Log {
 	}
 
 	return l
+}
+
+func createStorage(t *testing.T, fsys file.FileSystem) *storage.Storage {
+	s := storage.NewStorage(fsys, 2, 1024)
+	s.Run(t.Context())
+	return s
+}
+
+func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
+	lt := locktable.NewLockTable[action.ItemID](t.Context(), 1)
+	t.Cleanup(lt.Close)
+	return lt
+}
+
+func createConcurrencyMgr(lt *locktable.LockTable[action.ItemID]) *locktable.ConcurrencyMgr[action.ItemID] {
+	return locktable.NewConcurrencyMgr(lt)
 }
 
 func createFiles(t *testing.T) (file.FileSystem, string) {

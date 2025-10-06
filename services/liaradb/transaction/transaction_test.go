@@ -20,7 +20,7 @@ func testTransaction_Insert(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, time.UnixMicro(1234567890), nil); err != nil {
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +57,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, time.UnixMicro(1234567890), nil); err != nil {
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil); err != nil {
 		t.Fatal(err)
 	}
 
