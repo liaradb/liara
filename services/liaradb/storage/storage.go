@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"io"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
@@ -9,23 +10,27 @@ import (
 )
 
 type Storage struct {
-	pinned   map[BlockID]*Buffer
-	unpinned queue.MapQueue[BlockID, *Buffer]
-	requests chan *bufferRequest
-	returns  chan *Buffer
-	max      int
-	bm       *BufferManager
+	pinned     map[BlockID]*Buffer
+	unpinned   queue.MapQueue[BlockID, *Buffer]
+	bufferReqs async.Handler[BlockID, *Buffer]
+	appendReqs async.Handler[io.Reader, BlockID]
+	returns    chan *Buffer
+	max        int
+	bm         *BufferManager
 }
 
 type bufferRequest = async.Request[BlockID, *Buffer]
 
+type appendRequest = async.Request[io.Reader, BlockID]
+
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
-		requests: make(chan *bufferRequest),
-		returns:  make(chan *Buffer, max),
-		pinned:   make(map[BlockID]*Buffer, max),
-		bm:       NewBufferManager(fs, bs),
-		max:      max,
+		bufferReqs: make(chan *bufferRequest),
+		appendReqs: make(chan *appendRequest),
+		returns:    make(chan *Buffer, max),
+		pinned:     make(map[BlockID]*Buffer, max),
+		bm:         NewBufferManager(fs, bs),
+		max:        max,
 	}
 }
 
@@ -44,7 +49,7 @@ func (s *Storage) Run(ctx context.Context) {
 func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
-		case r := <-s.requests:
+		case r := <-s.bufferReqs:
 			s.respond(r)
 		case b := <-s.returns:
 			s.unpin(b)
@@ -169,21 +174,23 @@ func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, 
 
 // External thread
 func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
-	if s.requests == nil {
+	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized
 	}
 
-	r := async.NewRequest[BlockID, *Buffer](ctx, bid)
-	select {
-	case s.requests <- r:
-	case <-ctx.Done():
-		return nil, context.Canceled
-	}
-
-	return r.Wait(ctx)
+	return s.bufferReqs.Send(ctx, bid)
 }
 
 // External thread
 func (s *Storage) release(b *Buffer) {
 	s.returns <- b
+}
+
+// TODO: Should this be multiple BlockIDs?
+func (s *Storage) Append(ctx context.Context, rd io.Reader) (BlockID, error) {
+	if s.appendReqs == nil {
+		return BlockID{}, ErrNotInitialized
+	}
+
+	return s.appendReqs.Send(ctx, rd)
 }
