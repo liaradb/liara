@@ -1,11 +1,13 @@
 package storage
 
 import (
+	"bufio"
 	"context"
 	"io"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/queue"
 )
 
@@ -13,15 +15,21 @@ type Storage struct {
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
 	bufferReqs async.Handler[BlockID, *Buffer]
-	appendReqs async.Handler[io.Reader, BlockID]
+	appendReqs async.Handler[appendValue, BlockID]
 	returns    chan *Buffer
 	max        int
 	bm         *BufferManager
+	highWater  map[string]raw.Offset
 }
 
 type bufferRequest = async.Request[BlockID, *Buffer]
 
-type appendRequest = async.Request[io.Reader, BlockID]
+type appendRequest = async.Request[appendValue, BlockID]
+
+type appendValue struct {
+	fileName string
+	reader   io.Reader
+}
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
@@ -31,6 +39,7 @@ func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 		pinned:     make(map[BlockID]*Buffer, max),
 		bm:         NewBufferManager(fs, bs),
 		max:        max,
+		highWater:  make(map[string]raw.Offset),
 	}
 }
 
@@ -49,6 +58,8 @@ func (s *Storage) Run(ctx context.Context) {
 func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
+		case r := <-s.appendReqs:
+			s.append(r)
 		case r := <-s.bufferReqs:
 			s.respond(r)
 		case b := <-s.returns:
@@ -57,6 +68,16 @@ func (s *Storage) run(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (s *Storage) append(r *appendRequest) {
+	v := r.Value()
+	h := s.highWater[v.fileName]
+	_ = bufio.NewReader(v.reader)
+	r.Reply(BlockID{
+		FileName: v.fileName,
+		Position: h,
+	}, nil)
 }
 
 func (s *Storage) respond(r *bufferRequest) {
@@ -187,10 +208,10 @@ func (s *Storage) release(b *Buffer) {
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (s *Storage) Append(ctx context.Context, rd io.Reader) (BlockID, error) {
+func (s *Storage) Append(ctx context.Context, fileName string, rd io.Reader) (BlockID, error) {
 	if s.appendReqs == nil {
 		return BlockID{}, ErrNotInitialized
 	}
 
-	return s.appendReqs.Send(ctx, rd)
+	return s.appendReqs.Send(ctx, appendValue{fileName, rd})
 }
