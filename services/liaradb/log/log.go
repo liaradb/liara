@@ -18,8 +18,8 @@ type Log struct {
 	writer     *writer
 	highWater  record.LogSequenceNumber
 	lowWater   record.LogSequenceNumber
-	appendReqs chan *appendRequest
-	flushReqs  chan *flushRequest
+	appendReqs async.Handler[appendValue, record.LogSequenceNumber]
+	flushReqs  async.CommandHandler[record.LogSequenceNumber]
 	cancel     context.CancelFunc
 }
 
@@ -76,21 +76,13 @@ func (l *Log) Append(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
-	req := async.NewRequest[appendValue, record.LogSequenceNumber](ctx, appendValue{
+	return l.appendReqs.Send(ctx, appendValue{
 		tid:     tid,
 		time:    time,
 		action:  action,
 		data:    data,
 		reverse: reverse,
 	})
-
-	select {
-	case l.appendReqs <- req:
-	case <-ctx.Done():
-		return 0, context.Canceled
-	}
-
-	return req.Wait(ctx)
 }
 
 func (l *Log) appendRequest(r *appendRequest) {
@@ -124,15 +116,7 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	req := async.NewCommand(lsn)
-
-	select {
-	case l.flushReqs <- req:
-	case <-ctx.Done():
-		return context.Canceled
-	}
-
-	return req.Wait(ctx)
+	return l.flushReqs.Send(ctx, lsn)
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
