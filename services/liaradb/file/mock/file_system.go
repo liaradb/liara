@@ -2,6 +2,7 @@ package mock
 
 import (
 	"path"
+	"sync"
 	"testing/fstest"
 
 	"github.com/liaradb/liaradb/file"
@@ -10,6 +11,7 @@ import (
 type FileSystem struct {
 	fstest.MapFS
 	dirs map[string]map[string]*File
+	mux  sync.Mutex
 }
 
 func NewFileSystem(fsys fstest.MapFS) *FileSystem {
@@ -19,6 +21,9 @@ func NewFileSystem(fsys fstest.MapFS) *FileSystem {
 }
 
 func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
+	mfs.mux.Lock()
+	defer mfs.mux.Unlock()
+
 	if mfs.MapFS == nil {
 		mfs.MapFS = make(fstest.MapFS)
 	}
@@ -60,6 +65,9 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 }
 
 func (mfs *FileSystem) Remove(name string) error {
+	mfs.mux.Lock()
+	defer mfs.mux.Unlock()
+
 	d, ok := mfs.dirs[path.Dir(name)]
 	if ok {
 		delete(d, path.Base(name))
