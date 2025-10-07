@@ -33,7 +33,7 @@ func (r *Request[T, U]) Reply(value U, err error) {
 	}
 }
 
-func (r *Request[T, U]) Wait(ctx context.Context) (U, error) {
+func (r *Request[T, U]) wait(ctx context.Context) (U, error) {
 	select {
 	case res := <-r.response:
 		return res.value, res.err

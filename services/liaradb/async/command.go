@@ -25,7 +25,7 @@ func (r *Command[T]) Reply(err error) {
 	}
 }
 
-func (r *Command[T]) Wait(ctx context.Context) error {
+func (r *Command[T]) wait(ctx context.Context) error {
 	select {
 	case res := <-r.response:
 		return res.err

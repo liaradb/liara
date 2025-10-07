@@ -10,7 +10,7 @@ func (h CommandHandler[T]) Send(ctx context.Context, t T) error {
 		return context.Canceled
 	}
 
-	return r.Wait(ctx)
+	return r.wait(ctx)
 }
 
 func (h CommandHandler[T]) send(ctx context.Context, c *Command[T]) bool {

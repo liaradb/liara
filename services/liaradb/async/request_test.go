@@ -16,8 +16,9 @@ func testRequest(t *testing.T) {
 	var errValue = errors.New("error value")
 
 	go func() {
-		r := <-h
-		r.Reply(2, errValue)
+		if r, ok := h.Listen(t.Context()); ok {
+			r.Reply(2, errValue)
+		}
 	}()
 
 	v, err := h.Send(t.Context(), "a")

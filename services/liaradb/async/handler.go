@@ -11,7 +11,7 @@ func (h Handler[T, U]) Send(ctx context.Context, t T) (U, error) {
 		return u, context.Canceled
 	}
 
-	return r.Wait(ctx)
+	return r.wait(ctx)
 }
 
 func (h Handler[T, U]) send(ctx context.Context, r *Request[T, U]) bool {
@@ -20,5 +20,14 @@ func (h Handler[T, U]) send(ctx context.Context, r *Request[T, U]) bool {
 		return true
 	case <-ctx.Done():
 		return false
+	}
+}
+
+func (h Handler[T, U]) Listen(ctx context.Context) (*Request[T, U], bool) {
+	select {
+	case r := <-h:
+		return r, true
+	case <-ctx.Done():
+		return nil, false
 	}
 }
