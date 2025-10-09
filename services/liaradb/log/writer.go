@@ -1,16 +1,14 @@
 package log
 
 import (
-	"io"
-
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/log/segment"
 )
 
 type writer struct {
-	sl            *segment.List
-	segmentWriter *segment.Writer
+	sl *segment.List
+	sw *segment.Writer
 }
 
 func newWriter(
@@ -19,32 +17,20 @@ func newWriter(
 	sl *segment.List,
 ) *writer {
 	return &writer{
-		sl:            sl,
-		segmentWriter: segment.NewWriter(pageSize, segmentSize),
+		sl: sl,
+		sw: segment.NewWriter(pageSize, segmentSize),
 	}
 }
 
-func (wr *writer) PageID() page.PageID { return wr.segmentWriter.PageID() }
+func (wr *writer) PageID() page.PageID { return wr.sw.PageID() }
 
 func (wr *writer) Append(rc *record.Record) error {
-	err := wr.appendToSegment(rc)
+	err := wr.sw.Append(rc)
 	if err == page.ErrInsufficientSpace {
 		err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
 	}
 
 	return err
-}
-
-func (wr *writer) appendToSegment(rc *record.Record) error {
-	err := wr.segmentWriter.Append(rc)
-	if err != nil {
-		if err == page.ErrInsufficientSpace {
-			return err
-		}
-		return err
-	}
-
-	return nil
 }
 
 func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) error {
@@ -53,19 +39,15 @@ func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceN
 		return err
 	}
 
-	if err := wr.next(f); err != nil {
+	if err := wr.sw.Initialize(f); err != nil {
 		return err
 	}
 
-	return wr.appendToSegment(rc)
-}
-
-func (wr *writer) next(rw io.ReadWriteSeeker) error {
-	return wr.segmentWriter.Initialize(rw)
+	return wr.sw.Append(rc)
 }
 
 func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
-	return wr.segmentWriter.Flush()
+	return wr.sw.Flush()
 }
 
 func (wr *writer) Start() error {
@@ -79,9 +61,5 @@ func (wr *writer) Start() error {
 		return err
 	}
 
-	return wr.seekTail(stat.Size(), f)
-}
-
-func (wr *writer) seekTail(size int64, rw io.ReadWriteSeeker) error {
-	return wr.segmentWriter.SeekTail(size, rw)
+	return wr.sw.SeekTail(stat.Size(), f)
 }
