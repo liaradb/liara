@@ -16,11 +16,8 @@ func TestStorage(t *testing.T) {
 }
 
 func testStorage(t *testing.T) {
-	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024)
-
+	s := createStorage(t)
 	ctx := t.Context()
-	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 
@@ -82,11 +79,8 @@ func testStorage_CancelRun(t *testing.T) {
 func TestStorage_Pinned(t *testing.T) {
 	t.Parallel()
 
-	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024)
-
+	s := createStorage(t)
 	ctx := t.Context()
-	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 	bid := BlockID{FileName: n, Position: 0}
@@ -124,11 +118,8 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := NewStorage(fsys, 2, 16)
-
+	s := createStorage(t)
 	ctx := t.Context()
-	s.Run(ctx)
 
 	n := path.Join(t.TempDir(), "testfile")
 	bid0 := BlockID{FileName: n, Position: 0}
@@ -184,4 +175,11 @@ func testStorage_Flush(t *testing.T) {
 	if c := s.CountPinned(); c != 2 {
 		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
 	}
+}
+
+func createStorage(t *testing.T) *Storage {
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	s := NewStorage(fsys, 2, 16)
+	s.Run(t.Context())
+	return s
 }
