@@ -5,7 +5,7 @@ import "context"
 type CommandHandler[T any] chan *Command[T]
 
 func (h CommandHandler[T]) Send(ctx context.Context, t T) error {
-	r := NewCommand(ctx, t)
+	r := newCommand(ctx, t)
 	if !h.send(ctx, r) {
 		return context.Canceled
 	}
@@ -19,5 +19,14 @@ func (h CommandHandler[T]) send(ctx context.Context, c *Command[T]) bool {
 		return true
 	case <-ctx.Done():
 		return false
+	}
+}
+
+func (h CommandHandler[T]) Listen(ctx context.Context) (*Command[T], bool) {
+	select {
+	case r := <-h:
+		return r, true
+	case <-ctx.Done():
+		return nil, false
 	}
 }

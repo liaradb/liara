@@ -13,7 +13,7 @@ type response[T any, U any] struct {
 	err   error
 }
 
-func NewRequest[T any, U any](ctx context.Context, value T) *Request[T, U] {
+func newRequest[T any, U any](ctx context.Context, value T) *Request[T, U] {
 	return &Request[T, U]{
 		ctx:      ctx,
 		value:    value,

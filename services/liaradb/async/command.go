@@ -8,7 +8,7 @@ type Command[T any] struct {
 	response chan response[T, struct{}]
 }
 
-func NewCommand[T any](ctx context.Context, value T) *Command[T] {
+func newCommand[T any](ctx context.Context, value T) *Command[T] {
 	return &Command[T]{
 		ctx:      ctx,
 		value:    value,

@@ -16,8 +16,9 @@ func testCommand(t *testing.T) {
 	var errValue = errors.New("error value")
 
 	go func() {
-		r := <-h
-		r.Reply(errValue)
+		if r, ok := h.Listen(t.Context()); ok {
+			r.Reply(errValue)
+		}
 	}()
 
 	err := h.Send(t.Context(), "a")
