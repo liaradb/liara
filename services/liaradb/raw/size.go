@@ -1,10 +1,10 @@
-package record
+package raw
 
-type sizer interface {
+type Sizer interface {
 	Size() int
 }
 
-func size(sizers ...sizer) int {
+func Size(sizers ...Sizer) int {
 	size := 0
 	for _, s := range sizers {
 		size += s.Size()

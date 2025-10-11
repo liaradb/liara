@@ -3,6 +3,8 @@ package record
 import (
 	"io"
 	"time"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Record struct {
@@ -40,7 +42,7 @@ func (rc *Record) Data() []byte                         { return rc.data.Bytes()
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
 func (rc *Record) Size() int {
-	return size(
+	return raw.Size(
 		rc.logSequenceNumber,
 		rc.transactionID,
 		rc.time,

@@ -15,15 +15,15 @@ func TestList(t *testing.T) {
 
 	l := List{}
 
-	if i := l.Add(1, 2); i != 0 {
+	if i := l.Add(2); i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i := l.Add(3, 4); i != 1 {
+	if i := l.Add(4); i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	if i := l.Add(5, 6); i != 2 {
+	if i := l.Add(6); i != 2 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 2)
 	}
 

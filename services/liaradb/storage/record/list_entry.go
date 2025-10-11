@@ -2,6 +2,8 @@ package record
 
 import (
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type ListEntry struct {
@@ -19,9 +21,9 @@ func newListEntry(offset Offset, length Offset) ListEntry {
 func (le ListEntry) Size() int { return le.Offset.Size() + le.Length.Size() }
 
 func (le ListEntry) Write(w io.Writer) error {
-	return WriteAll(w, le.Length, le.Offset)
+	return raw.WriteAll(w, le.Length, le.Offset)
 }
 
 func (le *ListEntry) Read(r io.Reader) error {
-	return ReadAll(r, &le.Length, &le.Offset)
+	return raw.ReadAll(r, &le.Length, &le.Offset)
 }
