@@ -23,6 +23,11 @@ type w interface {
 
 var _ w = (*Buffer)(nil)
 
+func (b *Buffer) Clear() {
+	clear(b.data)
+	b.cursor = 0
+}
+
 func (b *Buffer) Read(p []byte) (n int, err error) {
 	if n = copy(p, b.data[b.cursor:]); n < len(p) {
 		err = io.EOF

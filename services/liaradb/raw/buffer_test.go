@@ -6,6 +6,11 @@ import (
 	"testing"
 )
 
+var (
+	data0 = []byte{1, 2, 3, 4, 5}
+	data1 = []byte{6, 7, 8, 9, 0}
+)
+
 func TestBuffer_Default(t *testing.T) {
 	t.Parallel()
 
@@ -24,14 +29,39 @@ func TestBuffer_Default(t *testing.T) {
 	}
 }
 
+func TestBuffer_Clear(t *testing.T) {
+	t.Parallel()
+
+	b := NewBuffer(10)
+
+	if n, err := b.Write(data0); err != nil {
+		t.Error(err)
+	} else if n != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 5)
+	}
+
+	b.Clear()
+
+	result := make([]byte, 10)
+	if n, err := b.ReadAt(result, 0); err != nil {
+		t.Error(err)
+	} else if n != 10 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 10)
+	}
+
+	empty := make([]byte, 10)
+	if !reflect.DeepEqual(result, empty) {
+		t.Errorf("incorrect result: %v, expected: %v", result, empty)
+	}
+}
+
 func TestBuffer_ReadWrite(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should write", func(t *testing.T) {
 		t.Parallel()
 
 		b := NewBuffer(20)
-
-		data0 := []byte{1, 2, 3, 4, 5}
-		data1 := []byte{6, 7, 8, 9, 0}
 
 		if n, err := b.Write(data0); err != nil {
 			t.Error(err)
@@ -111,9 +141,6 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 
 		b := NewBuffer(256)
 
-		data0 := []byte{1, 2, 3, 4, 5}
-		data1 := []byte{6, 7, 8, 9, 0}
-
 		// Write out of order
 		if n, err := b.WriteAt(data1, 5); err != nil {
 			t.Error(err)
@@ -149,9 +176,6 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 
 	t.Run("should update cursor position", func(t *testing.T) {
 		b := NewBuffer(256)
-
-		data0 := []byte{1, 2, 3, 4, 5}
-		data1 := []byte{6, 7, 8, 9, 0}
 
 		if n, err := b.WriteAt(data0, 0); err != nil {
 			t.Error(err)
@@ -256,6 +280,8 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 }
 
 func TestBuffer_Seek(t *testing.T) {
+	t.Parallel()
+
 	const initialPosition = 10
 
 	for message, c := range map[string]struct {
