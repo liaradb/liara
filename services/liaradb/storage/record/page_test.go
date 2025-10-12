@@ -10,7 +10,7 @@ func TestPage(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	p := Page{}
+	p := NewPage(256)
 	p.Add([]byte{1, 2, 3, 4})
 
 	if err := p.Write(w); err != nil {
@@ -22,7 +22,7 @@ func TestPage(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	p1 := Page{}
+	p1 := NewPage(256)
 	if err := p1.Read(r); err != nil {
 		t.Fatal(err)
 	}
