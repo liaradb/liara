@@ -40,16 +40,28 @@ func TestBuffer_Clear(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", n, 5)
 	}
 
-	b.Clear()
-
-	result := make([]byte, 10)
-	if n, err := b.ReadAt(result, 0); err != nil {
+	// Read next section
+	result := make([]byte, 5)
+	if n, err := b.Read(result); err != nil {
 		t.Error(err)
-	} else if n != 10 {
+	} else if n != 5 {
 		t.Errorf("incorrect count: %v, expected: %v", n, 10)
 	}
 
-	empty := make([]byte, 10)
+	empty := make([]byte, 5)
+	if !reflect.DeepEqual(result, empty) {
+		t.Errorf("incorrect result: %v, expected: %v", result, empty)
+	}
+
+	b.Clear()
+
+	// Read first section
+	if n, err := b.ReadAt(result, 0); err != nil {
+		t.Error(err)
+	} else if n != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 10)
+	}
+
 	if !reflect.DeepEqual(result, empty) {
 		t.Errorf("incorrect result: %v, expected: %v", result, empty)
 	}
