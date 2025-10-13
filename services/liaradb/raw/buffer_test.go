@@ -242,7 +242,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 		}
 	})
 
-	t.Run("should not write after buffer", func(t *testing.T) {
+	t.Run("should not write beyond buffer", func(t *testing.T) {
 		t.Parallel()
 
 		b := NewBuffer(20)
@@ -255,6 +255,22 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 		}
 		if n != 2 {
 			t.Errorf("should return remainder: %v, expected: %v", n, 2)
+		}
+	})
+
+	t.Run("should not write after buffer", func(t *testing.T) {
+		t.Parallel()
+
+		b := NewBuffer(20)
+
+		result := make([]byte, 5)
+
+		n, err := b.WriteAt(result, 22)
+		if err != io.ErrShortWrite {
+			t.Error("should return ErrShortWrite")
+		}
+		if n != 0 {
+			t.Errorf("should return remainder: %v, expected: %v", n, 0)
 		}
 	})
 
@@ -274,7 +290,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 		}
 	})
 
-	t.Run("should not read after buffer", func(t *testing.T) {
+	t.Run("should not read beyond buffer", func(t *testing.T) {
 		t.Parallel()
 
 		b := NewBuffer(20)
@@ -287,6 +303,22 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 		}
 		if n != 2 {
 			t.Errorf("should return remainder: %v, expected: %v", n, 2)
+		}
+	})
+
+	t.Run("should not read after buffer", func(t *testing.T) {
+		t.Parallel()
+
+		b := NewBuffer(20)
+
+		result := make([]byte, 5)
+
+		n, err := b.ReadAt(result, 22)
+		if err != io.EOF {
+			t.Error("should return EOF")
+		}
+		if n != 0 {
+			t.Errorf("should return remainder: %v, expected: %v", n, 0)
 		}
 	})
 }

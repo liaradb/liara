@@ -29,6 +29,10 @@ func (b *Buffer) Clear() {
 }
 
 func (b *Buffer) Read(p []byte) (n int, err error) {
+	if b.cursor >= int64(len(b.data)) {
+		return 0, io.EOF
+	}
+
 	if n = copy(p, b.data[b.cursor:]); n < len(p) {
 		err = io.EOF
 	}
@@ -67,6 +71,10 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (b *Buffer) Write(p []byte) (n int, err error) {
+	if b.cursor >= int64(len(b.data)) {
+		return 0, io.ErrShortWrite
+	}
+
 	if n = copy(b.data[b.cursor:], p); n < len(p) {
 		err = io.ErrShortWrite
 	}
