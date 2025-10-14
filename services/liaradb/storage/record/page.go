@@ -26,7 +26,7 @@ func NewPage(size Offset) *Page {
 
 func (p *Page) Add(i Item) {
 	l := len(i)
-	p.list.Add(Offset(l))
+	p.list.Add(0, Offset(l))
 	// p.items = append(p.items, i)
 }
 

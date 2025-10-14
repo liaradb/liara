@@ -14,16 +14,20 @@ func TestList(t *testing.T) {
 	r, w := newReaderWriter()
 
 	l := List{}
+	var position Offset = 20
 
-	if i := l.Add(2); i != 0 {
+	position -= 2
+	if i := l.Add(position, 2); i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i := l.Add(4); i != 1 {
+	position -= 4
+	if i := l.Add(position, 4); i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	if i := l.Add(6); i != 2 {
+	position -= 6
+	if i := l.Add(position, 6); i != 2 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 2)
 	}
 

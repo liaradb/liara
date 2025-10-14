@@ -10,8 +10,8 @@ type List struct {
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 
-func (l *List) Add(length Offset) int {
-	le := newListEntry(Offset(l.Size()), length)
+func (l *List) Add(offset Offset, length Offset) int {
+	le := newListEntry(offset, length)
 	l.entries = append(l.entries, le)
 	return len(l.entries) - 1
 }
