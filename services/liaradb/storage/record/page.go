@@ -25,9 +25,12 @@ func NewPage(size Offset) *Page {
 
 func (p *Page) Add(i Item) {
 	l := len(i)
-	cursor := p.Size() - p.list.entriesSize() - l
-	p.list.Add(Offset(cursor), Offset(l))
+	p.list.Add(p.nextCursor(l), Offset(l))
 	p.items = append(p.items, i)
+}
+
+func (p *Page) nextCursor(l int) Offset {
+	return Offset(p.Size() - p.list.entriesSize() - l)
 }
 
 func (p *Page) Size() int {
@@ -63,14 +66,15 @@ func (p *Page) writeBuffer(w io.Writer) error {
 		return err
 	}
 
-	_, err := io.Copy(w, p.buffer)
-	p.buffer.Clear()
+	if _, err := io.Copy(w, p.buffer); err != nil {
+		return err
+	}
+
+	_, err := p.buffer.Seek(0, io.SeekStart)
 	return err
 }
 
 func (p *Page) Read(r io.Reader) error {
-	p.buffer.Clear()
-
 	if err := p.readBuffer(r); err != nil {
 		return err
 	}
@@ -88,11 +92,15 @@ func (p *Page) Read(r io.Reader) error {
 		p.items = append(p.items, i)
 	}
 
-	p.buffer.Clear()
-	return nil
+	_, err := p.buffer.Seek(0, io.SeekStart)
+	return err
 }
 
 func (p *Page) readBuffer(r io.Reader) error {
+	if _, err := p.buffer.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	if _, err := io.Copy(p.buffer, r); err != nil {
 		return err
 	}
