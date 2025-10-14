@@ -1,6 +1,9 @@
 package record
 
-import "io"
+import (
+	"io"
+	"iter"
+)
 
 type Page struct {
 	size  Offset
@@ -24,6 +27,17 @@ func (p *Page) Add(i Item) {
 
 func (p *Page) nextCursor(l int) Offset {
 	return Offset(p.Size() - p.list.entriesSize() - l)
+}
+
+// TODO: Do we need an error parameter?
+func (p *Page) Items() iter.Seq2[Item, error] {
+	return func(yield func(Item, error) bool) {
+		for _, i := range p.items {
+			if !yield(i, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (p *Page) Size() int {

@@ -8,7 +8,36 @@ import (
 	"github.com/liaradb/liaradb/raw"
 )
 
-func TestPage(t *testing.T) {
+func TestPage_Add(t *testing.T) {
+	t.Parallel()
+
+	const size = 256
+	p := NewPage(size)
+
+	items := [][]byte{
+		{1, 2, 3, 4},
+		{5, 6, 7, 8}}
+	for _, i := range items {
+		p.Add(i)
+	}
+
+	count := 0
+	for i, err := range p.Items() {
+		if err != nil {
+			t.Error(err)
+		}
+		if !reflect.DeepEqual(i, items[count]) {
+			t.Errorf("item does not match: %v, expected: %v", i, items[count])
+		}
+		count++
+	}
+
+	if count != len(items) {
+		t.Errorf("incorrect count: %v, expected: %v", count, len(items))
+	}
+}
+
+func TestPage_ReadWrite(t *testing.T) {
 	t.Parallel()
 
 	const size = 256
