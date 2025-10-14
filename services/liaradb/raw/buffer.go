@@ -13,6 +13,12 @@ func NewBuffer(size int) *Buffer {
 	}
 }
 
+func NewBufferFromSlice(data []byte) *Buffer {
+	return &Buffer{
+		data: data,
+	}
+}
+
 type w interface {
 	io.Reader
 	io.ReaderAt

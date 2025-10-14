@@ -29,6 +29,24 @@ func TestBuffer_Default(t *testing.T) {
 	}
 }
 
+func TestBuffer_NewBufferFromSlice(t *testing.T) {
+	t.Parallel()
+
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+	b := NewBufferFromSlice(data)
+
+	result := make([]byte, 10)
+	if n, err := b.Read(result); err != nil {
+		t.Error(err)
+	} else if n != 10 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 10)
+	}
+
+	if !reflect.DeepEqual(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+}
+
 func TestBuffer_Clear(t *testing.T) {
 	t.Parallel()
 
