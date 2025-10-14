@@ -1,30 +1,40 @@
 package record
 
 import (
+	"io"
 	"reflect"
 	"testing"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 func TestPage(t *testing.T) {
 	t.Parallel()
 
-	r, w := newReaderWriter()
+	const size = 256
 
-	p := NewPage(256)
+	b := raw.NewBuffer(size)
+
+	p := NewPage(size)
 	p.Add([]byte{1, 2, 3, 4})
 	p.Add([]byte{5, 6, 7, 8})
 
-	if err := p.Write(w); err != nil {
+	b.Clear()
+	if err := p.Write(b); err != nil {
 		t.Fatal(err)
 	}
 
-	size := w.Len()
 	if s := p.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
+	if _, err := b.Seek(0, io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+
 	p1 := NewPage(256)
-	if err := p1.Read(r); err != nil {
+
+	if err := p1.Read(b); err != nil {
 		t.Fatal(err)
 	}
 
