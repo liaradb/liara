@@ -24,6 +24,22 @@ func (l List) Size() int {
 	return s
 }
 
+func (l List) offset(index int) Offset {
+	if index < 0 || index >= len(l.entries) {
+		return 0
+	}
+
+	return l.entries[index].Offset
+}
+
+func (l List) entriesSize() int {
+	var s int
+	for _, e := range l.entries {
+		s += e.Size()
+	}
+	return s
+}
+
 func (l List) Write(w io.Writer) error {
 	if err := l.Length().Write(w); err != nil {
 		return err

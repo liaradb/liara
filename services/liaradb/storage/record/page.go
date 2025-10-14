@@ -11,7 +11,6 @@ type Page struct {
 	list   List
 	items  []Item
 	buffer *raw.Buffer
-	cursor Offset
 }
 
 type Item = []byte
@@ -26,8 +25,9 @@ func NewPage(size Offset) *Page {
 
 func (p *Page) Add(i Item) {
 	l := len(i)
-	p.list.Add(0, Offset(l))
-	// p.items = append(p.items, i)
+	cursor := p.Size() - p.list.entriesSize() - l
+	p.list.Add(Offset(cursor), Offset(l))
+	p.items = append(p.items, i)
 }
 
 func (p *Page) Size() int {
@@ -44,8 +44,8 @@ func (p *Page) Write(w interface {
 		return err
 	}
 
-	for _, i := range p.items {
-		if err := p.writeItem(p.buffer, i); err != nil {
+	for index, i := range p.items {
+		if err := p.writeItem(p.buffer, i, p.list.offset(index)); err != nil {
 			return err
 		}
 	}
@@ -53,14 +53,8 @@ func (p *Page) Write(w interface {
 	return p.writeBuffer(w)
 }
 
-func (p *Page) writeItem(w io.WriterAt, item Item) error {
-	if len(p.items) == 0 {
-		p.cursor = p.size
-	}
-
-	p.cursor -= Offset(len(item))
-
-	_, err := w.WriteAt(item, int64(p.cursor))
+func (p *Page) writeItem(w io.WriterAt, item Item, off Offset) error {
+	_, err := w.WriteAt(item, int64(off))
 	return err
 }
 
@@ -81,10 +75,21 @@ func (p *Page) Read(r io.Reader) error {
 		return err
 	}
 
-	err := p.list.Read(p.buffer)
+	if err := p.list.Read(p.buffer); err != nil {
+		return err
+	}
+
+	for _, e := range p.list.entries {
+		i := make([]byte, e.Length)
+		if _, err := p.buffer.ReadAt(i, int64(e.Offset)); err != nil {
+			return err
+		}
+
+		p.items = append(p.items, i)
+	}
 
 	p.buffer.Clear()
-	return err
+	return nil
 }
 
 func (p *Page) readBuffer(r io.Reader) error {

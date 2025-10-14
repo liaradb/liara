@@ -12,6 +12,7 @@ func TestPage(t *testing.T) {
 
 	p := NewPage(256)
 	p.Add([]byte{1, 2, 3, 4})
+	p.Add([]byte{5, 6, 7, 8})
 
 	if err := p.Write(w); err != nil {
 		t.Fatal(err)
