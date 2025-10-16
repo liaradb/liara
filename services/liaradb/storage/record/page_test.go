@@ -3,6 +3,7 @@ package record
 import (
 	"io"
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/liaradb/liaradb/raw"
@@ -26,7 +27,7 @@ func TestPage_Add(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if !reflect.DeepEqual(i, items[count]) {
+		if !slices.Equal(i, items[count]) {
 			t.Errorf("item does not match: %v, expected: %v", i, items[count])
 		}
 		count++

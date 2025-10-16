@@ -2,7 +2,6 @@ package segment
 
 import (
 	"fmt"
-	"reflect"
 	"slices"
 	"testing"
 	"testing/fstest"
@@ -31,7 +30,7 @@ func TestList_Open(t *testing.T) {
 		names := sl.Names()
 
 		want := createNames(0, count)
-		if !reflect.DeepEqual(want, names) {
+		if !slices.Equal(want, names) {
 			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
 		}
 	})
@@ -49,7 +48,7 @@ func TestList_Open(t *testing.T) {
 		names := sl.Names()
 
 		want := createNames(9998, count)
-		if !reflect.DeepEqual(want, names) {
+		if !slices.Equal(want, names) {
 			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
 		}
 	})
@@ -153,7 +152,7 @@ func TestList_IterateFromLSN(t *testing.T) {
 	if c != 3 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 3)
 	}
-	if !reflect.DeepEqual(names, n) {
+	if !slices.Equal(names, n) {
 		t.Error("names do not match")
 	}
 }
@@ -357,7 +356,7 @@ func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
+	if names := sl.Names(); !slices.Equal(names, []SegmentName{NewSegmentName(2, 20)}) {
 		t.Errorf("list is incorrect: %v", names)
 	}
 
@@ -366,7 +365,7 @@ func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if names := sl.Names(); !reflect.DeepEqual(names, []SegmentName{NewSegmentName(2, 20)}) {
+	if names := sl.Names(); !slices.Equal(names, []SegmentName{NewSegmentName(2, 20)}) {
 		t.Errorf("list is incorrect: %v", names)
 	}
 }
@@ -400,7 +399,7 @@ func TestList_Reverse(t *testing.T) {
 	if c != 3 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 3)
 	}
-	if !reflect.DeepEqual(names, n) {
+	if !slices.Equal(names, n) {
 		t.Error("names do not match")
 	}
 }

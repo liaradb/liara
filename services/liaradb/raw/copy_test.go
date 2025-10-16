@@ -1,7 +1,7 @@
 package raw
 
 import (
-	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -15,7 +15,7 @@ func TestCopy_ExactLength(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !reflect.DeepEqual(a, b) {
+	if !slices.Equal(a, b) {
 		t.Error("copy failed")
 	}
 }
@@ -30,7 +30,7 @@ func TestCopy_DestinationTooShort(t *testing.T) {
 		t.Error("should be partial copy")
 	}
 
-	if reflect.DeepEqual(a, b) {
+	if slices.Equal(a, b) {
 		t.Error("should not have fully copied")
 	}
 }
@@ -67,7 +67,7 @@ func TestCopy_SourceNil(t *testing.T) {
 		t.Error(err)
 	}
 
-	if !reflect.DeepEqual(b, make([]byte, 5)) {
+	if !slices.Equal(b, make([]byte, 5)) {
 		t.Error("should not have changed anything")
 	}
 }
@@ -83,7 +83,7 @@ func TestCopyAt_Underflow(t *testing.T) {
 	}
 
 	c := []byte{0, 1, 2, 3, 4, 5}
-	if !reflect.DeepEqual(b, c) {
+	if !slices.Equal(b, c) {
 		t.Error("copy failed")
 	}
 }
