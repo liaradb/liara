@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/liaradb/liaradb/raw"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/raw"
+)
 
 type Buffer struct {
 	blockID BlockID
@@ -67,6 +71,20 @@ func (b *Buffer) Load(bid BlockID) error {
 
 	b.status = BufferStatusLoaded
 	return nil
+}
+
+func (b *Buffer) read(r io.ReaderAt) error {
+	_, err := r.ReadAt(b.data, b.offset())
+	return err
+}
+
+func (b *Buffer) write(w io.WriterAt) error {
+	_, err := w.WriteAt(b.data, b.offset())
+	return err
+}
+
+func (b *Buffer) offset() int64 {
+	return b.blockID.Offset(int64(len(b.data))).Value()
 }
 
 func (b *Buffer) Flush() error {

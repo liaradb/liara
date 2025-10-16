@@ -13,6 +13,8 @@ const (
 	stringHeaderOffset Offset = Uint32Length
 )
 
+func (o Offset) Value() int64 { return int64(o) }
+
 func StrSizeFromLength(length int) Offset {
 	return Uint32Length + Offset(length)
 }

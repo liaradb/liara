@@ -44,6 +44,7 @@ func (p *Page) Size() int {
 	return int(p.size)
 }
 
+// TODO: Should we use seek instead?
 func (p *Page) Write(w interface {
 	io.WriterAt
 	io.Writer
@@ -61,6 +62,7 @@ func (p *Page) Write(w interface {
 	return nil
 }
 
+// TODO: Should we use seek instead?
 func (p *Page) Read(r interface {
 	io.Reader
 	io.ReaderAt

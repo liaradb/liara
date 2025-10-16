@@ -35,8 +35,8 @@ func (bm *BufferManager) Load(b *Buffer) error {
 		return err
 	}
 
-	_, err = f.ReadAt(b.data, bm.offset(b.blockID))
-	if err != nil && err != io.EOF {
+	// TODO: Do we need to check io.EOF?
+	if err := b.read(f); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -49,14 +49,9 @@ func (bm *BufferManager) Flush(b *Buffer) error {
 		return err
 	}
 
-	_, err = f.WriteAt(b.data, bm.offset(b.blockID))
-	return err
+	return b.write(f)
 }
 
 func (bm *BufferManager) openFile(b *Buffer) (file.File, error) {
 	return bm.fs.OpenFile(b.blockID.FileName)
-}
-
-func (bm *BufferManager) offset(bid BlockID) int64 {
-	return int64(bid.Offset(bm.bufferSize))
 }
