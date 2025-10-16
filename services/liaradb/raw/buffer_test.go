@@ -2,7 +2,7 @@ package raw
 
 import (
 	"io"
-	"reflect"
+	"slices"
 	"testing"
 )
 
@@ -24,7 +24,7 @@ func TestBuffer_Default(t *testing.T) {
 	}
 
 	empty := make([]byte, 10)
-	if !reflect.DeepEqual(result, empty) {
+	if !slices.Equal(result, empty) {
 		t.Errorf("incorrect result: %v, expected: %v", result, empty)
 	}
 }
@@ -42,8 +42,30 @@ func TestBuffer_NewBufferFromSlice(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", n, 10)
 	}
 
-	if !reflect.DeepEqual(result, data) {
+	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+}
+
+func TestBuffer_Bytes(t *testing.T) {
+	t.Parallel()
+
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
+	b := NewBufferFromSlice(data)
+
+	if b := b.Bytes(); !slices.Equal(b, data) {
+		t.Errorf("incorrect byte slice: %v, expected: %v", b, data)
+	}
+}
+
+func TestBuffer_Length(t *testing.T) {
+	t.Parallel()
+
+	var size int64 = 10
+	b := NewBuffer(size)
+
+	if s := b.Length(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", size, s)
 	}
 }
 
@@ -67,7 +89,7 @@ func TestBuffer_Clear(t *testing.T) {
 	}
 
 	empty := make([]byte, 5)
-	if !reflect.DeepEqual(result, empty) {
+	if !slices.Equal(result, empty) {
 		t.Errorf("incorrect result: %v, expected: %v", result, empty)
 	}
 
@@ -80,7 +102,7 @@ func TestBuffer_Clear(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", n, 10)
 	}
 
-	if !reflect.DeepEqual(result, empty) {
+	if !slices.Equal(result, empty) {
 		t.Errorf("incorrect result: %v, expected: %v", result, empty)
 	}
 }
@@ -117,7 +139,7 @@ func TestBuffer_ReadWrite(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data0) {
+		} else if !slices.Equal(result, data0) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data0)
 		}
 
@@ -125,7 +147,7 @@ func TestBuffer_ReadWrite(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data1) {
+		} else if !slices.Equal(result, data1) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data0)
 		}
 	})
@@ -191,7 +213,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data1) {
+		} else if !slices.Equal(result, data1) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data1)
 		}
 
@@ -199,7 +221,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data0) {
+		} else if !slices.Equal(result, data0) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data0)
 		}
 	})
@@ -231,7 +253,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data0) {
+		} else if !slices.Equal(result, data0) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data0)
 		}
 
@@ -239,7 +261,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 			t.Error(err)
 		} else if n != 5 {
 			t.Errorf("incorrect count: %v, expected: %v", n, 5)
-		} else if !reflect.DeepEqual(result, data1) {
+		} else if !slices.Equal(result, data1) {
 			t.Errorf("incorrect result: %v, expected: %v", result, data1)
 		}
 	})

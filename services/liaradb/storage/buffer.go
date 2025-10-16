@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/binary"
 	"io"
 
 	"github.com/liaradb/liaradb/raw"
@@ -8,7 +9,7 @@ import (
 
 type Buffer struct {
 	blockID BlockID
-	data    []byte
+	buffer  *raw.Buffer
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -27,8 +28,9 @@ const (
 // TODO: This should be private
 func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
-		data: make([]byte, s.bm.bufferSize),
-		s:    s,
+		// TODO: This accesses BufferManager.bufferSize direclty
+		buffer: raw.NewBuffer(s.bm.bufferSize),
+		s:      s,
 	}
 }
 
@@ -74,17 +76,17 @@ func (b *Buffer) Load(bid BlockID) error {
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
-	_, err := r.ReadAt(b.data, b.offset())
+	_, err := r.ReadAt(b.buffer.Bytes(), b.offset())
 	return err
 }
 
 func (b *Buffer) write(w io.WriterAt) error {
-	_, err := w.WriteAt(b.data, b.offset())
+	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
 	return err
 }
 
 func (b *Buffer) offset() int64 {
-	return b.blockID.Offset(int64(len(b.data))).Value()
+	return b.blockID.Offset(b.buffer.Length()).Value()
 }
 
 func (b *Buffer) Flush() error {
@@ -102,7 +104,11 @@ func (b *Buffer) Flush() error {
 }
 
 func (b *Buffer) WriteUint64(value uint64, off raw.Offset) error {
-	if err := raw.CopyUint64(b.data, value, off); err != nil {
+	if _, err := b.buffer.Seek(off.Value(), io.SeekStart); err != nil {
+		return err
+	}
+
+	if err := binary.Write(b.buffer, binary.BigEndian, value); err != nil {
 		return err
 	}
 
@@ -111,5 +117,11 @@ func (b *Buffer) WriteUint64(value uint64, off raw.Offset) error {
 }
 
 func (b *Buffer) ReadUint64(off raw.Offset) (uint64, error) {
-	return raw.GetUint64(b.data, off)
+	if _, err := b.buffer.Seek(off.Value(), io.SeekStart); err != nil {
+		return 0, err
+	}
+
+	var value uint64
+	err := binary.Read(b.buffer, binary.BigEndian, &value)
+	return value, err
 }
