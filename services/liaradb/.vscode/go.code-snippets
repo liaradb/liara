@@ -60,5 +60,23 @@
 			"\t${2|return err,t.Error(err),t.Fatal(err)|}",
 			"}$0",
 		]
+	},
+
+	"Sync test": {
+		"scope": "go",
+		"description": "Sync test",
+		"prefix": [
+			"synctest"
+		],
+		"body": [
+			"func Test$1(t *testing.T) {",
+			"\tt.Parallel()",
+			"\tsynctest.Test(t, test$1)",
+			"}",
+			"",
+			"func test$1(t *testing.T) {",
+			"\t$0",
+			"}"
+		]
 	}
 }
