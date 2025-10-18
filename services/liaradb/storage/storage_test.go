@@ -96,7 +96,7 @@ func TestStorage_Pinned(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	if err = b.WriteUint64(1, 1); err != nil {
+	if err = b.Add([]byte{1}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -154,7 +154,7 @@ func testStorage_Flush(t *testing.T) {
 		t.Error("should be cancelled")
 	}
 
-	if err := b1.WriteUint64(12345, 0); err != nil {
+	if err := b1.Add([]byte{1, 2}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -192,7 +192,7 @@ func testStorage_Append(t *testing.T) {
 	records := [][]byte{
 		{1, 2},
 		{3, 4},
-		// {5, 6},
+		{5, 6},
 	}
 
 	(func() {

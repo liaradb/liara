@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"encoding/binary"
 	"io"
 
 	"github.com/liaradb/liaradb/raw"
@@ -88,14 +87,19 @@ func (b *Buffer) Add(i []byte) error {
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
-	if _, err := r.ReadAt(b.buffer.Bytes(), b.offset()); err != nil {
-		return err
+	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
+	if err != nil {
+		if err != io.EOF {
+			return err
+		}
+		clear(b.buffer.Bytes()[n:])
 	}
 
 	return b.page.Read(b.buffer)
 }
 
 func (b *Buffer) write(w io.WriterAt) error {
+	b.buffer.Clear()
 	if err := b.page.Write(b.buffer); err != nil {
 		return err
 	}
@@ -120,27 +124,4 @@ func (b *Buffer) Flush() error {
 
 	b.status = BufferStatusLoaded
 	return nil
-}
-
-func (b *Buffer) WriteUint64(value uint64, off raw.Offset) error {
-	if _, err := b.buffer.Seek(off.Value(), io.SeekStart); err != nil {
-		return err
-	}
-
-	if err := binary.Write(b.buffer, binary.BigEndian, value); err != nil {
-		return err
-	}
-
-	b.status = BufferStatusDirty
-	return nil
-}
-
-func (b *Buffer) ReadUint64(off raw.Offset) (uint64, error) {
-	if _, err := b.buffer.Seek(off.Value(), io.SeekStart); err != nil {
-		return 0, err
-	}
-
-	var value uint64
-	err := binary.Read(b.buffer, binary.BigEndian, &value)
-	return value, err
 }

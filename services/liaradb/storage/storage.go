@@ -15,8 +15,7 @@ import (
 type Storage struct {
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
-	bufferReqs async.Handler[BlockID, *Buffer]
-	appendReqs async.Handler[appendValue, BlockID]
+	bufferReqs async.Handler[butterRequestQuery, *Buffer]
 	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
@@ -24,19 +23,24 @@ type Storage struct {
 	highWater  map[string]raw.Offset
 }
 
-type bufferRequest = async.Request[BlockID, *Buffer]
+type bufferRequest = async.Request[butterRequestQuery, *Buffer]
 
-type appendRequest = async.Request[appendValue, BlockID]
-
-type appendValue struct {
-	fileName string
-	reader   io.Reader
+type butterRequestQuery struct {
+	bid       BlockID
+	queryType bufferRequestQueryType
 }
+
+type bufferRequestQueryType int
+
+const (
+	bufferRequestQueryTypeByID = iota
+	bufferRequestQueryTypeCurrent
+	bufferRequestQueryTypeNext
+)
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
 		bufferReqs: make(chan *bufferRequest),
-		appendReqs: make(chan *appendRequest),
 		highWReqs:  make(async.Handler[string, BlockID]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[BlockID]*Buffer, max),
@@ -61,8 +65,6 @@ func (s *Storage) Run(ctx context.Context) {
 func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
-		case r := <-s.appendReqs:
-			s.append(r)
 		case r := <-s.bufferReqs:
 			s.respond(r)
 		case r := <-s.highWReqs:
@@ -73,43 +75,6 @@ func (s *Storage) run(ctx context.Context) {
 			return
 		}
 	}
-}
-
-func (s *Storage) append(r *appendRequest) {
-	v := r.Value()
-	// TODO: Find a better way to get this
-	data := make([]byte, s.bm.bufferSize)
-	n, err := v.reader.Read(data)
-	if err != nil && err != io.EOF {
-		r.Reply(BlockID{}, err)
-		return
-	}
-
-	bid, err := s.appendData(r.Context(), v.fileName, data[:n])
-	if err == record.ErrInsufficientSpace {
-		s.incrementHighWater(v.fileName)
-		bid, err = s.appendData(r.Context(), v.fileName, data[:n])
-	}
-
-	r.Reply(bid, err)
-}
-
-func (s *Storage) appendData(ctx context.Context, fileName string, data []byte) (BlockID, error) {
-	bid := s.highBlockID(fileName)
-
-	b, err := s.getBuffer(ctx, bid)
-	if err != nil {
-		return BlockID{}, err
-	}
-
-	// TODO: Should we release?  This is internal
-	defer s.release(b)
-
-	if err := b.Add(data); err != nil {
-		return BlockID{}, err
-	}
-
-	return bid, nil
 }
 
 func (s *Storage) incrementHighWater(fileName string) {
@@ -127,7 +92,7 @@ func (s *Storage) respond(r *bufferRequest) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	b, err := s.getBuffer(r.Context(), r.Value())
+	b, err := s.getBuffer(r.Context(), r.Value().bid)
 	r.Reply(b, err)
 }
 
@@ -254,7 +219,9 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, bid)
+	return s.bufferReqs.Send(ctx, butterRequestQuery{
+		bid: bid,
+	})
 }
 
 // External thread
@@ -264,11 +231,41 @@ func (s *Storage) release(b *Buffer) {
 
 // TODO: Should this be multiple BlockIDs?
 func (s *Storage) Append(ctx context.Context, fileName string, rd io.Reader) (BlockID, error) {
-	if s.appendReqs == nil {
-		return BlockID{}, ErrNotInitialized
+	// TODO: Find a better way to get this
+	data := make([]byte, s.bm.bufferSize)
+	n, err := rd.Read(data)
+	if err != nil && err != io.EOF {
+		return BlockID{}, err
 	}
 
-	return s.appendReqs.Send(ctx, appendValue{fileName, rd})
+	bid, err := s.appendData(ctx, fileName, data[:n])
+	if err == record.ErrInsufficientSpace {
+		// TODO: Make this concurrent
+		s.incrementHighWater(fileName)
+		bid, err = s.appendData(ctx, fileName, data[:n])
+	}
+
+	return bid, err
+}
+
+func (s *Storage) appendData(ctx context.Context, fileName string, data []byte) (BlockID, error) {
+	bid, err := s.Highwater(ctx, fileName)
+	if err != nil {
+		return BlockID{}, err
+	}
+
+	b, err := s.Request(ctx, bid)
+	if err != nil {
+		return BlockID{}, err
+	}
+
+	defer b.Release()
+
+	if err := b.Add(data); err != nil {
+		return BlockID{}, err
+	}
+
+	return bid, nil
 }
 
 func (s *Storage) Iterate(ctx context.Context, fn string) iter.Seq2[*Buffer, error] {

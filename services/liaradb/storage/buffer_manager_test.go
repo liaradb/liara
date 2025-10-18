@@ -2,6 +2,7 @@ package storage
 
 import (
 	"path"
+	"slices"
 	"testing"
 
 	"github.com/liaradb/liaradb/filetesting"
@@ -20,9 +21,9 @@ func TestBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var want uint64 = 12345
+	want := []byte{1, 2, 3, 4, 5}
 
-	if err := b.WriteUint64(want, 0); err != nil {
+	if err := b.Add(want); err != nil {
 		t.Fatal(err)
 	}
 
@@ -50,10 +51,19 @@ func TestBufferManager(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	if v, err := b.ReadUint64(0); err != nil {
-		t.Error(err)
-	} else if v != want {
-		t.Errorf("value does not match: expected: %v, recieved: %v", want, v)
+	c := 0
+	for i, err := range b.page.Items() {
+		if err != nil {
+			t.Error(err)
+		}
+		if !slices.Equal(want, i) {
+			t.Errorf("value does not match: expected: %v, recieved: %v", want, i)
+		}
+		c++
+	}
+
+	if c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
 }
 

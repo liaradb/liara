@@ -75,6 +75,8 @@ func (p *Page) Read(r interface {
 		return err
 	}
 
+	p.items = make([]Item, 0, p.list.Length())
+
 	for _, e := range p.list.entries {
 		i := make([]byte, e.Length)
 		if _, err := r.ReadAt(i, int64(e.Offset)); err != nil {
