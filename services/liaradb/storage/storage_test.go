@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 	"path"
 	"testing"
 	"testing/synctest"
@@ -185,24 +184,33 @@ func TestStorage_Append(t *testing.T) {
 }
 
 func testStorage_Append(t *testing.T) {
-	s := createStorage(t, 1, 16)
+	ctx := t.Context()
+	s := createStorage(t, 1, 32)
 	n := path.Join(t.TempDir(), "testfile")
 
-	ctx := t.Context()
-	b := raw.NewBufferFromSlice([]byte{1, 2, 3, 4, 5})
-	bid, err := s.Append(ctx, n, b)
+	records := [][]byte{
+		{1, 2},
+		{3, 4},
+		// {5, 6},
+	}
+
+	var bid BlockID
+	var err error
+	for _, r := range records {
+		if bid, err = s.Append(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
+			t.Error(err)
+		}
+	}
+
+	b, err := s.getBuffer(ctx, bid)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if _, err = s.Request(ctx, BlockID{
-		FileName: bid.FileName,
-		Position: bid.Position + 1,
-	}); err != nil {
+	err = b.Flush()
+	if err != nil {
 		t.Error(err)
 	}
-
-	fmt.Println(s.bm.fs)
 }
 
 func createStorage(t *testing.T, max int, bs int64) *Storage {

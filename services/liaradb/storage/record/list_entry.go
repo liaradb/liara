@@ -11,6 +11,8 @@ type ListEntry struct {
 	Length Offset
 }
 
+const ListEntrySize = OffsetSize + ListLengthSize
+
 func newListEntry(offset Offset, length Offset) ListEntry {
 	return ListEntry{
 		Offset: offset,
@@ -18,7 +20,7 @@ func newListEntry(offset Offset, length Offset) ListEntry {
 	}
 }
 
-func (le ListEntry) Size() int { return le.Offset.Size() + le.Length.Size() }
+func (le ListEntry) Size() int { return ListEntrySize }
 
 func (le ListEntry) Write(w io.Writer) error {
 	return raw.WriteAll(w, le.Length, le.Offset)

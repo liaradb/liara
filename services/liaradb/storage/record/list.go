@@ -10,6 +10,19 @@ type List struct {
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 
+// TODO: Test this
+func (l List) Space(pageSize int) int {
+	first := pageSize
+
+	for _, e := range l.entries {
+		if int(e.Offset) < first {
+			first = int(e.Offset)
+		}
+	}
+
+	return first - l.Size() - ListEntrySize
+}
+
 func (l *List) Add(offset Offset, length Offset) int {
 	le := newListEntry(offset, length)
 	l.entries = append(l.entries, le)

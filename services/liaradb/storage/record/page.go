@@ -19,10 +19,16 @@ func NewPage(size Offset) *Page {
 	}
 }
 
-func (p *Page) Add(i Item) {
+func (p *Page) Add(i Item) error {
 	l := len(i)
+	space := p.list.Space(p.Size())
+	if l > space {
+		return ErrInsufficientSpace
+	}
+
 	p.list.Add(p.nextCursor(l), Offset(l))
 	p.items = append(p.items, i)
+	return nil
 }
 
 func (p *Page) nextCursor(l int) Offset {

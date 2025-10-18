@@ -92,8 +92,7 @@ func (s *Storage) append(r *appendRequest) {
 		return
 	}
 
-	b.Add(data[:n])
-	r.Reply(bid, nil)
+	r.Reply(bid, b.Add(data[:n]))
 }
 
 func (s *Storage) respond(r *bufferRequest) {

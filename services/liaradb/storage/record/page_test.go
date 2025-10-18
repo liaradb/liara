@@ -19,7 +19,9 @@ func TestPage_Add(t *testing.T) {
 		{1, 2, 3, 4},
 		{5, 6, 7, 8}}
 	for _, i := range items {
-		p.Add(i)
+		if err := p.Add(i); err != nil {
+			t.Error(err)
+		}
 	}
 
 	count := 0
@@ -46,8 +48,13 @@ func TestPage_ReadWrite(t *testing.T) {
 	b := raw.NewBuffer(size)
 
 	p := NewPage(size)
-	p.Add([]byte{1, 2, 3, 4})
-	p.Add([]byte{5, 6, 7, 8})
+	if err := p.Add([]byte{1, 2, 3, 4}); err != nil {
+		t.Error(err)
+	}
+
+	if err := p.Add([]byte{5, 6, 7, 8}); err != nil {
+		t.Error(err)
+	}
 
 	b.Clear()
 	if err := p.Write(b); err != nil {

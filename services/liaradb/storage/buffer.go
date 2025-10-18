@@ -78,9 +78,13 @@ func (b *Buffer) Load(bid BlockID) error {
 	return nil
 }
 
-func (b *Buffer) Add(i []byte) {
-	b.page.Add(i)
+func (b *Buffer) Add(i []byte) error {
+	if err := b.page.Add(i); err != nil {
+		return err
+	}
+
 	b.status = BufferStatusDirty
+	return nil
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
