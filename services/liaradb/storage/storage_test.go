@@ -2,12 +2,14 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"testing"
 	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/raw"
 )
 
 func TestStorage(t *testing.T) {
@@ -16,7 +18,7 @@ func TestStorage(t *testing.T) {
 }
 
 func testStorage(t *testing.T) {
-	s := createStorage(t)
+	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
 	n := path.Join(t.TempDir(), "testfile")
@@ -79,7 +81,7 @@ func testStorage_CancelRun(t *testing.T) {
 func TestStorage_Pinned(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t)
+	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
 	n := path.Join(t.TempDir(), "testfile")
@@ -118,7 +120,7 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	s := createStorage(t)
+	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
 	n := path.Join(t.TempDir(), "testfile")
@@ -177,9 +179,35 @@ func testStorage_Flush(t *testing.T) {
 	}
 }
 
-func createStorage(t *testing.T) *Storage {
+func TestStorage_Append(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Append)
+}
+
+func testStorage_Append(t *testing.T) {
+	s := createStorage(t, 1, 16)
+	n := path.Join(t.TempDir(), "testfile")
+
+	ctx := t.Context()
+	b := raw.NewBufferFromSlice([]byte{1, 2, 3, 4, 5})
+	bid, err := s.Append(ctx, n, b)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if _, err = s.Request(ctx, BlockID{
+		FileName: bid.FileName,
+		Position: bid.Position + 1,
+	}); err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(s.bm.fs)
+}
+
+func createStorage(t *testing.T, max int, bs int64) *Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := NewStorage(fsys, 2, 16)
+	s := NewStorage(fsys, max, bs)
 	s.Run(t.Context())
 	return s
 }

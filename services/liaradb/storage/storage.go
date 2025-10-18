@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bufio"
 	"context"
 	"io"
 
@@ -72,12 +71,29 @@ func (s *Storage) run(ctx context.Context) {
 
 func (s *Storage) append(r *appendRequest) {
 	v := r.Value()
+	// TODO: Increment
 	h := s.highWater[v.fileName]
-	_ = bufio.NewReader(v.reader)
-	r.Reply(BlockID{
+	bid := BlockID{
 		FileName: v.fileName,
-		Position: h,
-	}, nil)
+		Position: h}
+
+	b, err := s.getBuffer(r.Context(), bid)
+	if err != nil {
+		r.Reply(bid, err)
+		return
+	}
+
+	defer b.Release()
+
+	data := make([]byte, b.buffer.Length())
+	n, err := v.reader.Read(data)
+	if err != nil && err != io.EOF {
+		r.Reply(bid, err)
+		return
+	}
+
+	b.Add(data[:n])
+	r.Reply(bid, nil)
 }
 
 func (s *Storage) respond(r *bufferRequest) {

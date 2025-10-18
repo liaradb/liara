@@ -5,11 +5,13 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/storage/record"
 )
 
 type Buffer struct {
 	blockID BlockID
 	buffer  *raw.Buffer
+	page    *record.Page
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -30,6 +32,7 @@ func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
 		// TODO: This accesses BufferManager.bufferSize direclty
 		buffer: raw.NewBuffer(s.bm.bufferSize),
+		page:   record.NewPage(record.Offset(s.bm.bufferSize)),
 		s:      s,
 	}
 }
@@ -75,12 +78,24 @@ func (b *Buffer) Load(bid BlockID) error {
 	return nil
 }
 
+func (b *Buffer) Add(i []byte) {
+	b.page.Add(i)
+	b.status = BufferStatusDirty
+}
+
 func (b *Buffer) read(r io.ReaderAt) error {
-	_, err := r.ReadAt(b.buffer.Bytes(), b.offset())
-	return err
+	if _, err := r.ReadAt(b.buffer.Bytes(), b.offset()); err != nil {
+		return err
+	}
+
+	return b.page.Read(b.buffer)
 }
 
 func (b *Buffer) write(w io.WriterAt) error {
+	if err := b.page.Write(b.buffer); err != nil {
+		return err
+	}
+
 	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
 	return err
 }
