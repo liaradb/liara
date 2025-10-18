@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"io"
+	"iter"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
@@ -15,6 +16,7 @@ type Storage struct {
 	unpinned   queue.MapQueue[BlockID, *Buffer]
 	bufferReqs async.Handler[BlockID, *Buffer]
 	appendReqs async.Handler[appendValue, BlockID]
+	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
 	bm         *BufferManager
@@ -34,6 +36,7 @@ func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
 		bufferReqs: make(chan *bufferRequest),
 		appendReqs: make(chan *appendRequest),
+		highWReqs:  make(async.Handler[string, BlockID]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[BlockID]*Buffer, max),
 		bm:         NewBufferManager(fs, bs),
@@ -61,6 +64,8 @@ func (s *Storage) run(ctx context.Context) {
 			s.append(r)
 		case r := <-s.bufferReqs:
 			s.respond(r)
+		case r := <-s.highWReqs:
+			s.getHighWater(r)
 		case b := <-s.returns:
 			s.unpin(b)
 		case <-ctx.Done():
@@ -101,6 +106,14 @@ func (s *Storage) respond(r *bufferRequest) {
 	// This will allow loaded traffic to continue
 	b, err := s.getBuffer(r.Context(), r.Value())
 	r.Reply(b, err)
+}
+
+func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
+	h := s.highWater[r.Value()]
+	r.Reply(BlockID{
+		FileName: r.Value(),
+		Position: h,
+	}, nil)
 }
 
 func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
@@ -208,6 +221,14 @@ func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, 
 	})
 }
 
+func (s *Storage) Highwater(ctx context.Context, fileName string) (BlockID, error) {
+	if s.highWReqs == nil {
+		return BlockID{}, ErrNotInitialized
+	}
+
+	return s.highWReqs.Send(ctx, fileName)
+}
+
 // External thread
 func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 	if s.bufferReqs == nil {
@@ -229,4 +250,30 @@ func (s *Storage) Append(ctx context.Context, fileName string, rd io.Reader) (Bl
 	}
 
 	return s.appendReqs.Send(ctx, appendValue{fileName, rd})
+}
+
+func (s *Storage) Iterate(ctx context.Context, fn string) iter.Seq2[*Buffer, error] {
+	return func(yield func(*Buffer, error) bool) {
+		highBid, err := s.Highwater(ctx, fn)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		bid := BlockID{FileName: fn}
+		for bid.Position < highBid.Position {
+			b, err := s.Request(ctx, bid)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			defer b.Release()
+			if !yield(b, err) {
+				return
+			}
+
+			bid.Position++
+		}
+	}
 }

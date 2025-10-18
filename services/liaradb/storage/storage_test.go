@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"path"
+	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -194,22 +195,50 @@ func testStorage_Append(t *testing.T) {
 		// {5, 6},
 	}
 
-	var bid BlockID
-	var err error
-	for _, r := range records {
-		if bid, err = s.Append(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
+	(func() {
+		var bid BlockID
+		var err error
+		for _, r := range records {
+			if bid, err = s.Append(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
+				t.Error(err)
+			}
+		}
+
+		b, err := s.Request(ctx, bid)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer b.Release()
+
+		err = b.Flush()
+		if err != nil {
+			t.Fatal(err)
+		}
+	})()
+
+	c := 0
+	for b, err := range s.Iterate(ctx, "testfile") {
+		if err != nil {
 			t.Error(err)
 		}
-	}
 
-	b, err := s.getBuffer(ctx, bid)
-	if err != nil {
-		t.Error(err)
-	}
+		for i, err := range b.page.Items() {
+			if err != nil {
+				t.Error(err)
+			}
 
-	err = b.Flush()
-	if err != nil {
-		t.Error(err)
+			r := records[c]
+			if !slices.Equal(i, r) {
+				t.Errorf("incorrect record: %v, expected: %v", i, r)
+			}
+
+			c++
+		}
+
+		if c != len(records) {
+			t.Errorf("incorrect count: %v, expected: %v", c, len(records))
+		}
 	}
 }
 
