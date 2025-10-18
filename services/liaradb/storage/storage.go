@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/storage/record"
 )
 
 type Storage struct {
@@ -76,28 +77,50 @@ func (s *Storage) run(ctx context.Context) {
 
 func (s *Storage) append(r *appendRequest) {
 	v := r.Value()
-	// TODO: Increment
-	h := s.highWater[v.fileName]
-	bid := BlockID{
-		FileName: v.fileName,
-		Position: h}
-
-	b, err := s.getBuffer(r.Context(), bid)
-	if err != nil {
-		r.Reply(bid, err)
-		return
-	}
-
-	defer b.Release()
-
-	data := make([]byte, b.buffer.Length())
+	// TODO: Find a better way to get this
+	data := make([]byte, s.bm.bufferSize)
 	n, err := v.reader.Read(data)
 	if err != nil && err != io.EOF {
-		r.Reply(bid, err)
+		r.Reply(BlockID{}, err)
 		return
 	}
 
-	r.Reply(bid, b.Add(data[:n]))
+	bid, err := s.appendData(r.Context(), v.fileName, data[:n])
+	if err == record.ErrInsufficientSpace {
+		s.incrementHighWater(v.fileName)
+		bid, err = s.appendData(r.Context(), v.fileName, data[:n])
+	}
+
+	r.Reply(bid, err)
+}
+
+func (s *Storage) appendData(ctx context.Context, fileName string, data []byte) (BlockID, error) {
+	bid := s.highBlockID(fileName)
+
+	b, err := s.getBuffer(ctx, bid)
+	if err != nil {
+		return BlockID{}, err
+	}
+
+	// TODO: Should we release?  This is internal
+	defer s.release(b)
+
+	if err := b.Add(data); err != nil {
+		return BlockID{}, err
+	}
+
+	return bid, nil
+}
+
+func (s *Storage) incrementHighWater(fileName string) {
+	s.highWater[fileName]++
+}
+
+func (s *Storage) highBlockID(fileName string) BlockID {
+	return BlockID{
+		FileName: fileName,
+		Position: s.highWater[fileName],
+	}
 }
 
 func (s *Storage) respond(r *bufferRequest) {
@@ -109,11 +132,7 @@ func (s *Storage) respond(r *bufferRequest) {
 }
 
 func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
-	h := s.highWater[r.Value()]
-	r.Reply(BlockID{
-		FileName: r.Value(),
-		Position: h,
-	}, nil)
+	r.Reply(s.highBlockID(r.Value()), nil)
 }
 
 func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
