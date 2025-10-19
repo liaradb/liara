@@ -34,6 +34,14 @@ func TestQueue_Count(t *testing.T) {
 	if c := mq.Count(); c != 0 {
 		t.Errorf("should be empty")
 	}
+
+	if _, ok := mq.Remove(1); ok {
+		t.Error("should have been removed")
+	}
+
+	if _, ok := mq.Remove(2); ok {
+		t.Error("should have been removed")
+	}
 }
 
 func TestQueue_PopDefault(t *testing.T) {
@@ -66,6 +74,14 @@ func TestQueue_PopValue(t *testing.T) {
 		t.Error("should return a value")
 	} else if v != "b" {
 		t.Errorf("returned incorrect value: %v, expected: %v", v, "b")
+	}
+
+	if _, ok := mq.Remove(1); ok {
+		t.Error("should have been removed")
+	}
+
+	if _, ok := mq.Remove(2); ok {
+		t.Error("should have been removed")
 	}
 }
 
@@ -106,5 +122,17 @@ func TestQueue_RemoveValue(t *testing.T) {
 		t.Error("should return a value")
 	} else if v != "a" {
 		t.Errorf("returned incorrect value: %v, expected: %v", v, "a")
+	}
+
+	if _, ok := mq.Remove(1); ok {
+		t.Error("should have been removed")
+	}
+
+	if _, ok := mq.Remove(2); ok {
+		t.Error("should have been removed")
+	}
+
+	if _, ok := mq.Remove(3); ok {
+		t.Error("should have been removed")
 	}
 }

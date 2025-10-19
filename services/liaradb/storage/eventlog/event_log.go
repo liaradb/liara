@@ -7,6 +7,7 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/record"
 )
@@ -99,22 +100,29 @@ func (s *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Bu
 			return
 		}
 
-		bid := storage.BlockID{FileName: fn}
-		for bid.Position < highBid.Position {
-			(func() {
-				b, err := s.storage.Request(ctx, bid)
-				if err != nil {
-					yield(nil, err)
-					return
-				}
+		bid := storage.NewBlockID(fn, 0)
+		for bid.Position <= highBid.Position {
+			p, ok := s.handleIteration(ctx, bid, yield)
+			if !ok {
+				return
+			}
 
-				defer b.Release()
-				if !yield(b, err) {
-					return
-				}
-
-				bid.Position++
-			})()
+			bid.Position = p
 		}
 	}
+}
+
+func (s *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.Buffer, error) bool) (raw.Offset, bool) {
+	b, err := s.storage.Request(ctx, bid)
+	if err != nil {
+		yield(nil, err)
+		return bid.Position, false
+	}
+
+	defer b.Release()
+	if !yield(b, err) {
+		return bid.Position, false
+	}
+
+	return bid.Position + 1, true
 }

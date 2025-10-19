@@ -100,6 +100,10 @@ func (b *Buffer) read(r io.ReaderAt) error {
 		clear(b.buffer.Bytes()[n:])
 	}
 
+	if _, err := b.buffer.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	return b.page.Read(b.buffer)
 }
 

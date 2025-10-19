@@ -233,7 +233,11 @@ func testStorage_Wait(t *testing.T) {
 
 	synctest.Wait()
 
-	if c := s.CountPinned(); c > 0 {
+	if c := s.Count(); c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+
+	if c := s.CountPinned(); c != 0 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 }

@@ -12,7 +12,6 @@ import (
 
 func TestEventLog_Append(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testEventLog_AppendEvent)
 }
 
@@ -31,15 +30,13 @@ func testEventLog_AppendEvent(t *testing.T) {
 	}
 
 	(func() {
-		// fmt.Println(s.pinned)
 		var bid storage.BlockID
 		var err error
 		for _, r := range records {
-			if _, err = el.AppendEvent(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
+			if bid, err = el.AppendEvent(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
 				t.Error(err)
 			}
 			synctest.Wait()
-			// fmt.Println(s.pinned)
 		}
 
 		b, err := s.Request(ctx, bid)
@@ -55,30 +52,39 @@ func testEventLog_AppendEvent(t *testing.T) {
 		}
 	})()
 
-	c := 0
-	l := len(records) - 1
+	pageCount := 0
+	recordCount := 0
+	result := make([][]byte, 0, len(records))
 	for b, err := range el.Iterate(ctx, n) {
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
+
+		pageCount++
 
 		for i, err := range b.Items() {
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
-			// fmt.Println(i)
+			recordCount++
 
-			r := records[l-c]
-			if !slices.Equal(i, r) {
-				t.Errorf("incorrect record: %v, expected: %v", i, r)
-			}
-
-			c++
+			result = append(result, i)
 		}
 	}
 
-	if c != len(records) {
-		t.Errorf("incorrect count: %v, expected: %v", c, len(records))
+	if pageCount != 3 {
+		t.Errorf("incorrect page count: %v, expected: %v", pageCount, 3)
+	}
+
+	if recordCount != len(records) {
+		t.Fatalf("incorrect record count: %v, expected: %v", recordCount, len(records))
+	}
+
+	for index, r := range records {
+		i := result[index]
+		if !slices.Equal(i, r) {
+			t.Errorf("incorrect record: %v, expected: %v", i, r)
+		}
 	}
 }
