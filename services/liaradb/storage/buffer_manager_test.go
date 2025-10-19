@@ -52,7 +52,7 @@ func TestBufferManager(t *testing.T) {
 	}
 
 	c := 0
-	for i, err := range b.page.Items() {
+	for i, err := range b.Items() {
 		if err != nil {
 			t.Error(err)
 		}

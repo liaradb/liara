@@ -223,7 +223,7 @@ func testStorage_Append(t *testing.T) {
 			t.Error(err)
 		}
 
-		for i, err := range b.page.Items() {
+		for i, err := range b.Items() {
 			if err != nil {
 				t.Error(err)
 			}

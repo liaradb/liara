@@ -2,6 +2,7 @@ package storage
 
 import (
 	"io"
+	"iter"
 
 	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/record"
@@ -84,6 +85,10 @@ func (b *Buffer) Add(i []byte) error {
 
 	b.status = BufferStatusDirty
 	return nil
+}
+
+func (b *Buffer) Items() iter.Seq2[record.Item, error] {
+	return b.page.Items()
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {

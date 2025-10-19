@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"io"
 	"iter"
 
@@ -27,6 +28,7 @@ type bufferRequest = async.Request[butterRequestQuery, *Buffer]
 
 type butterRequestQuery struct {
 	bid       BlockID
+	fileName  string
 	queryType bufferRequestQueryType
 }
 
@@ -92,7 +94,23 @@ func (s *Storage) respond(r *bufferRequest) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	b, err := s.getBuffer(r.Context(), r.Value().bid)
+	v := r.Value()
+
+	var bid BlockID
+	switch v.queryType {
+	case bufferRequestQueryTypeByID:
+		bid = v.bid
+	case bufferRequestQueryTypeCurrent:
+		bid = s.highBlockID(v.fileName)
+	case bufferRequestQueryTypeNext:
+		s.incrementHighWater(v.fileName)
+		bid = s.highBlockID(v.fileName)
+	default:
+		r.Reply(nil, errors.New("invalid request"))
+		return
+	}
+
+	b, err := s.getBuffer(r.Context(), bid)
 	r.Reply(b, err)
 }
 
@@ -225,6 +243,32 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 }
 
 // External thread
+// TODO: Test this
+func (s *Storage) RequestCurrent(ctx context.Context, fileName string) (*Buffer, error) {
+	if s.bufferReqs == nil {
+		return nil, ErrNotInitialized
+	}
+
+	return s.bufferReqs.Send(ctx, butterRequestQuery{
+		fileName:  fileName,
+		queryType: bufferRequestQueryTypeCurrent,
+	})
+}
+
+// External thread
+// TODO: Test this
+func (s *Storage) RequestNext(ctx context.Context, fileName string) (*Buffer, error) {
+	if s.bufferReqs == nil {
+		return nil, ErrNotInitialized
+	}
+
+	return s.bufferReqs.Send(ctx, butterRequestQuery{
+		fileName:  fileName,
+		queryType: bufferRequestQueryTypeNext,
+	})
+}
+
+// External thread
 func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
@@ -238,23 +282,16 @@ func (s *Storage) Append(ctx context.Context, fileName string, rd io.Reader) (Bl
 		return BlockID{}, err
 	}
 
-	bid, err := s.appendData(ctx, fileName, data[:n])
+	bid, err := s.appendCurrent(ctx, fileName, data[:n])
 	if err == record.ErrInsufficientSpace {
-		// TODO: Make this concurrent
-		s.incrementHighWater(fileName)
-		bid, err = s.appendData(ctx, fileName, data[:n])
+		bid, err = s.appendNext(ctx, fileName, data[:n])
 	}
 
 	return bid, err
 }
 
-func (s *Storage) appendData(ctx context.Context, fileName string, data []byte) (BlockID, error) {
-	bid, err := s.Highwater(ctx, fileName)
-	if err != nil {
-		return BlockID{}, err
-	}
-
-	b, err := s.Request(ctx, bid)
+func (s *Storage) appendCurrent(ctx context.Context, fileName string, data []byte) (BlockID, error) {
+	b, err := s.RequestCurrent(ctx, fileName)
 	if err != nil {
 		return BlockID{}, err
 	}
@@ -265,7 +302,22 @@ func (s *Storage) appendData(ctx context.Context, fileName string, data []byte) 
 		return BlockID{}, err
 	}
 
-	return bid, nil
+	return b.BlockID(), nil
+}
+
+func (s *Storage) appendNext(ctx context.Context, fileName string, data []byte) (BlockID, error) {
+	b, err := s.RequestNext(ctx, fileName)
+	if err != nil {
+		return BlockID{}, err
+	}
+
+	defer b.Release()
+
+	if err := b.Add(data); err != nil {
+		return BlockID{}, err
+	}
+
+	return b.BlockID(), nil
 }
 
 func (s *Storage) Iterate(ctx context.Context, fn string) iter.Seq2[*Buffer, error] {
