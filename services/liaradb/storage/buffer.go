@@ -100,6 +100,7 @@ func (b *Buffer) read(r io.ReaderAt) error {
 		clear(b.buffer.Bytes()[n:])
 	}
 
+	// TODO: Test this
 	if _, err := b.buffer.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
