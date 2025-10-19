@@ -53,11 +53,11 @@ func (s *Storage) run(ctx context.Context) {
 	for {
 		select {
 		case r := <-s.bufferReqs:
-			s.respond(r)
+			s.requestBuffer(r)
 		case r := <-s.highWReqs:
 			s.getHighWater(r)
 		case b := <-s.returns:
-			s.unpin(b)
+			s.returnBuffer(b)
 		case <-ctx.Done():
 			return
 		}
@@ -75,7 +75,7 @@ func (s *Storage) highBlockID(fileName string) BlockID {
 	}
 }
 
-func (s *Storage) respond(r *bufferRequest) {
+func (s *Storage) requestBuffer(r *bufferRequest) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
@@ -99,10 +99,6 @@ func (s *Storage) getBufferID(v bufferQuery) (BlockID, error) {
 	default:
 		return BlockID{}, errors.New("invalid request")
 	}
-}
-
-func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
-	r.Reply(s.highBlockID(r.Value()), nil)
 }
 
 func (s *Storage) getBuffer(ctx context.Context, bid BlockID) (*Buffer, error) {
@@ -136,12 +132,6 @@ func (s *Storage) getUnloaded(ctx context.Context, bid BlockID) (*Buffer, error)
 
 	// TODO: Don't load here.  Do this in separate goroutine.
 	return b, b.Load(bid)
-}
-
-func (s *Storage) unpin(b *Buffer) {
-	if b.unpin() {
-		s.moveToUnpinned(b)
-	}
 }
 
 func (s *Storage) moveToPinned(b *Buffer) {
@@ -221,6 +211,17 @@ func (s *Storage) unpinAfterRelease(b *Buffer) bool {
 		return true
 	}
 	return false
+}
+
+func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
+	r.Reply(s.highBlockID(r.Value()), nil)
+}
+
+// Doesn't change BlockID
+func (s *Storage) returnBuffer(b *Buffer) {
+	if b.unpin() {
+		s.moveToUnpinned(b)
+	}
 }
 
 // TODO: Is this still needed?
