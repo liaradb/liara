@@ -122,10 +122,11 @@ func testStorage_Flush(t *testing.T) {
 	ctx := t.Context()
 
 	n := path.Join(t.TempDir(), "testfile")
-	bid0 := BlockID{FileName: n, Position: 0}
-	bid1 := BlockID{FileName: n, Position: 1}
-	bid2 := BlockID{FileName: n, Position: 2}
+	bid0 := NewBlockID(n, 0)
+	bid1 := NewBlockID(n, 1)
+	bid2 := NewBlockID(n, 2)
 
+	// Request Buffer 0
 	b0, err := s.Request(ctx, bid0)
 	if err != nil {
 		t.Fatal(err)
@@ -135,6 +136,7 @@ func testStorage_Flush(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
+	// Request Buffer 1
 	b1, err := s.Request(ctx, bid1)
 	if err != nil {
 		t.Fatal(err)
@@ -147,6 +149,7 @@ func testStorage_Flush(t *testing.T) {
 	ctx2, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
+	// Request Buffer 2 - none available
 	_, err = s.Request(ctx2, bid2)
 	if err != context.Canceled {
 		t.Error("should be cancelled")
@@ -156,17 +159,21 @@ func testStorage_Flush(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Release Buffer 1
 	// TODO: Prove this is non-blocking
 	b1.Release()
 
 	ctx2, cancel = context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
+	// Request Buffer 2 again - available
 	// TODO: How do we test that it flushed?
 	_, err = s.Request(ctx2, bid2)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	synctest.Wait()
 
 	if c := s.Count(); c != 2 {
 		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)

@@ -194,15 +194,33 @@ func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
 }
 
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
+	for {
+		b, err := s.getReturn(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if s.unpinAfterRelease(b) {
+			return b, nil
+		}
+	}
+}
+
+func (s *Storage) getReturn(ctx context.Context) (*Buffer, error) {
 	select {
 	case b := <-s.returns:
-		if b.unpin() {
-			delete(s.pinned, b.blockID)
-		}
 		return b, nil
 	case <-ctx.Done():
 		return nil, context.Canceled
 	}
+}
+
+func (s *Storage) unpinAfterRelease(b *Buffer) bool {
+	if b.unpin() {
+		b.pin()
+		return true
+	}
+	return false
 }
 
 // TODO: Is this still needed?
