@@ -3,13 +3,11 @@ package storage
 import (
 	"context"
 	"path"
-	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/filetesting"
-	"github.com/liaradb/liaradb/raw"
 )
 
 func TestStorage(t *testing.T) {
@@ -176,69 +174,6 @@ func testStorage_Flush(t *testing.T) {
 
 	if c := s.CountPinned(); c != 2 {
 		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
-	}
-}
-
-func TestStorage_Append(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testStorage_Append)
-}
-
-func testStorage_Append(t *testing.T) {
-	ctx := t.Context()
-	s := createStorage(t, 1, 32)
-	n := path.Join(t.TempDir(), "testfile")
-
-	records := [][]byte{
-		{1, 2},
-		{3, 4},
-		{5, 6},
-	}
-
-	(func() {
-		var bid BlockID
-		var err error
-		for _, r := range records {
-			if bid, err = s.Append(ctx, n, raw.NewBufferFromSlice(r)); err != nil {
-				t.Error(err)
-			}
-		}
-
-		b, err := s.Request(ctx, bid)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		defer b.Release()
-
-		err = b.Flush()
-		if err != nil {
-			t.Fatal(err)
-		}
-	})()
-
-	c := 0
-	for b, err := range s.Iterate(ctx, "testfile") {
-		if err != nil {
-			t.Error(err)
-		}
-
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Error(err)
-			}
-
-			r := records[c]
-			if !slices.Equal(i, r) {
-				t.Errorf("incorrect record: %v, expected: %v", i, r)
-			}
-
-			c++
-		}
-
-		if c != len(records) {
-			t.Errorf("incorrect count: %v, expected: %v", c, len(records))
-		}
 	}
 }
 

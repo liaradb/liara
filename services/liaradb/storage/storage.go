@@ -3,17 +3,15 @@ package storage
 import (
 	"context"
 	"errors"
-	"io"
-	"iter"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/queue"
-	"github.com/liaradb/liaradb/storage/record"
 )
 
 type Storage struct {
+	bufferSize int64 // TODO: Do we need this?
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
 	bufferReqs async.Handler[butterRequestQuery, *Buffer]
@@ -42,6 +40,7 @@ const (
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
+		bufferSize: bs,
 		bufferReqs: make(chan *bufferRequest),
 		highWReqs:  make(async.Handler[string, BlockID]),
 		returns:    make(chan *Buffer, max),
@@ -51,6 +50,8 @@ func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 		highWater:  make(map[string]raw.Offset),
 	}
 }
+
+func (s *Storage) BufferSize() int64 { return s.bufferSize }
 
 func (s *Storage) CountPinned() int {
 	return len(s.pinned)
@@ -209,6 +210,7 @@ func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
 	select {
 	case b := <-s.returns:
+		// TODO: Test this
 		b.pin()
 		return b, nil
 	case <-ctx.Done():
@@ -216,6 +218,7 @@ func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
 	}
 }
 
+// TODO: Is this still needed?
 func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
 	return s.Request(ctx, BlockID{
 		FileName: fileName,
@@ -271,77 +274,4 @@ func (s *Storage) RequestNext(ctx context.Context, fileName string) (*Buffer, er
 // External thread
 func (s *Storage) release(b *Buffer) {
 	s.returns <- b
-}
-
-// TODO: Should this be multiple BlockIDs?
-func (s *Storage) Append(ctx context.Context, fileName string, rd io.Reader) (BlockID, error) {
-	// TODO: Find a better way to get this
-	data := make([]byte, s.bm.bufferSize)
-	n, err := rd.Read(data)
-	if err != nil && err != io.EOF {
-		return BlockID{}, err
-	}
-
-	bid, err := s.appendCurrent(ctx, fileName, data[:n])
-	if err == record.ErrInsufficientSpace {
-		bid, err = s.appendNext(ctx, fileName, data[:n])
-	}
-
-	return bid, err
-}
-
-func (s *Storage) appendCurrent(ctx context.Context, fileName string, data []byte) (BlockID, error) {
-	b, err := s.RequestCurrent(ctx, fileName)
-	if err != nil {
-		return BlockID{}, err
-	}
-
-	defer b.Release()
-
-	if err := b.Add(data); err != nil {
-		return BlockID{}, err
-	}
-
-	return b.BlockID(), nil
-}
-
-func (s *Storage) appendNext(ctx context.Context, fileName string, data []byte) (BlockID, error) {
-	b, err := s.RequestNext(ctx, fileName)
-	if err != nil {
-		return BlockID{}, err
-	}
-
-	defer b.Release()
-
-	if err := b.Add(data); err != nil {
-		return BlockID{}, err
-	}
-
-	return b.BlockID(), nil
-}
-
-func (s *Storage) Iterate(ctx context.Context, fn string) iter.Seq2[*Buffer, error] {
-	return func(yield func(*Buffer, error) bool) {
-		highBid, err := s.Highwater(ctx, fn)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
-
-		bid := BlockID{FileName: fn}
-		for bid.Position < highBid.Position {
-			b, err := s.Request(ctx, bid)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			defer b.Release()
-			if !yield(b, err) {
-				return
-			}
-
-			bid.Position++
-		}
-	}
 }

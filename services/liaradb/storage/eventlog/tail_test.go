@@ -14,16 +14,16 @@ func TestTail(t *testing.T) {
 }
 
 func testTail(t *testing.T) {
-	s := createStorage(t)
+	s := createStorage(t, 2, 16)
 	tl := NewTail(s)
 	if err := tl.Append(t.Context()); err != nil {
 		t.Error(err)
 	}
 }
 
-func createStorage(t *testing.T) *storage.Storage {
+func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := storage.NewStorage(fsys, 2, 16)
+	s := storage.NewStorage(fsys, max, bs)
 
 	s.Run(t.Context())
 	return s
