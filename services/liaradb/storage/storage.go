@@ -196,8 +196,9 @@ func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
 	select {
 	case b := <-s.returns:
-		// TODO: Test this
-		b.pin()
+		if b.unpin() {
+			delete(s.pinned, b.blockID)
+		}
 		return b, nil
 	case <-ctx.Done():
 		return nil, context.Canceled

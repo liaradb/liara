@@ -177,6 +177,60 @@ func testStorage_Flush(t *testing.T) {
 	}
 }
 
+func TestStorage_Wait(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Wait)
+}
+
+func testStorage_Wait(t *testing.T) {
+	s := createStorage(t, 1, 16)
+	ctx := t.Context()
+
+	n := path.Join(t.TempDir(), "testfile")
+
+	go func() {
+		b, err := s.Request(ctx, NewBlockID(n, 0))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		b.status = BufferStatusDirty
+
+		b.Release()
+	}()
+
+	go func() {
+		b, err := s.Request(ctx, NewBlockID(n, 1))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		b.status = BufferStatusDirty
+
+		b.Release()
+	}()
+
+	go func() {
+		b, err := s.Request(ctx, NewBlockID(n, 2))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+
+		b.status = BufferStatusDirty
+
+		b.Release()
+	}()
+
+	synctest.Wait()
+
+	if c := s.CountPinned(); c > 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+}
+
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	s := NewStorage(fsys, max, bs)
