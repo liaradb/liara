@@ -14,29 +14,13 @@ type Storage struct {
 	bufferSize int64 // TODO: Do we need this?
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
-	bufferReqs async.Handler[butterRequestQuery, *Buffer]
+	bufferReqs async.Handler[bufferQuery, *Buffer]
 	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
 	bm         *BufferManager
 	highWater  map[string]raw.Offset
 }
-
-type bufferRequest = async.Request[butterRequestQuery, *Buffer]
-
-type butterRequestQuery struct {
-	bid       BlockID
-	fileName  string
-	queryType bufferRequestQueryType
-}
-
-type bufferRequestQueryType int
-
-const (
-	bufferRequestQueryTypeByID = iota
-	bufferRequestQueryTypeCurrent
-	bufferRequestQueryTypeNext
-)
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
@@ -95,24 +79,26 @@ func (s *Storage) respond(r *bufferRequest) {
 	// TODO: Create second goroutine
 	// One for loaded Buffers, one for non-loaded Buffers
 	// This will allow loaded traffic to continue
-	v := r.Value()
-
-	var bid BlockID
-	switch v.queryType {
-	case bufferRequestQueryTypeByID:
-		bid = v.bid
-	case bufferRequestQueryTypeCurrent:
-		bid = s.highBlockID(v.fileName)
-	case bufferRequestQueryTypeNext:
-		s.incrementHighWater(v.fileName)
-		bid = s.highBlockID(v.fileName)
-	default:
-		r.Reply(nil, errors.New("invalid request"))
-		return
+	if bid, err := s.getBufferID(r.Value()); err != nil {
+		r.Reply(nil, err)
+	} else {
+		b, err := s.getBuffer(r.Context(), bid)
+		r.Reply(b, err)
 	}
+}
 
-	b, err := s.getBuffer(r.Context(), bid)
-	r.Reply(b, err)
+func (s *Storage) getBufferID(v bufferQuery) (BlockID, error) {
+	switch v.queryType {
+	case bufferQueryTypeByID:
+		return v.bid, nil
+	case bufferQueryTypeCurrent:
+		return s.highBlockID(v.fileName), nil
+	case bufferQueryTypeNext:
+		s.incrementHighWater(v.fileName)
+		return s.highBlockID(v.fileName), nil
+	default:
+		return BlockID{}, errors.New("invalid request")
+	}
 }
 
 func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
@@ -240,9 +226,7 @@ func (s *Storage) Request(ctx context.Context, bid BlockID) (*Buffer, error) {
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, butterRequestQuery{
-		bid: bid,
-	})
+	return s.bufferReqs.Send(ctx, newBufferByIDQuery(bid))
 }
 
 // External thread
@@ -252,10 +236,7 @@ func (s *Storage) RequestCurrent(ctx context.Context, fileName string) (*Buffer,
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, butterRequestQuery{
-		fileName:  fileName,
-		queryType: bufferRequestQueryTypeCurrent,
-	})
+	return s.bufferReqs.Send(ctx, newCurrentBufferQuery(fileName))
 }
 
 // External thread
@@ -265,10 +246,7 @@ func (s *Storage) RequestNext(ctx context.Context, fileName string) (*Buffer, er
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, butterRequestQuery{
-		fileName:  fileName,
-		queryType: bufferRequestQueryTypeNext,
-	})
+	return s.bufferReqs.Send(ctx, newNextBufferQuery(fileName))
 }
 
 // External thread
