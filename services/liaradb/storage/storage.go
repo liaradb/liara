@@ -115,33 +115,33 @@ func (s *Storage) getLoaded(bid BlockID) (*Buffer, bool) {
 		return b, true
 	}
 
-	if b, ok := s.unpinned.Remove(bid); ok {
-		b.pin()
-		s.moveToPinned(b)
-		return b, true
-	}
+	return s.getUnpinned(bid)
+}
 
-	return nil, false
+func (s *Storage) getUnpinned(bid BlockID) (*Buffer, bool) {
+	b, ok := s.unpinned.Remove(bid)
+	if ok {
+		b.pin()
+		s.pinned[b.blockID] = b
+	}
+	return b, ok
 }
 
 func (s *Storage) getUnloaded(ctx context.Context, bid BlockID) (*Buffer, error) {
-	b, err := s.popAllocateOrWait(ctx, bid)
+	b, err := s.popAllocateOrWait(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Don't load here.  Do this in separate goroutine.
-	return b, b.Load(bid)
-}
+	if err := b.Load(bid); err != nil {
+		return nil, err
+	}
 
-func (s *Storage) moveToPinned(b *Buffer) {
-	s.unpinned.Remove(b.blockID)
+	b.pin()
 	s.pinned[b.blockID] = b
-}
 
-func (s *Storage) moveToUnpinned(b *Buffer) {
-	delete(s.pinned, b.blockID)
-	s.unpinned.Push(b.blockID, b)
+	return b, nil
 }
 
 func (s *Storage) getPinned(bid BlockID) (*Buffer, bool) {
@@ -149,12 +149,12 @@ func (s *Storage) getPinned(bid BlockID) (*Buffer, bool) {
 	return b, ok
 }
 
-func (s *Storage) popAllocateOrWait(ctx context.Context, bid BlockID) (*Buffer, error) {
+func (s *Storage) popAllocateOrWait(ctx context.Context) (*Buffer, error) {
 	if b, ok := s.popUnpinned(); ok {
 		return b, nil
 	}
 
-	if b, ok := s.allocate(bid); ok {
+	if b, ok := s.allocate(); ok {
 		return b, nil
 	}
 
@@ -162,25 +162,15 @@ func (s *Storage) popAllocateOrWait(ctx context.Context, bid BlockID) (*Buffer, 
 }
 
 func (s *Storage) popUnpinned() (*Buffer, bool) {
-	b, ok := s.unpinned.Pop()
-	if !ok {
-		return nil, false
-	}
-
-	b.pin()
-	s.moveToPinned(b)
-	return b, true
+	return s.unpinned.Pop()
 }
 
-func (s *Storage) allocate(bid BlockID) (*Buffer, bool) {
+func (s *Storage) allocate() (*Buffer, bool) {
 	if s.Count() >= s.max {
 		return nil, false
 	}
 
-	b := NewBuffer(s)
-	s.pinned[bid] = b
-	b.pin()
-	return b, true
+	return NewBuffer(s), true
 }
 
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
@@ -207,7 +197,7 @@ func (s *Storage) getReturn(ctx context.Context) (*Buffer, error) {
 
 func (s *Storage) unpinAfterRelease(b *Buffer) bool {
 	if b.unpin() {
-		b.pin()
+		delete(s.pinned, b.blockID)
 		return true
 	}
 	return false
@@ -222,6 +212,11 @@ func (s *Storage) returnBuffer(b *Buffer) {
 	if b.unpin() {
 		s.moveToUnpinned(b)
 	}
+}
+
+func (s *Storage) moveToUnpinned(b *Buffer) {
+	delete(s.pinned, b.blockID)
+	s.unpinned.Push(b.blockID, b)
 }
 
 // TODO: Is this still needed?
