@@ -112,3 +112,69 @@ func testTransaction_Commit(t *testing.T) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
 }
+
+func TestTransaction_Rollback(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testTransaction_Rollback)
+}
+
+func testTransaction_Rollback(t *testing.T) {
+	m, l := createManager(t)
+	ctx := t.Context()
+
+	tx := m.Next()
+
+	records := [][]byte{{1, 2, 3, 4, 5}}
+
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := tx.Rollback(ctx, time.UnixMicro(1234567890)); err != nil {
+		t.Fatal(err)
+	}
+
+	lsns := []record.LogSequenceNumber{1, 2}
+	actions := []record.Action{record.ActionInsert, record.ActionRollback}
+
+	c := 0
+	for rc, err := range l.Iterate(0) {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if lsn := rc.LogSequenceNumber(); lsn != lsns[c] {
+			t.Errorf("lsn does not match: %v, expected: %v", lsn, lsns[c])
+		}
+
+		if a := rc.Action(); a != actions[c] {
+			t.Errorf("action does not match: %v, expected: %v", a, actions[c])
+		}
+
+		c++
+	}
+
+	if c != 2 {
+		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
+	}
+
+	result := [][]byte{}
+
+	for b, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i, err := range b.Items() {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, i)
+		}
+	}
+
+	if length := len(result); length != 0 {
+		t.Errorf("incorrect result length: %v, expected: %v", length, 0)
+	}
+}

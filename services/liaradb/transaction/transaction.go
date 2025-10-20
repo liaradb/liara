@@ -79,3 +79,21 @@ func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
 
 	return nil
 }
+
+func (t *Transaction) Rollback(ctx context.Context, now time.Time) error {
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0], nil)
+	if err != nil {
+		return errTransactionFailed(t.id, err)
+	}
+
+	t.lsn = lsn
+	// TODO: Is this correct?
+	if err := t.log.Flush(ctx, lsn); err != nil {
+		return errTransactionFailed(t.id, err)
+	}
+
+	t.concurrencyMgr.Release()
+	t.bufferList.Release()
+
+	return nil
+}
