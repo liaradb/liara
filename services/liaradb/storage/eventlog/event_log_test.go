@@ -11,7 +11,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-func TestEventLog_Append(t *testing.T) {
+func TestEventLog_AppendEvent(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testEventLog_AppendEvent)
 }

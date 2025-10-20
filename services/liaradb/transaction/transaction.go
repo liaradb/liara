@@ -8,7 +8,9 @@ import (
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/eventlog"
 )
 
 type Transaction struct {
@@ -17,6 +19,8 @@ type Transaction struct {
 	log            *log.Log
 	bufferList     *storage.BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
+	eventLog       *eventlog.EventLog
+	items          [][]byte
 }
 
 func newTransaction(
@@ -24,12 +28,14 @@ func newTransaction(
 	log *log.Log,
 	bufferList *storage.BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
+	eventLog *eventlog.EventLog,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
 		log:            log,
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
+		eventLog:       eventLog,
 	}
 }
 
@@ -46,12 +52,14 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 		return errTransactionFailed(t.id, err)
 	}
 
+	t.items = append(t.items, data)
+
 	t.lsn = lsn
 	return nil
 }
 
 func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, t.items[0], nil)
 	if err != nil {
 		return errTransactionFailed(t.id, err)
 	}
@@ -59,6 +67,10 @@ func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
 	t.lsn = lsn
 	// TODO: Is this correct?
 	if err := t.log.Flush(ctx, lsn); err != nil {
+		return errTransactionFailed(t.id, err)
+	}
+
+	if _, err := t.eventLog.AppendEvent(ctx, "filename", raw.NewBufferFromSlice(t.items[0])); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 

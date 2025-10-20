@@ -1,11 +1,13 @@
 package transaction
 
 import (
+	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/storage/eventlog"
 )
 
 func TestTransaction_Insert(t *testing.T) {
@@ -56,7 +58,9 @@ func testTransaction_Commit(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil); err != nil {
+	records := [][]byte{{1, 2, 3, 4, 5}}
+
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
 		t.Fatal(err)
 	}
 
@@ -86,5 +90,25 @@ func testTransaction_Commit(t *testing.T) {
 
 	if c != 2 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
+	}
+
+	result := [][]byte{}
+
+	for b, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for i, err := range b.Items() {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, i)
+		}
+	}
+
+	if !slices.EqualFunc(result, records, slices.Equal) {
+		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
 }

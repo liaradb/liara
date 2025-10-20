@@ -37,8 +37,7 @@ func createManager(t *testing.T) (*Manager, *log.Log) {
 	l := createLog(t, fsys, dir)
 	s := createStorage(t, fsys)
 	lt := createLockTable(t)
-	c := createConcurrencyMgr(lt)
-	return NewManager(l, s, c), l
+	return NewManager(l, s, lt), l
 }
 
 func createLog(t *testing.T, fsys file.FileSystem, dir string) *log.Log {
@@ -72,10 +71,6 @@ func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
 	lt := locktable.NewLockTable[action.ItemID](t.Context(), 1)
 	t.Cleanup(lt.Close)
 	return lt
-}
-
-func createConcurrencyMgr(lt *locktable.LockTable[action.ItemID]) *locktable.ConcurrencyMgr[action.ItemID] {
-	return locktable.NewConcurrencyMgr(lt)
 }
 
 func createFiles(t *testing.T) (file.FileSystem, string) {

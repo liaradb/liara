@@ -6,24 +6,25 @@ import (
 	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/eventlog"
 )
 
 type Manager struct {
-	log            *log.Log
-	storage        *storage.Storage
-	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
-	transactionID  record.TransactionID
+	log           *log.Log
+	storage       *storage.Storage
+	lockTable     *locktable.LockTable[action.ItemID]
+	transactionID record.TransactionID
 }
 
 func NewManager(
 	log *log.Log,
 	storage *storage.Storage,
-	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
+	lockTable *locktable.LockTable[action.ItemID],
 ) *Manager {
 	return &Manager{
-		log:            log,
-		storage:        storage,
-		concurrencyMgr: concurrencyMgr,
+		log:       log,
+		storage:   storage,
+		lockTable: lockTable,
 	}
 }
 
@@ -33,5 +34,6 @@ func (m *Manager) Next() *Transaction {
 		m.transactionID,
 		m.log,
 		storage.NewBufferList(m.storage),
-		m.concurrencyMgr)
+		locktable.NewConcurrencyMgr(m.lockTable),
+		eventlog.New(m.storage))
 }
