@@ -24,19 +24,18 @@ func TestPage_Add(t *testing.T) {
 		}
 	}
 
-	count := 0
+	result := make([]Item, 0)
+
 	for i, err := range p.Items() {
 		if err != nil {
 			t.Error(err)
 		}
-		if !slices.Equal(i, items[count]) {
-			t.Errorf("item does not match: %v, expected: %v", i, items[count])
-		}
-		count++
+
+		result = append(result, i)
 	}
 
-	if count != len(items) {
-		t.Errorf("incorrect count: %v, expected: %v", count, len(items))
+	if !slices.EqualFunc(result, items, slices.Equal) {
+		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 }
 

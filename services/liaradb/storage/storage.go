@@ -220,20 +220,20 @@ func (s *Storage) moveToUnpinned(b *Buffer) {
 	s.unpinned.Push(b.blockID, b)
 }
 
-// TODO: Is this still needed?
-func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
-	return s.Request(ctx, BlockID{
-		FileName: fileName,
-		Position: -1,
-	})
-}
-
 func (s *Storage) Highwater(ctx context.Context, fileName string) (BlockID, error) {
 	if s.highWReqs == nil {
 		return BlockID{}, ErrNotInitialized
 	}
 
 	return s.highWReqs.Send(ctx, fileName)
+}
+
+// TODO: Is this still needed?
+func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
+	return s.Request(ctx, BlockID{
+		FileName: fileName,
+		Position: -1,
+	})
 }
 
 // External thread

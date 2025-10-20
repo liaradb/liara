@@ -7,6 +7,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/storage/record"
 )
 
 func TestBufferManager(t *testing.T) {
@@ -25,9 +26,9 @@ func testBufferManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := []byte{1, 2, 3, 4, 5}
+	want := [][]byte{{1, 2, 3, 4, 5}}
 
-	if err := b.Add(want); err != nil {
+	if err := b.Add(want[0]); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,19 +56,18 @@ func testBufferManager(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	c := 0
+	result := make([]record.Item, 0)
+
 	for i, err := range b.Items() {
 		if err != nil {
 			t.Error(err)
 		}
-		if !slices.Equal(want, i) {
-			t.Errorf("value does not match: expected: %v, recieved: %v", want, i)
-		}
-		c++
+
+		result = append(result, i)
 	}
 
-	if c != 1 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	if !slices.EqualFunc(result, want, slices.Equal) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 }
 
