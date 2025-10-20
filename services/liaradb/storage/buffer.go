@@ -3,6 +3,7 @@ package storage
 import (
 	"io"
 	"iter"
+	"sync"
 
 	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/record"
@@ -15,6 +16,7 @@ type Buffer struct {
 	status  BufferStatus
 	s       *Storage
 	pins    int
+	mux     sync.RWMutex
 }
 
 type BufferStatus int
@@ -40,6 +42,12 @@ func NewBuffer(s *Storage) *Buffer {
 func (b *Buffer) BlockID() BlockID { return b.blockID }
 func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int        { return b.pins }
+
+// TODO: Test these
+func (b *Buffer) Lock()    { b.mux.Lock() }
+func (b *Buffer) Unlock()  { b.mux.Unlock() }
+func (b *Buffer) RLock()   { b.mux.RLock() }
+func (b *Buffer) RUnlock() { b.mux.RUnlock() }
 
 func (b *Buffer) pin() {
 	b.pins++
@@ -78,7 +86,15 @@ func (b *Buffer) Load(bid BlockID) error {
 	return nil
 }
 
+// TODO: Do we need to clone the item?
 func (b *Buffer) Add(i []byte) error {
+	b.mux.Lock()
+	defer b.mux.Unlock()
+
+	return b.add(i)
+}
+
+func (b *Buffer) add(i []byte) error {
 	if err := b.page.Add(i); err != nil {
 		return err
 	}
@@ -88,6 +104,9 @@ func (b *Buffer) Add(i []byte) error {
 }
 
 func (b *Buffer) Items() iter.Seq2[record.Item, error] {
+	b.mux.RLock()
+	defer b.mux.RUnlock()
+
 	return b.page.Items()
 }
 

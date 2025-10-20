@@ -4,13 +4,17 @@ import (
 	"path"
 	"slices"
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/filetesting"
 )
 
 func TestBufferManager(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testBufferManager)
+}
 
+func testBufferManager(t *testing.T) {
 	b, bid := testCreateBuffer(t)
 
 	if b.Dirty() {
