@@ -1,4 +1,4 @@
-package storage
+package transaction
 
 import (
 	"path"
@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestBufferList(t *testing.T) {
@@ -15,7 +16,7 @@ func TestBufferList(t *testing.T) {
 
 func testBufferList(t *testing.T) {
 	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024)
+	s := storage.NewStorage(fsys, 2, 1024)
 	bl := NewBufferList(s)
 
 	ctx := t.Context()
@@ -23,7 +24,7 @@ func testBufferList(t *testing.T) {
 
 	n := path.Join(t.TempDir(), "testfile")
 
-	b0, err := bl.Pin(ctx, BlockID{FileName: n, Position: 1})
+	b0, err := bl.Pin(ctx, storage.BlockID{FileName: n, Position: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,11 +35,11 @@ func testBufferList(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
-	b1, err := bl.Pin(ctx, BlockID{FileName: n, Position: 2})
+	b1, err := bl.Pin(ctx, storage.BlockID{FileName: n, Position: 2})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p := b1.blockID.Position; p != 2 {
+	if p := b1.BlockID().Position; p != 2 {
 		t.Fatalf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 	if p := b1.Pins(); p != 1 {

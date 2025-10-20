@@ -33,7 +33,7 @@ func (m *Manager) Next() *Transaction {
 	return newTransaction(
 		m.transactionID,
 		m.log,
-		storage.NewBufferList(m.storage),
+		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
 		eventlog.New(m.storage))
 }
