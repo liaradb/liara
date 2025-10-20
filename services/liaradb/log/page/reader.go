@@ -17,9 +17,9 @@ type Reader struct {
 	pageHeader Header
 }
 
-func NewReader(
-	pageSize int64,
-) *Reader {
+// TODO: Merge with [storage/record.Page].
+
+func NewReader(pageSize int64) *Reader {
 	// TODO: Using three slices/buffers is slow
 	data := make([]byte, pageSize)
 	pageReader := bytes.NewReader(data)

@@ -5,6 +5,12 @@ import (
 	"iter"
 )
 
+// TODO: Add header data
+// - Magic number
+// - PageID?
+// - TimeLineID
+// - Max LogSequenceNumber
+
 type Page struct {
 	size  Offset
 	list  List
@@ -33,6 +39,7 @@ func (p *Page) nextCursor(l int) Offset {
 	return Offset(p.Size() - p.list.entriesSize() - l)
 }
 
+// TODO: Create a way to iterate rather than reading the entire page
 // TODO: Do we need an error parameter?
 func (p *Page) Items() iter.Seq2[Item, error] {
 	return func(yield func(Item, error) bool) {
