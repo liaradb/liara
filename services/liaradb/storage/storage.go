@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"io"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
@@ -12,24 +13,24 @@ import (
 
 type Storage struct {
 	bufferSize int64 // TODO: Do we need this?
+	fs         file.FileSystem
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
 	bufferReqs async.Handler[bufferQuery, *Buffer]
 	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
-	bm         *BufferManager
 	highWater  map[string]raw.Offset
 }
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 	return &Storage{
 		bufferSize: bs,
+		fs:         fs,
 		bufferReqs: make(chan *bufferRequest),
 		highWReqs:  make(async.Handler[string, BlockID]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[BlockID]*Buffer, max),
-		bm:         NewBufferManager(fs, bs),
 		max:        max,
 		highWater:  make(map[string]raw.Offset),
 	}
@@ -268,4 +269,31 @@ func (s *Storage) RequestNext(ctx context.Context, fileName string) (*Buffer, er
 // External thread
 func (s *Storage) release(b *Buffer) {
 	s.returns <- b
+}
+
+func (s *Storage) Load(b *Buffer) error {
+	f, err := s.openFile(b)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Do we need to check io.EOF?
+	if err := b.read(f); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) Flush(b *Buffer) error {
+	f, err := s.openFile(b)
+	if err != nil {
+		return err
+	}
+
+	return b.write(f)
+}
+
+func (s *Storage) openFile(b *Buffer) (file.File, error) {
+	return s.fs.OpenFile(b.blockID.FileName)
 }

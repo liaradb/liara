@@ -10,12 +10,12 @@ import (
 	"github.com/liaradb/liaradb/storage/record"
 )
 
-func TestBufferManager(t *testing.T) {
+func TestBuffer(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testBufferManager)
+	synctest.Test(t, testBuffer)
 }
 
-func testBufferManager(t *testing.T) {
+func testBuffer(t *testing.T) {
 	b, bid := testCreateBuffer(t)
 
 	if b.Dirty() {

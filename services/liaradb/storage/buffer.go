@@ -32,9 +32,8 @@ const (
 // TODO: This should be private
 func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
-		// TODO: This accesses BufferManager.bufferSize direclty
-		buffer: raw.NewBuffer(s.bm.bufferSize),
-		page:   record.NewPage(record.Offset(s.bm.bufferSize)),
+		buffer: raw.NewBuffer(s.BufferSize()),
+		page:   record.NewPage(record.Offset(s.BufferSize())),
 		s:      s,
 	}
 }
@@ -69,7 +68,7 @@ func (b *Buffer) Release() {
 // TODO: Only load if BlockID is changing
 func (b *Buffer) Load(bid BlockID) error {
 	if b.blockID != bid && b.status == BufferStatusDirty {
-		if err := b.s.bm.Flush(b); err != nil {
+		if err := b.s.Flush(b); err != nil {
 			return err
 		}
 	}
@@ -77,7 +76,7 @@ func (b *Buffer) Load(bid BlockID) error {
 	b.blockID = bid
 	b.status = BufferStatusLoading
 
-	if err := b.s.bm.Load(b); err != nil {
+	if err := b.s.Load(b); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
@@ -147,7 +146,7 @@ func (b *Buffer) Flush() error {
 		return ErrNotDirty
 	}
 
-	if err := b.s.bm.Flush(b); err != nil {
+	if err := b.s.Flush(b); err != nil {
 		return err
 	}
 
