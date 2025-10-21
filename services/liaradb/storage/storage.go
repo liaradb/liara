@@ -136,7 +136,7 @@ func (s *Storage) getUnloaded(ctx context.Context, bid BlockID) (*Buffer, error)
 
 	// TODO: Don't load here.  Do this in separate goroutine.
 	// TODO: Don't load if just allocated
-	if err := b.Load(bid); err != nil {
+	if err := b.load(bid); err != nil {
 		return nil, err
 	}
 
@@ -172,7 +172,7 @@ func (s *Storage) allocate() (*Buffer, bool) {
 		return nil, false
 	}
 
-	return NewBuffer(s), true
+	return newBuffer(s), true
 }
 
 func (s *Storage) waitForRelease(ctx context.Context) (*Buffer, error) {
@@ -271,7 +271,7 @@ func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
 
-func (s *Storage) Load(b *Buffer) error {
+func (s *Storage) load(b *Buffer) error {
 	f, err := s.openFile(b)
 	if err != nil {
 		return err
@@ -285,7 +285,7 @@ func (s *Storage) Load(b *Buffer) error {
 	return nil
 }
 
-func (s *Storage) Flush(b *Buffer) error {
+func (s *Storage) flush(b *Buffer) error {
 	f, err := s.openFile(b)
 	if err != nil {
 		return err

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/storage/page"
 )
 
@@ -16,14 +15,10 @@ func TestBuffer(t *testing.T) {
 }
 
 func testBuffer(t *testing.T) {
-	b, bid := testCreateBuffer(t)
+	b := testCreateBuffer(t)
 
 	if b.Dirty() {
 		t.Error("should not be dirty")
-	}
-
-	if err := b.Load(bid); err != nil {
-		t.Fatal(err)
 	}
 
 	want := [][]byte{{1, 2, 3, 4, 5}}
@@ -48,10 +43,6 @@ func testBuffer(t *testing.T) {
 		t.Fatal("should not flush clean buffers")
 	}
 
-	if err := b.Load(bid); err != nil {
-		t.Fatal(err)
-	}
-
 	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
@@ -71,8 +62,13 @@ func testBuffer(t *testing.T) {
 	}
 }
 
-func testCreateBuffer(t *testing.T) (*Buffer, BlockID) {
-	fsys := filetesting.NewDiskFileSystem(t)
-	return NewBuffer(NewStorage(fsys, 2, 1024)),
-		BlockID{FileName: path.Join(t.TempDir(), "testfile"), Position: 0}
+func testCreateBuffer(t *testing.T) *Buffer {
+	b, err := createStorage(t, 2, 1024).
+		Request(t.Context(),
+			NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return b
 }

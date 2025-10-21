@@ -29,8 +29,7 @@ const (
 	BufferStatusCorrupt
 )
 
-// TODO: This should be private
-func NewBuffer(s *Storage) *Buffer {
+func newBuffer(s *Storage) *Buffer {
 	return &Buffer{
 		buffer: raw.NewBuffer(s.BufferSize()),
 		page:   page.New(page.Offset(s.BufferSize())),
@@ -43,10 +42,10 @@ func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int        { return b.pins }
 
 // TODO: Test these
-func (b *Buffer) Lock()    { b.mux.Lock() }
-func (b *Buffer) Unlock()  { b.mux.Unlock() }
-func (b *Buffer) RLock()   { b.mux.RLock() }
-func (b *Buffer) RUnlock() { b.mux.RUnlock() }
+func (b *Buffer) Latch()    { b.mux.Lock() }
+func (b *Buffer) Unlatch()  { b.mux.Unlock() }
+func (b *Buffer) RLatch()   { b.mux.RLock() }
+func (b *Buffer) RUnlatch() { b.mux.RUnlock() }
 
 func (b *Buffer) pin() {
 	b.pins++
@@ -66,9 +65,9 @@ func (b *Buffer) Release() {
 }
 
 // TODO: Only load if BlockID is changing
-func (b *Buffer) Load(bid BlockID) error {
+func (b *Buffer) load(bid BlockID) error {
 	if b.blockID != bid && b.status == BufferStatusDirty {
-		if err := b.s.Flush(b); err != nil {
+		if err := b.s.flush(b); err != nil {
 			return err
 		}
 	}
@@ -76,7 +75,7 @@ func (b *Buffer) Load(bid BlockID) error {
 	b.blockID = bid
 	b.status = BufferStatusLoading
 
-	if err := b.s.Load(b); err != nil {
+	if err := b.s.load(b); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
@@ -87,8 +86,8 @@ func (b *Buffer) Load(bid BlockID) error {
 
 // TODO: Do we need to clone the item?
 func (b *Buffer) Add(i []byte) error {
-	b.mux.Lock()
-	defer b.mux.Unlock()
+	b.Latch()
+	defer b.Unlatch()
 
 	return b.add(i)
 }
@@ -103,8 +102,8 @@ func (b *Buffer) add(i []byte) error {
 }
 
 func (b *Buffer) Items() iter.Seq2[page.Item, error] {
-	b.mux.RLock()
-	defer b.mux.RUnlock()
+	b.RLatch()
+	defer b.RUnlatch()
 
 	return b.page.Items()
 }
@@ -146,7 +145,7 @@ func (b *Buffer) Flush() error {
 		return ErrNotDirty
 	}
 
-	if err := b.s.Flush(b); err != nil {
+	if err := b.s.flush(b); err != nil {
 		return err
 	}
 
