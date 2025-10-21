@@ -19,7 +19,7 @@ type Page struct {
 
 type Item = []byte
 
-func NewPage(size Offset) *Page {
+func New(size Offset) *Page {
 	return &Page{
 		size: size,
 	}

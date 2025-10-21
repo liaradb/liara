@@ -13,7 +13,7 @@ func TestPage_Add(t *testing.T) {
 	t.Parallel()
 
 	const size = 256
-	p := NewPage(size)
+	p := New(size)
 
 	items := [][]byte{
 		{1, 2, 3, 4},
@@ -46,7 +46,7 @@ func TestPage_ReadWrite(t *testing.T) {
 
 	b := raw.NewBuffer(size)
 
-	p := NewPage(size)
+	p := New(size)
 	if err := p.Add([]byte{1, 2, 3, 4}); err != nil {
 		t.Error(err)
 	}
@@ -68,7 +68,7 @@ func TestPage_ReadWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p1 := NewPage(256)
+	p1 := New(256)
 
 	if err := p1.Read(b); err != nil {
 		t.Fatal(err)

@@ -33,7 +33,7 @@ const (
 func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
 		buffer: raw.NewBuffer(s.BufferSize()),
-		page:   page.NewPage(page.Offset(s.BufferSize())),
+		page:   page.New(page.Offset(s.BufferSize())),
 		s:      s,
 	}
 }
