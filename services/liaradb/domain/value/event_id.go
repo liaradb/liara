@@ -6,20 +6,20 @@ import (
 	"github.com/google/uuid"
 )
 
-type EventID string
+type EventID [EventIDSize]byte
 
-func (i EventID) String() string { return string(i) }
+func (i EventID) String() string { return uuid.UUID(i).String() }
 
 func NewEventID() EventID {
-	return EventID(uuid.NewString())
+	return EventID(uuid.New())
 }
 
-const EventIDSize = 36
+const EventIDSize = 16
 
 func (i EventID) Size() int { return EventIDSize }
 
 func (i EventID) Write(w io.Writer) error {
-	if n, err := w.Write([]byte(i)); err != nil {
+	if n, err := w.Write(i[:]); err != nil {
 		return err
 	} else if n < len(i) {
 		return io.ErrShortWrite
@@ -29,14 +29,11 @@ func (i EventID) Write(w io.Writer) error {
 }
 
 func (i *EventID) Read(r io.Reader) error {
-	d := make([]byte, EventIDSize)
-	if n, err := r.Read(d); err != nil {
+	if n, err := r.Read(i[:]); err != nil {
 		return err
 	} else if n < EventIDSize {
 		return io.EOF
 	}
-
-	*i = EventID(d)
 
 	return nil
 }

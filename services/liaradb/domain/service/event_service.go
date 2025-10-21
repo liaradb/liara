@@ -66,8 +66,9 @@ func (ae *AppendEvent) Valid() error {
 }
 
 func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
+	var zero value.EventID
 	id := ae.ID
-	if id == "" {
+	if id == zero {
 		id = value.NewEventID()
 	}
 

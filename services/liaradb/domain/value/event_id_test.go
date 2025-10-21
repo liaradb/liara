@@ -27,8 +27,9 @@ func TestLogSequenceNumber(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if e != e2 {
-		t.Errorf("incorrect value: %v, expected: %v", e2, e)
+	s1, s2 := e.String(), e2.String()
+	if s1 != s2 {
+		t.Errorf("incorrect value: %v, expected: %v", s2, s1)
 	}
 }
 
