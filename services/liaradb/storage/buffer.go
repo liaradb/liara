@@ -6,13 +6,13 @@ import (
 	"sync"
 
 	"github.com/liaradb/liaradb/raw"
-	"github.com/liaradb/liaradb/storage/record"
+	"github.com/liaradb/liaradb/storage/page"
 )
 
 type Buffer struct {
 	blockID BlockID
 	buffer  *raw.Buffer
-	page    *record.Page
+	page    *page.Page
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -33,7 +33,7 @@ const (
 func NewBuffer(s *Storage) *Buffer {
 	return &Buffer{
 		buffer: raw.NewBuffer(s.BufferSize()),
-		page:   record.NewPage(record.Offset(s.BufferSize())),
+		page:   page.NewPage(page.Offset(s.BufferSize())),
 		s:      s,
 	}
 }
@@ -102,7 +102,7 @@ func (b *Buffer) add(i []byte) error {
 	return nil
 }
 
-func (b *Buffer) Items() iter.Seq2[record.Item, error] {
+func (b *Buffer) Items() iter.Seq2[page.Item, error] {
 	b.mux.RLock()
 	defer b.mux.RUnlock()
 

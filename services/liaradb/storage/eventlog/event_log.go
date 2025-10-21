@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/record"
+	"github.com/liaradb/liaradb/storage/page"
 )
 
 type EventLog struct {
@@ -55,7 +55,7 @@ func (s *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reade
 	}
 
 	bid, err := s.appendCurrent(ctx, fileName, data[:n])
-	if err == record.ErrInsufficientSpace {
+	if err == page.ErrInsufficientSpace {
 		bid, err = s.appendNext(ctx, fileName, data[:n])
 	}
 
