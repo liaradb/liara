@@ -5,9 +5,9 @@ import (
 	"iter"
 	"time"
 
-	"github.com/cardboardrobots/liara_service/feature/base"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+	"github.com/liaradb/liaradb/base"
+	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/value"
 )
 
 type EventService struct {

@@ -1,8 +1,6 @@
 package entity
 
-import (
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
-)
+import "github.com/liaradb/liaradb/domain/value"
 
 type Tenant struct {
 	id      value.TenantID

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/cardboardrobots/baseerror"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/entity"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/value"
 )
 
 type (

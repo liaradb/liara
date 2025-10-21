@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+	"github.com/liaradb/liaradb/domain/value"
 )
 
 type RequestRepository interface {

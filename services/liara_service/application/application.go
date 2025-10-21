@@ -9,9 +9,9 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/controller"
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/service"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
 	"github.com/cardboardrobots/listener"
+	"github.com/liaradb/liaradb/domain/service"
 	"google.golang.org/grpc"
 )
 

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/cardboardrobots/liara_service/feature/eventsource/domain/value"
+	"github.com/liaradb/liaradb/domain/value"
 )
 
 func TestEventService_Append(t *testing.T) {
