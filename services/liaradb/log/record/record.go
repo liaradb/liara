@@ -47,8 +47,8 @@ func (rc *Record) Size() int {
 		rc.transactionID,
 		rc.time,
 		rc.action,
-		rc.data,
-		rc.reverse)
+		&rc.data,
+		&rc.reverse)
 }
 
 func (rc *Record) Write(w io.Writer) error {
