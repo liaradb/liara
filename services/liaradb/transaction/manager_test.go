@@ -17,14 +17,14 @@ func TestManager(t *testing.T) {
 
 	tx0 := m.Next()
 
-	var tid0 record.TransactionID = 1
+	var tid0 = record.NewTransactionID(1)
 	if i := tx0.ID(); i != tid0 {
 		t.Errorf("id does not match: %v, expected: %v", i, tid0)
 	}
 
 	tx1 := m.Next()
 
-	var tid1 record.TransactionID = 2
+	var tid1 = record.NewTransactionID(2)
 	if i := tx1.ID(); i != tid1 {
 		t.Errorf("id does not match: %v, expected: %v", i, tid1)
 	}

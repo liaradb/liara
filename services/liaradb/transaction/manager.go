@@ -29,7 +29,7 @@ func NewManager(
 }
 
 func (m *Manager) Next() *Transaction {
-	m.transactionID++
+	m.transactionID = record.NewTransactionID(m.transactionID.Value() + 1)
 	return newTransaction(
 		m.transactionID,
 		m.log,

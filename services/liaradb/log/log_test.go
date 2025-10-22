@@ -37,7 +37,7 @@ func testLog_Append(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
+	if lsn, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
 		t.Error(err)
 	} else if lsn != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -63,7 +63,7 @@ func testLog_Append__Large(t *testing.T) {
 	}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != page.ErrInsufficientSpace {
+	if _, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != page.ErrInsufficientSpace {
 		t.Errorf("should return %v", page.ErrInsufficientSpace)
 	}
 
@@ -81,12 +81,12 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLogStart(t, 3)
 
-		lsn1, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -103,12 +103,12 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLogStart(t, 3)
 
-		_, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		_, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -128,13 +128,13 @@ func TestLog_Flush(t *testing.T) {
 		count := 10
 
 		for range count - 1 {
-			_, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+			_, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -158,7 +158,7 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLogStart(t, 3)
 
-		lsn1, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -167,7 +167,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Append(ctx, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -512,7 +512,7 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, record.New(i+1, 2, time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(i+1, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
 	return records, count - 1
 }

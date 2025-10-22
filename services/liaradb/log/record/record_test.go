@@ -13,7 +13,7 @@ func TestRecord(t *testing.T) {
 	t.Parallel()
 
 	lsn := LogSequenceNumber(1)
-	tid := TransactionID(2)
+	tid := NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	action := ActionInsert
 	data := []byte("abcde")
@@ -33,7 +33,7 @@ func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
 	lsn := LogSequenceNumber(1)
-	tid := TransactionID(2)
+	tid := NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	action := ActionInsert
 	data := []byte("abcde")

@@ -12,7 +12,7 @@ func TestTransactionID(t *testing.T) {
 
 	r, w := assert.NewReaderWriter()
 
-	var tid TransactionID = 123456
+	var tid = NewTransactionID(123456)
 	if err := tid.Write(w); err != nil {
 		t.Fatal(err)
 	}

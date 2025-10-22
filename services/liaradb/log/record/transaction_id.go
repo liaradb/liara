@@ -1,20 +1,11 @@
 package record
 
-import (
-	"encoding/binary"
-	"io"
-)
-
-type TransactionID uint64
-
-const TransactionIDSize = 8
-
-func (TransactionID) Size() int { return TransactionIDSize }
-
-func (tid TransactionID) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, tid)
+type TransactionID struct {
+	baseUint64
 }
 
-func (tid *TransactionID) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, tid)
+const TransactionIDSize = baseUint64Size
+
+func NewTransactionID(value uint64) TransactionID {
+	return TransactionID{baseUint64(value)}
 }
