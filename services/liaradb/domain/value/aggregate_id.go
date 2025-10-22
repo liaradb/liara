@@ -1,9 +1,11 @@
 package value
 
+import "github.com/liaradb/liaradb/raw"
+
 type AggregateID struct {
-	baseID
+	baseString
 }
 
 func NewAggregateID() AggregateID {
-	return AggregateID{newBaseID()}
+	return AggregateID{raw.NewBaseID()}
 }
