@@ -12,7 +12,7 @@ func TestEventService_Append(t *testing.T) {
 	t.Run("should not append invalid version", func(t *testing.T) {
 		es := NewEventService(nil, nil, nil, nil)
 
-		aggregateID := value.AggregateID("aggregateID")
+		aggregateID := value.NewAggregateID()
 		want := AppendEvent{
 			AggregateName: "example",
 			ID:            value.NewEventID(),
