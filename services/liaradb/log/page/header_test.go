@@ -15,7 +15,7 @@ func TestHeader(t *testing.T) {
 	r, w := newReaderWriter()
 	pid := PageID(1)
 	tlid := TimeLineID(2)
-	rem := record.Length(3)
+	rem := record.NewLength(3)
 
 	h := NewHeader(pid, tlid, rem)
 

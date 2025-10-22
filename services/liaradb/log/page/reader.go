@@ -120,7 +120,7 @@ func (rd *Reader) validateCRC() error {
 		return err
 	}
 
-	d, err := rd.reader.Peek(int(rb.Length()))
+	d, err := rd.reader.Peek(int(rb.Length().Value()))
 	if err != nil {
 		return err
 	}

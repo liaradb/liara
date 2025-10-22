@@ -94,7 +94,7 @@ func TestWriter_Append(t *testing.T) {
 func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
 	pid := PageID(1)
 	tlid := TimeLineID(2)
-	rem := record.Length(3)
+	rem := record.NewLength(3)
 
 	pw := NewWriter(256)
 	pw.Init(pid, tlid, rem)

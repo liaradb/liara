@@ -12,7 +12,7 @@ func TestLength(t *testing.T) {
 
 	r, w := assert.NewReaderWriter()
 
-	var l Length = NewLength([]byte{1, 2, 3, 4, 5})
+	var l Length = NewLength(5)
 	if err := l.Write(w); err != nil {
 		t.Fatal(err)
 	}

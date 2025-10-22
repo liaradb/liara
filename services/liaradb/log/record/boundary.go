@@ -14,7 +14,7 @@ const BoundarySize = CrcSize + LengthSize
 func NewBoundary(d []byte) Boundary {
 	return Boundary{
 		crc:    NewCRC(d),
-		length: NewLength(d),
+		length: NewLength(uint32(len(d))),
 	}
 }
 
@@ -42,7 +42,7 @@ func (b *Boundary) Read(r io.Reader) error {
 		return err
 	}
 
-	if b.length == 0 {
+	if b.length.Value() == 0 {
 		return io.EOF
 	}
 

@@ -89,7 +89,7 @@ func (wr *Writer) next(rb record.Boundary, data []byte) error {
 		return page.ErrInsufficientSpace
 	}
 
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
+	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 	return wr.pageWriter.Append(rb, data)
 }
 
@@ -112,7 +112,7 @@ func (wr *Writer) Initialize(rw io.ReadWriteSeeker) error {
 	}
 
 	wr.pageID = 0
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
+	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 
 	return nil
 }
@@ -135,7 +135,7 @@ func (wr *Writer) SeekTail(size int64, rw io.ReadWriteSeeker) error {
 
 	// TODO: initialize or jump to tail of Page
 	// Is page initialized?
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, 0)
+	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 
 	return wr.pageWriter.SeekTail(wr.readWriter)
 }
