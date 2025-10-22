@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestLogSequenceNumber(t *testing.T) {
+func TestEventID(t *testing.T) {
 	t.Parallel()
 
 	r, w := newReaderWriter()
