@@ -2,6 +2,8 @@ package record
 
 import (
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Boundary struct {
@@ -26,19 +28,11 @@ func (b Boundary) Size() int {
 }
 
 func (b Boundary) Write(w io.Writer) error {
-	if err := b.crc.Write(w); err != nil {
-		return err
-	}
-
-	return b.length.Write(w)
+	return raw.WriteAll(w, b.crc, b.length)
 }
 
 func (b *Boundary) Read(r io.Reader) error {
-	if err := b.crc.Read(r); err != nil {
-		return err
-	}
-
-	if err := b.length.Read(r); err != nil {
+	if err := raw.ReadAll(r, &b.crc, &b.length); err != nil {
 		return err
 	}
 
