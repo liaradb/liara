@@ -22,7 +22,7 @@ func TestLog_Default(t *testing.T) {
 func testLog_Default(t *testing.T) {
 	l := createLogStart(t, 3)
 
-	testPosition(t, l, 0, 0)
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
 }
 
 func TestLog_Append(t *testing.T) {
@@ -39,11 +39,11 @@ func testLog_Append(t *testing.T) {
 
 	if lsn, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
 		t.Error(err)
-	} else if lsn != 1 {
+	} else if lsn != record.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, 0, 1)
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 }
 
 // TODO: Should not create next Segment if cannot fit
@@ -67,7 +67,7 @@ func testLog_Append__Large(t *testing.T) {
 		t.Errorf("should return %v", page.ErrInsufficientSpace)
 	}
 
-	testPosition(t, l, 0, 0)
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
 }
 
 func TestLog_Flush(t *testing.T) {
@@ -95,7 +95,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		testPosition(t, l, 1, 2)
+		testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2))
 	})
 
 	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
@@ -113,11 +113,11 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := l.Flush(ctx, 10); err != nil {
+		if err := l.Flush(ctx, record.NewLogSequenceNumber(10)); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, l, 2, 2)
+		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 	})
 
 	runTest(t, "should write to multiple pages", func(t *testing.T) {
@@ -176,7 +176,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		testPosition(t, l, 2, 2)
+		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 	})
 }
 
@@ -188,7 +188,7 @@ func TestLog_EmptyReader(t *testing.T) {
 func testLog_EmptyReader(t *testing.T) {
 	l := createLog(t, 2)
 
-	for _, err := range l.Iterate(0) {
+	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != segment.ErrNoSegmentFile {
 			t.Error("should have no files")
 		}
@@ -205,7 +205,7 @@ func testLog_Iterate(t *testing.T) {
 
 	l := createLogStart(t, 2)
 
-	records, _ := createRecords(100)
+	records, _ := createRecords(record.NewLogSequenceNumber(100))
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
@@ -220,7 +220,7 @@ func testLog_Iterate(t *testing.T) {
 	}
 
 	i := 0
-	for rc, err := range l.Iterate(0) {
+	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -244,7 +244,7 @@ func TestLog_Recover(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
-	records, _ := createRecords(2)
+	records, _ := createRecords(record.NewLogSequenceNumber(2))
 	r0 := records[0]
 	r1 := records[1]
 
@@ -319,9 +319,9 @@ func TestLog_RecoverMany(t *testing.T) {
 
 	fsys, dir := createFiles(t)
 
-	var aCount1 record.LogSequenceNumber = 1
-	var aCount2 record.LogSequenceNumber = 1
-	aCount := aCount1 + aCount2
+	var aCount1 = record.NewLogSequenceNumber(1)
+	var aCount2 = record.NewLogSequenceNumber(1)
+	aCount := aCount1.Value() + aCount2.Value()
 	records1, _ := createRecords(aCount1)
 	records2, _ := createRecords(aCount2)
 	records := append(records1, records2...)
@@ -350,7 +350,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		}
 
 		i := 0
-		for rc, err := range l.Iterate(0) {
+		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -364,7 +364,7 @@ func TestLog_RecoverMany(t *testing.T) {
 			}
 			i++
 		}
-		if i != int(aCount1) {
+		if i != int(aCount1.Value()) {
 			t.Errorf("incorrect count: %v, expected: %v", i, aCount1)
 		}
 
@@ -397,7 +397,7 @@ func TestLog_RecoverMany(t *testing.T) {
 		}
 
 		i := 0
-		for rc, err := range l.Iterate(0) {
+		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -431,7 +431,7 @@ func testLog_Reverse(t *testing.T) {
 
 	l := createLogStart(t, 2)
 
-	records, _ := createRecords(100)
+	records, _ := createRecords(record.NewLogSequenceNumber(100))
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
@@ -510,11 +510,11 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	records := make([]*record.Record, 0, count)
-	for i := range count {
-		records = append(records, record.New(i+1, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+	records := make([]*record.Record, 0, count.Value())
+	for i := range count.Value() {
+		records = append(records, record.New(record.NewLogSequenceNumber(i+1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
-	return records, count - 1
+	return records, count.Decrement()
 }
 
 func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {

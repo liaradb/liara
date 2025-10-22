@@ -31,7 +31,7 @@ func ParseSegmentName(value string) SegmentName {
 	i, _ := strconv.ParseUint(matches[1], 16, 64)
 	l, _ := strconv.ParseUint(matches[2], 16, 64)
 
-	return NewSegmentName(SegmentID(i), record.LogSequenceNumber(l))
+	return NewSegmentName(SegmentID(i), record.NewLogSequenceNumber(l))
 }
 
 func (sn SegmentName) ID() SegmentID                               { return sn.id }
@@ -45,5 +45,5 @@ func (sn SegmentName) Next(lsn record.LogSequenceNumber) SegmentName {
 }
 
 func (sn SegmentName) String() string {
-	return fmt.Sprintf("segment_%016x_%016x.lr", sn.id, sn.lsn)
+	return fmt.Sprintf("segment_%016x_%016x.lr", sn.id, sn.lsn.Value())
 }

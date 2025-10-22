@@ -10,7 +10,7 @@ func TestLogSequenceNumber(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	var lsn LogSequenceNumber = 123456
+	var lsn = NewLogSequenceNumber(123456)
 	if err := lsn.Write(w); err != nil {
 		t.Fatal(err)
 	}

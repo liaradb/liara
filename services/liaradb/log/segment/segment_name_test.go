@@ -11,7 +11,7 @@ func TestSegmentName(t *testing.T) {
 
 	for message, test := range map[string]struct {
 		id   SegmentID
-		lsn  record.LogSequenceNumber
+		lsn  uint64
 		name string
 	}{
 		"should handle index 0":         {0, 0, "segment_0000000000000000_0000000000000000.lr"},
@@ -24,7 +24,8 @@ func TestSegmentName(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sn := NewSegmentName(test.id, test.lsn)
+			lsn := record.NewLogSequenceNumber(test.lsn)
+			sn := NewSegmentName(test.id, lsn)
 			if sn != ParseSegmentName(test.name) {
 				t.Errorf("%v: incorrect value: %v, expected: %v", message, sn, test.name)
 			}
@@ -33,20 +34,21 @@ func TestSegmentName(t *testing.T) {
 				t.Errorf("%v: incorrect id: %v, expected: %v", message, i, test.id)
 			}
 
-			if l := sn.LogSequenceNumber(); l != test.lsn {
-				t.Errorf("%v: incorrect log sequence number: %v, expected: %v", message, l, test.lsn)
+			if l := sn.LogSequenceNumber(); l != lsn {
+				t.Errorf("%v: incorrect log sequence number: %v, expected: %v", message, l, lsn)
 			}
 		})
 	}
 }
 
 func TestSegmentName_Next(t *testing.T) {
-	sn := NewSegmentName(1, 10)
-	n := sn.Next(15)
+	sn := NewSegmentName(1, record.NewLogSequenceNumber(10))
+	n := sn.Next(record.NewLogSequenceNumber(15))
 	if i := n.ID(); i != 2 {
 		t.Errorf("incorrect id: %v, expected: %v", i, 2)
 	}
-	if l := n.LogSequenceNumber(); l != 15 {
-		t.Errorf("incorrect log sequence number: %v, expected: %v", l, 15)
+	want := record.NewLogSequenceNumber(15)
+	if l := n.LogSequenceNumber(); l != want {
+		t.Errorf("incorrect log sequence number: %v, expected: %v", l, want)
 	}
 }

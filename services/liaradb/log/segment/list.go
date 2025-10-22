@@ -245,7 +245,7 @@ func (l *List) getNextSegment(lsn record.LogSequenceNumber) SegmentName {
 
 func (l *List) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
 	for n, e := range l.reverse() {
-		if lsn >= n.lsn {
+		if lsn.Value() >= n.lsn.Value() {
 			e = e.Prev()
 			if e == nil {
 				return SegmentName{}, nil, false
@@ -260,7 +260,7 @@ func (l *List) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *
 
 func (l *List) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
 	for n, e := range l.reverse() {
-		if lsn >= n.lsn {
+		if lsn.Value() >= n.lsn.Value() {
 			return n, e, true
 		}
 	}

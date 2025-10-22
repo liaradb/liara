@@ -1,20 +1,19 @@
 package record
 
-import (
-	"encoding/binary"
-	"io"
-)
-
-type LogSequenceNumber uint64
-
-const LogSequenceNumberSize = 8
-
-func (LogSequenceNumber) Size() int { return LogSequenceNumberSize }
-
-func (lsn LogSequenceNumber) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, lsn)
+type LogSequenceNumber struct {
+	baseUint64
 }
 
-func (lsn *LogSequenceNumber) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, lsn)
+const LogSequenceNumberSize = baseUint64Size
+
+func NewLogSequenceNumber(value uint64) LogSequenceNumber {
+	return LogSequenceNumber{NewBaseUint64(value)}
+}
+
+func (l LogSequenceNumber) Increment() LogSequenceNumber {
+	return LogSequenceNumber{l.baseUint64 + 1}
+}
+
+func (l LogSequenceNumber) Decrement() LogSequenceNumber {
+	return LogSequenceNumber{l.baseUint64 - 1}
 }

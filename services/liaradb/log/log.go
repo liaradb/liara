@@ -98,12 +98,13 @@ func (l *Log) append(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
-	rc := record.New(l.highWater+1, tid, time, action, data, reverse)
+	h := l.highWater.Increment()
+	rc := record.New(h, tid, time, action, data, reverse)
 	if err := l.writer.Append(rc); err != nil {
-		return 0, err
+		return record.NewLogSequenceNumber(0), err
 	}
 
-	l.highWater++
+	l.highWater = h
 	return l.highWater, nil
 }
 
@@ -130,7 +131,7 @@ func (l *Log) flush(lsn record.LogSequenceNumber) error {
 	}
 
 	// TODO: Is this correct?
-	lsn = min(lsn, l.highWater)
+	lsn = record.NewLogSequenceNumber(min(lsn.Value(), l.highWater.Value()))
 	l.lowWater = lsn
 	return nil
 }

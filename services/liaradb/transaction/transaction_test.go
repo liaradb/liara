@@ -30,7 +30,7 @@ func testTransaction_Insert(t *testing.T) {
 	}
 
 	c := 0
-	for rc, err := range l.Iterate(0) {
+	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -68,11 +68,11 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lsns := []record.LogSequenceNumber{1, 2}
+	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionCommit}
 
 	c := 0
-	for rc, err := range l.Iterate(0) {
+	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -134,11 +134,11 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lsns := []record.LogSequenceNumber{1, 2}
+	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionRollback}
 
 	c := 0
-	for rc, err := range l.Iterate(0) {
+	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
 		}

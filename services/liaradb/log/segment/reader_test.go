@@ -16,7 +16,7 @@ func TestReader_Iterate(t *testing.T) {
 
 	f, lr, sw := createReaderWriter(t)
 
-	var count record.LogSequenceNumber = 10
+	var count = record.NewLogSequenceNumber(10)
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
@@ -31,12 +31,12 @@ func TestReader_Iterate(t *testing.T) {
 
 	var c record.LogSequenceNumber
 	for rc, err := range lr.Iterate(f) {
-		c++
+		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		rec := records[c-1]
+		rec := records[c.Value()-1]
 
 		if !reflect.DeepEqual(rc, rec) {
 			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
@@ -51,7 +51,7 @@ func TestReader_Iterate(t *testing.T) {
 func TestReader_Reverse(t *testing.T) {
 	f, sr, sw := createReaderWriter(t)
 
-	var count record.LogSequenceNumber = 10
+	var count = record.NewLogSequenceNumber(10)
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
@@ -71,12 +71,12 @@ func TestReader_Reverse(t *testing.T) {
 
 	var c record.LogSequenceNumber
 	for rc, err := range sr.Reverse(stat.Size(), f) {
-		c++
+		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		rec := records[count-c]
+		rec := records[count.Value()-c.Value()]
 
 		if !reflect.DeepEqual(rc, rec) {
 			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
@@ -105,9 +105,9 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	records := make([]*record.Record, 0, count)
-	for i := range count {
-		records = append(records, record.New(i, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+	records := make([]*record.Record, 0, count.Value())
+	for i := range count.Value() {
+		records = append(records, record.New(record.NewLogSequenceNumber(i), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
-	return records, count - 1
+	return records, count.Decrement()
 }

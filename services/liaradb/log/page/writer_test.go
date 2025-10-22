@@ -103,7 +103,7 @@ func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
 }
 
 func createRecord() (*record.Record, []byte, error) {
-	lsn := record.LogSequenceNumber(1)
+	lsn := record.NewLogSequenceNumber(1)
 	tid := record.NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")

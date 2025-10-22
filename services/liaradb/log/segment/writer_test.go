@@ -15,7 +15,7 @@ func TestWriter_Append(t *testing.T) {
 	sw := createWriter(t)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(1, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+	var rec = record.New(record.NewLogSequenceNumber(1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
 	if err := sw.Append(rec); err != nil {
 		t.Error(err)
@@ -27,7 +27,7 @@ func TestWriter_Flush(t *testing.T) {
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(1, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+	var rec = record.New(record.NewLogSequenceNumber(1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()

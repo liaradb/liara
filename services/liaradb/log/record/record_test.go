@@ -12,7 +12,7 @@ import (
 func TestRecord(t *testing.T) {
 	t.Parallel()
 
-	lsn := LogSequenceNumber(1)
+	lsn := NewLogSequenceNumber(1)
 	tid := NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	action := ActionInsert
@@ -32,7 +32,7 @@ func TestRecord(t *testing.T) {
 func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
-	lsn := LogSequenceNumber(1)
+	lsn := NewLogSequenceNumber(1)
 	tid := NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	action := ActionInsert
