@@ -7,7 +7,6 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage/queue"
 )
 
@@ -20,7 +19,7 @@ type Storage struct {
 	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
-	highWater  map[string]raw.Offset
+	highWater  map[string]Offset
 }
 
 func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
@@ -32,7 +31,7 @@ func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[BlockID]*Buffer, max),
 		max:        max,
-		highWater:  make(map[string]raw.Offset),
+		highWater:  make(map[string]Offset),
 	}
 }
 

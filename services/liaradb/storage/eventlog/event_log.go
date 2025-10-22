@@ -7,7 +7,6 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/page"
 )
@@ -112,7 +111,7 @@ func (s *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Bu
 	}
 }
 
-func (s *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.Buffer, error) bool) (raw.Offset, bool) {
+func (s *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.Buffer, error) bool) (storage.Offset, bool) {
 	b, err := s.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)
