@@ -7,6 +7,11 @@ import (
 
 const HeaderSize = 4
 
+// TODO: Can we rename this Size?
+func StringSize[S ~string](s S) int {
+	return HeaderSize + len(s)
+}
+
 func Write(w io.Writer, value []byte) error {
 	if err := binary.Write(w, binary.BigEndian, uint32(len(value))); err != nil {
 		return err

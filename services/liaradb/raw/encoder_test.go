@@ -7,6 +7,16 @@ import (
 	"github.com/cardboardrobots/assert"
 )
 
+func TestStringSize(t *testing.T) {
+	value := "abcde"
+	want := HeaderSize + len(value)
+
+	s := StringSize(value)
+	if s != want {
+		t.Errorf("incorrect size: %v, expected: %v", s, want)
+	}
+}
+
 func TestByteEncoder(t *testing.T) {
 	t.Parallel()
 
