@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/page"
 )
@@ -89,6 +91,20 @@ func (s *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 	}
 
 	return b.BlockID(), nil
+}
+
+func (s *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*entity.Event, error) {
+	for e, err := range s.Events(ctx, fn) {
+		if err != nil {
+			return nil, err
+		}
+
+		if e.ID == id {
+			return e, nil
+		}
+	}
+
+	return nil, errors.New("not found")
 }
 
 func (s *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Event, error] {
