@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 
@@ -16,7 +17,11 @@ func main() {
 	log.SetPrefix("[liaradb]\t")
 	log.Println("started...")
 
-	err := application.Run()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	a := application.New(200, 4096)
+	err := a.Run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
