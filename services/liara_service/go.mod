@@ -2,7 +2,7 @@ module github.com/cardboardrobots/liara_service
 
 go 1.25.0
 
-replace github.com/cardboardrobots/eventsource_go => ../../modules/eventsource_go
+replace github.com/liaradb/eventsource_go => ../../modules/eventsource_go
 
 replace github.com/liaradb/liaradb => ../liaradb
 
@@ -10,8 +10,9 @@ require (
 	github.com/cardboardrobots/baseerror v0.0.2
 	github.com/cardboardrobots/config v0.0.0
 	github.com/cardboardrobots/errormap v0.0.0
-	github.com/cardboardrobots/eventsource_go v0.0.0
 	github.com/cardboardrobots/listener v0.0.1
+	github.com/google/uuid v1.6.0
+	github.com/liaradb/eventsource_go v0.0.0
 	github.com/liaradb/liaradb v0.0.0
 	github.com/lib/pq v1.10.9
 	google.golang.org/grpc v1.67.1
@@ -20,7 +21,6 @@ require (
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	pb "github.com/cardboardrobots/eventsource_go/generated"
+	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 )

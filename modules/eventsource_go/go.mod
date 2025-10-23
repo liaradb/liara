@@ -1,4 +1,4 @@
-module github.com/cardboardrobots/eventsource_go
+module github.com/liaradb/eventsource_go
 
 go 1.23.1
 

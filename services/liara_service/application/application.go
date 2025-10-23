@@ -7,9 +7,9 @@ import (
 	"net/http"
 
 	"github.com/cardboardrobots/errormap"
-	pb "github.com/cardboardrobots/eventsource_go/generated"
 	"github.com/cardboardrobots/liara_service/feature/eventsource/infrastructure"
 	"github.com/cardboardrobots/listener"
+	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"google.golang.org/grpc"
