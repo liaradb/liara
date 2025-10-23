@@ -60,8 +60,6 @@ func testEventLog_Append(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// pageCount++
-
 		for i, err := range b.Items() {
 			if err != nil {
 				t.Fatal(err)

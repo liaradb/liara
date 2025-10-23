@@ -5,8 +5,10 @@ import (
 	"time"
 )
 
+type baseTime = time.Time
+
 type Time struct {
-	time.Time
+	baseTime
 }
 
 const TimeSize = 8
@@ -18,7 +20,7 @@ func NewTime(t time.Time) Time {
 func (Time) Size() int { return TimeSize }
 
 func (t Time) Write(w io.Writer) error {
-	return WriteInt64(w, t.Time.UnixMicro())
+	return WriteInt64(w, t.baseTime.UnixMicro())
 }
 
 func (t *Time) Read(r io.Reader) error {
@@ -27,10 +29,10 @@ func (t *Time) Read(r io.Reader) error {
 		return err
 	}
 
-	t.Time = time.UnixMicro(v).UTC()
+	t.baseTime = time.UnixMicro(v).UTC()
 	return nil
 }
 
 func (t Time) Equal(b Time) bool {
-	return t.Time.Equal(b.Time)
+	return t.baseTime.Equal(b.baseTime)
 }
