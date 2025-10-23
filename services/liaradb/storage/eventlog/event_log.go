@@ -91,6 +91,52 @@ func (s *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 	return b.BlockID(), nil
 }
 
+func (s *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		for i, err := range s.items(ctx, fn) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			// TODO: Optimize this
+			buf := bytes.NewBuffer(i)
+
+			var e entity.Event
+			if err := e.Read(buf); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(&e, nil) {
+				return
+			}
+		}
+	}
+}
+
+func (s *EventLog) items(ctx context.Context, fn string) iter.Seq2[page.Item, error] {
+	return func(yield func(page.Item, error) bool) {
+		for b, err := range s.Iterate(ctx, fn) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			for i, err := range b.Items() {
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				if !yield(i, nil) {
+					return
+				}
+			}
+		}
+	}
+}
+
 func (s *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Buffer, error] {
 	return func(yield func(*storage.Buffer, error) bool) {
 		highBid, err := s.storage.Highwater(ctx, fn)

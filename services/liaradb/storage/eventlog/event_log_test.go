@@ -1,7 +1,6 @@
 package eventlog
 
 import (
-	"bytes"
 	"path"
 	"reflect"
 	"slices"
@@ -53,25 +52,12 @@ func testEventLog_Append(t *testing.T) {
 
 	result := make([]*entity.Event, 0)
 
-	buf := bytes.NewBuffer(nil)
-
-	for b, err := range el.Iterate(ctx, fn) {
+	for e, err := range el.Events(ctx, fn) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			buf = bytes.NewBuffer(i)
-
-			var e entity.Event
-			e.Read(buf)
-
-			result = append(result, &e)
-		}
+		result = append(result, e)
 	}
 
 	if !slices.EqualFunc(result, records, func(a, b *entity.Event) bool {
