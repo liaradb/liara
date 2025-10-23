@@ -1,7 +1,6 @@
 package transaction
 
 import (
-	"path"
 	"testing"
 	"testing/synctest"
 
@@ -16,13 +15,15 @@ func TestBufferList(t *testing.T) {
 
 func testBufferList(t *testing.T) {
 	fsys := filetesting.NewDiskFileSystem(t)
-	s := storage.NewStorage(fsys, 2, 1024)
+	s := storage.NewStorage(fsys, 2, 1024, t.TempDir())
 	bl := NewBufferList(s)
 
 	ctx := t.Context()
-	s.Run(ctx)
+	if err := s.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 
 	b0, err := bl.Pin(ctx, storage.BlockID{FileName: n, Position: 1})
 	if err != nil {

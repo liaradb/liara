@@ -20,6 +20,11 @@ func NewFileSystem(fsys fstest.MapFS) *FileSystem {
 	}
 }
 
+func (mfs *FileSystem) MkDirAll(name string) error {
+	// TODO: Implement this
+	return nil
+}
+
 func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	mfs.mux.Lock()
 	defer mfs.mux.Unlock()

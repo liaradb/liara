@@ -6,8 +6,9 @@ import (
 )
 
 type FileSystem interface {
-	Remove(name string) error
+	MkDirAll(name string) error
 	OpenFile(name string) (File, error)
+	Remove(name string) error
 	ReadDir(name string) ([]fs.DirEntry, error)
 }
 

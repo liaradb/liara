@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"path"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
@@ -13,6 +14,7 @@ import (
 type Storage struct {
 	bufferSize int64 // TODO: Do we need this?
 	fs         file.FileSystem
+	dir        string
 	pinned     map[BlockID]*Buffer
 	unpinned   queue.MapQueue[BlockID, *Buffer]
 	bufferReqs async.Handler[bufferQuery, *Buffer]
@@ -22,10 +24,11 @@ type Storage struct {
 	highWater  map[string]Offset
 }
 
-func NewStorage(fs file.FileSystem, max int, bs int64) *Storage {
+func NewStorage(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,
+		dir:        dir,
 		bufferReqs: make(chan *bufferRequest),
 		highWReqs:  make(async.Handler[string, BlockID]),
 		returns:    make(chan *Buffer, max),
@@ -45,8 +48,15 @@ func (s *Storage) Count() int {
 	return len(s.pinned) + s.unpinned.Count()
 }
 
-func (s *Storage) Run(ctx context.Context) {
+func (s *Storage) Run(ctx context.Context) error {
+	// TODO: Test this
+	if err := s.fs.MkDirAll(s.dir); err != nil {
+		return err
+	}
+
 	go s.run(ctx)
+
+	return nil
 }
 
 func (s *Storage) run(ctx context.Context) {
@@ -294,5 +304,6 @@ func (s *Storage) flush(b *Buffer) error {
 }
 
 func (s *Storage) openFile(b *Buffer) (file.File, error) {
-	return s.fs.OpenFile(b.blockID.FileName)
+	// TODO: Test this
+	return s.fs.OpenFile(path.Join(s.dir, b.blockID.FileName))
 }

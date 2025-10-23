@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"path"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -19,7 +18,7 @@ func testStorage(t *testing.T) {
 	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 
 	if b, err := s.Request(ctx, BlockID{FileName: n, Position: 1}); err != nil {
 		t.Error(err)
@@ -54,15 +53,17 @@ func TestStorage_CancelRun(t *testing.T) {
 
 func testStorage_CancelRun(t *testing.T) {
 	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024)
+	s := NewStorage(fsys, 2, 1024, t.TempDir())
 
 	ctx, cancel := context.WithCancel(t.Context())
-	s.Run(ctx)
+	if err := s.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
 
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
 	defer cancel2()
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 	if b, err := s.Request(ctx2, BlockID{FileName: n, Position: 1}); err != nil {
 		t.Error(err)
 	} else if b.blockID.Position != 1 {
@@ -82,7 +83,7 @@ func TestStorage_Pinned(t *testing.T) {
 	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 	bid := BlockID{FileName: n, Position: 0}
 
 	b, err := s.Request(ctx, bid)
@@ -121,7 +122,7 @@ func testStorage_Flush(t *testing.T) {
 	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 	bid0 := NewBlockID(n, 0)
 	bid1 := NewBlockID(n, 1)
 	bid2 := NewBlockID(n, 2)
@@ -193,7 +194,7 @@ func testStorage_Wait(t *testing.T) {
 	s := createStorage(t, 1, 16)
 	ctx := t.Context()
 
-	n := path.Join(t.TempDir(), "testfile")
+	n := "testfile"
 
 	go func() {
 		b, err := s.Request(ctx, NewBlockID(n, 0))
@@ -244,7 +245,10 @@ func testStorage_Wait(t *testing.T) {
 
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := NewStorage(fsys, max, bs)
-	s.Run(t.Context())
+	s := NewStorage(fsys, max, bs, t.TempDir())
+	if err := s.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
 	return s
 }

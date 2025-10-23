@@ -35,8 +35,8 @@ func New(max int, bs int64) *Application {
 
 	fsys := &disk.FileSystem{}
 
-	s := storage.NewStorage(fsys, max, bs)
-	log := log.NewLog(bs, page.PageID(segmentSize), fsys, "data")
+	s := storage.NewStorage(fsys, max, bs, ".dbdata/table")
+	log := log.NewLog(bs, page.PageID(segmentSize), fsys, ".dbdata/log")
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{
@@ -54,8 +54,14 @@ func (a *Application) Run(ctx context.Context) error {
 		return err
 	}
 
-	a.storage.Run(ctx)
-	a.log.Open(ctx)
+	if err := a.storage.Run(ctx); err != nil {
+		return err
+	}
+
+	if err := a.log.Open(ctx); err != nil {
+		return err
+	}
+
 	a.lockTable.Run(ctx)
 
 	listener.Listen(ctx, conf.Port, conf.Port+1,

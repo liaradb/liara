@@ -24,6 +24,10 @@ func (fs *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 	return os.ReadDir(name)
 }
 
+func (fs *FileSystem) MkDirAll(name string) error {
+	return os.MkdirAll(name, 0750)
+}
+
 func (fs *FileSystem) OpenFile(name string) (file.File, error) {
 	df, ok := fs.files[name]
 	if ok {
