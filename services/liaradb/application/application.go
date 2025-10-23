@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	"log"
+	l "log"
 	"net/http"
 
 	"github.com/cardboardrobots/errormap"
@@ -11,22 +11,40 @@ import (
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/locktable"
+	"github.com/liaradb/liaradb/log"
+	"github.com/liaradb/liaradb/log/action"
+	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/eventlog"
+	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
 )
 
 type Application struct {
-	eventLog *eventlog.EventLog
-	storage  *storage.Storage
+	eventLog  *eventlog.EventLog
+	storage   *storage.Storage
+	txManager *transaction.Manager
+	log       *log.Log
+	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
 func New(max int, bs int64) *Application {
+	segmentSize := 1024
+	inSize := 100
+
 	fsys := &disk.FileSystem{}
-	storage := storage.NewStorage(fsys, max, bs)
+
+	s := storage.NewStorage(fsys, max, bs)
+	log := log.NewLog(bs, page.PageID(segmentSize), fsys, "data")
+	lt := locktable.NewLockTable[action.ItemID](inSize)
+
 	return &Application{
-		eventLog: eventlog.New(storage),
-		storage:  storage,
+		eventLog:  eventlog.New(s),
+		storage:   s,
+		txManager: transaction.NewManager(log, s, lt),
+		log:       log,
+		lockTable: lt,
 	}
 }
 
@@ -37,6 +55,8 @@ func (a *Application) Run(ctx context.Context) error {
 	}
 
 	a.storage.Run(ctx)
+	a.log.Open(ctx)
+	a.lockTable.Run(ctx)
 
 	listener.Listen(ctx, conf.Port, conf.Port+1,
 		http.NewServeMux(),
@@ -59,7 +79,7 @@ func initService() *grpc.Server {
 
 	r, err := createRepositories()
 	if err != nil {
-		log.Fatal(err)
+		l.Fatal(err)
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(

@@ -68,7 +68,8 @@ func createStorage(t *testing.T, fsys file.FileSystem) *storage.Storage {
 }
 
 func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
-	lt := locktable.NewLockTable[action.ItemID](t.Context(), 1)
+	lt := locktable.NewLockTable[action.ItemID](1)
+	lt.Run(t.Context())
 	t.Cleanup(lt.Close)
 	return lt
 }

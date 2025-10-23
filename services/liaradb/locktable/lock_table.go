@@ -11,18 +11,21 @@ type LockTable[K comparable] struct {
 	cancel       context.CancelFunc
 }
 
-func NewLockTable[K comparable](ctx context.Context, inSize int) *LockTable[K] {
-	ctx, cancel := context.WithCancel(ctx)
+func NewLockTable[K comparable](inSize int) *LockTable[K] {
 	qp := &LockTable[K]{
 		requestLists: make(map[K]*lockRequestList[K]),
 		in:           make(chan K, inSize),
 		requests:     make(chan *lockRequest[K]),
-		cancel:       cancel,
 	}
 
-	go qp.run(ctx)
-
 	return qp
+}
+
+func (lt *LockTable[K]) Run(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	lt.cancel = cancel
+
+	go lt.run(ctx)
 }
 
 func (lt *LockTable[K]) run(ctx context.Context) {

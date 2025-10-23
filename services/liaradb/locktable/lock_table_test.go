@@ -12,7 +12,8 @@ func TestLockTable(t *testing.T) {
 	t.Parallel()
 
 	assert.RunTest(t, "should XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		if !lt.xLock(ctx, 0) {
@@ -21,7 +22,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should not XLock twice", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)
@@ -34,7 +36,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should XLock after release XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)
@@ -53,7 +56,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should XLock after failed XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)
@@ -71,7 +75,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should SLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		if !lt.sLock(ctx, 0) {
@@ -80,7 +85,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should SLock twice", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		if !lt.sLock(ctx, 0) {
@@ -93,7 +99,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should not XLock while multiple SLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		if !lt.sLock(ctx, 0) {
@@ -119,7 +126,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should not SLock after XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)
@@ -132,7 +140,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should SLock after release XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)
@@ -151,7 +160,8 @@ func TestLockTable(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should SLock after failed XLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		ctx := t.Context()
 
 		lt.xLock(ctx, 0)

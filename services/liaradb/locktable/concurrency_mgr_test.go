@@ -3,6 +3,7 @@ package locktable
 import (
 	"context"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/cardboardrobots/assert"
@@ -10,8 +11,12 @@ import (
 
 func TestConcurrencyMgr_SLock(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testConcurrencyMgr_SLock)
+}
 
-	lt := NewLockTable[int](t.Context(), 1)
+func testConcurrencyMgr_SLock(t *testing.T) {
+	lt := NewLockTable[int](1)
+	lt.Run(t.Context())
 	cm1 := NewConcurrencyMgr(lt)
 	cm2 := NewConcurrencyMgr(lt)
 	ctx := t.Context()
@@ -36,7 +41,8 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	t.Parallel()
 
 	assert.RunTest(t, "should lock once", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		cm := NewConcurrencyMgr(lt)
 		ctx := t.Context()
 
@@ -46,7 +52,8 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should not lock twice", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)
 		ctx := t.Context()
@@ -63,7 +70,8 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should not XLock after other SLock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)
 		ctx := t.Context()
@@ -80,7 +88,8 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should upgrade lock", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		ctx := t.Context()
 
@@ -94,7 +103,8 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	assert.RunTest(t, "should lock after release", func(t *testing.T) {
-		lt := NewLockTable[int](t.Context(), 1)
+		lt := NewLockTable[int](1)
+		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)
 		ctx := t.Context()
