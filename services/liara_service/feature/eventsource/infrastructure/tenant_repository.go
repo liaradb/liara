@@ -148,5 +148,5 @@ func tenantFromModel(m tenantModel) *entity.Tenant {
 }
 
 func (m *tenantModel) increment() {
-	m.Version++
+	m.Version = value.NewVersion(m.Version.Value() + 1)
 }

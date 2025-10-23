@@ -12,4 +12,8 @@ func NewEventID() EventID {
 	return EventID{raw.NewBaseID()}
 }
 
+func NewEventIDFromString(value string) EventID {
+	return EventID{raw.NewBaseIDFromString(value)}
+}
+
 const EventIDSize = raw.BaseIDSize

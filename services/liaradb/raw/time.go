@@ -17,7 +17,8 @@ func NewTime(t time.Time) Time {
 	return Time{t}
 }
 
-func (Time) Size() int { return TimeSize }
+func (t Time) Value() time.Time { return t.baseTime }
+func (Time) Size() int          { return TimeSize }
 
 func (t Time) Write(w io.Writer) error {
 	return WriteInt64(w, t.baseTime.UnixMicro())

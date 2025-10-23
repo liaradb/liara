@@ -51,16 +51,16 @@ INSERT INTO %v VALUES( null, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 )
 `,
 		er.getName(tenantID)),
 		e.ID,
-		e.AggregateName,
-		e.AggregateID,
-		e.Version,
-		e.PartitionID,
-		e.Name,
-		e.Schema,
-		e.Metadata.CorrelationID,
-		e.Metadata.UserID,
-		e.Metadata.Time,
-		e.Data,
+		e.AggregateName.String(),
+		e.AggregateID.String(),
+		e.Version.Value(),
+		e.PartitionID.Value(),
+		e.Name.String(),
+		e.Schema.String(),
+		e.Metadata.CorrelationID.String(),
+		e.Metadata.UserID.String(),
+		e.Metadata.Time.Value(),
+		e.Data.Value(),
 	)
 	return err
 }
@@ -80,10 +80,10 @@ func (er EventRepository) GetAfterGlobalVersion(
 		b.WriteString(fmt.Sprintf("SELECT * FROM %v", er.getName(tenantID)))
 		b.WriteString(" WHERE global_version > $1")
 		partition0, partition1 := partitionRange.All()
-		if partition0 > 0 {
+		if partition0.Value() > 0 {
 			b.WriteString(" AND partition_id >= $2")
 		}
-		if partition1 > partition0 {
+		if partition1.Value() > partition0.Value() {
 			b.WriteString(" AND partition_id <= $3")
 		}
 		b.WriteString(" ORDER BY global_version")
@@ -122,7 +122,7 @@ SELECT * FROM %v WHERE
 aggregate_id = $1
 ORDER BY global_version
 `,
-			er.getName(tenantID)), aggregateID)
+			er.getName(tenantID)), aggregateID.String())
 		if err != nil {
 			yield(entity.Event{}, err)
 			return
@@ -151,7 +151,7 @@ WHERE aggregate_id = $1
 AND aggregate_name = $2
 ORDER BY global_version
 `,
-			er.getName(tenantID)), aggregateID, name)
+			er.getName(tenantID)), aggregateID.String(), name.String())
 		if err != nil {
 			yield(entity.Event{}, err)
 			return

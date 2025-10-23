@@ -16,6 +16,10 @@ func NewBaseID() BaseID {
 	return BaseID{uuid.New()}
 }
 
+func NewBaseIDFromString(value string) BaseID {
+	return BaseID{uuid.MustParse(value)}
+}
+
 func (i BaseID) String() string { return i.baseUUID.String() }
 
 const BaseIDSize = 16

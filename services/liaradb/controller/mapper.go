@@ -10,28 +10,28 @@ import (
 
 func eventToDto(e entity.Event) *pb.Event {
 	return &pb.Event{
-		GlobalVersion: int64(e.GlobalVersion),
+		GlobalVersion: int64(e.GlobalVersion.Value()),
 		Id:            e.ID.String(),
 		AggregateName: e.AggregateName.String(),
 		AggregateId:   e.AggregateID.String(),
-		Version:       int64(e.Version),
-		PartitionId:   e.PartitionID.Value(),
+		Version:       int64(e.Version.Value()),
+		PartitionId:   int32(e.PartitionID.Value()),
 		Name:          e.Name.String(),
 		Schema:        e.Schema.String(),
 		Metadata:      metadataToDto(e.Metadata),
-		Data:          e.Data,
+		Data:          e.Data.Value(),
 	}
 }
 
 func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 	return service.AppendEvent{
-		ID:            value.EventID(dto.Id),
-		AggregateName: value.AggregateName(dto.AggregateName),
-		AggregateID:   value.AggregateID(dto.AggregateId),
-		Version:       value.Version(dto.Version),
-		PartitionID:   value.PartitionID(dto.PartitionId),
-		Name:          value.EventName(dto.Name),
-		Schema:        value.Schema(dto.Schema),
+		ID:            value.NewEventIDFromString(dto.Id),
+		AggregateName: value.NewAggregateName(dto.AggregateName),
+		AggregateID:   value.NewAggregateID(dto.AggregateId),
+		Version:       value.NewVersion(uint64(dto.Version)),
+		PartitionID:   value.NewPartitionID(uint32(dto.PartitionId)),
+		Name:          value.NewEventName(dto.Name),
+		Schema:        value.NewSchema(dto.Schema),
 		Data:          dto.Data,
 	}
 }
@@ -43,8 +43,8 @@ func dtoToAppendOptions(dto *pb.AppendOptions) service.AppendOptions {
 
 	return service.AppendOptions{
 		RequestID:     value.RequestID(dto.RequestId),
-		CorrelationID: value.CorrelationID(dto.CorrelationId),
-		UserID:        value.UserID(dto.UserId),
+		CorrelationID: value.NewCorrelationID(dto.CorrelationId),
+		UserID:        value.NewUserID(dto.UserId),
 		Time:          dto.Time.AsTime(),
 	}
 }
@@ -53,13 +53,13 @@ func metadataToDto(m entity.EventMetadata) *pb.EventMetadata {
 	return &pb.EventMetadata{
 		CorrelationId: m.CorrelationID.String(),
 		UserId:        m.UserID.String(),
-		Time:          timestamppb.New(m.Time)}
+		Time:          timestamppb.New(m.Time.Value())}
 }
 
 func dtoToPartitionRange(partitionIDs []int32) value.PartitionRange {
 	pids := make([]value.PartitionID, 0, len(partitionIDs))
 	for _, p := range partitionIDs {
-		pids = append(pids, value.PartitionID(p))
+		pids = append(pids, value.NewPartitionID(uint32(p)))
 	}
 	return value.NewPartitionRange(pids...)
 }

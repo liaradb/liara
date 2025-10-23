@@ -61,7 +61,7 @@ func (esc *EventSourceController) Get(
 ) error {
 	for row, err := range esc.eventService.Get(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.AggregateID(request.AggregateId)) {
+		value.NewAggregateID(request.AggregateId)) {
 		if err != nil {
 			return err
 		}
@@ -79,8 +79,8 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 ) error {
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.AggregateID(request.AggregateId),
-		value.AggregateName(request.Name)) {
+		value.NewAggregateID(request.AggregateId),
+		value.NewAggregateName(request.Name)) {
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 ) error {
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.GlobalVersion(request.GlobalVersion),
+		value.NewGlobalVersion(uint64(request.GlobalVersion)),
 		dtoToPartitionRange(request.PartitionIds),
 		value.Limit(request.Limit)) {
 		if err != nil {
@@ -161,8 +161,8 @@ func (esc *EventSourceController) GetOutbox(
 	low, high := result.PartitionRange().All()
 
 	return &pb.GetOutboxResponse{
-		GlobalVersion: int64(result.GlobalVersion()),
-		PartitionId:   []int32{low.Value(), high.Value()},
+		GlobalVersion: int64(result.GlobalVersion().Value()),
+		PartitionId:   []int32{int32(low.Value()), int32(high.Value())},
 	}, nil
 }
 
@@ -173,7 +173,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	err := esc.eventService.UpdateOutboxPosition(ctx,
 		value.TenantID(request.TenantId),
 		value.OutboxID(request.OutboxId),
-		value.GlobalVersion(request.GlobalVersion))
+		value.NewGlobalVersion(uint64(request.GlobalVersion)))
 	if err != nil {
 		return nil, err
 	}

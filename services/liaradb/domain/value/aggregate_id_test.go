@@ -3,6 +3,8 @@ package value
 import (
 	"io"
 	"testing"
+
+	"github.com/google/uuid"
 )
 
 func TestAggregateID(t *testing.T) {
@@ -10,7 +12,7 @@ func TestAggregateID(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	var a AggregateID = NewAggregateID()
+	var a AggregateID = NewAggregateID(uuid.NewString())
 	if err := a.Write(w); err != nil {
 		t.Fatal(err)
 	}

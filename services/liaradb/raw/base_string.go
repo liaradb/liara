@@ -2,15 +2,9 @@ package raw
 
 import (
 	"io"
-
-	"github.com/google/uuid"
 )
 
 type BaseString string
-
-func NewBaseString() BaseString {
-	return BaseString(uuid.NewString())
-}
 
 func (i BaseString) String() string          { return string(i) }
 func (i BaseString) Length() int             { return len(i) }

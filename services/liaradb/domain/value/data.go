@@ -17,6 +17,7 @@ func NewData(data []byte) Data {
 }
 
 func (d Data) String() string { return string(d.data) }
+func (d Data) Value() []byte  { return d.data }
 
 func (d Data) Write(w io.Writer) error {
 	return raw.Write(w, d.data)

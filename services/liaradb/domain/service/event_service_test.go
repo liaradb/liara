@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -12,7 +13,7 @@ func TestEventService_Append(t *testing.T) {
 	t.Run("should not append invalid version", func(t *testing.T) {
 		es := NewEventService(nil, nil, nil, nil)
 
-		aggregateID := value.NewAggregateID()
+		aggregateID := value.NewAggregateID(uuid.NewString())
 		want := AppendEvent{
 			AggregateName: value.NewAggregateName("example"),
 			ID:            value.NewEventID(),
