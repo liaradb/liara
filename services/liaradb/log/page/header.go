@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/raw"
 )
 
 const headerSize = 0 +
@@ -39,41 +40,18 @@ func (h Header) Size() int {
 }
 
 func (h *Header) Read(r io.Reader) error {
-	if err := MagicPage.ReadIsPage(r); err != nil {
-		return err
-	}
-
-	if err := h.id.Read(r); err != nil {
-		return err
-	}
-
-	if err := h.timeLineID.Read(r); err != nil {
-		return err
-	}
-
-	if err := h.lengthRemaining.Read(r); err != nil {
-		return err
-	}
-
-	return nil
+	var m Magic
+	return raw.ReadAll(r,
+		&m,
+		&h.id,
+		&h.timeLineID,
+		&h.lengthRemaining)
 }
 
 func (h *Header) Write(w io.Writer) error {
-	if err := MagicPage.Write(w); err != nil {
-		return err
-	}
-
-	if err := h.id.Write(w); err != nil {
-		return err
-	}
-
-	if err := h.timeLineID.Write(w); err != nil {
-		return err
-	}
-
-	if err := h.lengthRemaining.Write(w); err != nil {
-		return err
-	}
-
-	return nil
+	return raw.WriteAll(w,
+		MagicPage,
+		h.id,
+		h.timeLineID,
+		h.lengthRemaining)
 }

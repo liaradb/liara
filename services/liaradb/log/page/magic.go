@@ -20,20 +20,19 @@ func (m Magic) Write(w io.Writer) error {
 }
 
 func (m *Magic) Read(r io.Reader) error {
-	return raw.ReadInt32(r, m)
-}
-
-func (m *Magic) ReadIsPage(r io.Reader) error {
-	var b Magic
-	if err := b.Read(r); err != nil {
+	if err := m.read(r); err != nil {
 		return err
 	}
 
-	if b != MagicPage {
+	if *m != MagicPage {
 		return ErrNotPage
 	}
 
 	return nil
+}
+
+func (m *Magic) read(r io.Reader) error {
+	return raw.ReadInt32(r, m)
 }
 
 func (m Magic) String() string {
