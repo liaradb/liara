@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "go: clean workspace",
+			"command": "go",
+			"args": [
+				"clean",
+				"-testcache"
+			],
+			"group": "build",
+			"detail": "go clean -testcache",
+		}
+	]
+}
