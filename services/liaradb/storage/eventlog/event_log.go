@@ -7,6 +7,7 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/page"
 )
@@ -29,9 +30,8 @@ func New(
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fileName string, e *Event) error {
-	var data []byte
-	if _, err := l.buffer.Write(data); err != nil {
+func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) error {
+	if err := e.Write(l.buffer); err != nil {
 		return err
 	}
 
