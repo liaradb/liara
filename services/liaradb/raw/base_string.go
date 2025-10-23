@@ -8,7 +8,7 @@ import (
 
 type BaseString string
 
-func NewBaseID() BaseString {
+func NewBaseString() BaseString {
 	return BaseString(uuid.NewString())
 }
 

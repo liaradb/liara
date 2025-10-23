@@ -42,7 +42,7 @@ func (ao *AppendOptions) toEventMetadata() entity.EventMetadata {
 	return entity.EventMetadata{
 		UserID:        ao.UserID,
 		CorrelationID: ao.CorrelationID,
-		Time:          ao.Time,
+		Time:          value.NewTime(ao.Time),
 	}
 }
 
@@ -58,7 +58,7 @@ type AppendEvent struct {
 }
 
 func (ae *AppendEvent) Valid() error {
-	if ae.Version < 1 {
+	if ae.Version.Value() < 1 {
 		return value.ErrAggregateVersionInvalid
 	}
 
@@ -73,7 +73,7 @@ func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
 	}
 
 	return entity.Event{
-		GlobalVersion: 0,
+		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            id,
 		AggregateName: ae.AggregateName,
 		AggregateID:   ae.AggregateID,
@@ -82,7 +82,7 @@ func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
 		Name:          ae.Name,
 		Schema:        ae.Schema,
 		Metadata:      options.toEventMetadata(),
-		Data:          ae.Data,
+		Data:          value.NewData(ae.Data),
 	}
 }
 

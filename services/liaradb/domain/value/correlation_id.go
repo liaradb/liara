@@ -1,5 +1,9 @@
 package value
 
-type CorrelationID string
+type CorrelationID struct {
+	baseString
+}
 
-func (c CorrelationID) String() string { return string(c) }
+func NewCorrelationID(value string) CorrelationID {
+	return CorrelationID{baseString(value)}
+}

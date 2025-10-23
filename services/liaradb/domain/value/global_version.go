@@ -1,5 +1,9 @@
 package value
 
-type GlobalVersion int
+type GlobalVersion struct {
+	baseUint64
+}
 
-func (gv GlobalVersion) Value() int { return int(gv) }
+func NewGlobalVersion(value uint64) GlobalVersion {
+	return GlobalVersion{baseUint64(value)}
+}

@@ -10,7 +10,7 @@ func TestAggregateName(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	var a AggregateName = "name"
+	var a = NewAggregateName("name")
 	if err := a.Write(w); err != nil {
 		t.Fatal(err)
 	}

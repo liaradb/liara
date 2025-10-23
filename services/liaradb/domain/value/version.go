@@ -1,5 +1,9 @@
 package value
 
-type Version int
+type Version struct {
+	baseUint64
+}
 
-func (v Version) Value() int { return int(v) }
+func NewVersion(value uint64) Version {
+	return Version{baseUint64(value)}
+}

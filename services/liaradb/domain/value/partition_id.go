@@ -1,5 +1,9 @@
 package value
 
-type PartitionID int32
+type PartitionID struct {
+	baseUint32
+}
 
-func (p PartitionID) Value() int32 { return int32(p) }
+func NewPartitionID(value uint32) PartitionID {
+	return PartitionID{baseUint32(value)}
+}

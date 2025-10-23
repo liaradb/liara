@@ -18,7 +18,7 @@ func NewPartitionRange(pids ...PartitionID) PartitionRange {
 		low, high = pids[0], pids[1]
 	}
 
-	if low > high {
+	if low.Value() > high.Value() {
 		low, high = high, low
 	}
 

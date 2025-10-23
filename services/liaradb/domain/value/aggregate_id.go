@@ -7,5 +7,5 @@ type AggregateID struct {
 }
 
 func NewAggregateID() AggregateID {
-	return AggregateID{raw.NewBaseID()}
+	return AggregateID{raw.NewBaseString()}
 }

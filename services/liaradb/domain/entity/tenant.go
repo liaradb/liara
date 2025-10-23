@@ -26,7 +26,7 @@ func NewTenant(
 
 	return &Tenant{
 		id:      id,
-		version: 0,
+		version: value.NewVersion(0),
 		name:    name,
 	}
 }

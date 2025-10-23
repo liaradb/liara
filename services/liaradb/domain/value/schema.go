@@ -1,5 +1,9 @@
 package value
 
-type Schema string
+type Schema struct {
+	baseString
+}
 
-func (s Schema) String() string { return string(s) }
+func NewSchema(value string) Schema {
+	return Schema{baseString(value)}
+}

@@ -1,5 +1,9 @@
 package value
 
-type EventName string
+type EventName struct {
+	baseString
+}
 
-func (n EventName) String() string { return string(n) }
+func NewEventName(value string) EventName {
+	return EventName{baseString(value)}
+}

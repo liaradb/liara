@@ -1,5 +1,9 @@
 package value
 
-type UserID string
+type UserID struct {
+	baseString
+}
 
-func (u UserID) String() string { return string(u) }
+func NewUserID(value string) UserID {
+	return UserID{baseString(value)}
+}

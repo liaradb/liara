@@ -1,9 +1,10 @@
 package entity
 
 import (
-	"time"
+	"io"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Event struct {
@@ -16,11 +17,53 @@ type Event struct {
 	Name          value.EventName     // The Name of the Event
 	Schema        value.Schema        // The Schema for the internal data
 	Metadata      EventMetadata       // The Metadata of the Event
-	Data          []byte              // The internal data of the Event
+	Data          value.Data          // The internal data of the Event
 }
 
 type EventMetadata struct {
 	UserID        value.UserID        // The ID of the User issuing the Command
 	CorrelationID value.CorrelationID // The ID of the entire Command and Event chain
-	Time          time.Time           // The Time this Event was created
+	Time          value.Time          // The Time this Event was created
+}
+
+func (e Event) Write(w io.Writer) error {
+	return raw.WriteAll(w,
+		e.GlobalVersion,
+		e.ID,
+		e.AggregateName,
+		e.AggregateID,
+		e.Version,
+		e.PartitionID,
+		e.Name,
+		e.Schema,
+		e.Metadata,
+		e.Data)
+}
+
+func (e Event) Read(r io.Reader) error {
+	return raw.ReadAll(r,
+		&e.GlobalVersion,
+		&e.ID,
+		&e.AggregateName,
+		&e.AggregateID,
+		&e.Version,
+		&e.PartitionID,
+		&e.Name,
+		&e.Schema,
+		&e.Metadata,
+		&e.Data)
+}
+
+func (e EventMetadata) Write(w io.Writer) error {
+	return raw.WriteAll(w,
+		e.UserID,
+		e.CorrelationID,
+		e.Time)
+}
+
+func (e EventMetadata) Read(r io.Reader) error {
+	return raw.ReadAll(r,
+		&e.UserID,
+		&e.CorrelationID,
+		&e.Time)
 }
