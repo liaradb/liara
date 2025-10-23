@@ -3,6 +3,7 @@ package eventlog
 import (
 	"bytes"
 	"path"
+	"reflect"
 	"slices"
 	"testing"
 	"testing/synctest"
@@ -14,7 +15,6 @@ import (
 
 func TestEventLog_Append(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testEventLog_Append)
 }
 
@@ -26,18 +26,23 @@ func testEventLog_Append(t *testing.T) {
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
 	}}
 
 	for _, r := range records {
@@ -46,7 +51,6 @@ func testEventLog_Append(t *testing.T) {
 		}
 	}
 
-	// pageCount := 0
 	result := make([]*entity.Event, 0)
 
 	buf := bytes.NewBuffer(nil)
@@ -72,11 +76,9 @@ func testEventLog_Append(t *testing.T) {
 		}
 	}
 
-	// if pageCount != 3 {
-	// 	t.Errorf("incorrect page count: %v, expected: %v", pageCount, 3)
-	// }
-
-	if !slices.Equal(result, records) {
+	if !slices.EqualFunc(result, records, func(a, b *entity.Event) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
 	}
 }
