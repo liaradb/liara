@@ -3,6 +3,8 @@ package page
 import (
 	"encoding/binary"
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Magic uint32
@@ -14,11 +16,11 @@ var (
 )
 
 func (m Magic) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, m)
+	return raw.WriteInt32(w, m)
 }
 
 func (m *Magic) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, m)
+	return raw.ReadInt32(r, m)
 }
 
 func (m *Magic) ReadIsPage(r io.Reader) error {

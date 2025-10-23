@@ -1,8 +1,9 @@
 package page
 
 import (
-	"encoding/binary"
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type ListLength uint32
@@ -12,9 +13,9 @@ const ListLengthSize = 4
 func (ListLength) Size() int { return ListLengthSize }
 
 func (ll ListLength) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, ll)
+	return raw.WriteInt32(w, ll)
 }
 
 func (ll *ListLength) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, ll)
+	return raw.ReadInt32(r, ll)
 }

@@ -1,7 +1,6 @@
 package raw
 
 import (
-	"encoding/binary"
 	"fmt"
 	"io"
 )
@@ -19,9 +18,9 @@ func (b BaseUint32) Size() int      { return BaseUint32Size }
 func (b BaseUint32) String() string { return fmt.Sprintf("%v", b.Value()) }
 
 func (b BaseUint32) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, b)
+	return WriteInt32(w, b)
 }
 
 func (b *BaseUint32) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, b)
+	return ReadInt32(r, b)
 }

@@ -1,9 +1,10 @@
 package record
 
 import (
-	"encoding/binary"
 	"io"
 	"time"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Time struct {
@@ -19,12 +20,12 @@ func NewTime(t time.Time) Time {
 func (Time) Size() int { return TimeSize }
 
 func (t Time) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, t.Time.UnixMicro())
+	return raw.WriteInt64(w, t.Time.UnixMicro())
 }
 
 func (t *Time) Read(r io.Reader) error {
 	var v int64
-	if err := binary.Read(r, binary.BigEndian, &v); err != nil {
+	if err := raw.ReadInt64(r, &v); err != nil {
 		return err
 	}
 

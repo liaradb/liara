@@ -1,8 +1,9 @@
 package record
 
 import (
-	"encoding/binary"
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type Action uint32
@@ -21,11 +22,11 @@ const (
 func (Action) Size() int { return ActionSize }
 
 func (a Action) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, a)
+	return raw.WriteInt32(w, a)
 }
 
 func (a *Action) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, a)
+	return raw.ReadInt32(r, a)
 }
 
 func (a Action) String() string {

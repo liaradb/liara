@@ -1,8 +1,9 @@
 package page
 
 import (
-	"encoding/binary"
 	"io"
+
+	"github.com/liaradb/liaradb/raw"
 )
 
 type PageID uint64
@@ -33,9 +34,9 @@ func (pid PageID) Size(pageSize int64) int64 {
 }
 
 func (pid PageID) Write(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, pid)
+	return raw.WriteInt64(w, pid)
 }
 
 func (pid *PageID) Read(r io.Reader) error {
-	return binary.Read(r, binary.BigEndian, pid)
+	return raw.ReadInt64(r, pid)
 }
