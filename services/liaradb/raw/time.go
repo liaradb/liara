@@ -27,7 +27,7 @@ func (t *Time) Read(r io.Reader) error {
 		return err
 	}
 
-	t.Time = time.UnixMicro(v)
+	t.Time = time.UnixMicro(v).UTC()
 	return nil
 }
 

@@ -40,7 +40,7 @@ func (e Event) Write(w io.Writer) error {
 		e.Data)
 }
 
-func (e Event) Read(r io.Reader) error {
+func (e *Event) Read(r io.Reader) error {
 	return raw.ReadAll(r,
 		&e.GlobalVersion,
 		&e.ID,
@@ -61,7 +61,7 @@ func (e EventMetadata) Write(w io.Writer) error {
 		e.Time)
 }
 
-func (e EventMetadata) Read(r io.Reader) error {
+func (e *EventMetadata) Read(r io.Reader) error {
 	return raw.ReadAll(r,
 		&e.UserID,
 		&e.CorrelationID,
