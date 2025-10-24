@@ -60,11 +60,13 @@ func testTransaction_Commit(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
+	fileName := "filename"
+
 	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.Commit(ctx, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.Commit(ctx, fileName, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -94,7 +96,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for b, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
+	for b, err := range eventlog.New(m.storage).Iterate(ctx, fileName) {
 		if err != nil {
 			t.Fatal(err)
 		}
