@@ -1,6 +1,9 @@
 package queue
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestQueue_Count(t *testing.T) {
 	t.Parallel()
@@ -134,5 +137,25 @@ func TestQueue_RemoveValue(t *testing.T) {
 
 	if _, ok := mq.Remove(3); ok {
 		t.Error("should have been removed")
+	}
+}
+
+func TestQueue_Iterate(t *testing.T) {
+	t.Parallel()
+
+	mq := MapQueue[int, string]{}
+
+	values := []string{"a", "b", "c"}
+	for k, v := range values {
+		mq.Push(k, v)
+	}
+
+	result := []string{}
+	for v := range mq.Iterate() {
+		result = append(result, v)
+	}
+
+	if !slices.Equal(result, values) {
+		t.Errorf("incorrect result: %v, expected: %v", result, values)
 	}
 }
