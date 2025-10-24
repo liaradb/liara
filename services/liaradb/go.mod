@@ -9,15 +9,14 @@ require (
 	github.com/cardboardrobots/baseerror v0.0.2
 	github.com/cardboardrobots/config v0.0.0
 	github.com/cardboardrobots/errormap v0.0.0
-	github.com/cardboardrobots/listener v0.0.1
 	github.com/google/uuid v1.6.0
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0
 	github.com/liaradb/eventsource_go v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.36.10
 )
 
 require (
-	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.1.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
