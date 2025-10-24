@@ -2,6 +2,10 @@
 test:
 	go test ./...
 
+.PHONY: build
+build:
+	go build -o bin/liaradb cmd/main.go
+
 .PHONY: clean
 clean:
 	go clean -testcache

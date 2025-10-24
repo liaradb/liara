@@ -31,15 +31,22 @@ jobs:
 
       - name: Build
         working-directory: ./services/liaradb
-        run: go build -v ./...
+        run: make build
 
       - name: Test
         working-directory: ./services/liaradb
         run: make report-file
 
-      - name: "Upload test coverage"
+      - name: Upload test coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ./services/liaradb/cover.html
+          retention-days: 5
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: liaradb
+          path: ./services/liaradb/bin/liaradb
           retention-days: 5

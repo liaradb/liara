@@ -2,4 +2,5 @@ test.db
 __debug_bin*
 cover.out
 cover.html
-.dbdata
+.dbdata/
+bin/

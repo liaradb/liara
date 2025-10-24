@@ -1,6 +1,6 @@
 module github.com/liaradb/liaradb
 
-go 1.25.0
+go 1.25.3
 
 replace github.com/liaradb/eventsource_go => ../../modules/eventsource_go
 
