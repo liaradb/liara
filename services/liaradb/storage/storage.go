@@ -311,13 +311,13 @@ func (s *Storage) openFile(b *Buffer) (file.File, error) {
 // TODO: Test this
 func (s *Storage) FlushAll() error {
 	for _, b := range s.pinned {
-		if err := b.Flush(); err != nil {
+		if err := b.FlushIfDirty(); err != nil {
 			return err
 		}
 	}
 
 	for b := range s.unpinned.Iterate() {
-		if err := b.Flush(); err != nil {
+		if err := b.FlushIfDirty(); err != nil {
 			return err
 		}
 	}

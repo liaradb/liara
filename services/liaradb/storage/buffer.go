@@ -140,9 +140,23 @@ func (b *Buffer) offset() int64 {
 }
 
 func (b *Buffer) Flush() error {
-	if b.status != BufferStatusDirty {
+	if !b.Dirty() {
 		// TODO: Do we need more specific errors?
 		return ErrNotDirty
+	}
+
+	if err := b.s.flush(b); err != nil {
+		return err
+	}
+
+	b.status = BufferStatusLoaded
+	return nil
+}
+
+// TODO: Test this
+func (b *Buffer) FlushIfDirty() error {
+	if !b.Dirty() {
+		return nil
 	}
 
 	if err := b.s.flush(b); err != nil {
