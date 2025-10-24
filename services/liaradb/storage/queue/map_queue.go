@@ -1,6 +1,9 @@
 package queue
 
-import "container/list"
+import (
+	"container/list"
+	"iter"
+)
 
 type MapQueue[K comparable, V any] struct {
 	list list.List
@@ -53,4 +56,16 @@ func (mq *MapQueue[K, V]) Remove(k K) (V, bool) {
 func (mq *MapQueue[K, V]) zero() (V, bool) {
 	var v V
 	return v, false
+}
+
+func (mq MapQueue[K, V]) Iterate() iter.Seq[V] {
+	return func(yield func(V) bool) {
+		e := mq.list.Front()
+		for {
+			if e == nil || !yield(e.Value.(V)) {
+				return
+			}
+			e = e.Next()
+		}
+	}
 }

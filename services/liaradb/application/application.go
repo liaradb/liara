@@ -57,6 +57,8 @@ func (a *Application) Run(ctx context.Context) error {
 		return err
 	}
 
+	defer a.Close()
+
 	if err := a.log.Open(ctx); err != nil {
 		return err
 	}
@@ -72,6 +74,16 @@ func (a *Application) Run(ctx context.Context) error {
 		a.initService())
 
 	return nil
+}
+
+func (a *Application) Close() {
+	l.Println("shutting down...")
+
+	l.Println("flushing...")
+	if err := a.storage.FlushAll(); err != nil {
+		l.Fatal(err)
+	}
+	l.Println("flushing complete")
 }
 
 func (a *Application) initService() *grpc.Server {

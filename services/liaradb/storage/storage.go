@@ -307,3 +307,20 @@ func (s *Storage) openFile(b *Buffer) (file.File, error) {
 	// TODO: Test this
 	return s.fs.OpenFile(path.Join(s.dir, b.blockID.FileName))
 }
+
+// TODO: Test this
+func (s *Storage) FlushAll() error {
+	for _, b := range s.pinned {
+		if err := b.Flush(); err != nil {
+			return err
+		}
+	}
+
+	for b := range s.unpinned.Iterate() {
+		if err := b.Flush(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

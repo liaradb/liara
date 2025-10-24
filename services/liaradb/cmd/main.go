@@ -17,7 +17,7 @@ func main() {
 	log.SetPrefix("[liaradb]\t")
 	log.Println("started...")
 
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := application.WithSignal(context.Background())
 	defer cancel()
 
 	conf, err := application.LoadConfig()
