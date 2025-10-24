@@ -4,6 +4,7 @@ import (
 	"context"
 	l "log"
 	"net/http"
+	"path"
 
 	"github.com/cardboardrobots/errormap"
 	"github.com/cardboardrobots/listener"
@@ -23,6 +24,7 @@ import (
 )
 
 type Application struct {
+	conf      configuration
 	eventLog  *eventlog.EventLog
 	storage   *storage.Storage
 	txManager *transaction.Manager
@@ -30,17 +32,18 @@ type Application struct {
 	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
-func New(max int, bs int64) *Application {
+func New(conf configuration) *Application {
 	segmentSize := 1024
 	inSize := 100
 
 	fsys := &disk.FileSystem{}
 
-	s := storage.NewStorage(fsys, max, bs, ".dbdata/table")
-	log := log.NewLog(bs, page.PageID(segmentSize), fsys, ".dbdata/log")
+	s := storage.NewStorage(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
+	log := log.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{
+		conf:      conf,
 		eventLog:  eventlog.New(s),
 		storage:   s,
 		txManager: transaction.NewManager(log, s, lt),
@@ -50,11 +53,6 @@ func New(max int, bs int64) *Application {
 }
 
 func (a *Application) Run(ctx context.Context) error {
-	conf, err := LoadConfig()
-	if err != nil {
-		return err
-	}
-
 	if err := a.storage.Run(ctx); err != nil {
 		return err
 	}
@@ -69,7 +67,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.lockTable.Run(ctx)
 
-	listener.Listen(ctx, conf.Port, conf.Port+1,
+	listener.Listen(ctx, a.conf.Port, a.conf.Port+1,
 		http.NewServeMux(),
 		a.initService())
 

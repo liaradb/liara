@@ -6,9 +6,24 @@ test:
 build:
 	go build -o bin/liaradb cmd/main.go
 
+.PHONY: clean-all
+clean-all: clean clean-data
+
 .PHONY: clean
+clean: clean-build clean-test
+
+.PHONY: clean-build
+clean-build:
+	rm -rf bin
+	go clean
+
+.PHONY: clean-test
 clean:
 	go clean -testcache
+
+.PHONY: clean-data
+clean-data:
+	rm -rf .dbdata
 
 .PHONY: cover
 cover:

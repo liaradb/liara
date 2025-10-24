@@ -20,8 +20,13 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	a := application.New(200, 4096)
-	err := a.Run(ctx)
+	conf, err := application.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	a := application.New(conf)
+	err = a.Run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
