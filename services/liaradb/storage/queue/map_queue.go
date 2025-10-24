@@ -58,11 +58,12 @@ func (mq *MapQueue[K, V]) zero() (V, bool) {
 	return v, false
 }
 
+// TODO: Test this
 func (mq MapQueue[K, V]) Iterate() iter.Seq[V] {
 	return func(yield func(V) bool) {
 		e := mq.list.Front()
 		for {
-			if e == nil || !yield(e.Value.(V)) {
+			if e == nil || !yield(e.Value.(mapTuple[K, V]).value) {
 				return
 			}
 			e = e.Next()
