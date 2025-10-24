@@ -16,8 +16,12 @@ func NewBaseID() BaseID {
 	return BaseID{uuid.New()}
 }
 
-func NewBaseIDFromString(value string) BaseID {
-	return BaseID{uuid.MustParse(value)}
+func NewBaseIDFromString(value string) (BaseID, error) {
+	if id, err := uuid.Parse(value); err != nil {
+		return BaseID{}, err
+	} else {
+		return BaseID{id}, nil
+	}
 }
 
 func (i BaseID) String() string { return i.baseUUID.String() }

@@ -65,12 +65,16 @@ func (ae *AppendEvent) Valid() error {
 	return nil
 }
 
-func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
+func (ae *AppendEvent) toEvent(options AppendOptions) (entity.Event, error) {
 	var id value.EventID
 	if ae.ID == "" {
 		id = value.NewEventID()
 	} else {
-		id = value.NewEventIDFromString(ae.ID)
+		var err error
+		id, err = value.NewEventIDFromString(ae.ID)
+		if err != nil {
+			return entity.Event{}, err
+		}
 	}
 
 	return entity.Event{
@@ -84,7 +88,7 @@ func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
 		Schema:        ae.Schema,
 		Metadata:      options.toEventMetadata(),
 		Data:          value.NewData(ae.Data),
-	}
+	}, nil
 }
 
 func (es *EventService) Append(
@@ -157,7 +161,12 @@ func (es *EventService) appendEvents(
 	}
 
 	for _, em := range e {
-		err := es.eventRepository.Append(ctx, tenantID, em.toEvent(options))
+		event, err := em.toEvent(options)
+		if err != nil {
+			return err
+		}
+
+		err = es.eventRepository.Append(ctx, tenantID, event)
 		if err != nil {
 			return err
 		}
