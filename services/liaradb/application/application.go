@@ -63,6 +63,10 @@ func (a *Application) Run(ctx context.Context) error {
 		return err
 	}
 
+	if err := a.log.StartWriter(); err != nil {
+		return err
+	}
+
 	a.lockTable.Run(ctx)
 
 	listener.Listen(ctx, conf.Port, conf.Port+1,
@@ -117,6 +121,9 @@ type repositories struct {
 func (a *Application) createRepositories() (*repositories, error) {
 	return &repositories{
 		// TODO: Change the file name
-		eventRepository: infrastructure.NewEventRepository(a.eventLog, "testfile"),
+		eventRepository: infrastructure.NewEventRepository(
+			a.txManager,
+			a.eventLog,
+			"testfile"),
 	}, nil
 }

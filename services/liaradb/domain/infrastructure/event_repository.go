@@ -1,27 +1,34 @@
 package infrastructure
 
 import (
+	"bytes"
 	"context"
 	"iter"
+	"time"
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/storage/eventlog"
+	"github.com/liaradb/liaradb/transaction"
 )
 
 type EventRepository struct {
-	eventLog *eventlog.EventLog
-	fileName string // TODO: Remove this
+	txManager *transaction.Manager
+	eventLog  *eventlog.EventLog
+	fileName  string // TODO: Remove this
 }
 
 func NewEventRepository(
+	txManager *transaction.Manager,
 	eventLog *eventlog.EventLog,
 	fileName string,
 ) *EventRepository {
 	return &EventRepository{
-		eventLog: eventLog,
-		fileName: fileName,
+		txManager: txManager,
+		eventLog:  eventLog,
+		fileName:  fileName,
 	}
 }
 
@@ -32,7 +39,22 @@ func (r *EventRepository) Append(
 	tenantID value.TenantID,
 	e entity.Event, // TODO: Should this be a pointer?
 ) error {
-	return r.eventLog.Append(ctx, r.fileName, &e)
+	tx := r.txManager.Next()
+
+	buf := bytes.NewBuffer(nil)
+	if err := e.Write(buf); err != nil {
+		return err
+	}
+
+	if err := tx.Insert(ctx,
+		action.ItemID(e.ID.String()),
+		time.Now(),
+		buf.Bytes(),
+	); err != nil {
+		return nil
+	}
+
+	return tx.Commit(ctx, r.fileName, time.Now())
 }
 
 func (r *EventRepository) CreateIndex(context.Context, value.TenantID) error {

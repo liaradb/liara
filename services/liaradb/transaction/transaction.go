@@ -57,7 +57,11 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 	return nil
 }
 
-func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
+func (t *Transaction) Commit(
+	ctx context.Context,
+	fileName string, // TODO: How should this be specified?
+	now time.Time,
+) error {
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, t.items[0], nil)
 	if err != nil {
 		return errTransactionFailed(t.id, err)
@@ -69,7 +73,7 @@ func (t *Transaction) Commit(ctx context.Context, now time.Time) error {
 		return errTransactionFailed(t.id, err)
 	}
 
-	if _, err := t.eventLog.AppendEvent(ctx, "filename", raw.NewBufferFromSlice(t.items[0])); err != nil {
+	if _, err := t.eventLog.AppendEvent(ctx, fileName, raw.NewBufferFromSlice(t.items[0])); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 

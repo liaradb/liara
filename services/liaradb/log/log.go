@@ -159,6 +159,7 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 	return l.reader.Reverse()
 }
 
+// TODO: Should this be merged with Open?
 func (l *Log) StartWriter() error {
 	return l.writer.Start()
 }
