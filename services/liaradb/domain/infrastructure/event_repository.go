@@ -51,7 +51,7 @@ func (r *EventRepository) Append(
 		time.Now(),
 		buf.Bytes(),
 	); err != nil {
-		return nil
+		return err
 	}
 
 	return tx.Commit(ctx, r.fileName, time.Now())
