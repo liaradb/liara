@@ -1,0 +1,75 @@
+package infrastructure
+
+import (
+	"context"
+	"iter"
+
+	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/service"
+	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/storage/eventlog"
+)
+
+type EventRepository struct {
+	eventLog *eventlog.EventLog
+	fileName string // TODO: Remove this
+}
+
+func NewEventRepository(
+	eventLog *eventlog.EventLog,
+	fileName string,
+) *EventRepository {
+	return &EventRepository{
+		eventLog: eventLog,
+		fileName: fileName,
+	}
+}
+
+var _ service.EventRepository = (*EventRepository)(nil)
+
+func (r *EventRepository) Append(
+	ctx context.Context,
+	tenantID value.TenantID,
+	e entity.Event, // TODO: Should this be a pointer?
+) error {
+	return r.eventLog.Append(ctx, r.fileName, &e)
+}
+
+func (r *EventRepository) CreateIndex(context.Context, value.TenantID) error {
+	panic("unimplemented")
+}
+
+func (r *EventRepository) CreateTable(context.Context, value.TenantID) error {
+	panic("unimplemented")
+}
+
+func (r *EventRepository) DropTable(context.Context, value.TenantID) error {
+	panic("unimplemented")
+}
+
+func (r *EventRepository) Get(
+	ctx context.Context,
+	tenantID value.TenantID,
+	id value.AggregateID,
+) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
+	return func(yield func(entity.Event, error) bool) {
+		for e, err := range r.eventLog.GetAggregate(ctx, r.fileName, id) {
+			if err != nil {
+				yield(entity.Event{}, err)
+				return
+			}
+
+			if !yield(*e, nil) {
+				return
+			}
+		}
+	}
+}
+
+func (r *EventRepository) GetAfterGlobalVersion(context.Context, value.TenantID, value.GlobalVersion, value.PartitionRange, value.Limit) iter.Seq2[entity.Event, error] {
+	panic("unimplemented")
+}
+
+func (r *EventRepository) GetByAggregateIDAndName(context.Context, value.TenantID, value.AggregateID, value.AggregateName) iter.Seq2[entity.Event, error] {
+	panic("unimplemented")
+}

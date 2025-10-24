@@ -7,6 +7,7 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/raw"
@@ -112,6 +113,67 @@ func testEventLog_Find(t *testing.T) {
 
 	if !reflect.DeepEqual(e, records[2]) {
 		t.Errorf("incorrect event: %v, expected: %v", e, records[2])
+	}
+}
+
+func TestEventLog_GetAggregate(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testEventLog_GetAggregate)
+}
+
+func testEventLog_GetAggregate(t *testing.T) {
+	ctx := t.Context()
+	el := New(createStorage(t, 2, 1024))
+	fn := path.Join(t.TempDir(), "testfile")
+
+	aggregateID := value.NewAggregateID(uuid.NewString())
+
+	records := []*entity.Event{{
+		GlobalVersion: value.NewGlobalVersion(0),
+		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(1),
+		ID:            value.NewEventID(),
+		AggregateID:   aggregateID,
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(2),
+		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(3),
+		ID:            value.NewEventID(),
+		AggregateID:   aggregateID,
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(4),
+		ID:            value.NewEventID(),
+		Data:          value.NewData([]byte{}),
+	}}
+
+	for _, r := range records {
+		if err := el.Append(ctx, fn, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	want := []*entity.Event{records[1], records[3]}
+
+	result := make([]*entity.Event, 0)
+
+	for e, err := range el.GetAggregate(ctx, fn, aggregateID) {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, e)
+	}
+
+	if !slices.EqualFunc(result, want, func(a, b *entity.Event) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 }
 

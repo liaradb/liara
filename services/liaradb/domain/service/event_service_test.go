@@ -16,9 +16,9 @@ func TestEventService_Append(t *testing.T) {
 		aggregateID := value.NewAggregateID(uuid.NewString())
 		want := AppendEvent{
 			AggregateName: value.NewAggregateName("example"),
-			ID:            value.NewEventID(),
-			AggregateID:   aggregateID,
-			Version:       value.NewVersion(0),
+			// ID:            value.NewEventID(),
+			AggregateID: aggregateID,
+			Version:     value.NewVersion(0),
 		}
 
 		err := es.Append(context.Background(), "", AppendOptions{}, want)

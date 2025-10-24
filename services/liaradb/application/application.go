@@ -9,6 +9,7 @@ import (
 	"github.com/cardboardrobots/listener"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/controller"
+	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
@@ -66,12 +67,12 @@ func (a *Application) Run(ctx context.Context) error {
 
 	listener.Listen(ctx, conf.Port, conf.Port+1,
 		http.NewServeMux(),
-		initService())
+		a.initService())
 
 	return nil
 }
 
-func initService() *grpc.Server {
+func (a *Application) initService() *grpc.Server {
 	s := listener.NewServerBuilder().
 		AddUnary(
 			listener.LogGRPC(false),
@@ -83,7 +84,7 @@ func initService() *grpc.Server {
 		).
 		Build()
 
-	r, err := createRepositories()
+	r, err := a.createRepositories()
 	if err != nil {
 		l.Fatal(err)
 	}
@@ -113,6 +114,9 @@ type repositories struct {
 	tenantRepository     service.TenantRepository
 }
 
-func createRepositories() (*repositories, error) {
-	return &repositories{}, nil
+func (a *Application) createRepositories() (*repositories, error) {
+	return &repositories{
+		// TODO: Change the file name
+		eventRepository: infrastructure.NewEventRepository(a.eventLog, "testfile"),
+	}, nil
 }

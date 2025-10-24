@@ -107,6 +107,23 @@ func (s *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*enti
 	return nil, errors.New("not found")
 }
 
+func (s *EventLog) GetAggregate(ctx context.Context, fn string, id value.AggregateID) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		for e, err := range s.Events(ctx, fn) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if e.AggregateID == id {
+				if !yield(e, nil) {
+					return
+				}
+			}
+		}
+	}
+}
+
 func (s *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for i, err := range s.items(ctx, fn) {

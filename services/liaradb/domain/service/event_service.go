@@ -47,7 +47,7 @@ func (ao *AppendOptions) toEventMetadata() entity.EventMetadata {
 }
 
 type AppendEvent struct {
-	ID            value.EventID       // The ID of the Event, used for de-duplication
+	ID            string              // The ID of the Event, used for de-duplication
 	AggregateName value.AggregateName // The Name of the Aggregate
 	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
 	Version       value.Version       // The Version of the Aggregate
@@ -66,10 +66,11 @@ func (ae *AppendEvent) Valid() error {
 }
 
 func (ae *AppendEvent) toEvent(options AppendOptions) entity.Event {
-	var zero value.EventID
-	id := ae.ID
-	if id == zero {
+	var id value.EventID
+	if ae.ID == "" {
 		id = value.NewEventID()
+	} else {
+		id = value.NewEventIDFromString(ae.ID)
 	}
 
 	return entity.Event{
@@ -115,13 +116,13 @@ func (es *EventService) appendNoRequestID(
 	options AppendOptions,
 	e ...AppendEvent,
 ) error {
-	if len(e) == 1 {
-		return es.appendEvents(ctx, tenantID, options, e...)
-	}
+	// if len(e) == 1 {
+	return es.appendEvents(ctx, tenantID, options, e...)
+	// }
 
-	return es.transactionContainer.Run(ctx, func() error {
-		return es.appendEvents(ctx, tenantID, options, e...)
-	})
+	// return es.transactionContainer.Run(ctx, func() error {
+	// 	return es.appendEvents(ctx, tenantID, options, e...)
+	// })
 }
 
 func (es *EventService) appendRequestID(

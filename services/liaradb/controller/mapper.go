@@ -25,7 +25,7 @@ func eventToDto(e entity.Event) *pb.Event {
 
 func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 	return service.AppendEvent{
-		ID:            value.NewEventIDFromString(dto.Id),
+		ID:            dto.Id,
 		AggregateName: value.NewAggregateName(dto.AggregateName),
 		AggregateID:   value.NewAggregateID(dto.AggregateId),
 		Version:       value.NewVersion(uint64(dto.Version)),
