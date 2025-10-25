@@ -10,6 +10,8 @@ type Offset uint32
 
 const OffsetSize = 4
 
+func (o Offset) Value() int { return int(o) }
+
 func (Offset) Size() int { return OffsetSize }
 
 func (o Offset) Write(w io.Writer) error {

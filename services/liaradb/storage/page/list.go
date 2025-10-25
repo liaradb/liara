@@ -44,7 +44,7 @@ func (l List) offset(index int) Offset {
 func (l List) entriesSize() int {
 	var s int
 	for _, e := range l.entries {
-		s += e.Size()
+		s += e.Length.Value()
 	}
 	return s
 }
