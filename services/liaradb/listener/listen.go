@@ -27,6 +27,12 @@ func Listen(ctx context.Context, port0, port1 int, handler http.Handler, server 
 	go ListenHttp(cancel, listener1, handler)
 
 	<-ctx.Done()
+
+	log.Println("shutting down...")
+
+	log.Println("closing gRPC connections...")
+	server.GracefulStop()
+	log.Println("closing gRPC connections complete")
 }
 
 func getListener(port int) (net.Listener, error) {

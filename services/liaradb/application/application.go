@@ -63,6 +63,15 @@ func (a *Application) Run(ctx context.Context) error {
 		return err
 	}
 
+	it, err := a.log.Recover()
+	if err != nil {
+		return err
+	}
+
+	for range it {
+		// fmt.Printf("recover: %v\n", r.Action())
+	}
+
 	if err := a.log.StartWriter(); err != nil {
 		return err
 	}
@@ -76,14 +85,19 @@ func (a *Application) Run(ctx context.Context) error {
 	return nil
 }
 
+// Closing Process
+//   - Close gRPC requests
+//   - Cancel Context
+//   - Flush Log
+//   - Flush Buffers
 func (a *Application) Close() {
-	l.Println("shutting down...")
-
 	l.Println("flushing...")
 	if err := a.storage.FlushAll(); err != nil {
 		l.Fatal(err)
 	}
 	l.Println("flushing complete")
+
+	l.Println("shutdown complete")
 }
 
 func (a *Application) initService() *grpc.Server {
