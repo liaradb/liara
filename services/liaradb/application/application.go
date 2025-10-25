@@ -37,7 +37,7 @@ func New(conf configuration) *Application {
 
 	fsys := &disk.FileSystem{}
 
-	s := storage.NewStorage(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
+	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
 	log := log.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 

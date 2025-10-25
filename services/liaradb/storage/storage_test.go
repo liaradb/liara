@@ -53,7 +53,7 @@ func TestStorage_CancelRun(t *testing.T) {
 
 func testStorage_CancelRun(t *testing.T) {
 	fsys := filetesting.NewDiskFileSystem(t)
-	s := NewStorage(fsys, 2, 1024, t.TempDir())
+	s := New(fsys, 2, 1024, t.TempDir())
 
 	ctx, cancel := context.WithCancel(t.Context())
 	if err := s.Run(ctx); err != nil {
@@ -245,7 +245,7 @@ func testStorage_Wait(t *testing.T) {
 
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := NewStorage(fsys, max, bs, t.TempDir())
+	s := New(fsys, max, bs, t.TempDir())
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

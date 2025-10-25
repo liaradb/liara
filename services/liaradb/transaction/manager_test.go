@@ -62,7 +62,7 @@ func createLog(t *testing.T, fsys file.FileSystem, dir string) *log.Log {
 }
 
 func createStorage(t *testing.T, fsys file.FileSystem) *storage.Storage {
-	s := storage.NewStorage(fsys, 2, 1024, t.TempDir())
+	s := storage.New(fsys, 2, 1024, t.TempDir())
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

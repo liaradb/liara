@@ -24,7 +24,7 @@ type Storage struct {
 	highWater  map[string]Offset
 }
 
-func NewStorage(fs file.FileSystem, max int, bs int64, dir string) *Storage {
+func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,

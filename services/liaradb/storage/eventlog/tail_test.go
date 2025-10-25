@@ -23,7 +23,7 @@ func testTail(t *testing.T) {
 
 func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := storage.NewStorage(fsys, max, bs, t.TempDir())
+	s := storage.New(fsys, max, bs, t.TempDir())
 
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
