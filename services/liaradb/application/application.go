@@ -51,13 +51,28 @@ func New(conf configuration) *Application {
 	}
 }
 
-// TODO: Context is closing before gRPC shutdown
+// TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
+	ctx, cancelMain := context.WithCancel(ctx)
+	a.run(ctx)
+	defer a.close()
+	defer func() {
+		l.Println("shutting down...")
+		cancelMain()
+	}()
+
+	ctx, cancelListen := WithSignal(ctx)
+	defer cancelListen()
+
+	a.listen(ctx)
+
+	return nil
+}
+
+func (a *Application) run(ctx context.Context) error {
 	if err := a.storage.Run(ctx); err != nil {
 		return err
 	}
-
-	defer a.Close()
 
 	if err := a.log.Open(ctx); err != nil {
 		return err
@@ -78,23 +93,19 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.lockTable.Run(ctx)
 
-	ctx, cancel := context.WithCancel(ctx)
-
-	defer cancel()
-
-	listener.Listen(ctx, a.conf.Port, a.initService())
-
-	l.Println("shutting down...")
-
 	return nil
 }
 
+func (a *Application) listen(ctx context.Context) {
+	listener.Listen(ctx, a.conf.Port, a.initService())
+}
+
 // Closing Process
-//   - Close gRPC requests
+//   - close gRPC requests
 //   - Cancel Context
 //   - Flush Log
 //   - Flush Buffers
-func (a *Application) Close() {
+func (a *Application) close() {
 	l.Println("flushing...")
 	if err := a.storage.FlushAll(); err != nil {
 		l.Fatal(err)

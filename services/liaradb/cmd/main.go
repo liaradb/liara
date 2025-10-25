@@ -17,16 +17,13 @@ func main() {
 	log.SetPrefix("[liaradb]\t")
 	log.Println("started...")
 
-	ctx, cancel := application.WithSignal(context.Background())
-	defer cancel()
-
 	conf, err := application.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	a := application.New(conf)
-	err = a.Run(ctx)
+	err = a.Run(context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
