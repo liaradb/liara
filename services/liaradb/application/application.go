@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	l "log"
-	"net/http"
 	"path"
 
 	"github.com/cardboardrobots/errormap"
@@ -52,6 +51,7 @@ func New(conf configuration) *Application {
 	}
 }
 
+// TODO: Context is closing before gRPC shutdown
 func (a *Application) Run(ctx context.Context) error {
 	if err := a.storage.Run(ctx); err != nil {
 		return err
@@ -78,9 +78,13 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.lockTable.Run(ctx)
 
-	listener.Listen(ctx, a.conf.Port, a.conf.Port+1,
-		http.NewServeMux(),
-		a.initService())
+	ctx, cancel := context.WithCancel(ctx)
+
+	defer cancel()
+
+	listener.Listen(ctx, a.conf.Port, a.initService())
+
+	l.Println("shutting down...")
 
 	return nil
 }

@@ -309,6 +309,7 @@ func (s *Storage) openFile(b *Buffer) (file.File, error) {
 }
 
 // TODO: Test this
+// TODO: Integrate this with Run
 func (s *Storage) FlushAll() error {
 	for _, b := range s.pinned {
 		if err := b.FlushIfDirty(); err != nil {
