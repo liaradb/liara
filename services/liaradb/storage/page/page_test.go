@@ -38,6 +38,23 @@ func TestPage_Add(t *testing.T) {
 	}
 }
 
+func TestPage_Add__ErrInsufficientSpace(t *testing.T) {
+	t.Parallel()
+
+	const size = 16
+	p := New(size)
+
+	items := [][]byte{
+		{1, 2, 3, 4, 5, 6, 7, 8},
+		{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}}
+
+	for _, i := range items {
+		if err := p.Add(i); err != ErrInsufficientSpace {
+			t.Error("should return insufficient space")
+		}
+	}
+}
+
 func TestPage_ReadWrite(t *testing.T) {
 	t.Parallel()
 

@@ -10,24 +10,26 @@ import (
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
 
+// TODO: Where should this test be?
+// TODO: Why does this take so long?
 func TestEventLog_Recovery(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testRecovery)
 }
 
 func testRecovery(t *testing.T) {
-	baseCtx := t.Context()
+	ctx := t.Context()
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	dir := t.TempDir()
 	fn := path.Join(dir, "testfile")
 	var max int = 2
-	var bs int64 = 1024
+	var bs int64 = 256
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -51,53 +53,75 @@ func testRecovery(t *testing.T) {
 		Data:          value.NewData([]byte{}),
 	}}
 
-	{
-		s := storage.New(fsys, max, bs, dir)
-		el := New(s)
+	write(t, ctx, fsys, max, bs, dir, fn, records)
+	recover(t, ctx, fsys, max, bs, dir, fn, records)
+}
 
-		ctx, cancel := context.WithCancel(baseCtx)
+func write(
+	t *testing.T,
+	baseCtx context.Context,
+	fsys *mock.FileSystem,
+	max int,
+	bs int64,
+	dir string,
+	fn string,
+	records []*entity.Event,
+) {
+	s := storage.New(fsys, max, bs, dir)
+	el := New(s)
 
-		if err := s.Run(ctx); err != nil {
-			t.Fatal(err)
-		}
+	ctx, cancel := context.WithCancel(baseCtx)
 
-		for _, r := range records {
-			if err := el.Append(ctx, fn, r); err != nil {
-				t.Fatal(err)
-			}
-		}
+	if err := s.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
 
-		cancel()
-
-		if err := s.FlushAll(); err != nil {
+	for _, r := range records {
+		if err := el.Append(ctx, fn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
-	{
-		s := storage.New(fsys, max, bs, dir)
-		el := New(s)
 
-		ctx, cancel := context.WithCancel(baseCtx)
-		defer cancel()
+	cancel()
 
-		if err := s.Run(ctx); err != nil {
+	if err := s.FlushAll(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func recover(
+	t *testing.T,
+	ctx context.Context,
+	fsys *mock.FileSystem,
+	max int,
+	bs int64,
+	dir string,
+	fn string,
+	records []*entity.Event,
+) {
+	s := storage.New(fsys, max, bs, dir)
+	el := New(s)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	if err := s.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	result := make([]*entity.Event, 0)
+
+	for e, err := range el.Events(ctx, fn) {
+		if err != nil {
 			t.Fatal(err)
 		}
 
-		result := make([]*entity.Event, 0)
+		result = append(result, e)
+	}
 
-		for e, err := range el.Events(ctx, fn) {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			result = append(result, e)
-		}
-
-		if !slices.EqualFunc(result, records, func(a, b *entity.Event) bool {
-			return reflect.DeepEqual(a, b)
-		}) {
-			t.Errorf("incorrect result: %v, expected: %v", result, records)
-		}
+	if !slices.EqualFunc(result, records, func(a, b *entity.Event) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
+		t.Errorf("incorrect result:\n%v\nexpected:\n%v", result, records)
 	}
 }

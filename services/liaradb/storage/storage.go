@@ -215,7 +215,13 @@ func (s *Storage) unpinAfterRelease(b *Buffer) bool {
 }
 
 func (s *Storage) getHighWater(r *async.Request[string, BlockID]) {
-	r.Reply(s.highBlockID(r.Value()), nil)
+	fn := r.Value()
+	if _, err := s.openHighwater(fn); err != nil {
+		r.Reply(BlockID{}, err)
+		return
+	}
+
+	r.Reply(s.highBlockID(fn), nil)
 }
 
 // Doesn't change BlockID
@@ -305,7 +311,46 @@ func (s *Storage) flush(b *Buffer) error {
 
 func (s *Storage) openFile(b *Buffer) (file.File, error) {
 	// TODO: Test this
-	return s.fs.OpenFile(path.Join(s.dir, b.blockID.FileName))
+	f, err := s.fs.OpenFile(path.Join(s.dir, b.blockID.FileName))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.initHighwater(b.blockID.FileName, f); err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
+func (s *Storage) openHighwater(fileName string) (file.File, error) {
+	// TODO: Test this
+	f, err := s.fs.OpenFile(path.Join(s.dir, fileName))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.initHighwater(fileName, f); err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
+func (s *Storage) initHighwater(fileName string, f file.File) error {
+	if _, ok := s.highWater[fileName]; ok {
+		return nil
+	}
+
+	stat, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	size := stat.Size()
+	s.highWater[fileName] = Offset(size / s.bufferSize)
+
+	return nil
 }
 
 // TODO: Test this

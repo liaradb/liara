@@ -6,7 +6,8 @@ import (
 	"github.com/liaradb/liaradb/raw"
 )
 
-type Offset uint32
+// TODO: This must be int32 to prevent overflows
+type Offset int32
 
 const OffsetSize = 4
 
