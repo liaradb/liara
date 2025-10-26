@@ -3,29 +3,20 @@ package listener
 import (
 	"context"
 	"log"
+	"time"
 
 	"google.golang.org/grpc"
 )
 
-func LogGRPC(split bool) grpc.UnaryServerInterceptor {
-	if split {
-		return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-			log.Println(info.FullMethod)
-			defer func() {
-				if err != nil {
-					log.Printf("\terror: %v\n", err)
-				}
-			}()
-			resp, err = handler(ctx, req)
-			return
-		}
-	}
+func LogGRPC() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		start := time.Now()
 		defer func() {
+			d := time.Since(start)
 			if err != nil {
-				log.Printf("%v\n\terror: %v\n", info.FullMethod, err)
+				log.Printf("%v: %v\n\terror: %v\n", info.FullMethod, d, err)
 			} else {
-				log.Println(info.FullMethod)
+				log.Printf("%v: %v\n", info.FullMethod, d)
 			}
 		}()
 		resp, err = handler(ctx, req)
@@ -33,25 +24,15 @@ func LogGRPC(split bool) grpc.UnaryServerInterceptor {
 	}
 }
 
-func LogStreamGRPC(split bool) grpc.StreamServerInterceptor {
-	if split {
-		return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-			log.Println(info.FullMethod)
-			defer func() {
-				if err != nil {
-					log.Printf("\terror: %v\n", err)
-				}
-			}()
-			err = handler(srv, stream)
-			return
-		}
-	}
+func LogStreamGRPC() grpc.StreamServerInterceptor {
 	return func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+		start := time.Now()
 		defer func() {
+			d := time.Since(start)
 			if err != nil {
-				log.Printf("%v\n\terror: %v\n", info.FullMethod, err)
+				log.Printf("%v: %v\n\terror: %v\n", info.FullMethod, d, err)
 			} else {
-				log.Println(info.FullMethod)
+				log.Printf("%v: %v\n", info.FullMethod, d)
 			}
 		}()
 		err = handler(srv, stream)

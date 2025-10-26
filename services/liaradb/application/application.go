@@ -118,11 +118,11 @@ func (a *Application) close() {
 func (a *Application) initService() *grpc.Server {
 	s := listener.NewServerBuilder().
 		AddUnary(
-			listener.LogGRPC(false),
+			listener.LogGRPC(),
 			listener.ErrorInterceptor(errormap.GetStatusCodeGRPC),
 		).
 		AddStream(
-			listener.LogStreamGRPC(false),
+			listener.LogStreamGRPC(),
 			listener.ErrorInterceptorStream(errormap.GetStatusCodeGRPC),
 		).
 		Build()
