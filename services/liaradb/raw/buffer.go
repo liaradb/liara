@@ -2,6 +2,7 @@ package raw
 
 import "io"
 
+// TODO: Potentially use io.OffsetWriter
 type Buffer struct {
 	data   []byte
 	cursor int64
