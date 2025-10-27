@@ -12,11 +12,12 @@ import (
 // - Max LogSequenceNumber
 
 // TODO: Potentially use io.OffsetWriter
-type Page[H Serializer] struct {
+type Page[H Serializer, I Serializer] struct {
 	size   Offset
 	header H
 	list   List
-	items  []Item // TODO: Use Serializer, and use a generic?
+	items  []I
+	newI   func(Offset) I
 }
 
 type Serializer interface {
@@ -25,34 +26,26 @@ type Serializer interface {
 	Write(io.Writer) error
 }
 
-type ReaderAndAt interface {
-	io.Reader
-	io.ReaderAt
-}
-
-type WriterAndAt interface {
-	io.Writer
-	io.WriterAt
-}
-
 type Item = []byte
 
-func New(size Offset) *Page[ZeroHeader] {
-	return &Page[ZeroHeader]{
+func New(size Offset) *Page[ZeroHeader, *ItemSerializer] {
+	return &Page[ZeroHeader, *ItemSerializer]{
 		size:   size,
 		header: ZeroHeader{},
+		newI:   NewItemSerializerByLength,
 	}
 }
 
-func NewWithHeader[H Serializer](size Offset, header H) *Page[H] {
-	return &Page[H]{
+func NewWithHeader[H Serializer, I Serializer](size Offset, header H, newI func(Offset) I) *Page[H, I] {
+	return &Page[H, I]{
 		size:   size,
 		header: header,
+		newI:   newI,
 	}
 }
 
-func (p *Page[H]) Add(i Item) error {
-	l := len(i)
+func (p *Page[H, I]) Add(i I) error {
+	l := i.Size()
 	if _, err := p.list.Add(p.nextCursor(l), Offset(l)); err != nil {
 		// TODO: Test this
 		return err
@@ -62,18 +55,18 @@ func (p *Page[H]) Add(i Item) error {
 	return nil
 }
 
-func (p *Page[H]) nextCursor(l int) Offset {
+func (p *Page[H, I]) nextCursor(l int) Offset {
 	return Offset(p.Size() - p.list.entriesSize() - l)
 }
 
-func (p *Page[H]) Header() H {
+func (p *Page[H, I]) Header() H {
 	return p.header
 }
 
 // TODO: Create a way to iterate rather than reading the entire page
 // TODO: Do we need an error parameter?
-func (p *Page[H]) Items() iter.Seq2[Item, error] {
-	return func(yield func(Item, error) bool) {
+func (p *Page[H, I]) Items() iter.Seq2[I, error] {
+	return func(yield func(I, error) bool) {
 		for _, i := range p.items {
 			if !yield(i, nil) {
 				return
@@ -82,12 +75,12 @@ func (p *Page[H]) Items() iter.Seq2[Item, error] {
 	}
 }
 
-func (p *Page[H]) Size() int {
+func (p *Page[H, I]) Size() int {
 	return int(p.size)
 }
 
 // TODO: Should we use seek instead?
-func (p *Page[H]) Read(r ReaderAndAt) error {
+func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 	if err := p.readHeader(r); err != nil {
 		return err
 	}
@@ -100,7 +93,7 @@ func (p *Page[H]) Read(r ReaderAndAt) error {
 }
 
 // TODO: Should we use seek instead?
-func (p *Page[H]) Write(w WriterAndAt) error {
+func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 	if err := p.writeHeader(w); err != nil {
 		return err
 	}
@@ -112,20 +105,24 @@ func (p *Page[H]) Write(w WriterAndAt) error {
 	return p.writeItems(w)
 }
 
-func (p *Page[H]) readHeader(r io.Reader) error {
+func (p *Page[H, I]) readHeader(r io.Reader) error {
 	return p.header.Read(r)
 }
 
-func (p *Page[H]) writeHeader(w io.Writer) error {
+func (p *Page[H, I]) writeHeader(w io.Writer) error {
 	return p.header.Write(w)
 }
 
-func (p *Page[H]) readItems(r ReaderAndAt) error {
-	items := make([]Item, 0, p.list.Length())
+func (p *Page[H, I]) readItems(r io.ReadSeeker) error {
+	items := make([]I, 0, p.list.Length())
 
 	for _, e := range p.list.entries {
-		i := make([]byte, e.Length)
-		if _, err := r.ReadAt(i, int64(e.Offset)); err != nil {
+		if _, err := r.Seek(int64(e.Offset), io.SeekStart); err != nil {
+			return err
+		}
+
+		i := p.newI(e.Length)
+		if err := i.Read(r); err != nil {
 			return err
 		}
 
@@ -136,9 +133,13 @@ func (p *Page[H]) readItems(r ReaderAndAt) error {
 	return nil
 }
 
-func (p *Page[H]) writeItems(w WriterAndAt) error {
+func (p *Page[H, I]) writeItems(w io.WriteSeeker) error {
 	for index, i := range p.items {
-		if _, err := w.WriteAt(i, int64(p.list.offset(index))); err != nil {
+		if _, err := w.Seek(int64(p.list.offset(index)), io.SeekStart); err != nil {
+			return err
+		}
+
+		if err := i.Write(w); err != nil {
 			return err
 		}
 	}

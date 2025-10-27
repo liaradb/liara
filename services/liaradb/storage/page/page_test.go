@@ -14,16 +14,16 @@ func TestPage_Add(t *testing.T) {
 	const size = 256
 	p := New(size)
 
-	items := [][]byte{
-		{1, 2, 3, 4},
-		{5, 6, 7, 8}}
+	items := []*ItemSerializer{
+		NewItemSerializer([]byte{1, 2, 3, 4}),
+		NewItemSerializer([]byte{5, 6, 7, 8})}
 	for _, i := range items {
 		if err := p.Add(i); err != nil {
 			t.Error(err)
 		}
 	}
 
-	result := make([]Item, 0)
+	result := make([]*ItemSerializer, 0)
 
 	for i, err := range p.Items() {
 		if err != nil {
@@ -33,7 +33,9 @@ func TestPage_Add(t *testing.T) {
 		result = append(result, i)
 	}
 
-	if !slices.EqualFunc(result, items, slices.Equal) {
+	if !slices.EqualFunc(result, items, func(a, b *ItemSerializer) bool {
+		return a.Compare(b)
+	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 }
@@ -44,9 +46,9 @@ func TestPage_Add__ErrInsufficientSpace(t *testing.T) {
 	const size = 16
 	p := New(size)
 
-	items := [][]byte{
-		{1, 2, 3, 4, 5, 6, 7, 8},
-		{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}}
+	items := []*ItemSerializer{
+		NewItemSerializer([]byte{1, 2, 3, 4, 5, 6, 7, 8}),
+		NewItemSerializer([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17})}
 
 	for _, i := range items {
 		if err := p.Add(i); err != ErrInsufficientSpace {
@@ -84,13 +86,13 @@ func TestPage_ReadWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p1 := New(256)
+	p1 := New(size)
 
 	if err := p1.Read(b); err != nil {
 		t.Fatal(err)
 	}
 
-	result := make([]Item, 0)
+	result := make([]*ItemSerializer, 0)
 
 	for i, err := range p1.Items() {
 		if err != nil {
@@ -100,7 +102,9 @@ func TestPage_ReadWrite(t *testing.T) {
 		result = append(result, i)
 	}
 
-	if !slices.EqualFunc(result, items, slices.Equal) {
+	if !slices.EqualFunc(result, items, func(a, b *ItemSerializer) bool {
+		return a.Compare(b)
+	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 }
@@ -113,7 +117,7 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 	b := raw.NewBuffer(size)
 
 	data := raw.BaseString("test data")
-	p := NewWithHeader(size, &testPageHeader{data})
+	p := NewWithHeader(size, &testPageHeader{data}, NewItemSerializerByLength)
 
 	items := createRecords(4, 32)
 	for _, i := range items {
@@ -135,13 +139,13 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p1 := NewWithHeader(256, &testPageHeader{})
+	p1 := NewWithHeader(size, &testPageHeader{}, NewItemSerializerByLength)
 
 	if err := p1.Read(b); err != nil {
 		t.Fatal(err)
 	}
 
-	result := make([]Item, 0)
+	result := make([]*ItemSerializer, 0)
 
 	for i, err := range p1.Items() {
 		if err != nil {
@@ -151,7 +155,9 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 		result = append(result, i)
 	}
 
-	if !slices.EqualFunc(result, items, slices.Equal) {
+	if !slices.EqualFunc(result, items, func(a, b *ItemSerializer) bool {
+		return a.Compare(b)
+	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 
@@ -161,14 +167,14 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 
 }
 
-func createRecords(rows, count int) [][]byte {
-	items := make([][]byte, 0, rows)
+func createRecords(rows, count int) []*ItemSerializer {
+	items := make([]*ItemSerializer, 0, rows)
 	for i := range byte(cap(items)) {
 		item := make([]byte, 0, count)
 		for j := range byte(cap(item)) {
 			item = append(item, j+i*byte(cap(item)))
 		}
-		items = append(items, item)
+		items = append(items, NewItemSerializer(item))
 	}
 	return items
 }

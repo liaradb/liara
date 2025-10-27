@@ -17,7 +17,7 @@ func Write(w io.Writer, value []byte) error {
 		return err
 	}
 
-	if n, err := w.Write([]byte(value)); err != nil {
+	if n, err := w.Write(value); err != nil {
 		return err
 	} else if n < len(value) {
 		return io.ErrShortWrite

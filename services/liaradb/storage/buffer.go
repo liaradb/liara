@@ -12,7 +12,7 @@ import (
 type Buffer struct {
 	blockID BlockID
 	buffer  *raw.Buffer
-	page    *page.Page[page.ZeroHeader]
+	page    *page.Page[page.ZeroHeader, *page.ItemSerializer]
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -93,7 +93,7 @@ func (b *Buffer) Add(i []byte) error {
 }
 
 func (b *Buffer) add(i []byte) error {
-	if err := b.page.Add(i); err != nil {
+	if err := b.page.Add(page.NewItemSerializer(i)); err != nil {
 		return err
 	}
 
@@ -105,7 +105,19 @@ func (b *Buffer) Items() iter.Seq2[page.Item, error] {
 	b.RLatch()
 	defer b.RUnlatch()
 
-	return b.page.Items()
+	// TODO: Is there a simpler way?
+	return func(yield func(page.Item, error) bool) {
+		for i, err := range b.page.Items() {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(i.Value(), nil) {
+				return
+			}
+		}
+	}
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
