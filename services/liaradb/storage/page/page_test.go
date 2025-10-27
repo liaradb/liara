@@ -155,7 +155,7 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 
-	if d := p.Header().(*testPageHeader).data; d != data {
+	if d := p.Header().data; d != data {
 		t.Errorf("incorrect header: %v, expected: %v", d, data)
 	}
 

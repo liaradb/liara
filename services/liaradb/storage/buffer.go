@@ -12,7 +12,7 @@ import (
 type Buffer struct {
 	blockID BlockID
 	buffer  *raw.Buffer
-	page    *page.Page
+	page    *page.Page[page.ZeroHeader]
 	status  BufferStatus
 	s       *Storage
 	pins    int
