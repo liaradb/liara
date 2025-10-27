@@ -148,8 +148,8 @@ func (l *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Even
 	}
 }
 
-func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[page.Item, error] {
-	return func(yield func(page.Item, error) bool) {
+func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
 		for b, err := range l.Iterate(ctx, fn) {
 			if err != nil {
 				yield(nil, err)

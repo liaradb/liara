@@ -5,8 +5,6 @@ import (
 	"slices"
 	"testing"
 	"testing/synctest"
-
-	"github.com/liaradb/liaradb/storage/page"
 )
 
 func TestBuffer(t *testing.T) {
@@ -47,7 +45,7 @@ func testBuffer(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	result := make([]page.Item, 0)
+	result := make([][]byte, 0)
 
 	for i, err := range b.Items() {
 		if err != nil {

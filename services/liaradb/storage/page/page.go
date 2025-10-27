@@ -20,22 +20,23 @@ type Page[H Serializer, I Serializer] struct {
 	newI   func(Offset) I
 }
 
+type BytePage = Page[ZeroHeader, *Item]
+
 type Serializer interface {
 	Read(io.Reader) error
 	Size() int
 	Write(io.Writer) error
 }
 
-type Item = []byte
-
-func New(size Offset) *Page[ZeroHeader, *ItemSerializer] {
-	return &Page[ZeroHeader, *ItemSerializer]{
+func New(size Offset) *Page[ZeroHeader, *Item] {
+	return &Page[ZeroHeader, *Item]{
 		size:   size,
 		header: ZeroHeader{},
-		newI:   NewItemSerializerByLength,
+		newI:   NewItemByLength,
 	}
 }
 
+// TODO: Create simpler function
 func NewWithHeader[H Serializer, I Serializer](size Offset, header H, newI func(Offset) I) *Page[H, I] {
 	return &Page[H, I]{
 		size:   size,
