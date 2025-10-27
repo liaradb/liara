@@ -177,7 +177,7 @@ type testPageHeader struct {
 	data raw.BaseString
 }
 
-var _ Header = (*testPageHeader)(nil)
+var _ Serializer = (*testPageHeader)(nil)
 
 func (t *testPageHeader) Read(r io.Reader) error {
 	return t.data.Read(r)

@@ -14,12 +14,12 @@ import (
 // TODO: Potentially use io.OffsetWriter
 type Page struct {
 	size   Offset
-	header Header
+	header Serializer
 	list   List
 	items  []Item
 }
 
-type Header interface {
+type Serializer interface {
 	Read(io.Reader) error
 	Size() int
 	Write(io.Writer) error
@@ -43,7 +43,7 @@ func New(size Offset) *Page {
 	}
 }
 
-func NewWithHeader(size Offset, header Header) *Page {
+func NewWithHeader(size Offset, header Serializer) *Page {
 	return &Page{
 		size:   size,
 		header: header,
@@ -65,7 +65,7 @@ func (p *Page) nextCursor(l int) Offset {
 	return Offset(p.Size() - p.list.entriesSize() - l)
 }
 
-func (p *Page) Header() Header {
+func (p *Page) Header() Serializer {
 	return p.header
 }
 
