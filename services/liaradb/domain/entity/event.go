@@ -26,6 +26,21 @@ type EventMetadata struct {
 	Time          value.Time          // The Time this Event was created
 }
 
+// TODO: Test this
+func (e Event) Size() int {
+	return raw.Size(
+		e.GlobalVersion,
+		e.ID,
+		e.AggregateName,
+		e.AggregateID,
+		e.Version,
+		e.PartitionID,
+		e.Name,
+		e.Schema,
+		e.Metadata,
+		e.Data)
+}
+
 func (e Event) Write(w io.Writer) error {
 	return raw.WriteAll(w,
 		e.GlobalVersion,
@@ -52,6 +67,13 @@ func (e *Event) Read(r io.Reader) error {
 		&e.Schema,
 		&e.Metadata,
 		&e.Data)
+}
+
+func (e EventMetadata) Size() int {
+	return raw.Size(
+		e.UserID,
+		e.CorrelationID,
+		e.Time)
 }
 
 func (e EventMetadata) Write(w io.Writer) error {
