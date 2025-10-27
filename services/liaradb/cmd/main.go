@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"log"
+	"log/slog"
 
 	"github.com/liaradb/liaradb/application"
 )
@@ -14,17 +14,18 @@ var (
 
 func main() {
 	flag.Parse()
-	log.SetPrefix("[liaradb]\t")
-	log.Println("started...")
+	// log.SetPrefix("[liaradb]\t")
+	slog.Info("started...")
 
 	conf, err := application.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("main", "error", err)
+		return
 	}
 
 	a := application.New(conf)
 	err = a.Run(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("main", "error", err)
 	}
 }

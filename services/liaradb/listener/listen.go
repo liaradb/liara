@@ -3,7 +3,7 @@ package listener
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 
 	"google.golang.org/grpc"
@@ -18,9 +18,9 @@ func Listen(ctx context.Context, port int, server *grpc.Server) error {
 	go listen(listener, server)
 
 	<-ctx.Done()
-	log.Println("closing gRPC connections...")
+	slog.Info("closing gRPC connections...")
 	server.GracefulStop()
-	log.Println("closing gRPC connections complete")
+	slog.Info("closing gRPC connections complete")
 
 	return nil
 }
@@ -30,8 +30,10 @@ func getListener(port int) (net.Listener, error) {
 }
 
 func listen(listener net.Listener, server *grpc.Server) {
-	log.Printf("listening at %v", listener.Addr())
+	slog.Info(fmt.Sprintf("listening at %v", listener.Addr()))
 	if err := server.Serve(listener); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		slog.Error("failed to serve",
+			"error", err)
+		panic(err)
 	}
 }

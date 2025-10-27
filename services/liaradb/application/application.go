@@ -2,7 +2,7 @@ package application
 
 import (
 	"context"
-	l "log"
+	"log/slog"
 	"path"
 
 	"github.com/cardboardrobots/errormap"
@@ -57,7 +57,7 @@ func (a *Application) Run(ctx context.Context) error {
 	a.run(ctx)
 	defer a.close()
 	defer func() {
-		l.Println("shutting down...")
+		slog.Info("shutting down...")
 		cancelMain()
 	}()
 
@@ -106,13 +106,15 @@ func (a *Application) listen(ctx context.Context) {
 //   - Flush Log
 //   - Flush Buffers
 func (a *Application) close() {
-	l.Println("flushing...")
+	slog.Info("flushing...")
 	if err := a.storage.FlushAll(); err != nil {
-		l.Fatal(err)
+		slog.Error("unable to flush",
+			"error", err)
+		return
 	}
-	l.Println("flushing complete")
+	slog.Info("flushing complete")
 
-	l.Println("shutdown complete")
+	slog.Info("shutdown complete")
 }
 
 func (a *Application) initService() *grpc.Server {
@@ -129,7 +131,9 @@ func (a *Application) initService() *grpc.Server {
 
 	r, err := a.createRepositories()
 	if err != nil {
-		l.Fatal(err)
+		slog.Error("create repositories",
+			"error", err)
+		panic(err)
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(

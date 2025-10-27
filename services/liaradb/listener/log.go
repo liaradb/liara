@@ -2,7 +2,7 @@ package listener
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"google.golang.org/grpc"
@@ -14,9 +14,14 @@ func LogGRPC() grpc.UnaryServerInterceptor {
 		defer func() {
 			d := time.Since(start)
 			if err != nil {
-				log.Printf("%v: %v\n\terror: %v\n", info.FullMethod, d, err)
+				slog.Error("request",
+					"method", info.FullMethod,
+					"time", d,
+					"error", err)
 			} else {
-				log.Printf("%v: %v\n", info.FullMethod, d)
+				slog.Info("request",
+					"method", info.FullMethod,
+					"time", d)
 			}
 		}()
 		resp, err = handler(ctx, req)
@@ -30,9 +35,14 @@ func LogStreamGRPC() grpc.StreamServerInterceptor {
 		defer func() {
 			d := time.Since(start)
 			if err != nil {
-				log.Printf("%v: %v\n\terror: %v\n", info.FullMethod, d, err)
+				slog.Error("request",
+					"method", info.FullMethod,
+					"time", d,
+					"error", err)
 			} else {
-				log.Printf("%v: %v\n", info.FullMethod, d)
+				slog.Info("request",
+					"method", info.FullMethod,
+					"time", d)
 			}
 		}()
 		err = handler(srv, stream)
