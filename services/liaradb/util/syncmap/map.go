@@ -5,12 +5,12 @@ import (
 	"sync"
 )
 
-type Map[K comparable, V any] struct {
+type SyncMap[K comparable, V any] struct {
 	hash map[K]V
 	lock sync.RWMutex
 }
 
-func (m *Map[K, V]) Get(key K) (V, bool) {
+func (m *SyncMap[K, V]) Get(key K) (V, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
@@ -18,7 +18,7 @@ func (m *Map[K, V]) Get(key K) (V, bool) {
 	return value, ok
 }
 
-func (m *Map[K, V]) Set(key K, value V) {
+func (m *SyncMap[K, V]) Set(key K, value V) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -28,7 +28,7 @@ func (m *Map[K, V]) Set(key K, value V) {
 	m.hash[key] = value
 }
 
-func (m *Map[K, V]) Iterate() iter.Seq2[K, V] {
+func (m *SyncMap[K, V]) Iterate() iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		m.lock.RLock()
 		defer m.lock.RUnlock()
