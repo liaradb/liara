@@ -16,15 +16,6 @@
 		// 	"path": "modules/eventsource_go"
 		// },
 		{
-			"path": "modules/estream"
-		},
-		{
-			"path": "modules/esmongo"
-		},
-		{
-			"path": "modules/mongodb_requestlog"
-		},
-		{
 			"path": "modules/protos"
 		},
 		{
