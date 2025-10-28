@@ -1,9 +1,9 @@
 files = \
-	-Iprotos google/protobuf/timestamp.proto \
-	-Iprotos protos/eventsource.proto
+	-I. google/protobuf/timestamp.proto \
+	-I. eventsource.proto
 
-go_out = eventsource_go/generated
-ts_out = eventsource_ts/src/generated
+go_out = ../eventsource_go/generated
+ts_out = ../eventsource_ts/src/generated
 
 .PHONY: default
 default: go
