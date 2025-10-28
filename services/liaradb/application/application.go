@@ -7,11 +7,11 @@ import (
 
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
+	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
-	"github.com/liaradb/liaradb/listener"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/action"
