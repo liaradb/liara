@@ -7,22 +7,22 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/liaradb/liaradb/util/mut"
+	"github.com/liaradb/liaradb/util/set"
 )
 
 type runner struct {
 	name  runnerID
 	in    chan message
 	seed  runnerID
-	peers mut.Set[runnerID]
+	peers set.Set[runnerID]
 }
 
 func newRunner(name runnerID, seed runnerID) runner {
-	var peers mut.Set[runnerID]
+	var peers set.Set[runnerID]
 	if seed == "" {
-		peers = mut.NewSet[runnerID]()
+		peers = set.New[runnerID]()
 	} else {
-		peers = mut.NewSet(seed)
+		peers = set.New(seed)
 	}
 
 	return runner{

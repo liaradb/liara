@@ -1,10 +1,8 @@
-package mut
+package set
 
-type (
-	Set[T comparable] map[T]struct{}
-)
+type Set[T comparable] map[T]struct{}
 
-func NewSet[T comparable](t ...T) Set[T] {
+func New[T comparable](t ...T) Set[T] {
 	s := Set[T]{}
 	s.Add(t...)
 	return s

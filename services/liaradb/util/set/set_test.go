@@ -1,4 +1,4 @@
-package mut
+package set
 
 import (
 	"slices"
@@ -20,7 +20,7 @@ func TestSet_Add(t *testing.T) {
 }
 
 func TestSet_Remove(t *testing.T) {
-	s := NewSet(1)
+	s := New(1)
 	s.Remove(1)
 	slice := s.Slice()
 	if len(slice) != 0 {
@@ -29,7 +29,7 @@ func TestSet_Remove(t *testing.T) {
 }
 
 func TestSet_Clear(t *testing.T) {
-	s := NewSet(1)
+	s := New(1)
 	s.Clear()
 	slice := s.Slice()
 	if len(slice) != 0 {
@@ -38,7 +38,7 @@ func TestSet_Clear(t *testing.T) {
 }
 
 func TestSet_Includes(t *testing.T) {
-	s := NewSet(1)
+	s := New(1)
 	if s.Includes(0) {
 		t.Error("should only include 1")
 	}
@@ -48,8 +48,8 @@ func TestSet_Includes(t *testing.T) {
 }
 
 func TestSet_Merge(t *testing.T) {
-	a := NewSet(0)
-	b := NewSet(1)
+	a := New(0)
+	b := New(1)
 	a.Merge(b)
 	if !a.Includes(0) {
 		t.Error("should include 0")
@@ -60,8 +60,8 @@ func TestSet_Merge(t *testing.T) {
 }
 
 func TestSet_Union(t *testing.T) {
-	a := NewSet(0)
-	b := NewSet(1)
+	a := New(0)
+	b := New(1)
 	c := a.Union(b)
 	if !c.Includes(0) {
 		t.Error("should include 0")
@@ -72,8 +72,8 @@ func TestSet_Union(t *testing.T) {
 }
 
 func TestSet_Intersection(t *testing.T) {
-	a := NewSet(0, 1)
-	b := NewSet(1, 2)
+	a := New(0, 1)
+	b := New(1, 2)
 	c := a.Intersection(b)
 	if c.Includes(0) {
 		t.Error("should not include 0")
