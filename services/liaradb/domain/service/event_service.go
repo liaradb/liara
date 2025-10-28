@@ -5,9 +5,9 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/async/iterator"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type EventService struct {

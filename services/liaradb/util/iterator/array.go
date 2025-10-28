@@ -1,4 +1,4 @@
-package mut
+package iterator
 
 import "fmt"
 
