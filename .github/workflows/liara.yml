@@ -10,14 +10,14 @@ on:
       - .github/workflows/liara.yml
       - modules/liara/**
       - modules/liaractl/**
-      - services/liara_service/**
+      - services/liarasql/**
   pull_request:
     branches: [ "main" ]
     paths:
       - .github/workflows/liara.yml
       - modules/liara/**
       - modules/liaractl/**
-      - services/liara_service/**
+      - services/liarasql/**
 
 jobs:
 
@@ -29,11 +29,11 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version-file: services/liara_service/go.mod
+        go-version-file: services/liarasql/go.mod
         cache-dependency-path: |
           modules/liara/go.sum
           modules/liaractl/go.sum
-          services/liara_service/go.sum
+          services/liarasql/go.sum
 
     - name: Build Liara
       working-directory: ./modules/liara
@@ -44,7 +44,7 @@ jobs:
       run: go build -v ./...
 
     - name: Build LiaraService
-      working-directory: ./services/liara_service
+      working-directory: ./services/liarasql
       run: go build -v ./...
 
     - name: Test Liara
@@ -56,5 +56,5 @@ jobs:
       run: go test -v ./...
 
     - name: Test LiaraService
-      working-directory: ./services/liara_service
+      working-directory: ./services/liarasql
       run: go test -v ./...

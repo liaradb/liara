@@ -1,4 +1,4 @@
-module github.com/cardboardrobots/liara_service
+module github.com/cardboardrobots/liarasql
 
 go 1.25.3
 

@@ -4,7 +4,7 @@
 			"path": "modules/liara"
 		},
 		{
-			"path": "services/liara_service"
+			"path": "services/liarasql"
 		},
 		{
 			"path": "services/liaradb"
@@ -43,7 +43,7 @@
 				"previewLimit": 50,
 				"driver": "SQLite",
 				"name": "local",
-				"database": "${workspaceFolder:liara_service}/test.db"
+				"database": "${workspaceFolder:liarasql}/test.db"
 			},
 			{
 				"previewLimit": 50,

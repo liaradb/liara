@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/cardboardrobots/liara_service/application"
+	"github.com/cardboardrobots/liarasql/application"
 
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
