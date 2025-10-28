@@ -1,4 +1,4 @@
-package collection
+package slice
 
 import "iter"
 
@@ -6,7 +6,7 @@ type Slice[V comparable] struct {
 	values []V
 }
 
-func NewSlice[V comparable](size int) *Slice[V] {
+func New[V comparable](size int) *Slice[V] {
 	return &Slice[V]{
 		values: make([]V, 0, size),
 	}

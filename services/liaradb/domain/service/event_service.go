@@ -5,7 +5,7 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/collection/iterator"
+	"github.com/liaradb/liaradb/async/iterator"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 )

@@ -1,4 +1,4 @@
-package collection
+package slice
 
 import "testing"
 
@@ -8,7 +8,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should push and pop", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		c.Push(2)
@@ -25,7 +25,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should get length", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		if c.Length() != 1 {
@@ -41,7 +41,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should get", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		c.Push(2)
@@ -58,7 +58,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should swap", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		c.Push(2)
@@ -78,7 +78,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should swap and pop", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		c.Push(2)
@@ -102,7 +102,7 @@ func TestSlice(t *testing.T) {
 	t.Run("should remove in any order", func(t *testing.T) {
 		t.Parallel()
 
-		c := NewSlice[int](0)
+		c := New[int](0)
 
 		c.Push(1)
 		c.Push(2)
