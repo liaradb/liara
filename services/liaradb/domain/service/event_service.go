@@ -5,7 +5,7 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/base"
+	"github.com/liaradb/liaradb/collection/iterator"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 )
@@ -217,7 +217,7 @@ func (es *EventService) GetByOutbox(
 ) iter.Seq2[entity.Event, error] {
 	outbox, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
 	if err != nil {
-		return base.IterError[entity.Event](err)
+		return iterator.Error[entity.Event](err)
 	}
 
 	return es.eventRepository.GetAfterGlobalVersion(ctx, tenantID, outbox.GlobalVersion(), outbox.PartitionRange(), limit)
