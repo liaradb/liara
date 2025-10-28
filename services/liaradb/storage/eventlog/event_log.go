@@ -10,8 +10,8 @@ import (
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/page"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/page"
 )
 
 type EventLog struct {
