@@ -8,6 +8,7 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
+	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
@@ -17,7 +18,6 @@ import (
 	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/page"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/eventlog"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
 )

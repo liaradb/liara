@@ -1,12 +1,12 @@
 package transaction
 
 import (
+	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/eventlog"
 )
 
 type Manager struct {
