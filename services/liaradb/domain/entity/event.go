@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Event struct {

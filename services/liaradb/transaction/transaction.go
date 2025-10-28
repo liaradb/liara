@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/action"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/raw"
 )
 
 type Transaction struct {

@@ -3,7 +3,7 @@ package record
 import (
 	"hash/crc32"
 
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type CRC struct {

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestEventLog_Append(t *testing.T) {

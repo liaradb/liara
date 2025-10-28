@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestPage_Add(t *testing.T) {

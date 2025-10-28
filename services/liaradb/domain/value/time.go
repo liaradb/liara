@@ -3,7 +3,7 @@ package value
 import (
 	"time"
 
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Time struct {

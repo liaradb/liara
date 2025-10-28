@@ -3,8 +3,8 @@ package page
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/raw"
 )
 
 const headerSize = 0 +

@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Record struct {

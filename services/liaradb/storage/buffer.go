@@ -5,8 +5,8 @@ import (
 	"iter"
 	"sync"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/page"
-	"github.com/liaradb/liaradb/raw"
 )
 
 type Buffer struct {

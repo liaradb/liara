@@ -3,7 +3,7 @@ package page
 import (
 	"io"
 
-	"github.com/liaradb/liaradb/raw"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 // TODO: This must be int32 to prevent overflows

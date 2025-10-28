@@ -1,6 +1,6 @@
 package record
 
-import "github.com/liaradb/liaradb/raw"
+import "github.com/liaradb/liaradb/encoder/raw"
 
 type Length struct {
 	baseUint32

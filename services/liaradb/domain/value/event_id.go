@@ -1,8 +1,6 @@
 package value
 
-import (
-	"github.com/liaradb/liaradb/raw"
-)
+import "github.com/liaradb/liaradb/encoder/raw"
 
 type EventID struct {
 	baseID
