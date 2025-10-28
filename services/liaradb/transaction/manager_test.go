@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/log"
 	"github.com/liaradb/liaradb/log/action"

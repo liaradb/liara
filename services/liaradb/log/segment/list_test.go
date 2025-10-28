@@ -7,8 +7,8 @@ import (
 	"testing/fstest"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/file/mock"
-	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/log/record"
 )
 

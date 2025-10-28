@@ -10,8 +10,8 @@ import (
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/file/mock"
-	"github.com/liaradb/liaradb/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liaradb/liaradb/filetesting"
+	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/log/record"
 )
 
