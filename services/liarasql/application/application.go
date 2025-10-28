@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/cardboardrobots/errormap"
-	"github.com/cardboardrobots/liarasql/feature/eventsource/infrastructure"
+	"github.com/cardboardrobots/liarasql/infrastructure"
 	"github.com/cardboardrobots/listener"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/controller"
