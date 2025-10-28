@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/cardboardrobots/storage/mut"
+	"github.com/liaradb/liaradb/util/mut"
 )
 
 type runner struct {

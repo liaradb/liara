@@ -49,18 +49,22 @@ func TestEventRepository_Append(t *testing.T) {
 		aggregateID := value.NewAggregateID("aggregateID")
 
 		eventID := uuid.NewString()
+		id, err := value.NewEventIDFromString(eventID)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		want := entity.Event{
 			GlobalVersion: value.NewGlobalVersion(1),
 			AggregateName: value.NewAggregateName("example"),
-			ID:            value.NewEventIDFromString(eventID),
+			ID:            id,
 			AggregateID:   aggregateID,
 			Version:       value.NewVersion(1),
 		}
 
 		if err = er.Append(ctx, "", entity.Event{
 			AggregateName: value.NewAggregateName("example"),
-			ID:            value.NewEventIDFromString(eventID),
+			ID:            id,
 			AggregateID:   aggregateID,
 			Version:       value.NewVersion(1),
 		}); err != nil {
@@ -94,10 +98,14 @@ func TestEventRepository_Append(t *testing.T) {
 
 		aggregateID := value.NewAggregateID("aggregateID")
 		eventID := uuid.NewString()
+		id, err := value.NewEventIDFromString(eventID)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		want := entity.Event{
 			AggregateName: value.NewAggregateName("example"),
-			ID:            value.NewEventIDFromString(eventID),
+			ID:            id,
 			AggregateID:   aggregateID,
 			Version:       value.NewVersion(1),
 		}
