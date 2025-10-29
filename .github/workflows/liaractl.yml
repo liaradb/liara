@@ -7,15 +7,15 @@ on:
   push:
     branches: ["main"]
     paths:
-      - .github/workflows/liara.yml
+      - .github/workflows/liaractl.yml
       - modules/eventsource_go/**
-      - modules/liara/**
+      - modules/liaractl/**
   pull_request:
     branches: ["main"]
     paths:
-      - .github/workflows/liara.yml
+      - .github/workflows/liaractl.yml
       - modules/eventsource_go/**
-      - modules/liara/**
+      - modules/liaractl/**
 
 jobs:
   build:
@@ -29,12 +29,12 @@ jobs:
           go-version-file: services/liarasql/go.mod
           cache-dependency-path: |
             modules/eventsource_go/go.sum
-            modules/liara/go.sum
+            modules/liaractl/go.sum
 
-      - name: Build Liara
-        working-directory: ./modules/liara
+      - name: Build LiaraCtl
+        working-directory: ./modules/liaractl
         run: go build -v ./...
 
-      - name: Test Liara
-        working-directory: ./modules/liara
+      - name: Test LiaraCtl
+        working-directory: ./modules/liaractl
         run: go test -v ./...
