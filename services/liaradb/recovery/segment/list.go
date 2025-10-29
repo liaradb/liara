@@ -7,7 +7,7 @@ import (
 	"slices"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type List struct {

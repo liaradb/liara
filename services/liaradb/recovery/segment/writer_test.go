@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestWriter_Append(t *testing.T) {

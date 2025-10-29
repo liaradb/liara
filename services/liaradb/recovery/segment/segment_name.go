@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 var segmentRegexp = regexp.MustCompile("segment_([0-9a-f]*)_([0-9a-f]*).lr")

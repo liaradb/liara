@@ -1,11 +1,11 @@
-package log
+package recovery
 
 import (
 	"container/list"
 	"iter"
 
-	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
+	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/segment"
 )
 
 type reader struct {

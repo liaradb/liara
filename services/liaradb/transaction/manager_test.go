@@ -6,9 +6,9 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/locktable"
-	"github.com/liaradb/liaradb/log"
-	"github.com/liaradb/liaradb/log/action"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -30,7 +30,7 @@ func TestManager(t *testing.T) {
 	}
 }
 
-func createManager(t *testing.T) (*Manager, *log.Log) {
+func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	t.Helper()
 
 	fsys, dir := createFiles(t)
@@ -40,10 +40,10 @@ func createManager(t *testing.T) (*Manager, *log.Log) {
 	return NewManager(l, s, lt), l
 }
 
-func createLog(t *testing.T, fsys file.FileSystem, dir string) *log.Log {
+func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {
 	t.Helper()
 
-	l := log.NewLog(256, 3, fsys, dir)
+	l := recovery.NewLog(256, 3, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}

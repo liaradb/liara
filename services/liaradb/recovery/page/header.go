@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 const headerSize = 0 +

@@ -14,9 +14,9 @@ import (
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
-	"github.com/liaradb/liaradb/log"
-	"github.com/liaradb/liaradb/log/action"
-	"github.com/liaradb/liaradb/log/page"
+	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
@@ -27,7 +27,7 @@ type Application struct {
 	eventLog  *eventlog.EventLog
 	storage   *storage.Storage
 	txManager *transaction.Manager
-	log       *log.Log
+	log       *recovery.Log
 	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
@@ -38,7 +38,7 @@ func New(conf configuration) *Application {
 	fsys := &disk.FileSystem{}
 
 	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
-	log := log.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
+	log := recovery.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{

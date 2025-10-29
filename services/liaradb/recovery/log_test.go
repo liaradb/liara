@@ -1,4 +1,4 @@
-package log
+package recovery
 
 import (
 	"reflect"
@@ -9,9 +9,9 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/log/page"
-	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/segment"
 )
 
 func TestLog_Default(t *testing.T) {

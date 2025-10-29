@@ -1,9 +1,9 @@
-package log
+package recovery
 
 import (
-	"github.com/liaradb/liaradb/log/page"
-	"github.com/liaradb/liaradb/log/record"
-	"github.com/liaradb/liaradb/log/segment"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/segment"
 )
 
 type writer struct {

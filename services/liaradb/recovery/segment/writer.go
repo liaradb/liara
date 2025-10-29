@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/liaradb/liaradb/log/page"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 const (

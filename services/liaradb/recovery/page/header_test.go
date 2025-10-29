@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/cardboardrobots/assert"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestHeader(t *testing.T) {

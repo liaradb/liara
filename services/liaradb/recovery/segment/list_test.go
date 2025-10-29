@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/file/mock"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestList_Open(t *testing.T) {

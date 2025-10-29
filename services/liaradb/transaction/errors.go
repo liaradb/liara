@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 var (

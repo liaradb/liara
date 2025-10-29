@@ -3,7 +3,7 @@ package segment
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestSegmentName(t *testing.T) {

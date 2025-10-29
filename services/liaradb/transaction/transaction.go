@@ -7,15 +7,15 @@ import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/locktable"
-	"github.com/liaradb/liaradb/log"
-	"github.com/liaradb/liaradb/log/action"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Transaction struct {
 	id             record.TransactionID
 	lsn            record.LogSequenceNumber
-	log            *log.Log
+	log            *recovery.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
 	eventLog       *eventlog.EventLog
@@ -24,7 +24,7 @@ type Transaction struct {
 
 func newTransaction(
 	id record.TransactionID,
-	log *log.Log,
+	log *recovery.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
 	eventLog *eventlog.EventLog,

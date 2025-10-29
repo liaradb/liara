@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestTransaction_Insert(t *testing.T) {

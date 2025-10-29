@@ -3,21 +3,21 @@ package transaction
 import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/locktable"
-	"github.com/liaradb/liaradb/log"
-	"github.com/liaradb/liaradb/log/action"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 )
 
 type Manager struct {
-	log           *log.Log
+	log           *recovery.Log
 	storage       *storage.Storage
 	lockTable     *locktable.LockTable[action.ItemID]
 	transactionID record.TransactionID
 }
 
 func NewManager(
-	log *log.Log,
+	log *recovery.Log,
 	storage *storage.Storage,
 	lockTable *locktable.LockTable[action.ItemID],
 ) *Manager {

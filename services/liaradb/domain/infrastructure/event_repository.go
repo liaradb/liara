@@ -10,7 +10,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/log/action"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/transaction"
 )
 

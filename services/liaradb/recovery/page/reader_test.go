@@ -1,6 +1,7 @@
-package segment
+package page
 
 import (
+	"io"
 	"path"
 	"reflect"
 	"testing"
@@ -8,29 +9,43 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestReader_Iterate(t *testing.T) {
 	t.Parallel()
 
-	f, lr, sw := createReaderWriter(t)
+	f, rd, sw := createReaderWriter(t)
 
-	var count = record.NewLogSequenceNumber(10)
+	var count = record.NewLogSequenceNumber(3)
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+		d, err := recordToBytes(rc)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+			t.Fatal(err)
 		}
 	}
 
-	if err := sw.Flush(); err != nil {
+	if err := sw.Flush(f); err != nil {
 		t.Error(err)
 	}
 
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+
 	var c record.LogSequenceNumber
-	for rc, err := range lr.Iterate(f) {
+	it, err := rd.Iterate(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for rc, err := range it {
 		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
@@ -49,28 +64,37 @@ func TestReader_Iterate(t *testing.T) {
 }
 
 func TestReader_Reverse(t *testing.T) {
-	f, sr, sw := createReaderWriter(t)
+	f, rd, sw := createReaderWriter(t)
 
-	var count = record.NewLogSequenceNumber(10)
+	var count = record.NewLogSequenceNumber(3)
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+		d, err := recordToBytes(rc)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+			t.Fatal(err)
 		}
 	}
 
-	if err := sw.Flush(); err != nil {
+	if err := sw.Flush(f); err != nil {
 		t.Error(err)
 	}
 
-	stat, err := f.Stat()
-	if err != nil {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
 	var c record.LogSequenceNumber
-	for rc, err := range sr.Reverse(stat.Size(), f) {
+	it, err := rd.Reverse(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for rc, err := range it {
 		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
@@ -96,8 +120,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(256, 3)
-	_ = sw.Initialize(f)
+	sw := NewWriter(256)
 	return f, NewReader(256), sw
 }
 

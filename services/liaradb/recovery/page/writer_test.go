@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/log/record"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestWriter(t *testing.T) {
