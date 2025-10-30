@@ -80,7 +80,7 @@ func testStorage_CancelRun(t *testing.T) {
 func TestStorage_Pinned(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t, 2, 16)
+	s := createStorage(t, 2, 32)
 	ctx := t.Context()
 
 	n := "testfile"
@@ -119,7 +119,7 @@ func TestStorage_Flush(t *testing.T) {
 }
 
 func testStorage_Flush(t *testing.T) {
-	s := createStorage(t, 2, 16)
+	s := createStorage(t, 2, 32)
 	ctx := t.Context()
 
 	n := "testfile"

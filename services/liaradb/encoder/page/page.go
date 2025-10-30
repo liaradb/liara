@@ -47,7 +47,8 @@ func NewWithHeader[H Serializer, I Serializer](size Offset, header H, newI func(
 
 func (p *Page[H, I]) Add(i I) error {
 	l := i.Size()
-	if _, err := p.list.Add(p.nextCursor(l), Offset(l)); err != nil {
+	// TODO: Fix CRC
+	if _, err := p.list.Add(p.nextCursor(l), Offset(l), NewCRC(nil)); err != nil {
 		// TODO: Test this
 		return err
 	}

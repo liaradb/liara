@@ -11,23 +11,25 @@ import (
 type ListEntry struct {
 	Offset Offset
 	Length Offset
+	CRC    CRC
 }
 
-const ListEntrySize = OffsetSize + ListLengthSize
+const ListEntrySize = OffsetSize + ListLengthSize + CrcSize
 
-func newListEntry(offset Offset, length Offset) ListEntry {
+func newListEntry(offset Offset, length Offset, crc CRC) ListEntry {
 	return ListEntry{
 		Offset: offset,
 		Length: length,
+		CRC:    crc,
 	}
 }
 
 func (le ListEntry) Size() int { return ListEntrySize }
 
 func (le ListEntry) Write(w io.Writer) error {
-	return raw.WriteAll(w, le.Length, le.Offset)
+	return raw.WriteAll(w, le.Length, le.Offset, le.CRC)
 }
 
 func (le *ListEntry) Read(r io.Reader) error {
-	return raw.ReadAll(r, &le.Length, &le.Offset)
+	return raw.ReadAll(r, &le.Length, &le.Offset, &le.CRC)
 }

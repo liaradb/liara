@@ -10,13 +10,13 @@ type List struct {
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 
-func (l *List) Add(offset Offset, length Offset) (int, error) {
+func (l *List) Add(offset Offset, length Offset, crc CRC) (int, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, ErrInsufficientSpace
 	}
 
-	le := newListEntry(offset, length)
+	le := newListEntry(offset, length, crc)
 	l.entries = append(l.entries, le)
 	return len(l.entries) - 1, nil
 }

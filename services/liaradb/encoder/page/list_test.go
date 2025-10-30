@@ -15,24 +15,24 @@ func TestList(t *testing.T) {
 	r, w := newReaderWriter()
 
 	l := List{}
-	var position Offset = 40
+	var position Offset = 52
 
 	position -= 2
-	if i, err := l.Add(position, 2); err != nil {
+	if i, err := l.Add(position, 2, NewCRC([]byte{3})); err != nil {
 		t.Error(err)
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
 	position -= 4
-	if i, err := l.Add(position, 4); err != nil {
+	if i, err := l.Add(position, 4, NewCRC([]byte{5})); err != nil {
 		t.Error(err)
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	position -= 6
-	if i, err := l.Add(position, 6); err != nil {
+	if i, err := l.Add(position, 6, NewCRC([]byte{7})); err != nil {
 		t.Error(err)
 	} else if i != 2 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 2)
