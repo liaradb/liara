@@ -1,4 +1,4 @@
-package record
+package page
 
 import (
 	"hash/crc32"
@@ -9,6 +9,8 @@ import (
 type CRC struct {
 	baseUint32
 }
+
+type baseUint32 = raw.BaseUint32
 
 const CrcSize = raw.BaseUint32Size
 

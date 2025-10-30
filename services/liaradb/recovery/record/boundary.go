@@ -3,24 +3,25 @@ package record
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Boundary struct {
-	crc    CRC
+	crc    page.CRC
 	length Length
 }
 
-const BoundarySize = CrcSize + LengthSize
+const BoundarySize = page.CrcSize + LengthSize
 
 func NewBoundary(d []byte) Boundary {
 	return Boundary{
-		crc:    NewCRC(d),
+		crc:    page.NewCRC(d),
 		length: NewLength(uint32(len(d))),
 	}
 }
 
-func (b Boundary) CRC() CRC       { return b.crc }
+func (b Boundary) CRC() page.CRC  { return b.crc }
 func (b Boundary) Length() Length { return b.length }
 
 func (b Boundary) Size() int {
