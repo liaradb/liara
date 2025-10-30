@@ -12,11 +12,11 @@ import (
 // - Max LogSequenceNumber
 
 // TODO: Potentially use io.OffsetWriter
-type Page[H Serializer, I Serializer] struct {
+type Page[H Serializer, I ItemSerializer] struct {
 	size   Offset
 	header H
 	list   List
-	items  []I
+	items  []I // TODO: Change back to []byte
 	newI   func(Offset) I
 }
 
@@ -28,6 +28,12 @@ type Serializer interface {
 	Write(io.Writer) error
 }
 
+type ItemSerializer interface {
+	Read(io.Reader, CRC) error
+	Size() int
+	Write(io.Writer) (CRC, error)
+}
+
 func New(size Offset) *Page[ZeroHeader, *Item] {
 	return &Page[ZeroHeader, *Item]{
 		size:   size,
@@ -37,7 +43,7 @@ func New(size Offset) *Page[ZeroHeader, *Item] {
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer, I Serializer](size Offset, header H, newI func(Offset) I) *Page[H, I] {
+func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI func(Offset) I) *Page[H, I] {
 	return &Page[H, I]{
 		size:   size,
 		header: header,
@@ -48,7 +54,7 @@ func NewWithHeader[H Serializer, I Serializer](size Offset, header H, newI func(
 func (p *Page[H, I]) Add(i I) error {
 	l := i.Size()
 	// TODO: Fix CRC
-	if _, err := p.list.Add(p.nextCursor(l), Offset(l), NewCRC(nil)); err != nil {
+	if _, err := p.list.Add(p.nextCursor(l), Offset(l)); err != nil {
 		// TODO: Test this
 		return err
 	}
@@ -96,15 +102,19 @@ func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 
 // TODO: Should we use seek instead?
 func (p *Page[H, I]) Write(w io.WriteSeeker) error {
+	if err := p.writeItems(w); err != nil {
+		return err
+	}
+
+	if _, err := w.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
 	if err := p.writeHeader(w); err != nil {
 		return err
 	}
 
-	if err := p.list.Write(w); err != nil {
-		return err
-	}
-
-	return p.writeItems(w)
+	return p.list.Write(w)
 }
 
 func (p *Page[H, I]) readHeader(r io.Reader) error {
@@ -124,7 +134,7 @@ func (p *Page[H, I]) readItems(r io.ReadSeeker) error {
 		}
 
 		i := p.newI(e.Length)
-		if err := i.Read(r); err != nil {
+		if err := i.Read(r, e.CRC); err != nil {
 			return err
 		}
 
@@ -141,9 +151,13 @@ func (p *Page[H, I]) writeItems(w io.WriteSeeker) error {
 			return err
 		}
 
-		if err := i.Write(w); err != nil {
+		crc, err := i.Write(w)
+		if err != nil {
 			return err
 		}
+
+		// TODO: Do we need this return?
+		_ = p.list.SetCRC(index, crc)
 	}
 
 	return nil

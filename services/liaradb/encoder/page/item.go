@@ -1,6 +1,7 @@
 package page
 
 import (
+	"errors"
 	"io"
 	"slices"
 )
@@ -26,19 +27,24 @@ func (i *Item) Compare(a *Item) bool {
 	return slices.Equal(i.data, a.data)
 }
 
-func (i *Item) Write(w io.Writer) error {
+func (i *Item) Write(w io.Writer) (CRC, error) {
 	if n, err := w.Write(i.data); err != nil {
-		return err
+		return CRC{}, err
 	} else if n < len(i.data) {
-		return io.ErrShortWrite
+		return CRC{}, io.ErrShortWrite
 	}
 
-	return nil
+	return NewCRC(i.data), nil
 }
 
-func (i *Item) Read(r io.Reader) error {
+func (i *Item) Read(r io.Reader, crc CRC) error {
 	if _, err := r.Read(i.data); err != nil {
 		return err
+	}
+
+	if !crc.Compare(i.data) {
+		// TODO: Create error var
+		return errors.New("crc mismatch")
 	}
 
 	return nil

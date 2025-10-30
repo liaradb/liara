@@ -10,15 +10,24 @@ type List struct {
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 
-func (l *List) Add(offset Offset, length Offset, crc CRC) (int, error) {
+func (l *List) Add(offset Offset, length Offset) (int, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, ErrInsufficientSpace
 	}
 
-	le := newListEntry(offset, length, crc)
+	le := newListEntry(offset, length)
 	l.entries = append(l.entries, le)
 	return len(l.entries) - 1, nil
+}
+
+func (l *List) SetCRC(index int, crc CRC) bool {
+	if index < 0 || index >= len(l.entries) {
+		return false
+	}
+
+	l.entries[index].CRC = crc
+	return true
 }
 
 func (l List) space() int {

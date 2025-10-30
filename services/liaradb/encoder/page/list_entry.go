@@ -16,11 +16,10 @@ type ListEntry struct {
 
 const ListEntrySize = OffsetSize + ListLengthSize + CrcSize
 
-func newListEntry(offset Offset, length Offset, crc CRC) ListEntry {
+func newListEntry(offset Offset, length Offset) ListEntry {
 	return ListEntry{
 		Offset: offset,
 		Length: length,
-		CRC:    crc,
 	}
 }
 
