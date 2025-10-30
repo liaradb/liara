@@ -53,7 +53,6 @@ func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI f
 
 func (p *Page[H, I]) Add(i I) error {
 	l := i.Size()
-	// TODO: Fix CRC
 	if _, err := p.list.Add(p.nextCursor(l), Offset(l)); err != nil {
 		// TODO: Test this
 		return err
@@ -87,7 +86,6 @@ func (p *Page[H, I]) Size() int {
 	return int(p.size)
 }
 
-// TODO: Should we use seek instead?
 func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 	if err := p.readHeader(r); err != nil {
 		return err
@@ -100,7 +98,6 @@ func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 	return p.readItems(r)
 }
 
-// TODO: Should we use seek instead?
 func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 	if err := p.writeItems(w); err != nil {
 		return err
@@ -156,8 +153,7 @@ func (p *Page[H, I]) writeItems(w io.WriteSeeker) error {
 			return err
 		}
 
-		// TODO: Do we need this return?
-		_ = p.list.SetCRC(index, crc)
+		p.list.setCRC(index, crc)
 	}
 
 	return nil

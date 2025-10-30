@@ -1,7 +1,6 @@
 package page
 
 import (
-	"errors"
 	"io"
 	"slices"
 )
@@ -43,8 +42,7 @@ func (i *Item) Read(r io.Reader, crc CRC) error {
 	}
 
 	if !crc.Compare(i.data) {
-		// TODO: Create error var
-		return errors.New("crc mismatch")
+		return ErrInvalidCRC
 	}
 
 	return nil

@@ -6,8 +6,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-// TODO: Include a Serializer?
-
 type ListEntry struct {
 	Offset Offset
 	Length Offset

@@ -21,15 +21,6 @@ func (l *List) Add(offset Offset, length Offset) (int, error) {
 	return len(l.entries) - 1, nil
 }
 
-func (l *List) SetCRC(index int, crc CRC) bool {
-	if index < 0 || index >= len(l.entries) {
-		return false
-	}
-
-	l.entries[index].CRC = crc
-	return true
-}
-
 func (l List) space() int {
 	return l.Size() + ListEntrySize
 }
@@ -48,6 +39,14 @@ func (l List) offset(index int) Offset {
 	}
 
 	return l.entries[index].Offset
+}
+
+func (l *List) setCRC(index int, crc CRC) {
+	if index < 0 || index >= len(l.entries) {
+		return
+	}
+
+	l.entries[index].CRC = crc
 }
 
 func (l List) entriesSize() int {

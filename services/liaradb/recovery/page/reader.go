@@ -7,6 +7,7 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -126,7 +127,7 @@ func (rd *Reader) validateCRC() error {
 	}
 
 	if !rb.CRC().Compare(d) {
-		return ErrInvalidCRC
+		return page.ErrInvalidCRC
 	}
 
 	return nil
