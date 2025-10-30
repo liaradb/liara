@@ -35,11 +35,7 @@ type ItemSerializer interface {
 }
 
 func New(size Offset) *Page[ZeroHeader, *Item] {
-	return &Page[ZeroHeader, *Item]{
-		size:   size,
-		header: ZeroHeader{},
-		newI:   NewItemByLength,
-	}
+	return NewWithHeader(size, ZeroHeader{}, NewItemByLength)
 }
 
 // TODO: Create simpler function
@@ -66,9 +62,8 @@ func (p *Page[H, I]) nextCursor(l int) Offset {
 	return Offset(p.Size() - p.list.entriesSize() - l)
 }
 
-func (p *Page[H, I]) Header() H {
-	return p.header
-}
+func (p *Page[H, I]) Header() H { return p.header }
+func (p *Page[H, I]) Size() int { return int(p.size) }
 
 // TODO: Create a way to iterate rather than reading the entire page
 // TODO: Do we need an error parameter?
@@ -80,10 +75,6 @@ func (p *Page[H, I]) Items() iter.Seq2[I, error] {
 			}
 		}
 	}
-}
-
-func (p *Page[H, I]) Size() int {
-	return int(p.size)
 }
 
 func (p *Page[H, I]) Read(r io.ReadSeeker) error {
