@@ -1,39 +1,34 @@
 package page
 
 import (
-	"bufio"
-	"bytes"
 	"container/list"
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Reader struct {
-	data       []byte
-	pageReader *bytes.Reader
-	reader     *bufio.Reader
-	pageHeader Header
+	page *page.Page[*Header, *page.Item]
 }
 
 // TODO: Merge with [storage/record.Page].
 
 func NewReader(pageSize int64) *Reader {
 	// TODO: Using three slices/buffers is slow
-	data := make([]byte, pageSize)
-	pageReader := bytes.NewReader(data)
 	return &Reader{
-		data:       data,
-		pageReader: pageReader,
-		reader:     bufio.NewReaderSize(nil, int(pageSize)),
+		page: page.NewWithHeader(
+			page.Offset(pageSize),
+			&Header{},
+			page.NewItemByLength),
 	}
 }
 
-func (rd *Reader) Header() Header { return rd.pageHeader }
+func (rd *Reader) Header() Header { return *rd.page.Header() }
 
-func (rd *Reader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error) {
+func (rd *Reader) Iterate(r io.ReadSeeker) (iter.Seq2[*record.Record, error], error) {
 	if _, err := rd.read(r); err != nil {
 		return nil, err
 	}
@@ -52,8 +47,8 @@ func (rd *Reader) Iterate(r io.Reader) (iter.Seq2[*record.Record, error], error)
 	}, nil
 }
 
-// TODO: Change page structure to make reversing easier
-func (rd *Reader) Reverse(r io.Reader) (iter.Seq2[*record.Record, error], error) {
+// TODO: Change use new page structure to make reversing easier
+func (rd *Reader) Reverse(r io.ReadSeeker) (iter.Seq2[*record.Record, error], error) {
 	if _, err := rd.read(r); err != nil {
 		return nil, err
 	}
@@ -76,35 +71,26 @@ func (rd *Reader) Reverse(r io.Reader) (iter.Seq2[*record.Record, error], error)
 	}, nil
 }
 
-func (rd *Reader) read(r io.Reader) (*Header, error) {
-	if _, err := r.Read(rd.data); err != nil {
+func (rd *Reader) read(r io.ReadSeeker) (*Header, error) {
+	if err := rd.page.Read(r); err != nil {
 		return nil, err
 	}
 
-	rd.pageReader.Reset(rd.data)
-	if err := rd.pageHeader.Read(rd.pageReader); err != nil {
-		return nil, err
-	}
-
-	return &rd.pageHeader, nil
+	return rd.page.Header(), nil
 }
 
 func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		rd.reader.Reset(rd.pageReader)
-		for {
-			if err := rd.validateCRC(); err != nil {
-				if err != io.EOF {
-					yield(nil, err)
-				}
+		for i, err := range rd.page.Items() {
+			if err != nil {
+				yield(nil, err)
 				return
 			}
 
+			b := raw.NewBufferFromSlice(i.Value())
 			rc := &record.Record{}
-			if err := rc.Read(rd.reader); err != nil {
-				if err != io.EOF {
-					yield(nil, err)
-				}
+			if err := rc.Read(b); err != nil {
+				yield(nil, err)
 				return
 			}
 
@@ -113,22 +99,4 @@ func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 			}
 		}
 	}
-}
-
-func (rd *Reader) validateCRC() error {
-	rb := record.Boundary{}
-	if err := rb.Read(rd.reader); err != nil {
-		return err
-	}
-
-	d, err := rd.reader.Peek(int(rb.Length().Value()))
-	if err != nil {
-		return err
-	}
-
-	if !rb.CRC().Compare(d) {
-		return page.ErrInvalidCRC
-	}
-
-	return nil
 }

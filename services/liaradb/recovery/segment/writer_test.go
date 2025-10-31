@@ -78,10 +78,6 @@ func TestWriter_Flush(t *testing.T) {
 			}
 		}
 
-		if err := l.Append(rec); err != nil {
-			t.Fatal(err)
-		}
-
 		if err := l.Flush(); err != nil {
 			t.Fatal(err)
 		}

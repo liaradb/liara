@@ -7,6 +7,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/page"
@@ -63,8 +64,8 @@ func testLog_Append__Large(t *testing.T) {
 	}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != page.ErrInsufficientSpace {
-		t.Errorf("should return %v", page.ErrInsufficientSpace)
+	if _, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != raw.ErrInsufficientSpace {
+		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
@@ -123,28 +124,25 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should write to multiple pages", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 3)
+		l := createLogStart(t, 4)
 
 		count := 10
 
-		for range count - 1 {
-			_, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		var lsn record.LogSequenceNumber
+		var err error
+		for range count {
+			lsn, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
 			if err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		lsn2, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
-		if err != nil {
+		if err := l.Flush(ctx, lsn); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(ctx, lsn2); err != nil {
-			t.Fatal(err)
-		}
-
-		if p := l.PageID(); p != 2 {
-			t.Errorf("incorrect value: %v, expected: %v", p, 2)
+		if p := l.PageID(); p != 3 {
+			t.Errorf("incorrect value: %v, expected: %v", p, 3)
 		}
 	})
 

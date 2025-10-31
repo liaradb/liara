@@ -1,6 +1,7 @@
 package recovery
 
 import (
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -26,7 +27,7 @@ func (wr *writer) PageID() page.PageID { return wr.sw.PageID() }
 
 func (wr *writer) Append(rc *record.Record) error {
 	err := wr.sw.Append(rc)
-	if err == page.ErrInsufficientSpace {
+	if err == raw.ErrInsufficientSpace {
 		err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
 	}
 

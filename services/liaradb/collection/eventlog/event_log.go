@@ -10,7 +10,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -56,7 +56,7 @@ func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reade
 	}
 
 	bid, err := l.appendCurrent(ctx, fileName, data[:n])
-	if err == page.ErrInsufficientSpace {
+	if err == raw.ErrInsufficientSpace {
 		bid, err = l.appendNext(ctx, fileName, data[:n])
 	}
 

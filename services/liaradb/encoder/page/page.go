@@ -11,6 +11,10 @@ import (
 // - TimeLineID
 // - Max LogSequenceNumber
 
+// TODO: Use List to return slices of the underlying slice
+// Don't parse items here, just return slices
+// Then use the slices in a [raw.Buffer] to allow reading.
+
 // TODO: Potentially use io.OffsetWriter
 type Page[H Serializer, I ItemSerializer] struct {
 	size   Offset
@@ -43,6 +47,7 @@ func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI f
 	return &Page[H, I]{
 		size:   size,
 		header: header,
+		list:   newList(header.Size()),
 		newI:   newI,
 	}
 }
@@ -139,6 +144,7 @@ func (p *Page[H, I]) writeItems(w io.WriteSeeker) error {
 			return err
 		}
 
+		// TODO: Don't calculate CRC if we have it already
 		crc, err := i.Write(w)
 		if err != nil {
 			return err

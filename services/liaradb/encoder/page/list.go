@@ -2,10 +2,20 @@ package page
 
 import (
 	"io"
+
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type List struct {
-	entries []ListEntry
+	headerSize int
+	entries    []ListEntry
+}
+
+// TODO: Test headersize
+func newList(headerSize int) List {
+	return List{
+		headerSize: headerSize,
+	}
 }
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
@@ -13,7 +23,7 @@ func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 func (l *List) Add(offset Offset, length Offset) (int, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
-		return 0, ErrInsufficientSpace
+		return 0, raw.ErrInsufficientSpace
 	}
 
 	le := newListEntry(offset, length)
@@ -26,7 +36,7 @@ func (l List) space() int {
 }
 
 func (l List) Size() int {
-	s := ListLength(0).Size()
+	s := ListLength(0).Size() + l.headerSize
 	for _, e := range l.entries {
 		s += e.Size()
 	}

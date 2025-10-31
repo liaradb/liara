@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -18,9 +19,15 @@ type Writer struct {
 	segmentSize page.PageID
 	pageID      page.PageID
 	timeLineID  page.TimeLineID
-	readWriter  io.ReadWriteSeeker
+	readWriter  writerAll
 	recordBuf   *bytes.Buffer
 	pageWriter  *page.Writer
+}
+
+// TODO: Just use [io.OffsetWriter]
+type writerAll interface {
+	io.ReadWriteSeeker
+	io.WriterAt
 }
 
 func NewWriter(
@@ -52,49 +59,56 @@ func (wr *Writer) recordToBytes(rc *record.Record) ([]byte, error) {
 		return nil, err
 	}
 
-	return wr.recordBuf.Bytes(), nil
+	// TODO: Don't clone
+	return bytes.Clone(wr.recordBuf.Bytes()), nil
 }
 
 func (wr *Writer) append(data []byte) error {
-	rb := record.NewBoundary(data)
-	if err := wr.appendOrNext(rb, data); err != nil {
+	if err := wr.appendOrNext(data); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (wr *Writer) appendOrNext(rb record.Boundary, data []byte) error {
-	if err := wr.pageWriter.Append(rb, data); err != nil {
-		if err != page.ErrInsufficientSpace {
+func (wr *Writer) appendOrNext(data []byte) error {
+	if err := wr.pageWriter.Append(data); err != nil {
+		if err != raw.ErrInsufficientSpace {
 			return err
 		}
 
-		return wr.next(rb, data)
+		return wr.next(data)
 	}
 
 	return nil
 }
 
-func (wr *Writer) next(rb record.Boundary, data []byte) error {
+func (wr *Writer) next(data []byte) error {
 	// flush and start new page
 	// TODO: Can we use Write, or do we need Flush?
-	if err := wr.pageWriter.Flush(wr.readWriter); err != nil {
+	if err := wr.pageWriter.Flush(io.NewOffsetWriter(
+		wr.readWriter,
+		wr.pageWriter.Position(),
+	)); err != nil {
 		return err
 	}
 
 	wr.pageID++
 	// TODO: Test this
 	if wr.pageID >= wr.segmentSize {
-		return page.ErrInsufficientSpace
+		return raw.ErrInsufficientSpace
 	}
 
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-	return wr.pageWriter.Append(rb, data)
+	return wr.pageWriter.Append(data)
 }
 
 func (wr *Writer) Flush() error {
-	if err := wr.pageWriter.Flush(wr.readWriter); err != nil {
+	// TODO: Move this to page.Writer
+	if err := wr.pageWriter.Flush(io.NewOffsetWriter(
+		wr.readWriter,
+		wr.pageWriter.Position(),
+	)); err != nil {
 		return err
 	}
 
@@ -102,7 +116,7 @@ func (wr *Writer) Flush() error {
 }
 
 // TODO: Test this
-func (wr *Writer) Initialize(rw io.ReadWriteSeeker) error {
+func (wr *Writer) Initialize(rw writerAll) error {
 	wr.reset(rw)
 
 	// TODO: Do we need to seek?
@@ -118,7 +132,7 @@ func (wr *Writer) Initialize(rw io.ReadWriteSeeker) error {
 }
 
 // TODO: Test this
-func (wr *Writer) SeekTail(size int64, rw io.ReadWriteSeeker) error {
+func (wr *Writer) SeekTail(size int64, rw writerAll) error {
 	if size == 0 {
 		return wr.Initialize(rw)
 	} else {
@@ -140,7 +154,7 @@ func (wr *Writer) SeekTail(size int64, rw io.ReadWriteSeeker) error {
 	return wr.pageWriter.SeekTail(wr.readWriter)
 }
 
-func (wr *Writer) reset(rw io.ReadWriteSeeker) {
+func (wr *Writer) reset(rw writerAll) {
 	wr.readWriter = rw
 	wr.recordBuf.Reset()
 }

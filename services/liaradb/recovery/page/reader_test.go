@@ -26,7 +26,7 @@ func TestReader_Iterate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+		if err := sw.Append(d); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -75,7 +75,7 @@ func TestReader_Reverse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := sw.Append(record.NewBoundary(d), d); err != nil {
+		if err := sw.Append(d); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -48,13 +48,11 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rb := record.NewBoundary(data)
-
-	if err := pw.Append(rb, data); err != nil {
+	if err := pw.Append(data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := pw.Append(rb, data); err != nil {
+	if err := pw.Append(data); err != nil {
 		t.Fatal(err)
 	}
 

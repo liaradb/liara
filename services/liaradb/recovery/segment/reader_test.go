@@ -3,6 +3,7 @@ package segment
 import (
 	"path"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -29,22 +30,19 @@ func TestReader_Iterate(t *testing.T) {
 		t.Error(err)
 	}
 
-	var c record.LogSequenceNumber
+	result := make([]*record.Record, 0)
 	for rc, err := range lr.Iterate(f) {
-		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		rec := records[c.Value()-1]
-
-		if !reflect.DeepEqual(rc, rec) {
-			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
-		}
+		result = append(result, rc)
 	}
 
-	if c != count {
-		t.Errorf("incorrect count: %v, expected: %v", c, count)
+	if !slices.EqualFunc(result, records, func(a, b *record.Record) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
+		t.Fatalf("incorrect result:\n%v\nexpected:\n%v", result, records)
 	}
 }
 
@@ -69,22 +67,20 @@ func TestReader_Reverse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var c record.LogSequenceNumber
+	result := make([]*record.Record, 0)
 	for rc, err := range sr.Reverse(stat.Size(), f) {
-		c = c.Increment()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		rec := records[count.Value()-c.Value()]
-
-		if !reflect.DeepEqual(rc, rec) {
-			t.Fatalf("incorrect value:\n%#v, expected:\n%#v", rc, rec)
-		}
+		result = append(result, rc)
 	}
 
-	if c != count {
-		t.Errorf("incorrect count: %v, expected: %v", c, count)
+	slices.Reverse(records)
+	if !slices.EqualFunc(result, records, func(a, b *record.Record) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
+		t.Fatalf("incorrect result:\n%v\nexpected:\n%v", result, records)
 	}
 }
 
@@ -96,7 +92,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(256, 3)
+	sw := NewWriter(256, 4)
 	_ = sw.Initialize(f)
 	return f, NewReader(256), sw
 }
