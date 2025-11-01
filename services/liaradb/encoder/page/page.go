@@ -82,6 +82,18 @@ func (p *Page[H, I]) Items() iter.Seq2[I, error] {
 	}
 }
 
+// TODO: Test this
+func (p *Page[H, I]) ItemsReverse() iter.Seq2[I, error] {
+	return func(yield func(I, error) bool) {
+		l := len(p.items) - 1
+		for index := range p.items {
+			if !yield(p.items[l-index], nil) {
+				return
+			}
+		}
+	}
+}
+
 func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 	if err := p.readHeader(r); err != nil {
 		return err
