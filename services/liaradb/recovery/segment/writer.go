@@ -128,7 +128,7 @@ func (wr *Writer) SeekTail(size int64, rw writerAll) error {
 	}
 
 	pid := page.NewActivePageIDFromSize(size, wr.pageSize)
-	_, err := wr.readWriter.Seek(pid.Size(wr.pageSize), io.SeekStart)
+	_, err := wr.readWriter.Seek(pid.Position(wr.pageSize), io.SeekStart)
 	if err != nil {
 		return err
 	}

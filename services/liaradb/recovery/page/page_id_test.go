@@ -127,7 +127,7 @@ func TestPageID_Size(t *testing.T) {
 				t.Skip()
 			}
 
-			s := c.id.Size(c.pageSize)
+			s := c.id.Position(c.pageSize)
 			if s != c.size {
 				t.Errorf("%v: incorrect size: %v, expected: %v", message, s, c.size)
 			}

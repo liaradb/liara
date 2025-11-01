@@ -36,7 +36,7 @@ func (wr *Writer) Append(data []byte) error {
 }
 
 func (wr *Writer) Position() int64 {
-	return wr.page.Header().ID().Size(wr.bodySize)
+	return wr.page.Header().ID().Position(wr.bodySize)
 }
 
 func (wr *Writer) Write(w io.WriterAt) error {

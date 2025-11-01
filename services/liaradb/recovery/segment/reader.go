@@ -25,7 +25,7 @@ func NewReader(
 }
 
 func (sr *Reader) position(pid page.PageID) int64 {
-	return pid.Size(sr.pageSize)
+	return pid.Position(sr.pageSize)
 }
 
 func (sr *Reader) Iterate(r io.ReaderAt) iter.Seq2[*record.Record, error] {
