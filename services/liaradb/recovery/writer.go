@@ -40,9 +40,7 @@ func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceN
 		return err
 	}
 
-	if err := wr.sw.Initialize(f); err != nil {
-		return err
-	}
+	wr.sw.Initialize(f)
 
 	return wr.sw.Append(rc)
 }

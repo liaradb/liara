@@ -93,7 +93,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
 	sw := NewWriter(256, 4)
-	_ = sw.Initialize(f)
+	sw.Initialize(f)
 	return f, NewReader(256), sw
 }
 

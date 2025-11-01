@@ -19,15 +19,14 @@ type Writer struct {
 	segmentSize page.PageID
 	pageID      page.PageID
 	timeLineID  page.TimeLineID
-	readWriter  writerAll
+	writer      io.WriterAt
 	recordBuf   *bytes.Buffer
 	pageWriter  *page.Writer
 }
 
-// TODO: Just use [io.OffsetWriter]
-type writerAll interface {
-	io.ReadWriteSeeker
+type readWriterAt interface {
 	io.WriterAt
+	io.ReaderAt
 }
 
 func NewWriter(
@@ -100,49 +99,32 @@ func (wr *Writer) next(data []byte) error {
 }
 
 func (wr *Writer) Flush() error {
-	return wr.pageWriter.Write(wr.readWriter)
+	return wr.pageWriter.Write(wr.writer)
 }
 
 // TODO: Test this
-func (wr *Writer) Initialize(rw writerAll) error {
-	wr.reset(rw)
-
-	// TODO: Do we need to seek?
-	_, err := wr.readWriter.Seek(0, io.SeekStart)
-	if err != nil {
-		return err
-	}
+func (wr *Writer) Initialize(w io.WriterAt) {
+	wr.reset(w)
 
 	wr.pageID = 0
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-
-	return nil
 }
 
 // TODO: Test this
-func (wr *Writer) SeekTail(size int64, rw writerAll) error {
+func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 	if size == 0 {
-		return wr.Initialize(rw)
-	} else {
-		wr.reset(rw)
+		wr.Initialize(rw)
+		return nil
 	}
 
-	pid := page.NewActivePageIDFromSize(size, wr.pageSize)
-	_, err := wr.readWriter.Seek(pid.Position(wr.pageSize), io.SeekStart)
-	if err != nil {
-		return err
-	}
+	wr.reset(rw)
 
-	wr.pageID = pid
-
-	// TODO: initialize or jump to tail of Page
-	// Is page initialized?
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-
-	return wr.pageWriter.Read(wr.readWriter)
+	wr.pageID = page.NewActivePageIDFromSize(size, wr.pageSize)
+	return wr.pageWriter.Read(
+		io.NewSectionReader(rw, wr.pageID.Position(wr.pageSize), wr.pageSize))
 }
 
-func (wr *Writer) reset(rw writerAll) {
-	wr.readWriter = rw
+func (wr *Writer) reset(w io.WriterAt) {
+	wr.writer = w
 	wr.recordBuf.Reset()
 }

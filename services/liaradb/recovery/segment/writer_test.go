@@ -125,6 +125,6 @@ func createWriter(t *testing.T) *Writer {
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
 	sw := NewWriter(256, 3)
-	_ = sw.Initialize(f)
+	sw.Initialize(f)
 	return sw
 }
