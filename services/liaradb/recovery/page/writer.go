@@ -43,13 +43,6 @@ func (wr *Writer) Write(w io.WriterAt) error {
 	return wr.page.Write(io.NewOffsetWriter(w, wr.Position()))
 }
 
-func (wr *Writer) SeekTail(r io.ReadSeeker) error {
-	// TODO: Should we handle EOF?
-	if err := wr.page.Read(r); err != nil {
-		if err != io.EOF {
-			return err
-		}
-	}
-
-	return nil
+func (wr *Writer) Read(r io.ReadSeeker) error {
+	return wr.page.Read(r)
 }

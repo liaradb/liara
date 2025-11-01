@@ -139,7 +139,7 @@ func (wr *Writer) SeekTail(size int64, rw writerAll) error {
 	// Is page initialized?
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 
-	return wr.pageWriter.SeekTail(wr.readWriter)
+	return wr.pageWriter.Read(wr.readWriter)
 }
 
 func (wr *Writer) reset(rw writerAll) {
