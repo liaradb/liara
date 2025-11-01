@@ -39,8 +39,8 @@ func (wr *Writer) Position() int64 {
 	return wr.page.Header().ID().Size(wr.bodySize)
 }
 
-func (wr *Writer) Write(w io.WriteSeeker) error {
-	return wr.page.Write(w)
+func (wr *Writer) Write(w io.WriterAt) error {
+	return wr.page.Write(io.NewOffsetWriter(w, wr.Position()))
 }
 
 func (wr *Writer) SeekTail(r io.ReadSeeker) error {

@@ -23,12 +23,8 @@ func TestWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
-
 	pr := NewReader(256)
-	_, err := pr.Iterate(f)
+	_, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,12 +56,8 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
-
 	pr := NewReader(256)
-	it, err := pr.Iterate(f)
+	it, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
 	}

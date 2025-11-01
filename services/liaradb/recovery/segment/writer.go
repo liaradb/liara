@@ -100,11 +100,7 @@ func (wr *Writer) next(data []byte) error {
 }
 
 func (wr *Writer) Flush() error {
-	// TODO: Move this to page.Writer
-	return wr.pageWriter.Write(io.NewOffsetWriter(
-		wr.readWriter,
-		wr.pageWriter.Position(),
-	))
+	return wr.pageWriter.Write(wr.readWriter)
 }
 
 // TODO: Test this
