@@ -14,18 +14,18 @@ var (
 
 func main() {
 	flag.Parse()
-	// log.SetPrefix("[liaradb]\t")
-	slog.Info("started...")
 
+	if err := run(); err != nil {
+		slog.Error("main", "error", err)
+	}
+}
+
+func run() error {
 	conf, err := application.LoadConfig()
 	if err != nil {
-		slog.Error("main", "error", err)
-		return
+		return err
 	}
 
 	a := application.New(conf)
-	err = a.Run(context.Background())
-	if err != nil {
-		slog.Error("main", "error", err)
-	}
+	return a.Run(context.Background())
 }

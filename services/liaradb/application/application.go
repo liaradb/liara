@@ -70,13 +70,19 @@ func (a *Application) Run(ctx context.Context) error {
 }
 
 func (a *Application) run(ctx context.Context) error {
+	slog.Info("starting...")
+
 	if err := a.storage.Run(ctx); err != nil {
 		return err
 	}
 
+	slog.Info("storage running")
+
 	if err := a.log.Open(ctx); err != nil {
 		return err
 	}
+
+	slog.Info("recovering...")
 
 	it, err := a.log.Recover()
 	if err != nil {
@@ -87,11 +93,17 @@ func (a *Application) run(ctx context.Context) error {
 		// fmt.Printf("recover: %v\n", r.Action())
 	}
 
+	slog.Info("recovered")
+
 	if err := a.log.StartWriter(); err != nil {
 		return err
 	}
 
+	slog.Info("log running")
+
 	a.lockTable.Run(ctx)
+
+	slog.Info("lock table running")
 
 	return nil
 }
