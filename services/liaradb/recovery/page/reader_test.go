@@ -31,7 +31,7 @@ func TestReader_Iterate(t *testing.T) {
 		}
 	}
 
-	if err := sw.Flush(f); err != nil {
+	if err := sw.Write(f); err != nil {
 		t.Error(err)
 	}
 
@@ -80,7 +80,7 @@ func TestReader_Reverse(t *testing.T) {
 		}
 	}
 
-	if err := sw.Flush(f); err != nil {
+	if err := sw.Write(f); err != nil {
 		t.Error(err)
 	}
 

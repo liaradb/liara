@@ -85,11 +85,7 @@ func (wr *Writer) appendOrNext(data []byte) error {
 
 func (wr *Writer) next(data []byte) error {
 	// flush and start new page
-	// TODO: Can we use Write, or do we need Flush?
-	if err := wr.pageWriter.Flush(io.NewOffsetWriter(
-		wr.readWriter,
-		wr.pageWriter.Position(),
-	)); err != nil {
+	if err := wr.Flush(); err != nil {
 		return err
 	}
 
@@ -105,14 +101,10 @@ func (wr *Writer) next(data []byte) error {
 
 func (wr *Writer) Flush() error {
 	// TODO: Move this to page.Writer
-	if err := wr.pageWriter.Flush(io.NewOffsetWriter(
+	return wr.pageWriter.Write(io.NewOffsetWriter(
 		wr.readWriter,
 		wr.pageWriter.Position(),
-	)); err != nil {
-		return err
-	}
-
-	return nil
+	))
 }
 
 // TODO: Test this

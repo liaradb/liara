@@ -22,10 +22,6 @@ func NewWriter(size int64) *Writer {
 	}
 }
 
-func (wr *Writer) ID() PageID                     { return wr.page.Header().ID() }
-func (wr *Writer) TimeLineID() TimeLineID         { return wr.page.Header().TimeLineID() }
-func (wr *Writer) LengthRemaining() record.Length { return wr.page.Header().LengthRemaining() }
-
 func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
 	h := NewHeader(id, tlid, rem)
 	// TODO: Don't replace page
@@ -37,10 +33,6 @@ func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
 
 func (wr *Writer) Append(data []byte) error {
 	return wr.page.Add(page.NewItem(data))
-}
-
-func (wr *Writer) Flush(w io.WriteSeeker) error {
-	return wr.Write(w)
 }
 
 func (wr *Writer) Position() int64 {
