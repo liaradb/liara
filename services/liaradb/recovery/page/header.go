@@ -3,12 +3,13 @@ package page
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 const headerSize = 0 +
-	magicSize +
+	page.MagicSize +
 	pageIDSize +
 	timeLineIDSize +
 	record.LengthSize
@@ -40,7 +41,7 @@ func (h Header) Size() int {
 }
 
 func (h *Header) Read(r io.Reader) error {
-	var m Magic
+	var m page.Magic
 	return raw.ReadAll(r,
 		&m,
 		&h.id,
@@ -50,7 +51,7 @@ func (h *Header) Read(r io.Reader) error {
 
 func (h *Header) Write(w io.Writer) error {
 	return raw.WriteAll(w,
-		MagicPage,
+		page.MagicPage,
 		h.id,
 		h.timeLineID,
 		h.lengthRemaining)

@@ -9,7 +9,7 @@ import (
 
 type Magic uint32
 
-const magicSize = 4
+const MagicSize = 4
 
 var (
 	MagicPage = Magic(binary.BigEndian.Uint32([]byte("PAGE")))
