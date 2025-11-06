@@ -61,30 +61,9 @@ func TestPage_ReadWrite(t *testing.T) {
 	t.Parallel()
 
 	const size = 256
-
-	b := raw.NewBuffer(size)
-
 	p := New(size)
 
-	items := createRecords(4, 32)
-	for _, i := range items {
-		if err := p.Add(i); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	b.Clear()
-	if err := p.Write(b); err != nil {
-		t.Fatal(err)
-	}
-
-	if s := p.Size(); s != size {
-		t.Errorf("incorrect size: %v, expected: %v", s, size)
-	}
-
-	if _, err := b.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+	b, items := writeRecords(t, size, p)
 
 	p1 := New(size)
 
@@ -109,35 +88,47 @@ func TestPage_ReadWrite(t *testing.T) {
 	}
 }
 
+func TestPage_Reverse(t *testing.T) {
+	t.Parallel()
+
+	const size = 256
+	p := New(size)
+
+	b, items := writeRecords(t, size, p)
+
+	p1 := New(size)
+
+	if err := p1.Read(b); err != nil {
+		t.Fatal(err)
+	}
+
+	result := make([]*Item, 0)
+
+	for i, err := range p1.ItemsReverse() {
+		if err != nil {
+			t.Error(err)
+		}
+
+		result = append(result, i)
+	}
+
+	slices.Reverse(items)
+
+	if !slices.EqualFunc(result, items, func(a, b *Item) bool {
+		return a.Compare(b)
+	}) {
+		t.Errorf("incorrect result: %v, expected: %v", result, items)
+	}
+}
+
 func TestPage_ReadWrite__Header(t *testing.T) {
 	t.Parallel()
 
 	const size = 256
-
-	b := raw.NewBuffer(size)
-
 	data := raw.BaseString("test data")
 	p := NewWithHeader(size, &testPageHeader{data}, NewItemByLength)
 
-	items := createRecords(4, 32)
-	for _, i := range items {
-		if err := p.Add(i); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	b.Clear()
-	if err := p.Write(b); err != nil {
-		t.Fatal(err)
-	}
-
-	if s := p.Size(); s != size {
-		t.Errorf("incorrect size: %v, expected: %v", s, size)
-	}
-
-	if _, err := b.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+	b, items := writeRecords(t, size, p)
 
 	p1 := NewWithHeader(size, &testPageHeader{}, NewItemByLength)
 
@@ -164,7 +155,32 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 	if d := p.Header().data; d != data {
 		t.Errorf("incorrect header: %v, expected: %v", d, data)
 	}
+}
 
+func writeRecords[S Serializer](t *testing.T, size int64, p *Page[S, *Item]) (*raw.Buffer, []*Item) {
+	b := raw.NewBuffer(size)
+	items := createRecords(4, 32)
+
+	for _, i := range items {
+		if err := p.Add(i); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	b.Clear()
+	if err := p.Write(b); err != nil {
+		t.Fatal(err)
+	}
+
+	if s := p.Size(); int64(s) != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
+	}
+
+	if _, err := b.Seek(0, io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+
+	return b, items
 }
 
 func createRecords(rows, count int) []*Item {

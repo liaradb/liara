@@ -92,7 +92,6 @@ func (p *Page[H, I]) Items() iter.Seq2[I, error] {
 	}
 }
 
-// TODO: Test this
 func (p *Page[H, I]) ItemsReverse() iter.Seq2[I, error] {
 	return func(yield func(I, error) bool) {
 		l := len(p.items) - 1
