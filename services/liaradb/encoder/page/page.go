@@ -3,6 +3,8 @@ package page
 import (
 	"io"
 	"iter"
+
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 // TODO: Add header data
@@ -47,7 +49,7 @@ func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI f
 	return &Page[H, I]{
 		size:   size,
 		header: header,
-		list:   newList(header.Size()), // TODO: Add magic space
+		list:   newList(MagicSize + header.Size()),
 		newI:   newI,
 	}
 }
@@ -130,14 +132,17 @@ func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 	return p.list.Write(w)
 }
 
-// TODO: Read Magic
 func (p *Page[H, I]) readHeader(r io.Reader) error {
-	return p.header.Read(r)
+	var m Magic
+	return raw.ReadAll(r,
+		&m,
+		p.header)
 }
 
-// TODO: Write Magic
 func (p *Page[H, I]) writeHeader(w io.Writer) error {
-	return p.header.Write(w)
+	return raw.WriteAll(w,
+		MagicPage,
+		p.header)
 }
 
 func (p *Page[H, I]) readItems(r io.ReadSeeker) error {

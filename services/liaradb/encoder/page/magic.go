@@ -12,7 +12,9 @@ type Magic uint32
 const MagicSize = 4
 
 var (
-	MagicPage = Magic(binary.BigEndian.Uint32([]byte("PAGE")))
+	MagicEmpty = Magic(0)
+	MagicPage  = Magic(binary.BigEndian.Uint32([]byte("PAGE")))
+	MagicFree  = Magic(binary.BigEndian.Uint32([]byte("FREE")))
 )
 
 func (m Magic) Write(w io.Writer) error {
@@ -24,11 +26,16 @@ func (m *Magic) Read(r io.Reader) error {
 		return err
 	}
 
-	if *m != MagicPage {
+	switch *m {
+	case MagicEmpty:
+		return nil
+	case MagicFree:
+		return nil
+	case MagicPage:
+		return nil
+	default:
 		return ErrNotPage
 	}
-
-	return nil
 }
 
 func (m *Magic) read(r io.Reader) error {
