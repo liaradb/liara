@@ -127,6 +127,12 @@ func (b *Buffer) read(r io.ReaderAt) error {
 			return err
 		}
 		clear(b.buffer.Bytes()[n:])
+		// TODO: Test if page has been initialized
+		// if n == 0 {
+		// 	// TODO: Initialize page
+		// 	b.page.Reset(page.ZeroHeader{})
+		// 	return nil
+		// }
 	}
 
 	// TODO: Test this

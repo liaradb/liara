@@ -47,9 +47,17 @@ func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI f
 	return &Page[H, I]{
 		size:   size,
 		header: header,
-		list:   newList(header.Size()),
+		list:   newList(header.Size()), // TODO: Add magic space
 		newI:   newI,
 	}
+}
+
+// TODO: Test this
+func (p *Page[H, I]) Reset(h H) {
+	p.header = h
+	p.list.reset()
+	clear(p.items)
+	p.items = p.items[:0]
 }
 
 func (p *Page[H, I]) Add(i I) error {
@@ -122,10 +130,12 @@ func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 	return p.list.Write(w)
 }
 
+// TODO: Read Magic
 func (p *Page[H, I]) readHeader(r io.Reader) error {
 	return p.header.Read(r)
 }
 
+// TODO: Write Magic
 func (p *Page[H, I]) writeHeader(w io.Writer) error {
 	return p.header.Write(w)
 }
