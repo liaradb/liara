@@ -15,7 +15,7 @@ func TestList(t *testing.T) {
 	r, w := newReaderWriter()
 
 	l := List{}
-	var position Offset = 64
+	var position Offset = 68
 
 	position -= 2
 	if i, err := l.Add(position, 2); err != nil {
@@ -55,6 +55,7 @@ func TestList(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// TODO: Test [ListEntry.ID]
 	if !reflect.DeepEqual(l, l2) {
 		t.Errorf("incorrect value: %v, expected: %v", l2, l)
 	}

@@ -184,7 +184,7 @@ func TestEventLog_AppendEvent(t *testing.T) {
 
 func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 1, 44))
+	el := New(createStorage(t, 1, 48))
 	fn := path.Join(t.TempDir(), "testfile")
 
 	records := [][]byte{
