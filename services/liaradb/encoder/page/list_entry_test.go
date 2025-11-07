@@ -12,7 +12,7 @@ func TestListEntry(t *testing.T) {
 
 	crc := NewCRC([]byte{1, 2, 3, 4, 5})
 
-	var le = ListEntry{12345, 67890, crc}
+	var le = ListEntry{1, 12345, 67890, crc}
 	if err := le.Write(w); err != nil {
 		t.Fatal(err)
 	}

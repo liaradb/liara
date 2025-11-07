@@ -15,7 +15,7 @@ func TestList(t *testing.T) {
 	r, w := newReaderWriter()
 
 	l := List{}
-	var position Offset = 52
+	var position Offset = 64
 
 	position -= 2
 	if i, err := l.Add(position, 2); err != nil {

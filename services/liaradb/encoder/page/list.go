@@ -32,7 +32,8 @@ func (l *List) Add(offset Offset, length Offset) (int, error) {
 		return 0, raw.ErrInsufficientSpace
 	}
 
-	le := newListEntry(offset, length)
+	// TODO: Fix ID
+	le := newListEntry(0, offset, length)
 	l.entries = append(l.entries, le)
 	return len(l.entries) - 1, nil
 }
