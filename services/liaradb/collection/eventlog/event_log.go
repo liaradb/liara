@@ -71,7 +71,8 @@ func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []by
 
 	defer b.Release()
 
-	if err := b.Add(data); err != nil {
+	bp := storage.NewBufferPage(b)
+	if err := bp.Add(data); err != nil {
 		return storage.BlockID{}, err
 	}
 
@@ -86,7 +87,8 @@ func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 
 	defer b.Release()
 
-	if err := b.Add(data); err != nil {
+	bp := storage.NewBufferPage(b)
+	if err := bp.Add(data); err != nil {
 		return storage.BlockID{}, err
 	}
 

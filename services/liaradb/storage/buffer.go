@@ -2,37 +2,23 @@ package storage
 
 import (
 	"io"
-	"iter"
 	"sync"
 
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Buffer struct {
 	blockID BlockID
 	buffer  *raw.Buffer
-	page    *page.BytePage
 	status  BufferStatus
 	s       *Storage
 	pins    int
 	mux     sync.RWMutex
 }
 
-type BufferStatus int
-
-const (
-	BufferStatusUninitialized BufferStatus = iota
-	BufferStatusLoading
-	BufferStatusLoaded
-	BufferStatusDirty
-	BufferStatusCorrupt
-)
-
 func newBuffer(s *Storage) *Buffer {
 	return &Buffer{
 		buffer: raw.NewBuffer(s.BufferSize()),
-		page:   page.New(page.Offset(s.BufferSize())),
 		s:      s,
 	}
 }
@@ -46,6 +32,8 @@ func (b *Buffer) Latch()    { b.mux.Lock() }
 func (b *Buffer) Unlatch()  { b.mux.Unlock() }
 func (b *Buffer) RLatch()   { b.mux.RLock() }
 func (b *Buffer) RUnlatch() { b.mux.RUnlock() }
+
+func (b *Buffer) setDirty() { b.status = BufferStatusDirty }
 
 func (b *Buffer) pin() {
 	b.pins++
@@ -84,42 +72,6 @@ func (b *Buffer) load(bid BlockID) error {
 	return nil
 }
 
-// TODO: Do we need to clone the item?
-func (b *Buffer) Add(i []byte) error {
-	b.Latch()
-	defer b.Unlatch()
-
-	return b.add(i)
-}
-
-func (b *Buffer) add(i []byte) error {
-	if err := b.page.Add(page.NewItem(i)); err != nil {
-		return err
-	}
-
-	b.status = BufferStatusDirty
-	return nil
-}
-
-func (b *Buffer) Items() iter.Seq2[[]byte, error] {
-	b.RLatch()
-	defer b.RUnlatch()
-
-	// TODO: Is there a simpler way?
-	return func(yield func([]byte, error) bool) {
-		for i, err := range b.page.Items() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(i.Value(), nil) {
-				return
-			}
-		}
-	}
-}
-
 func (b *Buffer) read(r io.ReaderAt) error {
 	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
 	if err != nil {
@@ -136,19 +88,11 @@ func (b *Buffer) read(r io.ReaderAt) error {
 	}
 
 	// TODO: Test this
-	if _, err := b.buffer.Seek(0, io.SeekStart); err != nil {
-		return err
-	}
-
-	return b.page.Read(b.buffer)
+	_, err = b.buffer.Seek(0, io.SeekStart)
+	return err
 }
 
 func (b *Buffer) write(w io.WriterAt) error {
-	b.buffer.Clear()
-	if err := b.page.Write(b.buffer); err != nil {
-		return err
-	}
-
 	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
 	return err
 }
