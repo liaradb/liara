@@ -357,13 +357,13 @@ func (s *Storage) initHighwater(fileName string, f file.File) error {
 // TODO: Integrate this with Run
 func (s *Storage) FlushAll() error {
 	for _, b := range s.pinned {
-		if err := b.FlushIfDirty(); err != nil {
+		if err := b.flushIfDirty(); err != nil {
 			return err
 		}
 	}
 
 	for b := range s.unpinned.Iterate() {
-		if err := b.FlushIfDirty(); err != nil {
+		if err := b.flushIfDirty(); err != nil {
 			return err
 		}
 	}

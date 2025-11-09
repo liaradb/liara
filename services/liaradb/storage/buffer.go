@@ -101,6 +101,7 @@ func (b *Buffer) offset() int64 {
 	return b.blockID.Offset(b.buffer.Length()).Value()
 }
 
+// TODO: Do we need to latch?
 func (b *Buffer) Flush() error {
 	if !b.Dirty() {
 		// TODO: Do we need more specific errors?
@@ -116,7 +117,7 @@ func (b *Buffer) Flush() error {
 }
 
 // TODO: Test this
-func (b *Buffer) FlushIfDirty() error {
+func (b *Buffer) flushIfDirty() error {
 	if !b.Dirty() {
 		return nil
 	}
