@@ -170,8 +170,8 @@ func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[[]byte, error
 	}
 }
 
-func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Buffer, error] {
-	return func(yield func(*storage.Buffer, error) bool) {
+func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.BufferPage, error] {
+	return func(yield func(*storage.BufferPage, error) bool) {
 		highBid, err := l.storage.Highwater(ctx, fn)
 		if err != nil {
 			yield(nil, err)
@@ -190,7 +190,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Bu
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.Buffer, error) bool) (storage.Offset, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.BufferPage, error) bool) (storage.Offset, bool) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)
@@ -198,7 +198,7 @@ func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yie
 	}
 
 	defer b.Release()
-	if !yield(b, err) {
+	if !yield(storage.NewBufferPage(b), err) {
 		return bid.Position, false
 	}
 

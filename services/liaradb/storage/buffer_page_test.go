@@ -7,13 +7,13 @@ import (
 	"testing/synctest"
 )
 
-func TestBuffer(t *testing.T) {
+func TestBufferPage(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testBuffer)
+	synctest.Test(t, testBufferPage)
 }
 
-func testBuffer(t *testing.T) {
-	b := testCreateBuffer(t)
+func testBufferPage(t *testing.T) {
+	b := testCreateBufferPage(t)
 
 	if b.Dirty() {
 		t.Error("should not be dirty")
@@ -60,7 +60,7 @@ func testBuffer(t *testing.T) {
 	}
 }
 
-func testCreateBuffer(t *testing.T) *Buffer {
+func testCreateBufferPage(t *testing.T) *BufferPage {
 	b, err := createStorage(t, 2, 1024).
 		Request(t.Context(),
 			NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
@@ -68,5 +68,5 @@ func testCreateBuffer(t *testing.T) *Buffer {
 		t.Fatal(err)
 	}
 
-	return b
+	return NewBufferPage(b)
 }
