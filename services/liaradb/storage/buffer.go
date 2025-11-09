@@ -26,6 +26,7 @@ func newBuffer(s *Storage) *Buffer {
 func (b *Buffer) BlockID() BlockID { return b.blockID }
 func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int        { return b.pins }
+func (b *Buffer) Size() int64      { return b.s.BufferSize() }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }
@@ -128,4 +129,29 @@ func (b *Buffer) flushIfDirty() error {
 
 	b.status = BufferStatusLoaded
 	return nil
+}
+
+// TODO: Test this
+func (b *Buffer) Clear() {
+	b.buffer.Clear()
+}
+
+// TODO: Test this
+func (b *Buffer) Read(p []byte) (int, error) {
+	return b.buffer.Read(p)
+}
+
+// TODO: Test this
+func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
+	return b.buffer.Seek(offset, whence)
+}
+
+// TODO: Test this
+func (b *Buffer) Write(p []byte) (int, error) {
+	n, err := b.buffer.Write(p)
+	if n != 0 {
+		b.setDirty()
+	}
+
+	return n, err
 }

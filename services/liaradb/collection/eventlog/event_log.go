@@ -71,7 +71,7 @@ func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []by
 
 	defer b.Release()
 
-	bp := storage.NewBufferPage(b)
+	bp := NewBufferPage(b)
 	if err := bp.Add(data); err != nil {
 		return storage.BlockID{}, err
 	}
@@ -87,7 +87,7 @@ func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 
 	defer b.Release()
 
-	bp := storage.NewBufferPage(b)
+	bp := NewBufferPage(b)
 	if err := bp.Add(data); err != nil {
 		return storage.BlockID{}, err
 	}
@@ -172,8 +172,8 @@ func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[[]byte, error
 	}
 }
 
-func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.BufferPage, error] {
-	return func(yield func(*storage.BufferPage, error) bool) {
+func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage, error] {
+	return func(yield func(*BufferPage, error) bool) {
 		highBid, err := l.storage.Highwater(ctx, fn)
 		if err != nil {
 			yield(nil, err)
@@ -192,7 +192,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*storage.Bu
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*storage.BufferPage, error) bool) (storage.Offset, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*BufferPage, error) bool) (storage.Offset, bool) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)
@@ -200,7 +200,7 @@ func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yie
 	}
 
 	defer b.Release()
-	if !yield(storage.NewBufferPage(b), err) {
+	if !yield(NewBufferPage(b), err) {
 		return bid.Position, false
 	}
 

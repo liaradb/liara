@@ -95,8 +95,7 @@ func TestStorage_Pinned(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	bp := NewBufferPage(b)
-	if err := bp.Add([]byte{1}); err != nil {
+	if _, err := b.Write([]byte{1}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -157,8 +156,7 @@ func testStorage_Flush(t *testing.T) {
 		t.Error("should be cancelled")
 	}
 
-	bp := NewBufferPage(b1)
-	if err := bp.Add([]byte{1, 2}); err != nil {
+	if _, err := b1.Write([]byte{1, 2}); err != nil {
 		t.Fatal(err)
 	}
 

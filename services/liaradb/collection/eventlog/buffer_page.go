@@ -1,29 +1,30 @@
-package storage
+package eventlog
 
 import (
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/storage"
 )
 
 type BufferPage struct {
-	buffer *Buffer
+	buffer *storage.Buffer
 	page   *page.BytePage
 }
 
-func NewBufferPage(b *Buffer) *BufferPage {
+func NewBufferPage(b *storage.Buffer) *BufferPage {
 	return &BufferPage{
 		buffer: b,
-		page:   page.New(page.Offset(b.s.BufferSize())), // TODO: Find a better way to get size
+		page:   page.New(page.Offset(b.Size())), // TODO: Find a better way to get size
 	}
 }
 
-func (b *BufferPage) BlockID() BlockID { return b.buffer.BlockID() }
-func (b *BufferPage) Dirty() bool      { return b.buffer.Dirty() }
-func (b *BufferPage) Pins() int        { return b.buffer.Pins() }
-func (b *BufferPage) Flush() error     { return b.buffer.Flush() }
-func (b *BufferPage) Release()         { b.buffer.Release() }
+func (b *BufferPage) BlockID() storage.BlockID { return b.buffer.BlockID() }
+func (b *BufferPage) Dirty() bool              { return b.buffer.Dirty() }
+func (b *BufferPage) Pins() int                { return b.buffer.Pins() }
+func (b *BufferPage) Flush() error             { return b.buffer.Flush() }
+func (b *BufferPage) Release()                 { b.buffer.Release() }
 
 // TODO: Do we need to clone the item?
 func (b *BufferPage) Add(i []byte) error {
@@ -75,20 +76,19 @@ func (b *BufferPage) Items() iter.Seq2[[]byte, error] {
 
 // TODO: Don't access buffer.buffer directly
 func (b *BufferPage) Unpack() error {
-	if _, err := b.buffer.buffer.Seek(0, io.SeekStart); err != nil {
+	if _, err := b.buffer.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
 
-	return b.page.Read(b.buffer.buffer)
+	return b.page.Read(b.buffer)
 }
 
 // TODO: Don't access buffer.buffer directly
 func (b *BufferPage) Pack() error {
-	b.buffer.buffer.Clear()
-	if err := b.page.Write(b.buffer.buffer); err != nil {
+	b.buffer.Clear()
+	if err := b.page.Write(b.buffer); err != nil {
 		return err
 	}
 
-	b.buffer.setDirty()
 	return nil
 }

@@ -1,10 +1,12 @@
-package storage
+package eventlog
 
 import (
 	"path"
 	"slices"
 	"testing"
 	"testing/synctest"
+
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestBufferPage(t *testing.T) {
@@ -61,9 +63,9 @@ func testBufferPage(t *testing.T) {
 }
 
 func testCreateBufferPage(t *testing.T) *BufferPage {
-	b, err := createStorage(t, 2, 1024).
-		Request(t.Context(),
-			NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
+	s := createStorage(t, 2, 1024)
+	b, err := s.Request(t.Context(),
+		storage.NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
 	if err != nil {
 		t.Fatal(err)
 	}
