@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
 	"io"
 	"path"
 
@@ -107,7 +106,7 @@ func (s *Storage) getBufferID(v bufferQuery) (BlockID, error) {
 		s.incrementHighWater(v.fileName)
 		return s.highBlockID(v.fileName), nil
 	default:
-		return BlockID{}, errors.New("invalid request")
+		return BlockID{}, ErrInvalidRequest
 	}
 }
 

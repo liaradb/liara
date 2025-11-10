@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"errors"
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -106,7 +106,7 @@ func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*enti
 		}
 	}
 
-	return nil, errors.New("not found")
+	return nil, page.ErrNotFound
 }
 
 func (l *EventLog) GetAggregate(ctx context.Context, fn string, id value.AggregateID) iter.Seq2[*entity.Event, error] {
