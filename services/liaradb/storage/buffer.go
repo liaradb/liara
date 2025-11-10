@@ -134,6 +134,7 @@ func (b *Buffer) flushIfDirty() error {
 // TODO: Test this
 func (b *Buffer) Clear() {
 	b.buffer.Clear()
+	b.status = BufferStatusUninitialized
 }
 
 // TODO: Test this
