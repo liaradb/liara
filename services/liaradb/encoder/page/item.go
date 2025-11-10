@@ -10,6 +10,7 @@ type Item struct {
 }
 
 func NewItem(data []byte) *Item {
+	// TODO: Do we need to clone the item?
 	return &Item{data}
 }
 

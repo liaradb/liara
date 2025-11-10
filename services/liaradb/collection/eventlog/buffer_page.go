@@ -16,7 +16,7 @@ type BufferPage struct {
 func NewBufferPage(b *storage.Buffer) *BufferPage {
 	return &BufferPage{
 		buffer: b,
-		page:   page.New(page.Offset(b.Size())), // TODO: Find a better way to get size
+		page:   page.New(page.Offset(b.Size())),
 	}
 }
 
@@ -26,12 +26,11 @@ func (b *BufferPage) Pins() int                { return b.buffer.Pins() }
 func (b *BufferPage) Flush() error             { return b.buffer.Flush() }
 func (b *BufferPage) Release()                 { b.buffer.Release() }
 
-// TODO: Do we need to clone the item?
 func (b *BufferPage) Add(i []byte) error {
 	b.buffer.Latch()
 	defer b.buffer.Unlatch()
 
-	if err := b.Unpack(); err != nil {
+	if err := b.unpack(); err != nil {
 		return err
 	}
 
@@ -39,15 +38,11 @@ func (b *BufferPage) Add(i []byte) error {
 		return err
 	}
 
-	return b.Pack()
+	return b.pack()
 }
 
 func (b *BufferPage) add(i []byte) error {
-	if err := b.page.Add(page.NewItem(i)); err != nil {
-		return err
-	}
-
-	return nil
+	return b.page.Add(page.NewItem(i))
 }
 
 func (b *BufferPage) Items() iter.Seq2[[]byte, error] {
@@ -56,7 +51,7 @@ func (b *BufferPage) Items() iter.Seq2[[]byte, error] {
 
 	// TODO: Is there a simpler way?
 	return func(yield func([]byte, error) bool) {
-		if err := b.Unpack(); err != nil {
+		if err := b.unpack(); err != nil {
 			yield(nil, err)
 			return
 		}
@@ -74,8 +69,7 @@ func (b *BufferPage) Items() iter.Seq2[[]byte, error] {
 	}
 }
 
-// TODO: Don't access buffer.buffer directly
-func (b *BufferPage) Unpack() error {
+func (b *BufferPage) unpack() error {
 	if _, err := b.buffer.Seek(0, io.SeekStart); err != nil {
 		return err
 	}
@@ -83,8 +77,7 @@ func (b *BufferPage) Unpack() error {
 	return b.page.Read(b.buffer)
 }
 
-// TODO: Don't access buffer.buffer directly
-func (b *BufferPage) Pack() error {
+func (b *BufferPage) pack() error {
 	b.buffer.Clear()
 	if err := b.page.Write(b.buffer); err != nil {
 		return err
