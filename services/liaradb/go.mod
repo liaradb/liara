@@ -10,7 +10,7 @@ require (
 	github.com/cardboardrobots/config v0.0.0
 	github.com/cardboardrobots/errormap v0.0.0
 	github.com/google/uuid v1.6.0
-	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/liaradb/eventsource_go v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
