@@ -62,15 +62,17 @@ func (p *Page[H, I]) Reset(h H) {
 	p.items = p.items[:0]
 }
 
-func (p *Page[H, I]) Add(i I) error {
+// TODO: Test offset return
+func (p *Page[H, I]) Add(i I) (Offset, error) {
 	l := i.Size()
-	if _, err := p.list.Add(p.nextCursor(l), Offset(l)); err != nil {
+	offset, err := p.list.Add(p.nextCursor(l), Offset(l))
+	if err != nil {
 		// TODO: Test this
-		return err
+		return 0, err
 	}
 
 	p.items = append(p.items, i)
-	return nil
+	return offset, nil
 }
 
 func (p *Page[H, I]) nextCursor(l int) Offset {

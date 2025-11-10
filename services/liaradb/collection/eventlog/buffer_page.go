@@ -26,22 +26,27 @@ func (b *BufferPage) Pins() int                { return b.buffer.Pins() }
 func (b *BufferPage) Flush() error             { return b.buffer.Flush() }
 func (b *BufferPage) Release()                 { b.buffer.Release() }
 
-func (b *BufferPage) Add(i []byte) error {
+func (b *BufferPage) Add(i []byte) (page.Offset, error) {
 	b.buffer.Latch()
 	defer b.buffer.Unlatch()
 
 	if err := b.unpack(); err != nil {
-		return err
+		return 0, err
 	}
 
-	if err := b.add(i); err != nil {
-		return err
+	offset, err := b.add(i)
+	if err != nil {
+		return 0, err
 	}
 
-	return b.pack()
+	if err := b.pack(); err != nil {
+		return 0, err
+	}
+
+	return offset, nil
 }
 
-func (b *BufferPage) add(i []byte) error {
+func (b *BufferPage) add(i []byte) (page.Offset, error) {
 	return b.page.Add(page.NewItem(i))
 }
 

@@ -27,16 +27,17 @@ func (l List) reset() {
 	l.entries = l.entries[:0]
 }
 
-func (l *List) Add(offset Offset, length Offset) (int, error) {
+func (l *List) Add(offset Offset, length Offset) (Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, raw.ErrInsufficientSpace
 	}
 
-	le := newListEntry(l.highWater, offset, length)
+	id := l.highWater
+	le := newListEntry(id, offset, length)
 	l.highWater++
 	l.entries = append(l.entries, le)
-	return len(l.entries) - 1, nil
+	return id, nil
 }
 
 func (l List) space() int {

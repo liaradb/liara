@@ -23,8 +23,10 @@ func testBufferPage(t *testing.T) {
 
 	want := [][]byte{{1, 2, 3, 4, 5}}
 
-	if err := b.Add(want[0]); err != nil {
+	if offset, err := b.Add(want[0]); err != nil {
 		t.Fatal(err)
+	} else if offset != 0 {
+		t.Errorf("incorrect offset: %v, expected: %v", offset, 0)
 	}
 
 	if !b.Dirty() {

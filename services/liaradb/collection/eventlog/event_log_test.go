@@ -46,7 +46,7 @@ func testEventLog_Append(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, fn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -101,7 +101,7 @@ func testEventLog_Find(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, fn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -153,7 +153,7 @@ func testEventLog_GetAggregate(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, fn, r); err != nil {
 			t.Fatal(err)
 		}
 	}

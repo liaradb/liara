@@ -32,27 +32,27 @@ func New(
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) error {
+func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) (storage.RecordID, error) {
 	if err := e.Write(l.buffer); err != nil {
-		return err
+		return storage.RecordID{}, err
 	}
 
-	_, err := l.AppendEvent(ctx, fileName, l.reader)
+	rid, err := l.AppendEvent(ctx, fileName, l.reader)
 	if err != nil {
-		return err
+		return storage.RecordID{}, err
 	}
 
 	l.buffer.Reset()
-	return nil
+	return rid, nil
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reader) (storage.BlockID, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reader) (storage.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	n, err := rd.Read(data)
 	if err != nil && err != io.EOF {
-		return storage.BlockID{}, err
+		return storage.RecordID{}, err
 	}
 
 	bid, err := l.appendCurrent(ctx, fileName, data[:n])
@@ -63,36 +63,40 @@ func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reade
 	return bid, err
 }
 
-func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []byte) (storage.BlockID, error) {
+func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []byte) (storage.RecordID, error) {
 	b, err := l.storage.RequestCurrent(ctx, fileName)
 	if err != nil {
-		return storage.BlockID{}, err
+		return storage.RecordID{}, err
 	}
 
 	defer b.Release()
 
 	bp := NewBufferPage(b)
-	if err := bp.Add(data); err != nil {
-		return storage.BlockID{}, err
+	offset, err := bp.Add(data)
+	if err != nil {
+		return storage.RecordID{}, err
 	}
 
-	return b.BlockID(), nil
+	// TODO: Fix this type
+	return b.BlockID().RecordID(storage.Offset(offset)), nil
 }
 
-func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (storage.BlockID, error) {
+func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (storage.RecordID, error) {
 	b, err := l.storage.RequestNext(ctx, fileName)
 	if err != nil {
-		return storage.BlockID{}, err
+		return storage.RecordID{}, err
 	}
 
 	defer b.Release()
 
 	bp := NewBufferPage(b)
-	if err := bp.Add(data); err != nil {
-		return storage.BlockID{}, err
+	offset, err := bp.Add(data)
+	if err != nil {
+		return storage.RecordID{}, err
 	}
 
-	return b.BlockID(), nil
+	// TODO: Fix this type
+	return b.BlockID().RecordID(storage.Offset(offset)), nil
 }
 
 func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*entity.Event, error) {
