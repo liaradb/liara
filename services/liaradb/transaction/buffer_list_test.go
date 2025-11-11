@@ -14,7 +14,7 @@ func TestBufferList(t *testing.T) {
 }
 
 func testBufferList(t *testing.T) {
-	fsys := filetesting.NewDiskFileSystem(t)
+	fsys := filetesting.NewMockFileSystem(t, nil)
 	s := storage.New(fsys, 2, 1024, t.TempDir())
 	bl := NewBufferList(s)
 
