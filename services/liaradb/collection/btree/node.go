@@ -1,12 +1,10 @@
 package btree
 
 import (
-	"cmp"
-
 	"github.com/liaradb/liaradb/storage"
 )
 
-type node[K cmp.Ordered, V any] interface {
+type node[K Key, V any] interface {
 	key() K
 	children() []pair[K, V]
 	parentID() storage.BlockID
@@ -14,12 +12,12 @@ type node[K cmp.Ordered, V any] interface {
 	leftID() storage.BlockID
 }
 
-type pair[K cmp.Ordered, V any] interface {
+type pair[K Key, V any] interface {
 	key() K
 	value() V
 }
 
-type BaseNode[K cmp.Ordered, V any] struct {
+type BaseNode[K Key, V any] struct {
 	b   *storage.Buffer
 	k   K
 	pID storage.BlockID

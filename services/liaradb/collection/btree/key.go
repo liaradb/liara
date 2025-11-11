@@ -1,12 +1,7 @@
 package btree
 
-import (
-	"cmp"
+import "github.com/liaradb/liaradb/encoder/raw"
 
-	"github.com/liaradb/liaradb/encoder/page"
-)
-
-type Key interface {
-	cmp.Ordered
-	page.Serializer
+type Key struct {
+	raw.BaseString
 }

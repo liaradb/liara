@@ -1,18 +1,17 @@
 package btree
 
 import (
-	"cmp"
 	"context"
 
 	"github.com/liaradb/liaradb/storage"
 )
 
-type TreeCursor[K cmp.Ordered, V any] struct {
+type TreeCursor[K Key, V any] struct {
 	s       storage.Storage
 	current node[K, V]
 }
 
-func NewTreeCursor[K cmp.Ordered, V any](s storage.Storage) *TreeCursor[K, V] {
+func NewTreeCursor[K Key, V any](s storage.Storage) *TreeCursor[K, V] {
 	return &TreeCursor[K, V]{
 		s: s,
 	}

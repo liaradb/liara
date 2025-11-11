@@ -1,17 +1,16 @@
 package btree
 
 import (
-	"cmp"
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
-type nodeItem[K cmp.Ordered, V any] struct {
+type nodeItem[K Key, V any] struct {
 	node[K, V]
 }
 
-var _ page.ItemSerializer = (*nodeItem[int, int])(nil)
+var _ page.ItemSerializer = (*nodeItem[Key, int])(nil)
 
 func (n *nodeItem[K, V]) Read(io.Reader, page.CRC) error {
 	return nil
