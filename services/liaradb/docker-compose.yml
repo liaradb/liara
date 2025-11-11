@@ -1,0 +1,13 @@
+services:
+  liaradb:
+    ports:
+      - 50055:50055
+    image: liaradb
+    build:
+      dockerfile: Dockerfile
+      context: .
+      additional_contexts:
+        modules: ../../modules
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./.dbdata:/app/.dbdata
