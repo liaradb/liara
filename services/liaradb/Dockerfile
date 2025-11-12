@@ -1,14 +1,14 @@
 FROM golang:1.25.4-alpine AS build
 
 WORKDIR /build/modules/eventsource_go
-COPY --from=modules eventsource_go/go.mod eventsource_go/go.sum ./
+COPY --from=eventsource_go go.mod go.sum ./
 
 WORKDIR /build/services/liaradb
 COPY go.mod go.sum ./
 RUN go mod download
 
 WORKDIR /build/modules/eventsource_go
-COPY --from=modules ./eventsource_go .
+COPY --from=eventsource_go . .
 
 WORKDIR /build/services/liaradb
 COPY . .
