@@ -12,11 +12,18 @@ const (
 )
 
 type List struct {
+	size int32
 	data []byte
 }
 
 func New(data []byte) *List {
+	var size int32
+	if len(data) >= 4 {
+		size = int32(binary.BigEndian.Uint32(data))
+	}
+
 	return &List{
+		size: size,
 		data: data,
 	}
 }
@@ -26,15 +33,16 @@ func (l *List) Length() int {
 }
 
 func (l *List) Size() int32 {
-	if l.Length() < 4 {
-		return 0
-	}
-
-	return int32(binary.BigEndian.Uint32(l.data))
+	return l.size
 }
 
-func (l *List) setSize(value int32) {
-	binary.BigEndian.PutUint32(l.data, uint32(value))
+func (l *List) setSize(size int32) {
+	if l.Length() < 4 {
+		return
+	}
+
+	l.size = size
+	binary.BigEndian.PutUint32(l.data, uint32(size))
 }
 
 func (l *List) value(offset int32) (int32, bool) {
