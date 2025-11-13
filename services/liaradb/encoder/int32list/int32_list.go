@@ -1,4 +1,4 @@
-package list
+package int32list
 
 import "encoding/binary"
 
