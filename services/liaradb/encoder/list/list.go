@@ -28,7 +28,7 @@ func getInt32(data []byte, offset int32) int32 {
 		return 0
 	}
 
-	return int32(binary.BigEndian.Uint32(data[4:]))
+	return int32(binary.BigEndian.Uint32(data[offset:]))
 }
 
 func setInt32(data []byte, offset int32, value int32) bool {
