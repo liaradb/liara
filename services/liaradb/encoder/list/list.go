@@ -10,10 +10,10 @@ type List struct {
 	list int32list.Int32List
 }
 
-func New(data []byte) *List {
+func New(data []byte) List {
 	l := int32list.New(data)
 	size, _ := l.Get(0)
-	return &List{
+	return List{
 		size: size,
 		list: l,
 	}
