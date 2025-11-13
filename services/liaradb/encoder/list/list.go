@@ -2,7 +2,6 @@ package list
 
 import (
 	"github.com/liaradb/liaradb/encoder/int32list"
-	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type List struct {
@@ -37,27 +36,27 @@ func (l *List) Item(index int32) (int32, bool) {
 	return l.list.Get(index + 1)
 }
 
-func (l *List) Pop() (int32, error) {
+func (l *List) Pop() (int32, bool) {
 	size := l.Size()
 	if size < 1 {
-		return 0, raw.ErrUnderflow
+		return 0, false
 	}
 
 	v, ok := l.list.Get(size)
 	if !ok {
-		return 0, raw.ErrUnderflow
+		return 0, false
 	}
 
 	l.setSize(size - 1)
-	return v, nil
+	return v, true
 }
 
-func (l *List) Push(value int32) (int32, error) {
+func (l *List) Push(value int32) (int32, bool) {
 	size := l.Size()
 	if !l.list.Set(size+1, value) {
-		return 0, raw.ErrInsufficientSpace
+		return 0, false
 	}
 
 	l.setSize(size + 1)
-	return size, nil
+	return size, true
 }

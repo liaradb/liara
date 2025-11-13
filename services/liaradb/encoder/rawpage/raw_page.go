@@ -20,9 +20,19 @@ func New(data []byte) RawPage {
 	}
 }
 
-func (p RawPage) Append(size int32) (*raw.Buffer, bool) {
+func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
 	offset := p.length() - size
-	return p.byteList.Slice(int64(offset), int64(size))
+	i, ok := p.list.Push(offset)
+	if !ok {
+		return 0, nil, false
+	}
+
+	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	if !ok {
+		return 0, nil, false
+	}
+
+	return i, b, true
 }
 
 func (p RawPage) length() int32 {
