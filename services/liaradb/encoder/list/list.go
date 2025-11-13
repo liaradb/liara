@@ -37,12 +37,27 @@ func (l *List) Item(index int32) (int32, bool) {
 	return l.list.Get(index + 1)
 }
 
-func (l *List) Append(value int32) (int, error) {
+func (l *List) Pop() (int32, error) {
+	size := l.Size()
+	if size < 1 {
+		return 0, raw.ErrUnderflow
+	}
+
+	v, ok := l.list.Get(size)
+	if !ok {
+		return 0, raw.ErrUnderflow
+	}
+
+	l.setSize(size - 1)
+	return v, nil
+}
+
+func (l *List) Push(value int32) (int32, error) {
 	size := l.Size()
 	if !l.list.Set(size+1, value) {
 		return 0, raw.ErrInsufficientSpace
 	}
 
 	l.setSize(size + 1)
-	return int(size), nil
+	return size, nil
 }
