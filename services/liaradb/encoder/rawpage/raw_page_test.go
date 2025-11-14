@@ -79,3 +79,23 @@ func TestRawPage(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
 	}
 }
+
+func TestRawPage_Space(t *testing.T) {
+	p := New(make([]byte, 28))
+
+	if s := p.Space(); s != 20 {
+		t.Errorf("incorrect space: %v, expected: %v", s, 20)
+	}
+
+	if _, _, ok := p.Append(16); !ok {
+		t.Error("should get a buffer")
+	}
+
+	if s := p.Space(); s != 0 {
+		t.Errorf("incorrect space: %v, expected: %v", s, 0)
+	}
+
+	if _, _, ok := p.Append(16); ok {
+		t.Error("should not get a buffer")
+	}
+}
