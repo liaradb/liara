@@ -21,11 +21,13 @@ func New(data []byte) RawPage {
 }
 
 func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
-	offset := p.length() - size
+	offset := p.length() - size - p.list.Next()
 	i, ok := p.list.Push(offset)
 	if !ok {
 		return 0, nil, false
 	}
+
+	p.list.SetNext(offset)
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok {

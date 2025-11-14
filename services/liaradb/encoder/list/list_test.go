@@ -95,3 +95,19 @@ func TestList_Pop(t *testing.T) {
 		t.Error("should not pop beyond empty")
 	}
 }
+
+func TestList_Next(t *testing.T) {
+	t.Run("default data", func(t *testing.T) {
+		l := New(make([]byte, 16))
+
+		if n := l.Next(); n != 0 {
+			t.Errorf("incorrect next: %v, expected: %v", n, 0)
+		}
+
+		l.SetNext(10)
+
+		if n := l.Next(); n != 10 {
+			t.Errorf("incorrect next: %v, expected: %v", n, 10)
+		}
+	})
+}

@@ -4,16 +4,23 @@ import (
 	"github.com/liaradb/liaradb/encoder/int32list"
 )
 
+const (
+	headerSize = 2
+)
+
 type List struct {
 	size int32
+	next int32
 	list int32list.Int32List
 }
 
 func New(data []byte) List {
 	l := int32list.New(data)
 	size, _ := l.Get(0)
+	next, _ := l.Get(1)
 	return List{
 		size: size,
+		next: next,
 		list: l,
 	}
 }
@@ -32,8 +39,18 @@ func (l *List) setSize(size int32) {
 	}
 }
 
+func (l *List) Next() int32 {
+	return l.next
+}
+
+func (l *List) SetNext(next int32) {
+	if l.list.Set(1, next) {
+		l.next = next
+	}
+}
+
 func (l *List) Item(index int32) (int32, bool) {
-	return l.list.Get(index + 1)
+	return l.list.Get(index + headerSize)
 }
 
 func (l *List) Pop() (int32, bool) {
@@ -42,7 +59,7 @@ func (l *List) Pop() (int32, bool) {
 		return 0, false
 	}
 
-	v, ok := l.list.Get(size)
+	v, ok := l.list.Get(size + (headerSize - 1))
 	if !ok {
 		return 0, false
 	}
@@ -53,7 +70,7 @@ func (l *List) Pop() (int32, bool) {
 
 func (l *List) Push(value int32) (int32, bool) {
 	size := l.Size()
-	if !l.list.Set(size+1, value) {
+	if !l.list.Set(size+headerSize, value) {
 		return 0, false
 	}
 
