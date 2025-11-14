@@ -46,10 +46,10 @@ func (p RawPage) Length() int32 {
 }
 
 func (p RawPage) Space() int32 {
-	return p.list.Next() - p.list.Size()
+	return max(p.list.Next()-p.list.Size()-4, 0)
 }
 
 func (p RawPage) hasSpace(size int32) bool {
 	s := p.Space()
-	return size+4 <= s
+	return size <= s
 }

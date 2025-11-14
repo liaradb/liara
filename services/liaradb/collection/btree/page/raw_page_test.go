@@ -12,11 +12,17 @@ const (
 )
 
 func TestRawPage(t *testing.T) {
-	p := New(make([]byte, 256))
+	const (
+		size int32 = 256
+		s0         = size - headerSize - itemSize
+		s1         = s0 - itemSize - 16
+		s2         = s1 - itemSize - 16
+	)
+
+	p := New(make([]byte, size))
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
-	s0 := p.Length() - headerSize
 	if s := p.Space(); s != s0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, s0)
 	}
@@ -28,7 +34,6 @@ func TestRawPage(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	s1 := s0 - itemSize - 16
 	if s := p.Space(); s != s1 {
 		t.Errorf("incorrect space: %v, expected: %v", s, s1)
 	}
@@ -44,7 +49,6 @@ func TestRawPage(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	s2 := s1 - itemSize - 16
 	if s := p.Space(); s != s2 {
 		t.Errorf("incorrect space: %v, expected: %v", s, s2)
 	}
@@ -83,8 +87,8 @@ func TestRawPage(t *testing.T) {
 func TestRawPage_Space(t *testing.T) {
 	p := New(make([]byte, 28))
 
-	if s := p.Space(); s != 20 {
-		t.Errorf("incorrect space: %v, expected: %v", s, 20)
+	if s := p.Space(); s != 16 {
+		t.Errorf("incorrect space: %v, expected: %v", s, 16)
 	}
 
 	if _, _, ok := p.Append(16); !ok {
