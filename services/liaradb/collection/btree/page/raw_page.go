@@ -1,4 +1,4 @@
-package rawpage
+package page
 
 import (
 	"github.com/liaradb/liaradb/encoder/bytelist"
