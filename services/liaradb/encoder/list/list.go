@@ -6,6 +6,7 @@ import (
 
 const (
 	headerSize = 2
+	itemSize   = 4
 )
 
 type List struct {
@@ -17,7 +18,14 @@ type List struct {
 func New(data []byte) List {
 	l := int32list.New(data)
 	size, _ := l.Get(0)
-	next, _ := l.Get(1)
+
+	var next int32
+	if size == 0 {
+		next = int32(len(data))
+	} else {
+		next, _ = l.Get(1)
+	}
+
 	return List{
 		size: size,
 		next: next,
@@ -30,6 +38,10 @@ func (l *List) Length() int {
 }
 
 func (l *List) Size() int32 {
+	return (headerSize + l.Count()) * itemSize
+}
+
+func (l *List) Count() int32 {
 	return l.size
 }
 
@@ -54,7 +66,7 @@ func (l *List) Item(index int32) (int32, bool) {
 }
 
 func (l *List) Pop() (int32, bool) {
-	size := l.Size()
+	size := l.Count()
 	if size < 1 {
 		return 0, false
 	}
@@ -69,7 +81,7 @@ func (l *List) Pop() (int32, bool) {
 }
 
 func (l *List) Push(value int32) (int32, bool) {
-	size := l.Size()
+	size := l.Count()
 	if !l.list.Set(size+headerSize, value) {
 		return 0, false
 	}

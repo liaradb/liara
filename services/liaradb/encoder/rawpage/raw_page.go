@@ -21,7 +21,7 @@ func New(data []byte) RawPage {
 }
 
 func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
-	offset := p.length() - size - p.list.Next()
+	offset := p.list.Next() - size
 	i, ok := p.list.Push(offset)
 	if !ok {
 		return 0, nil, false
@@ -37,6 +37,10 @@ func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
 	return i, b, true
 }
 
-func (p RawPage) length() int32 {
+func (p RawPage) Length() int32 {
 	return int32(len(p.data))
+}
+
+func (p RawPage) Space() int32 {
+	return p.list.Next() - p.list.Size()
 }

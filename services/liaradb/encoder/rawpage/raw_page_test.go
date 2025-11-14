@@ -6,16 +6,31 @@ import (
 	"testing"
 )
 
+const (
+	headerSize = 8
+	itemSize   = 4
+)
+
 func TestRawPage(t *testing.T) {
 	p := New(make([]byte, 256))
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
+
+	s0 := p.Length() - headerSize
+	if s := p.Space(); s != s0 {
+		t.Errorf("incorrect space: %v, expected: %v", s, s0)
+	}
 
 	i, b0, ok := p.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	}
+
+	s1 := s0 - itemSize - 16
+	if s := p.Space(); s != s1 {
+		t.Errorf("incorrect space: %v, expected: %v", s, s1)
 	}
 
 	if _, err := b0.Write(v0); err != nil {
@@ -27,6 +42,11 @@ func TestRawPage(t *testing.T) {
 		t.Error("should get a buffer")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
+	}
+
+	s2 := s1 - itemSize - 16
+	if s := p.Space(); s != s2 {
+		t.Errorf("incorrect space: %v, expected: %v", s, s2)
 	}
 
 	if _, err := b1.Write(v1); err != nil {
