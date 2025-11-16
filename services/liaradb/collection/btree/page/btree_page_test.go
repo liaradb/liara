@@ -108,6 +108,20 @@ func TestBTreePage_Space(t *testing.T) {
 	}
 }
 
+func TestBTreePage_Level(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, headerSize))
+	if l := p.Level(); l != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	}
+
+	p.SetLevel(1)
+	if l := p.Level(); l != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	}
+}
+
 func TestBTreePage_ParentID(t *testing.T) {
 	t.Parallel()
 
