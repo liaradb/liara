@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	headerSize = 8 + BTreePageHeaderSize
+	headerSize = 8 + btreePageHeaderSize
 	itemSize   = 4
 )
 
@@ -105,75 +105,5 @@ func TestBTreePage_Space(t *testing.T) {
 
 	if _, _, ok := p.Append(16); ok {
 		t.Error("should not get a buffer")
-	}
-}
-
-func TestBTreePage_Level(t *testing.T) {
-	t.Parallel()
-
-	p := New(make([]byte, headerSize))
-	if l := p.Level(); l != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
-	}
-
-	p.SetLevel(1)
-	if l := p.Level(); l != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
-	}
-}
-
-func TestBTreePage_ParentID(t *testing.T) {
-	t.Parallel()
-
-	p := New(make([]byte, headerSize))
-	if id := p.ParentID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
-	}
-
-	p.SetParentID(1)
-	if id := p.ParentID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
-	}
-}
-
-func TestBTreePage_PrevID(t *testing.T) {
-	t.Parallel()
-
-	p := New(make([]byte, headerSize))
-	if id := p.PrevID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
-	}
-
-	p.SetPrevID(1)
-	if id := p.PrevID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
-	}
-}
-
-func TestBTreePage_NextID(t *testing.T) {
-	t.Parallel()
-
-	p := New(make([]byte, headerSize))
-	if id := p.NextID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
-	}
-
-	p.SetNextID(1)
-	if id := p.NextID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
-	}
-}
-
-func TestBTreePage_LowID(t *testing.T) {
-	t.Parallel()
-
-	p := New(make([]byte, headerSize))
-	if id := p.LowID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
-	}
-
-	p.SetLowID(1)
-	if id := p.LowID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
 	}
 }
