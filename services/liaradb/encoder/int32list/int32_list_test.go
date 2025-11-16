@@ -17,7 +17,11 @@ func TestInt32List_Default(t *testing.T) {
 }
 
 func TestList_GetSet(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should set and get", func(t *testing.T) {
+		t.Parallel()
+
 		l := New(make([]byte, 16))
 
 		if length := l.Length(); length != 16 {

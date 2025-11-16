@@ -12,6 +12,8 @@ const (
 )
 
 func TestRawPage(t *testing.T) {
+	t.Parallel()
+
 	const (
 		size int32 = 256
 		s0         = size - headerSize - itemSize
@@ -85,6 +87,8 @@ func TestRawPage(t *testing.T) {
 }
 
 func TestRawPage_Space(t *testing.T) {
+	t.Parallel()
+
 	p := New(make([]byte, 28))
 
 	if s := p.Space(); s != 16 {

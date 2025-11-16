@@ -5,74 +5,76 @@ import (
 )
 
 func TestList_Default(t *testing.T) {
-	t.Run("default data", func(t *testing.T) {
-		l := New([]byte{})
+	t.Parallel()
 
-		if length := l.Length(); length != 0 {
-			t.Errorf("incorrect length: %v, expected: %v", length, 0)
-		}
+	l := New([]byte{})
 
-		if s := l.Size(); s != 8 {
-			t.Errorf("incorrect size: %v, expected: %v", s, 8)
-		}
+	if length := l.Length(); length != 0 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 0)
+	}
 
-		if c := l.Count(); c != 0 {
-			t.Errorf("incorrect count: %v, expected: %v", c, 0)
-		}
-	})
+	if s := l.Size(); s != 8 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	}
+
+	if c := l.Count(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
 }
 
 func TestList_Push(t *testing.T) {
-	t.Run("should push", func(t *testing.T) {
-		l := New(make([]byte, 16))
+	t.Parallel()
 
-		if length := l.Length(); length != 16 {
-			t.Errorf("incorrect length: %v, expected: %v", length, 16)
-		}
+	l := New(make([]byte, 16))
 
-		if i, ok := l.Push(1); !ok {
-			t.Error("should push")
-		} else if i != 0 {
-			t.Errorf("incorrect index: %v, expected: %v", i, 0)
-		}
+	if length := l.Length(); length != 16 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	}
 
-		if s := l.Size(); s != 12 {
-			t.Errorf("incorrect size: %v, expected: %v", s, 8)
-		}
+	if i, ok := l.Push(1); !ok {
+		t.Error("should push")
+	} else if i != 0 {
+		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	}
 
-		if c := l.Count(); c != 1 {
-			t.Errorf("incorrect count: %v, expected: %v", c, 1)
-		}
+	if s := l.Size(); s != 12 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	}
 
-		if i, ok := l.Push(2); !ok {
-			t.Error("should push")
-		} else if i != 1 {
-			t.Errorf("incorrect index: %v, expected: %v", i, 0)
-		}
+	if c := l.Count(); c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
 
-		if s := l.Size(); s != 16 {
-			t.Errorf("incorrect size: %v, expected: %v", s, 8)
-		}
+	if i, ok := l.Push(2); !ok {
+		t.Error("should push")
+	} else if i != 1 {
+		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	}
 
-		if c := l.Count(); c != 2 {
-			t.Errorf("incorrect count: %v, expected: %v", c, 2)
-		}
+	if s := l.Size(); s != 16 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	}
 
-		if v, ok := l.Item(0); !ok {
-			t.Errorf("should have value")
-		} else if v != 1 {
-			t.Errorf("incorrect value: %v, expected: %v", v, 1)
-		}
+	if c := l.Count(); c != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 2)
+	}
 
-		if v, ok := l.Item(1); !ok {
-			t.Errorf("should have value")
-		} else if v != 2 {
-			t.Errorf("incorrect value: %v, expected: %v", v, 2)
-		}
-	})
+	if v, ok := l.Item(0); !ok {
+		t.Errorf("should have value")
+	} else if v != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 1)
+	}
+
+	if v, ok := l.Item(1); !ok {
+		t.Errorf("should have value")
+	} else if v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
+	}
 }
 
 func TestList_Pop(t *testing.T) {
+	t.Parallel()
+
 	l := New(make([]byte, 16))
 
 	if _, ok := l.Push(1); !ok {
@@ -117,17 +119,17 @@ func TestList_Pop(t *testing.T) {
 }
 
 func TestList_Next(t *testing.T) {
-	t.Run("default data", func(t *testing.T) {
-		l := New(make([]byte, 16))
+	t.Parallel()
 
-		if n := l.Next(); n != 16 {
-			t.Errorf("incorrect next: %v, expected: %v", n, 0)
-		}
+	l := New(make([]byte, 16))
 
-		l.SetNext(10)
+	if n := l.Next(); n != 16 {
+		t.Errorf("incorrect next: %v, expected: %v", n, 0)
+	}
 
-		if n := l.Next(); n != 10 {
-			t.Errorf("incorrect next: %v, expected: %v", n, 10)
-		}
-	})
+	l.SetNext(10)
+
+	if n := l.Next(); n != 10 {
+		t.Errorf("incorrect next: %v, expected: %v", n, 10)
+	}
 }

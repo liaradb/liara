@@ -3,6 +3,8 @@ package wrap
 import "testing"
 
 func TestInt32(t *testing.T) {
+	t.Parallel()
+
 	data := make([]byte, 4)
 	i, _ := NewInt32(data)
 
@@ -15,6 +17,8 @@ func TestInt32(t *testing.T) {
 }
 
 func TestInt32_Unsigned(t *testing.T) {
+	t.Parallel()
+
 	data := make([]byte, 4)
 	i, _ := NewInt32(data)
 
@@ -27,6 +31,8 @@ func TestInt32_Unsigned(t *testing.T) {
 }
 
 func TestIn32__Remainder(t *testing.T) {
+	t.Parallel()
+
 	data := make([]byte, 8)
 	_, b0 := NewInt32(data)
 

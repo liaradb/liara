@@ -3,6 +3,8 @@ package bytelist
 import "testing"
 
 func TestByteList(t *testing.T) {
+	t.Parallel()
+
 	l := New(make([]byte, 16))
 
 	b, ok := l.Slice(0, 16)
