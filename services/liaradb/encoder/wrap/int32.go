@@ -15,6 +15,14 @@ func (i *Int32) Get() int32 {
 	return int32(binary.BigEndian.Uint32(i.data))
 }
 
+func (i *Int32) GetUnsigned() uint32 {
+	return binary.BigEndian.Uint32(i.data)
+}
+
 func (i *Int32) Set(v int32) {
 	binary.BigEndian.PutUint32(i.data, uint32(v))
+}
+
+func (i *Int32) SetUnsigned(v uint32) {
+	binary.BigEndian.PutUint32(i.data, v)
 }
