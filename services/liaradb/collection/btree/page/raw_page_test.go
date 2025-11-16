@@ -107,3 +107,59 @@ func TestRawPage_Space(t *testing.T) {
 		t.Error("should not get a buffer")
 	}
 }
+
+func TestRawPage_ParentID(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, headerSize))
+	if id := p.ParentID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	}
+
+	p.SetParentID(1)
+	if id := p.ParentID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	}
+}
+
+func TestRawPage_PrevID(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, headerSize))
+	if id := p.PrevID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	}
+
+	p.SetPrevID(1)
+	if id := p.PrevID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	}
+}
+
+func TestRawPage_NextID(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, headerSize))
+	if id := p.NextID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	}
+
+	p.SetNextID(1)
+	if id := p.NextID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	}
+}
+
+func TestRawPage_LowID(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, headerSize))
+	if id := p.LowID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	}
+
+	p.SetLowID(1)
+	if id := p.LowID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	}
+}

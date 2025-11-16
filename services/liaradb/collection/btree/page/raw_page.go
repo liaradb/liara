@@ -5,6 +5,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/list"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/storage"
 )
 
 type RawPage struct {
@@ -34,14 +35,18 @@ const (
 
 func New(data []byte) RawPage {
 	next, data0 := wrap.NewInt32(data)
-	_, data1 := wrap.NewInt64(data0)
-	_, data2 := wrap.NewInt64(data1)
-	_, data3 := wrap.NewInt64(data2)
-	_, data4 := wrap.NewInt64(data3)
+	parentID, data1 := wrap.NewInt64(data0)
+	prevID, data2 := wrap.NewInt64(data1)
+	nextID, data3 := wrap.NewInt64(data2)
+	lowID, data4 := wrap.NewInt64(data3)
 
 	return RawPage{
 		data:     data,
 		next:     next,
+		parentID: parentID,
+		prevID:   prevID,
+		nextID:   nextID,
+		lowID:    lowID,
 		list:     list.New(data4),
 		byteList: bytelist.New(data4),
 	}
@@ -79,4 +84,36 @@ func (p RawPage) Space() int32 {
 func (p RawPage) hasSpace(size int32) bool {
 	s := p.Space()
 	return size <= s
+}
+
+func (p *RawPage) ParentID() storage.Offset {
+	return storage.Offset(p.parentID.Get())
+}
+
+func (p *RawPage) PrevID() storage.Offset {
+	return storage.Offset(p.prevID.Get())
+}
+
+func (p *RawPage) NextID() storage.Offset {
+	return storage.Offset(p.nextID.Get())
+}
+
+func (p *RawPage) LowID() storage.Offset {
+	return storage.Offset(p.lowID.Get())
+}
+
+func (p *RawPage) SetParentID(o storage.Offset) {
+	p.parentID.Set(o.Value())
+}
+
+func (p *RawPage) SetPrevID(o storage.Offset) {
+	p.prevID.Set(o.Value())
+}
+
+func (p *RawPage) SetNextID(o storage.Offset) {
+	p.nextID.Set(o.Value())
+}
+
+func (p *RawPage) SetLowID(o storage.Offset) {
+	p.lowID.Set(o.Value())
 }
