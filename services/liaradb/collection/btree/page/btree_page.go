@@ -8,7 +8,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-type RawPage struct {
+type BTreePage struct {
 	data     []byte
 	next     wrap.Int32
 	parentID wrap.Int64
@@ -26,21 +26,21 @@ const (
 	NextIDSize   = 8
 	LowIDSize    = 8
 
-	RawPageHeaderSize = NextSize +
+	BTreePageHeaderSize = NextSize +
 		ParentIDSize +
 		PrevIDSize +
 		NextIDSize +
 		LowIDSize
 )
 
-func New(data []byte) RawPage {
+func New(data []byte) BTreePage {
 	next, data0 := wrap.NewInt32(data)
 	parentID, data1 := wrap.NewInt64(data0)
 	prevID, data2 := wrap.NewInt64(data1)
 	nextID, data3 := wrap.NewInt64(data2)
 	lowID, data4 := wrap.NewInt64(data3)
 
-	return RawPage{
+	return BTreePage{
 		data:     data,
 		next:     next,
 		parentID: parentID,
@@ -52,7 +52,7 @@ func New(data []byte) RawPage {
 	}
 }
 
-func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
+func (p *BTreePage) Append(size int32) (int32, *raw.Buffer, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -73,47 +73,47 @@ func (p *RawPage) Append(size int32) (int32, *raw.Buffer, bool) {
 	return i, b, true
 }
 
-func (p RawPage) Length() int32 {
+func (p BTreePage) Length() int32 {
 	return int32(len(p.data))
 }
 
-func (p RawPage) Space() int32 {
+func (p BTreePage) Space() int32 {
 	return max(p.list.Next()-p.list.Size()-4, 0)
 }
 
-func (p RawPage) hasSpace(size int32) bool {
+func (p BTreePage) hasSpace(size int32) bool {
 	s := p.Space()
 	return size <= s
 }
 
-func (p *RawPage) ParentID() storage.Offset {
+func (p *BTreePage) ParentID() storage.Offset {
 	return storage.Offset(p.parentID.Get())
 }
 
-func (p *RawPage) PrevID() storage.Offset {
+func (p *BTreePage) PrevID() storage.Offset {
 	return storage.Offset(p.prevID.Get())
 }
 
-func (p *RawPage) NextID() storage.Offset {
+func (p *BTreePage) NextID() storage.Offset {
 	return storage.Offset(p.nextID.Get())
 }
 
-func (p *RawPage) LowID() storage.Offset {
+func (p *BTreePage) LowID() storage.Offset {
 	return storage.Offset(p.lowID.Get())
 }
 
-func (p *RawPage) SetParentID(o storage.Offset) {
+func (p *BTreePage) SetParentID(o storage.Offset) {
 	p.parentID.Set(o.Value())
 }
 
-func (p *RawPage) SetPrevID(o storage.Offset) {
+func (p *BTreePage) SetPrevID(o storage.Offset) {
 	p.prevID.Set(o.Value())
 }
 
-func (p *RawPage) SetNextID(o storage.Offset) {
+func (p *BTreePage) SetNextID(o storage.Offset) {
 	p.nextID.Set(o.Value())
 }
 
-func (p *RawPage) SetLowID(o storage.Offset) {
+func (p *BTreePage) SetLowID(o storage.Offset) {
 	p.lowID.Set(o.Value())
 }

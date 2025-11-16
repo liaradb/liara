@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	headerSize = 8 + RawPageHeaderSize
+	headerSize = 8 + BTreePageHeaderSize
 	itemSize   = 4
 )
 
-func TestRawPage(t *testing.T) {
+func TestBTreePage(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -86,7 +86,7 @@ func TestRawPage(t *testing.T) {
 	}
 }
 
-func TestRawPage_Space(t *testing.T) {
+func TestBTreePage_Space(t *testing.T) {
 	t.Parallel()
 
 	p := New(make([]byte, 16+itemSize+headerSize))
@@ -108,7 +108,7 @@ func TestRawPage_Space(t *testing.T) {
 	}
 }
 
-func TestRawPage_ParentID(t *testing.T) {
+func TestBTreePage_ParentID(t *testing.T) {
 	t.Parallel()
 
 	p := New(make([]byte, headerSize))
@@ -122,7 +122,7 @@ func TestRawPage_ParentID(t *testing.T) {
 	}
 }
 
-func TestRawPage_PrevID(t *testing.T) {
+func TestBTreePage_PrevID(t *testing.T) {
 	t.Parallel()
 
 	p := New(make([]byte, headerSize))
@@ -136,7 +136,7 @@ func TestRawPage_PrevID(t *testing.T) {
 	}
 }
 
-func TestRawPage_NextID(t *testing.T) {
+func TestBTreePage_NextID(t *testing.T) {
 	t.Parallel()
 
 	p := New(make([]byte, headerSize))
@@ -150,7 +150,7 @@ func TestRawPage_NextID(t *testing.T) {
 	}
 }
 
-func TestRawPage_LowID(t *testing.T) {
+func TestBTreePage_LowID(t *testing.T) {
 	t.Parallel()
 
 	p := New(make([]byte, headerSize))
