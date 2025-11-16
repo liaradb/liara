@@ -29,9 +29,7 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: services/liaradb/go.mod
-          cache-dependency-path: |
-            modules/eventsource_go/go.sum
-            services/liaradb/go.sum
+          cache-dependency-path: services/liaradb/go.sum
 
       - name: Build
         working-directory: ./services/liaradb
