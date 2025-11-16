@@ -4,19 +4,46 @@ import (
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/list"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/wrap"
 )
 
 type RawPage struct {
 	data     []byte
+	next     wrap.Int32
+	parentID wrap.Int64
+	prevID   wrap.Int64
+	nextID   wrap.Int64
+	lowID    wrap.Int64
 	list     list.List
 	byteList bytelist.ByteList
 }
 
+const (
+	NextSize     = 4
+	ParentIDSize = 8
+	PrevIDSize   = 8
+	NextIDSize   = 8
+	LowIDSize    = 8
+
+	RawPageHeaderSize = NextSize +
+		ParentIDSize +
+		PrevIDSize +
+		NextIDSize +
+		LowIDSize
+)
+
 func New(data []byte) RawPage {
+	next, data0 := wrap.NewInt32(data)
+	_, data1 := wrap.NewInt64(data0)
+	_, data2 := wrap.NewInt64(data1)
+	_, data3 := wrap.NewInt64(data2)
+	_, data4 := wrap.NewInt64(data3)
+
 	return RawPage{
 		data:     data,
-		list:     list.New(data),
-		byteList: bytelist.New(data),
+		next:     next,
+		list:     list.New(data4),
+		byteList: bytelist.New(data4),
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	headerSize = 8
+	headerSize = 8 + RawPageHeaderSize
 	itemSize   = 4
 )
 
@@ -16,7 +16,7 @@ func TestRawPage(t *testing.T) {
 
 	const (
 		size int32 = 256
-		s0         = size - headerSize - itemSize
+		s0         = size - itemSize - headerSize
 		s1         = s0 - itemSize - 16
 		s2         = s1 - itemSize - 16
 	)
@@ -89,7 +89,7 @@ func TestRawPage(t *testing.T) {
 func TestRawPage_Space(t *testing.T) {
 	t.Parallel()
 
-	p := New(make([]byte, 28))
+	p := New(make([]byte, 16+itemSize+headerSize))
 
 	if s := p.Space(); s != 16 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
