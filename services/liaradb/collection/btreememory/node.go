@@ -10,5 +10,4 @@ type node[K cmp.Ordered, V any] interface {
 	deleteAll(fanout int, k K)
 	height() int
 	count() int
-	setParent(n *keyNode[K, V])
 }

@@ -9,7 +9,6 @@ type keyNode[K cmp.Ordered, V any] struct {
 	k        K
 	level    int
 	children []node[K, V]
-	parent   *keyNode[K, V]
 	left     *keyNode[K, V]
 	right    *keyNode[K, V]
 }
@@ -21,8 +20,6 @@ func newKeyNode[K cmp.Ordered, V any](a, b node[K, V]) *keyNode[K, V] {
 		level:    a.height() + 1,
 		children: []node[K, V]{a, b},
 	}
-	a.setParent(kn)
-	b.setParent(kn)
 	return kn
 }
 
@@ -36,10 +33,6 @@ func (kn *keyNode[K, V]) count() int {
 		count += l.count()
 	}
 	return count
-}
-
-func (kn *keyNode[K, V]) setParent(p *keyNode[K, V]) {
-	kn.parent = p
 }
 
 func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
@@ -106,7 +99,6 @@ func (kn *keyNode[K, V]) split() node[K, V] {
 	kn2 := &keyNode[K, V]{
 		k:        kn.children[half].key(),
 		children: kn.children[half:],
-		parent:   kn.parent,
 		left:     kn,
 		right:    kn.right,
 	}
