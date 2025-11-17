@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"context"
 	"errors"
+	"slices"
 )
 
 type Storage[K cmp.Ordered, V any] interface {
@@ -77,12 +78,50 @@ func (bt *Cursor[K, V]) Insert(ctx context.Context, k K, v V) error {
 		return err
 	}
 
-	n, ok := r.insert(bt.FanOut(), k, v)
+	var n node[K, V]
+	var ok bool
+	switch r := r.(type) {
+	case *keyNode[K, V]:
+		n, ok = bt.insertKey(r, k, v)
+	case *leafNode[K, V]:
+		n, ok = bt.insertLeaf(r, k, v)
+	}
 	if !ok {
 		return ErrNoInsert
 	}
 
 	return bt.storage.SetRoot(ctx, newKeyNode(r, n))
+}
+
+func (bt *Cursor[K, V]) insertKey(kn *keyNode[K, V], k K, v V) (node[K, V], bool) {
+	n, ok := kn.getChild(k).insert(bt.FanOut(), k, v)
+	if !ok {
+		return nil, false
+	}
+
+	return kn.insertNode(bt.FanOut(), k, n)
+}
+
+func (bt *Cursor[K, V]) insertLeaf(ln *leafNode[K, V], k K, v V) (node[K, V], bool) {
+	c := ln.getChild(k)
+	if c != nil {
+		// TODO: Create Overflow
+		c.append(v)
+		return nil, false
+	}
+
+	i := ln.getInsertionIndex(k)
+	if i == 0 {
+		ln.k = k
+	}
+
+	// TODO: Split before inserting
+	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, v))
+	if len(ln.children) <= bt.FanOut() {
+		return nil, false
+	}
+
+	return ln.split(), true
 }
 
 func (bt *Cursor[K, V]) DeleteAll(ctx context.Context, k K) error {
