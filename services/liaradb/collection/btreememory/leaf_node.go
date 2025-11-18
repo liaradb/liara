@@ -9,7 +9,7 @@ import (
 
 type leafNode[K cmp.Ordered] struct {
 	storage  Storage[K]
-	id       storage.Offset
+	i        storage.Offset
 	k        K
 	children []*leafEntry[K]
 	leftID   storage.Offset
@@ -20,16 +20,15 @@ var _ node[int] = (*leafNode[int])(nil)
 
 func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 	return &leafNode[K]{
-		id:       nextID(),
+		i:        nextID(),
 		storage:  s,
 		k:        k,
 		children: []*leafEntry[K]{newLeafEntry(k, rid)},
 	}
 }
 
-func (ln *leafNode[K]) key() K {
-	return ln.k
-}
+func (ln *leafNode[K]) key() K             { return ln.k }
+func (ln *leafNode[K]) id() storage.Offset { return ln.i }
 
 func (ln *leafNode[K]) count() int {
 	return len(ln.children)
@@ -94,16 +93,16 @@ func (ln *leafNode[K]) split() node[K] {
 	half := len(ln.children) / 2
 
 	ln2 := &leafNode[K]{
-		id:       nextID(),
+		i:        nextID(),
 		k:        ln.children[half].key,
 		children: ln.children[half:],
-		leftID:   ln.id,
+		leftID:   ln.i,
 		rightID:  ln.rightID,
 	}
 
 	// TODO: Should we copy slices?
 	ln.children = slices.Clone(ln.children[:half])
-	ln.rightID = ln2.id
+	ln.rightID = ln2.i
 
 	return ln2
 }

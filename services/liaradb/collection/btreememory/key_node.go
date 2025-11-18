@@ -9,33 +9,41 @@ import (
 
 type keyNode[K cmp.Ordered] struct {
 	storage  Storage[K]
-	id       storage.Offset
+	i        storage.Offset
 	k        K
 	level    int
-	children []node[K]
+	children []*keyEntry[K]
+	nodes    []node[K]
 	leftID   storage.Offset
 	rightID  storage.Offset
+}
+
+type keyEntry[K cmp.Ordered] struct {
+	k  K
+	id storage.Offset
 }
 
 var _ node[int] = (*keyNode[int])(nil)
 
 func newKeyNode[K cmp.Ordered](s Storage[K], a, b node[K]) *keyNode[K] {
 	kn := &keyNode[K]{
-		id:       nextID(),
-		storage:  s,
-		level:    a.height() + 1,
-		children: []node[K]{a, b},
+		i:       nextID(),
+		storage: s,
+		level:   a.height() + 1,
+		children: []*keyEntry[K]{
+			{k: a.key(), id: a.id()},
+			{k: b.key(), id: b.id()}},
+		nodes: []node[K]{a, b},
 	}
 	return kn
 }
 
-func (kn *keyNode[K]) key() K {
-	return kn.k
-}
+func (kn *keyNode[K]) key() K             { return kn.k }
+func (kn *keyNode[K]) id() storage.Offset { return kn.i }
 
 func (kn *keyNode[K]) count() int {
 	count := 0
-	for _, l := range kn.children {
+	for _, l := range kn.nodes {
 		count += l.count()
 	}
 	return count
@@ -50,11 +58,11 @@ func (kn *keyNode[K]) getValue(k K) (RecordID, bool) {
 }
 
 func (kn *keyNode[K]) getChild(k K) node[K] {
-	a := kn.children[0]
+	a := kn.nodes[0]
 
-	l := len(kn.children)
+	l := len(kn.nodes)
 	for i := 1; i < l; i++ {
-		b := kn.children[i]
+		b := kn.nodes[i]
 		if k < b.key() {
 			return a
 		}
@@ -81,8 +89,8 @@ func (kn *keyNode[K]) insertNode(f int, k K, n node[K]) (node[K], bool) {
 	}
 
 	// TODO: Split before inserting
-	kn.children = slices.Insert(kn.children, i, n)
-	if len(kn.children) <= f {
+	kn.nodes = slices.Insert(kn.nodes, i, n)
+	if len(kn.nodes) <= f {
 		return nil, false
 	}
 
@@ -90,8 +98,8 @@ func (kn *keyNode[K]) insertNode(f int, k K, n node[K]) (node[K], bool) {
 }
 
 func (kn *keyNode[K]) getInsertionIndex(k K) int {
-	for i := len(kn.children) - 1; i >= 0; i-- {
-		j := kn.children[i]
+	for i := len(kn.nodes) - 1; i >= 0; i-- {
+		j := kn.nodes[i]
 		if k >= j.key() {
 			return i + 1
 		}
@@ -100,19 +108,21 @@ func (kn *keyNode[K]) getInsertionIndex(k K) int {
 }
 
 func (kn *keyNode[K]) split() node[K] {
-	half := len(kn.children) / 2
+	half := len(kn.nodes) / 2
 
 	kn2 := &keyNode[K]{
-		id:       nextID(),
-		k:        kn.children[half].key(),
+		i:        nextID(),
+		k:        kn.nodes[half].key(),
 		children: kn.children[half:],
-		leftID:   kn.id,
+		nodes:    kn.nodes[half:],
+		leftID:   kn.i,
 		rightID:  kn.rightID,
 	}
 
 	// TODO: Should we copy slices?
 	kn.children = slices.Clone(kn.children[:half])
-	kn.rightID = kn2.id
+	kn.nodes = slices.Clone(kn.nodes[:half])
+	kn.rightID = kn2.i
 
 	return kn2
 }
