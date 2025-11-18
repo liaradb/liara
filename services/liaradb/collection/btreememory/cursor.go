@@ -111,8 +111,8 @@ func (bt *Cursor[K]) insertKey(kn *keyNode[K], k K, rid RecordID) (node[K], bool
 }
 
 func (bt *Cursor[K]) insertLeaf(ln *leafNode[K], k K, rid RecordID) (node[K], bool) {
-	c := ln.getChild(k)
-	if c != nil {
+	c, ok := ln.getChild(k)
+	if ok {
 		// TODO: Create Overflow
 		c.value = rid
 		return nil, false

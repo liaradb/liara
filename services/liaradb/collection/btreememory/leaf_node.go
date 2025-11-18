@@ -37,25 +37,30 @@ func (ln *leafNode[K]) count() int {
 
 func (ln *leafNode[K]) getValue(k K) (RecordID, bool) {
 	if ln == nil {
-		return ln.zero()
+		return RecordID{}, false
 	}
 
-	return ln.getChild(k).getValue()
+	c, ok := ln.getChild(k)
+	if !ok {
+		return RecordID{}, false
+	}
+
+	return c.value, true
 }
 
-func (ln *leafNode[K]) getChild(k K) *leafEntry[K] {
+func (ln *leafNode[K]) getChild(k K) (*leafEntry[K], bool) {
 	for _, l := range ln.children {
 		if l.key == k {
-			return l
+			return l, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
 func (ln *leafNode[K]) insert(f int, k K, rid RecordID) (node[K], bool) {
-	c := ln.getChild(k)
-	if c != nil {
+	c, ok := ln.getChild(k)
+	if ok {
 		// TODO: Create Overflow
 		c.value = rid
 		return nil, false
@@ -194,8 +199,4 @@ func (ln *leafNode[K]) height() int {
 	}
 
 	return 1
-}
-
-func (*leafNode[K]) zero() (RecordID, bool) {
-	return RecordID{}, false
 }
