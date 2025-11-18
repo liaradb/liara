@@ -114,7 +114,7 @@ func (bt *Cursor[K]) insertLeaf(ln *leafNode[K], k K, rid RecordID) (node[K], bo
 	c := ln.getChild(k)
 	if c != nil {
 		// TODO: Create Overflow
-		c.append(rid)
+		c.value = rid
 		return nil, false
 	}
 
