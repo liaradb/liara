@@ -3,20 +3,24 @@ package btreememory
 import (
 	"cmp"
 	"slices"
+
+	"github.com/liaradb/liaradb/storage"
 )
 
 type leafNode[K cmp.Ordered] struct {
 	storage  Storage[K]
+	id       storage.Offset
 	k        K
 	children []*leafEntry[K]
-	left     *leafNode[K]
-	right    *leafNode[K]
+	leftID   storage.Offset
+	rightID  storage.Offset
 }
 
 var _ node[int] = (*leafNode[int])(nil)
 
 func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 	return &leafNode[K]{
+		id:       nextID(),
 		storage:  s,
 		k:        k,
 		children: []*leafEntry[K]{newLeafEntry(k, rid)},
@@ -89,15 +93,16 @@ func (ln *leafNode[K]) split() node[K] {
 	half := len(ln.children) / 2
 
 	ln2 := &leafNode[K]{
+		id:       nextID(),
 		k:        ln.children[half].key,
 		children: ln.children[half:],
-		left:     ln,
-		right:    ln.right,
+		leftID:   ln.id,
+		rightID:  ln.rightID,
 	}
 
 	// TODO: Should we copy slices?
 	ln.children = slices.Clone(ln.children[:half])
-	ln.right = ln2
+	ln.rightID = ln2.id
 
 	return ln2
 }
@@ -112,42 +117,42 @@ func (ln *leafNode[K]) deleteAll(f int, k K) {
 		return
 	}
 
-	if ln.isMinimum(f) {
-		// TODO: Rebalance
-		if ln.left != nil && !ln.left.isMinimum(f) {
-			// Borrow Left
-			e := ln.left.popSmallest()
-			// TODO: How do we handle overflow?
-			ln.insert(f, e.key, e.value[0])
-			// Pull smallest from Left
-			// Update This Key
-			// Key change propagates
-		} else if ln.right != nil && !ln.right.isMinimum(f) {
-			// Borrow Right
-			e := ln.right.popLargest()
-			// TODO: How do we handle overflow?
-			ln.insert(f, e.key, e.value[0])
-			// Pull largest from Right
-			// Update Right Key
-			// Key changes propagates
-		} else if ln.left != nil {
-			// Merge Left
-			// Move children to Left
-			// Delete node
-			// Deletion propagates
-		} else if ln.right != nil {
-			// Merge Right
-			// Move children to Right
-			// Update Right Key
-			// Key change propagates
-			// Delete node
-			// Deletion propagates
-		} else {
-			// Delete
-		}
-	} else {
-		// Delete
-	}
+	// if ln.isMinimum(f) {
+	// 	// TODO: Rebalance
+	// 	if ln.left != nil && !ln.left.isMinimum(f) {
+	// 		// Borrow Left
+	// 		e := ln.left.popSmallest()
+	// 		// TODO: How do we handle overflow?
+	// 		ln.insert(f, e.key, e.value[0])
+	// 		// Pull smallest from Left
+	// 		// Update This Key
+	// 		// Key change propagates
+	// 	} else if ln.right != nil && !ln.right.isMinimum(f) {
+	// 		// Borrow Right
+	// 		e := ln.right.popLargest()
+	// 		// TODO: How do we handle overflow?
+	// 		ln.insert(f, e.key, e.value[0])
+	// 		// Pull largest from Right
+	// 		// Update Right Key
+	// 		// Key changes propagates
+	// 	} else if ln.left != nil {
+	// 		// Merge Left
+	// 		// Move children to Left
+	// 		// Delete node
+	// 		// Deletion propagates
+	// 	} else if ln.right != nil {
+	// 		// Merge Right
+	// 		// Move children to Right
+	// 		// Update Right Key
+	// 		// Key change propagates
+	// 		// Delete node
+	// 		// Deletion propagates
+	// 	} else {
+	// 		// Delete
+	// 	}
+	// } else {
+	// 	// Delete
+	// }
 	ln.children = slices.Delete(ln.children, i, i+1)
 }
 

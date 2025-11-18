@@ -3,21 +3,25 @@ package btreememory
 import (
 	"cmp"
 	"slices"
+
+	"github.com/liaradb/liaradb/storage"
 )
 
 type keyNode[K cmp.Ordered] struct {
 	storage  Storage[K]
+	id       storage.Offset
 	k        K
 	level    int
 	children []node[K]
-	left     *keyNode[K]
-	right    *keyNode[K]
+	leftID   storage.Offset
+	rightID  storage.Offset
 }
 
 var _ node[int] = (*keyNode[int])(nil)
 
 func newKeyNode[K cmp.Ordered](s Storage[K], a, b node[K]) *keyNode[K] {
 	kn := &keyNode[K]{
+		id:       nextID(),
 		storage:  s,
 		level:    a.height() + 1,
 		children: []node[K]{a, b},
@@ -99,15 +103,16 @@ func (kn *keyNode[K]) split() node[K] {
 	half := len(kn.children) / 2
 
 	kn2 := &keyNode[K]{
+		id:       nextID(),
 		k:        kn.children[half].key(),
 		children: kn.children[half:],
-		left:     kn,
-		right:    kn.right,
+		leftID:   kn.id,
+		rightID:  kn.rightID,
 	}
 
 	// TODO: Should we copy slices?
 	kn.children = slices.Clone(kn.children[:half])
-	kn.right = kn2
+	kn.rightID = kn2.id
 
 	return kn2
 }

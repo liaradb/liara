@@ -5,7 +5,16 @@ import (
 	"context"
 	"errors"
 	"slices"
+
+	"github.com/liaradb/liaradb/storage"
 )
+
+var id storage.Offset = 0
+
+func nextID() storage.Offset {
+	id++
+	return id
+}
 
 type Storage[K cmp.Ordered] interface {
 	GetPage(context.Context) (node[K], error)
