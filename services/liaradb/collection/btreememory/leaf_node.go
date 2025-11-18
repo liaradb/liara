@@ -5,29 +5,29 @@ import (
 	"slices"
 )
 
-type leafNode[K cmp.Ordered, V any] struct {
-	storage  Storage[K, V]
+type leafNode[K cmp.Ordered] struct {
+	storage  Storage[K]
 	k        K
-	children []*leafEntry[K, V]
-	left     *leafNode[K, V]
-	right    *leafNode[K, V]
+	children []*leafEntry[K]
+	left     *leafNode[K]
+	right    *leafNode[K]
 }
 
-var _ node[int, int] = (*leafNode[int, int])(nil)
+var _ node[int] = (*leafNode[int])(nil)
 
-func newLeafNode[K cmp.Ordered, V any](s Storage[K, V], k K, v V) *leafNode[K, V] {
-	return &leafNode[K, V]{
+func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
+	return &leafNode[K]{
 		storage:  s,
 		k:        k,
-		children: []*leafEntry[K, V]{newLeafEntry(k, v)},
+		children: []*leafEntry[K]{newLeafEntry(k, rid)},
 	}
 }
 
-func (ln *leafNode[K, V]) key() K {
+func (ln *leafNode[K]) key() K {
 	return ln.k
 }
 
-func (ln *leafNode[K, V]) count() int {
+func (ln *leafNode[K]) count() int {
 	count := 0
 	for _, l := range ln.children {
 		count += l.count()
@@ -35,7 +35,7 @@ func (ln *leafNode[K, V]) count() int {
 	return count
 }
 
-func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
+func (ln *leafNode[K]) getValue(k K) (RecordID, bool) {
 	if ln == nil {
 		return ln.zero()
 	}
@@ -43,7 +43,7 @@ func (ln *leafNode[K, V]) getValue(k K) (V, bool) {
 	return ln.getChild(k).getValue()
 }
 
-func (ln *leafNode[K, V]) getChild(k K) *leafEntry[K, V] {
+func (ln *leafNode[K]) getChild(k K) *leafEntry[K] {
 	for _, l := range ln.children {
 		if l.key == k {
 			return l
@@ -53,11 +53,11 @@ func (ln *leafNode[K, V]) getChild(k K) *leafEntry[K, V] {
 	return nil
 }
 
-func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
+func (ln *leafNode[K]) insert(f int, k K, rid RecordID) (node[K], bool) {
 	c := ln.getChild(k)
 	if c != nil {
 		// TODO: Create Overflow
-		c.append(v)
+		c.append(rid)
 		return nil, false
 	}
 
@@ -67,7 +67,7 @@ func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	}
 
 	// TODO: Split before inserting
-	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, v))
+	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, rid))
 	if len(ln.children) <= f {
 		return nil, false
 	}
@@ -75,7 +75,7 @@ func (ln *leafNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	return ln.split(), true
 }
 
-func (ln *leafNode[K, V]) getInsertionIndex(k K) int {
+func (ln *leafNode[K]) getInsertionIndex(k K) int {
 	for i := len(ln.children) - 1; i >= 0; i-- {
 		j := ln.children[i]
 		if k >= j.key {
@@ -85,10 +85,10 @@ func (ln *leafNode[K, V]) getInsertionIndex(k K) int {
 	return 0
 }
 
-func (ln *leafNode[K, V]) split() node[K, V] {
+func (ln *leafNode[K]) split() node[K] {
 	half := len(ln.children) / 2
 
-	ln2 := &leafNode[K, V]{
+	ln2 := &leafNode[K]{
 		k:        ln.children[half].key,
 		children: ln.children[half:],
 		left:     ln,
@@ -102,11 +102,11 @@ func (ln *leafNode[K, V]) split() node[K, V] {
 	return ln2
 }
 
-func (ln *leafNode[K, V]) delete(f int, k K, v V) {
+func (ln *leafNode[K]) delete(f int, k K, rid RecordID) {
 
 }
 
-func (ln *leafNode[K, V]) deleteAll(f int, k K) {
+func (ln *leafNode[K]) deleteAll(f int, k K) {
 	c, i := ln.getChildForDeletion(k)
 	if c == nil {
 		return
@@ -151,20 +151,20 @@ func (ln *leafNode[K, V]) deleteAll(f int, k K) {
 	ln.children = slices.Delete(ln.children, i, i+1)
 }
 
-func (ln *leafNode[K, V]) popLargest() *leafEntry[K, V] {
+func (ln *leafNode[K]) popLargest() *leafEntry[K] {
 	largest := ln.children[0]
 	ln.children = ln.children[1:]
 	return largest
 }
 
-func (ln *leafNode[K, V]) popSmallest() *leafEntry[K, V] {
+func (ln *leafNode[K]) popSmallest() *leafEntry[K] {
 	i := len(ln.children) - 1
 	smallest := ln.children[i]
 	ln.children = ln.children[:i]
 	return smallest
 }
 
-func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
+func (ln *leafNode[K]) getChildForDeletion(k K) (*leafEntry[K], int) {
 	for i, l := range ln.children {
 		if l.key == k {
 			return l, i
@@ -174,12 +174,12 @@ func (ln *leafNode[K, V]) getChildForDeletion(k K) (*leafEntry[K, V], int) {
 	return nil, 0
 }
 
-func (ln *leafNode[K, V]) isMinimum(f int) bool {
+func (ln *leafNode[K]) isMinimum(f int) bool {
 	return len(ln.children) <= ln.minimum(f)
 }
 
 // TODO: Can we store this?
-func (ln *leafNode[K, V]) minimum(f int) int {
+func (ln *leafNode[K]) minimum(f int) int {
 	return ceiling(f, 2) - 1
 }
 
@@ -187,7 +187,7 @@ func ceiling(a, b int) int {
 	return (a + b - 1) / b
 }
 
-func (ln *leafNode[K, V]) height() int {
+func (ln *leafNode[K]) height() int {
 	if ln == nil {
 		return 0
 	}
@@ -195,7 +195,6 @@ func (ln *leafNode[K, V]) height() int {
 	return 1
 }
 
-func (*leafNode[K, V]) zero() (V, bool) {
-	var v V
-	return v, false
+func (*leafNode[K]) zero() (RecordID, bool) {
+	return RecordID{}, false
 }

@@ -5,11 +5,11 @@ import "testing"
 func TestLeafNode(t *testing.T) {
 	t.Parallel()
 
-	s := &mockStorage[int, string]{}
+	s := &mockStorage[int]{}
 
-	ln := newLeafNode(s, 1, "a")
-	ln.insert(2, 2, "b")
-	ln2, ok := ln.insert(2, 3, "c")
+	ln := newLeafNode(s, 1, NewRecordID(0, 1))
+	ln.insert(2, 2, NewRecordID(0, 2))
+	ln2, ok := ln.insert(2, 3, NewRecordID(0, 3))
 	if !ok {
 		t.Error("should split")
 	}
@@ -26,11 +26,11 @@ func TestLeafNode(t *testing.T) {
 func TestLeafNode_Reverse(t *testing.T) {
 	t.Parallel()
 
-	s := &mockStorage[int, string]{}
+	s := &mockStorage[int]{}
 
-	ln := newLeafNode(s, 3, "c")
-	ln.insert(2, 2, "b")
-	ln2, ok := ln.insert(2, 1, "a")
+	ln := newLeafNode(s, 3, NewRecordID(0, 3))
+	ln.insert(2, 2, NewRecordID(0, 2))
+	ln2, ok := ln.insert(2, 1, NewRecordID(0, 1))
 	if !ok {
 		t.Error("should split")
 	}

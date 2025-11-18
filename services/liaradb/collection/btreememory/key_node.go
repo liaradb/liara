@@ -5,31 +5,31 @@ import (
 	"slices"
 )
 
-type keyNode[K cmp.Ordered, V any] struct {
-	storage  Storage[K, V]
+type keyNode[K cmp.Ordered] struct {
+	storage  Storage[K]
 	k        K
 	level    int
-	children []node[K, V]
-	left     *keyNode[K, V]
-	right    *keyNode[K, V]
+	children []node[K]
+	left     *keyNode[K]
+	right    *keyNode[K]
 }
 
-var _ node[int, int] = (*keyNode[int, int])(nil)
+var _ node[int] = (*keyNode[int])(nil)
 
-func newKeyNode[K cmp.Ordered, V any](s Storage[K, V], a, b node[K, V]) *keyNode[K, V] {
-	kn := &keyNode[K, V]{
+func newKeyNode[K cmp.Ordered](s Storage[K], a, b node[K]) *keyNode[K] {
+	kn := &keyNode[K]{
 		storage:  s,
 		level:    a.height() + 1,
-		children: []node[K, V]{a, b},
+		children: []node[K]{a, b},
 	}
 	return kn
 }
 
-func (kn *keyNode[K, V]) key() K {
+func (kn *keyNode[K]) key() K {
 	return kn.k
 }
 
-func (kn *keyNode[K, V]) count() int {
+func (kn *keyNode[K]) count() int {
 	count := 0
 	for _, l := range kn.children {
 		count += l.count()
@@ -37,7 +37,7 @@ func (kn *keyNode[K, V]) count() int {
 	return count
 }
 
-func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
+func (kn *keyNode[K]) getValue(k K) (RecordID, bool) {
 	if kn == nil || kn.count() == 0 {
 		return kn.zero()
 	}
@@ -45,7 +45,7 @@ func (kn *keyNode[K, V]) getValue(k K) (V, bool) {
 	return kn.getChild(k).getValue(k)
 }
 
-func (kn *keyNode[K, V]) getChild(k K) node[K, V] {
+func (kn *keyNode[K]) getChild(k K) node[K] {
 	a := kn.children[0]
 
 	l := len(kn.children)
@@ -61,8 +61,8 @@ func (kn *keyNode[K, V]) getChild(k K) node[K, V] {
 	return a
 }
 
-func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
-	n, ok := kn.getChild(k).insert(f, k, v)
+func (kn *keyNode[K]) insert(f int, k K, rid RecordID) (node[K], bool) {
+	n, ok := kn.getChild(k).insert(f, k, rid)
 	if !ok {
 		return nil, false
 	}
@@ -70,7 +70,7 @@ func (kn *keyNode[K, V]) insert(f int, k K, v V) (node[K, V], bool) {
 	return kn.insertNode(f, k, n)
 }
 
-func (kn *keyNode[K, V]) insertNode(f int, k K, n node[K, V]) (node[K, V], bool) {
+func (kn *keyNode[K]) insertNode(f int, k K, n node[K]) (node[K], bool) {
 	i := kn.getInsertionIndex(n.key())
 	if i == 0 {
 		kn.k = k
@@ -85,7 +85,7 @@ func (kn *keyNode[K, V]) insertNode(f int, k K, n node[K, V]) (node[K, V], bool)
 	return kn.split(), true
 }
 
-func (kn *keyNode[K, V]) getInsertionIndex(k K) int {
+func (kn *keyNode[K]) getInsertionIndex(k K) int {
 	for i := len(kn.children) - 1; i >= 0; i-- {
 		j := kn.children[i]
 		if k >= j.key() {
@@ -95,10 +95,10 @@ func (kn *keyNode[K, V]) getInsertionIndex(k K) int {
 	return 0
 }
 
-func (kn *keyNode[K, V]) split() node[K, V] {
+func (kn *keyNode[K]) split() node[K] {
 	half := len(kn.children) / 2
 
-	kn2 := &keyNode[K, V]{
+	kn2 := &keyNode[K]{
 		k:        kn.children[half].key(),
 		children: kn.children[half:],
 		left:     kn,
@@ -112,15 +112,15 @@ func (kn *keyNode[K, V]) split() node[K, V] {
 	return kn2
 }
 
-func (kn *keyNode[K, V]) delete(f int, k K, v V) {
+func (kn *keyNode[K]) delete(f int, k K, rid RecordID) {
 
 }
 
-func (kn *keyNode[K, V]) deleteAll(f int, k K) {
+func (kn *keyNode[K]) deleteAll(f int, k K) {
 
 }
 
-func (kn *keyNode[K, V]) height() int {
+func (kn *keyNode[K]) height() int {
 	if kn == nil {
 		return 0
 	}
@@ -128,7 +128,6 @@ func (kn *keyNode[K, V]) height() int {
 	return kn.level
 }
 
-func (*keyNode[K, V]) zero() (V, bool) {
-	var v V
-	return v, false
+func (*keyNode[K]) zero() (RecordID, bool) {
+	return RecordID{}, false
 }

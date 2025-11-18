@@ -10,14 +10,14 @@ import (
 func TestCursor_Default(t *testing.T) {
 	t.Parallel()
 
-	bt := NewCursor(&mockStorage[int, string]{})
+	bt := NewCursor(&mockStorage[int]{})
 
 	testFanout(t, "default", bt, 3)
 	testHeight(t, "default", bt, 0)
 
-	if v, err := bt.GetValue(t.Context(), 0); err == nil {
+	if rid, err := bt.GetValue(t.Context(), 0); err == nil {
 		t.Error("should have no value by default")
-	} else if v != "" {
+	} else if rid != (RecordID{}) {
 		t.Error("should have no value by default")
 	}
 }
@@ -45,10 +45,10 @@ func TestCursor_Insert(t *testing.T) {
 		t.Run(row.message, func(t *testing.T) {
 			t.Parallel()
 
-			bt := NewCursor(&mockStorage[int, string]{})
+			bt := NewCursor(&mockStorage[int]{})
 
 			for _, i := range row.items {
-				bt.Insert(t.Context(), i.key, i.value)
+				bt.Insert(t.Context(), i.key, i.rid)
 			}
 
 			testFanout(t, row.message, bt, row.fanout)
@@ -62,9 +62,9 @@ func TestCursor_Insert(t *testing.T) {
 func TestCursor_Delete(t *testing.T) {
 	t.Parallel()
 
-	bt := NewCursor(&mockStorage[int, string]{})
+	bt := NewCursor(&mockStorage[int]{})
 
-	if err := bt.Insert(t.Context(), 1, "1"); err != nil {
+	if err := bt.Insert(t.Context(), 1, NewRecordID(0, 1)); err != nil {
 		t.Error(err)
 	}
 
@@ -81,12 +81,12 @@ func TestCursor_Delete(t *testing.T) {
 }
 
 type item struct {
-	key   int
-	value string
+	key int
+	rid RecordID
 }
 
 func newItem(i int) item {
-	return item{i, string(rune('a' + i - 1))}
+	return item{i, NewRecordID(0, int8(i))}
 }
 
 func newItems(i ...int) []item {
@@ -111,7 +111,7 @@ func newItemsReversed(count int) []item {
 	return i
 }
 
-func testFanout(t *testing.T, message string, bt *Cursor[int, string], fanout int) {
+func testFanout(t *testing.T, message string, bt *Cursor[int], fanout int) {
 	t.Helper()
 
 	if f := bt.FanOut(); f != fanout {
@@ -119,7 +119,7 @@ func testFanout(t *testing.T, message string, bt *Cursor[int, string], fanout in
 	}
 }
 
-func testHeight(t *testing.T, message string, bt *Cursor[int, string], height int) {
+func testHeight(t *testing.T, message string, bt *Cursor[int], height int) {
 	t.Helper()
 
 	if h, err := bt.Height(t.Context()); err != nil {
@@ -129,7 +129,7 @@ func testHeight(t *testing.T, message string, bt *Cursor[int, string], height in
 	}
 }
 
-func testCount(t *testing.T, message string, bt *Cursor[int, string], count int) {
+func testCount(t *testing.T, message string, bt *Cursor[int], count int) {
 	t.Helper()
 
 	if c, err := bt.Count(t.Context()); err != nil {
@@ -139,29 +139,29 @@ func testCount(t *testing.T, message string, bt *Cursor[int, string], count int)
 	}
 }
 
-func testItems(t *testing.T, message string, bt *Cursor[int, string], items []item) {
+func testItems(t *testing.T, message string, bt *Cursor[int], items []item) {
 	t.Helper()
 
 	for _, i := range items {
-		if v, err := bt.GetValue(t.Context(), i.key); err != nil {
+		if rid, err := bt.GetValue(t.Context(), i.key); err != nil {
 			t.Error(err)
-		} else if v != i.value {
-			t.Errorf("%v: incorrect value: %v, expected: %v", message, v, i.value)
+		} else if rid != i.rid {
+			t.Errorf("%v: incorrect value: %v, expected: %v", message, rid, i.rid)
 		}
 	}
 }
 
-type mockStorage[K cmp.Ordered, V any] struct {
-	root node[K, V]
+type mockStorage[K cmp.Ordered] struct {
+	root node[K]
 }
 
-var _ Storage[int, string] = (*mockStorage[int, string])(nil)
+var _ Storage[int] = (*mockStorage[int])(nil)
 
-func (m *mockStorage[K, V]) GetPage(context.Context) (node[K, V], error) {
+func (m *mockStorage[K]) GetPage(context.Context) (node[K], error) {
 	return nil, nil
 }
 
-func (m *mockStorage[K, V]) GetRoot(context.Context) (node[K, V], error) {
+func (m *mockStorage[K]) GetRoot(context.Context) (node[K], error) {
 	if m.root == nil {
 		return nil, ErrEmptyTree
 	}
@@ -169,7 +169,7 @@ func (m *mockStorage[K, V]) GetRoot(context.Context) (node[K, V], error) {
 	return m.root, nil
 }
 
-func (m *mockStorage[K, V]) SetRoot(ctx context.Context, root node[K, V]) error {
+func (m *mockStorage[K]) SetRoot(ctx context.Context, root node[K]) error {
 	m.root = root
 	return nil
 }

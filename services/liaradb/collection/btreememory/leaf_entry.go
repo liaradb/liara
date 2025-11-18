@@ -2,23 +2,23 @@ package btreememory
 
 import "cmp"
 
-type leafEntry[K cmp.Ordered, V any] struct {
+type leafEntry[K cmp.Ordered] struct {
 	key   K
-	value []V
+	value []RecordID
 }
 
-func newLeafEntry[K cmp.Ordered, V any](k K, v V) *leafEntry[K, V] {
-	return &leafEntry[K, V]{
+func newLeafEntry[K cmp.Ordered](k K, rid RecordID) *leafEntry[K] {
+	return &leafEntry[K]{
 		key:   k,
-		value: []V{v},
+		value: []RecordID{rid},
 	}
 }
 
-func (l *leafEntry[K, V]) append(v V) {
-	l.value = append(l.value, v)
+func (l *leafEntry[K]) append(rid RecordID) {
+	l.value = append(l.value, rid)
 }
 
-func (l *leafEntry[K, V]) getValue() (V, bool) {
+func (l *leafEntry[K]) getValue() (RecordID, bool) {
 	if l == nil {
 		return l.zero()
 	}
@@ -26,11 +26,10 @@ func (l *leafEntry[K, V]) getValue() (V, bool) {
 	return l.value[0], true
 }
 
-func (l *leafEntry[K, V]) count() int {
+func (l *leafEntry[K]) count() int {
 	return len(l.value)
 }
 
-func (*leafEntry[K, V]) zero() (V, bool) {
-	var v V
-	return v, false
+func (*leafEntry[K]) zero() (RecordID, bool) {
+	return RecordID{}, false
 }

@@ -7,23 +7,23 @@ import (
 	"slices"
 )
 
-type Storage[K cmp.Ordered, V any] interface {
-	GetPage(context.Context) (node[K, V], error)
-	GetRoot(context.Context) (node[K, V], error)
-	SetRoot(context.Context, node[K, V]) error
+type Storage[K cmp.Ordered] interface {
+	GetPage(context.Context) (node[K], error)
+	GetRoot(context.Context) (node[K], error)
+	SetRoot(context.Context, node[K]) error
 }
 
-type Cursor[K cmp.Ordered, V any] struct {
-	storage Storage[K, V]
+type Cursor[K cmp.Ordered] struct {
+	storage Storage[K]
 }
 
-func NewCursor[K cmp.Ordered, V any](s Storage[K, V]) *Cursor[K, V] {
-	return &Cursor[K, V]{
+func NewCursor[K cmp.Ordered](s Storage[K]) *Cursor[K] {
+	return &Cursor[K]{
 		storage: s,
 	}
 }
 
-func (bt *Cursor[K, V]) Height(ctx context.Context) (int, error) {
+func (bt *Cursor[K]) Height(ctx context.Context) (int, error) {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
@@ -36,7 +36,7 @@ func (bt *Cursor[K, V]) Height(ctx context.Context) (int, error) {
 	return r.height(), nil
 }
 
-func (bt *Cursor[K, V]) Count(ctx context.Context) (int, error) {
+func (bt *Cursor[K]) Count(ctx context.Context) (int, error) {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
@@ -49,42 +49,41 @@ func (bt *Cursor[K, V]) Count(ctx context.Context) (int, error) {
 	return r.count(), nil
 }
 
-func (bt *Cursor[K, V]) FanOut() int {
+func (bt *Cursor[K]) FanOut() int {
 	return 3
 }
 
-func (bt *Cursor[K, V]) GetValue(ctx context.Context, k K) (V, error) {
+func (bt *Cursor[K]) GetValue(ctx context.Context, k K) (RecordID, error) {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
-		var v V
-		return v, err
+		return RecordID{}, err
 	}
 
-	v, ok := r.getValue(k)
+	rid, ok := r.getValue(k)
 	if !ok {
-		return v, ErrNotFound
+		return rid, ErrNotFound
 	}
 
-	return v, nil
+	return rid, nil
 }
 
-func (bt *Cursor[K, V]) Insert(ctx context.Context, k K, v V) error {
+func (bt *Cursor[K]) Insert(ctx context.Context, k K, rid RecordID) error {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
-			return bt.storage.SetRoot(ctx, newLeafNode(bt.storage, k, v))
+			return bt.storage.SetRoot(ctx, newLeafNode(bt.storage, k, rid))
 		}
 
 		return err
 	}
 
-	var n node[K, V]
+	var n node[K]
 	var ok bool
 	switch r := r.(type) {
-	case *keyNode[K, V]:
-		n, ok = bt.insertKey(r, k, v)
-	case *leafNode[K, V]:
-		n, ok = bt.insertLeaf(r, k, v)
+	case *keyNode[K]:
+		n, ok = bt.insertKey(r, k, rid)
+	case *leafNode[K]:
+		n, ok = bt.insertLeaf(r, k, rid)
 	}
 	if !ok {
 		return ErrNoInsert
@@ -93,8 +92,8 @@ func (bt *Cursor[K, V]) Insert(ctx context.Context, k K, v V) error {
 	return bt.storage.SetRoot(ctx, newKeyNode(bt.storage, r, n))
 }
 
-func (bt *Cursor[K, V]) insertKey(kn *keyNode[K, V], k K, v V) (node[K, V], bool) {
-	n, ok := kn.getChild(k).insert(bt.FanOut(), k, v)
+func (bt *Cursor[K]) insertKey(kn *keyNode[K], k K, rid RecordID) (node[K], bool) {
+	n, ok := kn.getChild(k).insert(bt.FanOut(), k, rid)
 	if !ok {
 		return nil, false
 	}
@@ -102,11 +101,11 @@ func (bt *Cursor[K, V]) insertKey(kn *keyNode[K, V], k K, v V) (node[K, V], bool
 	return kn.insertNode(bt.FanOut(), k, n)
 }
 
-func (bt *Cursor[K, V]) insertLeaf(ln *leafNode[K, V], k K, v V) (node[K, V], bool) {
+func (bt *Cursor[K]) insertLeaf(ln *leafNode[K], k K, rid RecordID) (node[K], bool) {
 	c := ln.getChild(k)
 	if c != nil {
 		// TODO: Create Overflow
-		c.append(v)
+		c.append(rid)
 		return nil, false
 	}
 
@@ -116,7 +115,7 @@ func (bt *Cursor[K, V]) insertLeaf(ln *leafNode[K, V], k K, v V) (node[K, V], bo
 	}
 
 	// TODO: Split before inserting
-	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, v))
+	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, rid))
 	if len(ln.children) <= bt.FanOut() {
 		return nil, false
 	}
@@ -124,7 +123,7 @@ func (bt *Cursor[K, V]) insertLeaf(ln *leafNode[K, V], k K, v V) (node[K, V], bo
 	return ln.split(), true
 }
 
-func (bt *Cursor[K, V]) DeleteAll(ctx context.Context, k K) error {
+func (bt *Cursor[K]) DeleteAll(ctx context.Context, k K) error {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
@@ -138,6 +137,6 @@ func (bt *Cursor[K, V]) DeleteAll(ctx context.Context, k K) error {
 	return nil
 }
 
-func (bt *Cursor[K, V]) DeleteValue(k K, v V) {
+func (bt *Cursor[K]) DeleteValue(k K, rid RecordID) {
 
 }
