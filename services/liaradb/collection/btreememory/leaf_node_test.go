@@ -5,7 +5,9 @@ import "testing"
 func TestLeafNode(t *testing.T) {
 	t.Parallel()
 
-	ln := newLeafNode(1, "a")
+	s := &mockStorage[int, string]{}
+
+	ln := newLeafNode(s, 1, "a")
 	ln.insert(2, 2, "b")
 	ln2, ok := ln.insert(2, 3, "c")
 	if !ok {
@@ -24,7 +26,9 @@ func TestLeafNode(t *testing.T) {
 func TestLeafNode_Reverse(t *testing.T) {
 	t.Parallel()
 
-	ln := newLeafNode(3, "c")
+	s := &mockStorage[int, string]{}
+
+	ln := newLeafNode(s, 3, "c")
 	ln.insert(2, 2, "b")
 	ln2, ok := ln.insert(2, 1, "a")
 	if !ok {

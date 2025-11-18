@@ -72,7 +72,7 @@ func (bt *Cursor[K, V]) Insert(ctx context.Context, k K, v V) error {
 	r, err := bt.storage.GetRoot(ctx)
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
-			return bt.storage.SetRoot(ctx, newLeafNode(k, v))
+			return bt.storage.SetRoot(ctx, newLeafNode(bt.storage, k, v))
 		}
 
 		return err
@@ -90,7 +90,7 @@ func (bt *Cursor[K, V]) Insert(ctx context.Context, k K, v V) error {
 		return ErrNoInsert
 	}
 
-	return bt.storage.SetRoot(ctx, newKeyNode(r, n))
+	return bt.storage.SetRoot(ctx, newKeyNode(bt.storage, r, n))
 }
 
 func (bt *Cursor[K, V]) insertKey(kn *keyNode[K, V], k K, v V) (node[K, V], bool) {

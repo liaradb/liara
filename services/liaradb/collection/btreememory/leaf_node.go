@@ -6,6 +6,7 @@ import (
 )
 
 type leafNode[K cmp.Ordered, V any] struct {
+	storage  Storage[K, V]
 	k        K
 	children []*leafEntry[K, V]
 	left     *leafNode[K, V]
@@ -14,8 +15,9 @@ type leafNode[K cmp.Ordered, V any] struct {
 
 var _ node[int, int] = (*leafNode[int, int])(nil)
 
-func newLeafNode[K cmp.Ordered, V any](k K, v V) *leafNode[K, V] {
+func newLeafNode[K cmp.Ordered, V any](s Storage[K, V], k K, v V) *leafNode[K, V] {
 	return &leafNode[K, V]{
+		storage:  s,
 		k:        k,
 		children: []*leafEntry[K, V]{newLeafEntry(k, v)},
 	}

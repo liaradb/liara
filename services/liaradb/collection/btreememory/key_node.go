@@ -6,6 +6,7 @@ import (
 )
 
 type keyNode[K cmp.Ordered, V any] struct {
+	storage  Storage[K, V]
 	k        K
 	level    int
 	children []node[K, V]
@@ -15,8 +16,9 @@ type keyNode[K cmp.Ordered, V any] struct {
 
 var _ node[int, int] = (*keyNode[int, int])(nil)
 
-func newKeyNode[K cmp.Ordered, V any](a, b node[K, V]) *keyNode[K, V] {
+func newKeyNode[K cmp.Ordered, V any](s Storage[K, V], a, b node[K, V]) *keyNode[K, V] {
 	kn := &keyNode[K, V]{
+		storage:  s,
 		level:    a.height() + 1,
 		children: []node[K, V]{a, b},
 	}
