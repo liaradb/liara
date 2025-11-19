@@ -29,9 +29,10 @@ func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 
 func (ln *leafNode[K]) key() K             { return ln.k }
 func (ln *leafNode[K]) id() storage.Offset { return ln.i }
+func (ln *leafNode[K]) count() int         { return len(ln.children) }
 
-func (ln *leafNode[K]) count() int {
-	return len(ln.children)
+func (ln *leafNode[K]) getChild(k K) (storage.Offset, bool) {
+	return 0, false
 }
 
 func (ln *leafNode[K]) getValue(k K) (RecordID, bool) {
@@ -39,7 +40,7 @@ func (ln *leafNode[K]) getValue(k K) (RecordID, bool) {
 		return RecordID{}, false
 	}
 
-	c, ok := ln.getChild(k)
+	c, ok := ln.getChildValue(k)
 	if !ok {
 		return RecordID{}, false
 	}
@@ -47,7 +48,7 @@ func (ln *leafNode[K]) getValue(k K) (RecordID, bool) {
 	return c.value, true
 }
 
-func (ln *leafNode[K]) getChild(k K) (*leafEntry[K], bool) {
+func (ln *leafNode[K]) getChildValue(k K) (*leafEntry[K], bool) {
 	for _, l := range ln.children {
 		if l.key == k {
 			return l, true
@@ -57,8 +58,8 @@ func (ln *leafNode[K]) getChild(k K) (*leafEntry[K], bool) {
 	return nil, false
 }
 
-func (ln *leafNode[K]) insert(f int, k K, rid RecordID) (node[K], bool) {
-	c, ok := ln.getChild(k)
+func (ln *leafNode[K]) insert(f int, k K, rid RecordID) (*leafNode[K], bool) {
+	c, ok := ln.getChildValue(k)
 	if ok {
 		// TODO: Create Overflow
 		c.value = rid
@@ -89,7 +90,7 @@ func (ln *leafNode[K]) getInsertionIndex(k K) int {
 	return 0
 }
 
-func (ln *leafNode[K]) split() node[K] {
+func (ln *leafNode[K]) split() *leafNode[K] {
 	half := len(ln.children) / 2
 
 	ln2 := &leafNode[K]{
