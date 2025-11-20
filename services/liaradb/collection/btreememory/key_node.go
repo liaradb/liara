@@ -24,9 +24,9 @@ type keyEntry[K cmp.Ordered] struct {
 
 var _ node[int] = (*keyNode[int])(nil)
 
-func newKeyNode[K cmp.Ordered](s Storage[K], a, b node[K]) *keyNode[K] {
+func newKeyNode[K cmp.Ordered](s Storage[K], i storage.Offset, a, b node[K]) *keyNode[K] {
 	kn := &keyNode[K]{
-		i:       nextID(),
+		i:       i,
 		storage: s,
 		level:   a.height() + 1,
 		children: []*keyEntry[K]{

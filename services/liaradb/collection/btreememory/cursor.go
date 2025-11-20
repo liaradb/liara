@@ -20,8 +20,6 @@ type Storage[K cmp.Ordered] interface {
 	GetKeyNode(context.Context, storage.BlockID) (*keyNode[K], error)
 	GetLeafNode(context.Context, storage.BlockID) (*leafNode[K], error)
 	InsertNode(context.Context, storage.BlockID, node[K]) error
-	GetRoot(context.Context) (node[K], error)
-	SetRoot(context.Context, node[K]) error
 }
 
 type Cursor[K cmp.Ordered] struct {
@@ -35,7 +33,7 @@ func NewCursor[K cmp.Ordered](s Storage[K]) *Cursor[K] {
 }
 
 func (bt *Cursor[K]) Height(ctx context.Context) (int, error) {
-	r, err := bt.storage.GetRoot(ctx)
+	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
 			return 0, nil
@@ -65,13 +63,13 @@ func (bt *Cursor[K]) FanOut() int {
 }
 
 func (bt *Cursor[K]) GetValue(ctx context.Context, k K) (RecordID, error) {
-	r, err := bt.storage.GetRoot(ctx)
+	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
 		return RecordID{}, err
 	}
 
 	if off, ok := r.getChild(k); ok {
-		return bt.getChild(ctx, k, off)
+		return bt.getValue(ctx, k, off)
 	}
 
 	if rid, ok := r.getValue(k); ok {
@@ -81,14 +79,14 @@ func (bt *Cursor[K]) GetValue(ctx context.Context, k K) (RecordID, error) {
 	}
 }
 
-func (bt *Cursor[K]) getChild(ctx context.Context, k K, off storage.Offset) (RecordID, error) {
+func (bt *Cursor[K]) getValue(ctx context.Context, k K, off storage.Offset) (RecordID, error) {
 	n, err := bt.storage.GetNode(ctx, storage.NewBlockID("", off))
 	if err != nil {
 		return RecordID{}, err
 	}
 
 	if off, ok := n.getChild(k); ok {
-		return bt.getChild(ctx, k, off)
+		return bt.getValue(ctx, k, off)
 	}
 
 	if rid, ok := n.getValue(k); ok {
@@ -98,8 +96,21 @@ func (bt *Cursor[K]) getChild(ctx context.Context, k K, off storage.Offset) (Rec
 	}
 }
 
+func (bt *Cursor[K]) getChild(ctx context.Context, k K, off storage.Offset) (*leafNode[K], error) {
+	n, err := bt.storage.GetNode(ctx, storage.NewBlockID("", off))
+	if err != nil {
+		return nil, err
+	}
+
+	if off, ok := n.getChild(k); ok {
+		return bt.getChild(ctx, k, off)
+	}
+
+	return n.(*leafNode[K]), nil
+}
+
 func (bt *Cursor[K]) Insert(ctx context.Context, k K, rid RecordID) error {
-	r, err := bt.storage.GetRoot(ctx)
+	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
 			ln := newLeafNode(bt.storage, k, rid)
@@ -107,25 +118,24 @@ func (bt *Cursor[K]) Insert(ctx context.Context, k K, rid RecordID) error {
 				return err
 			}
 
-			return bt.storage.SetRoot(ctx, ln)
+			return bt.storage.InsertNode(ctx, storage.NewBlockID("", 0), ln)
 		}
 
 		return err
 	}
 
-	var n node[K]
 	var ok bool
 	switch r := r.(type) {
 	case *keyNode[K]:
-		n, ok = bt.insertKey(r, k, rid)
+		_, ok = bt.insertKey(r, k, rid)
 	case *leafNode[K]:
-		n, ok = bt.insertLeaf(r, k, rid)
+		_, ok = bt.insertLeaf(r, k, rid)
 	}
 	if !ok {
 		return ErrNoInsert
 	}
 
-	return bt.storage.SetRoot(ctx, n)
+	return nil
 }
 
 func (bt *Cursor[K]) insertKey(kn *keyNode[K], k K, rid RecordID) (node[K], bool) {
@@ -137,42 +147,40 @@ func (bt *Cursor[K]) insertKey(kn *keyNode[K], k K, rid RecordID) (node[K], bool
 	if kn.level == 2 {
 		// Child is a leafNode
 		ln, _ := bt.storage.GetLeafNode(context.Background(), storage.NewBlockID("", n))
-		ln2, ok := ln.insert(bt.FanOut(), k, rid)
+		_, ok := bt.insertLeaf(ln, k, rid)
 		if !ok {
-			return kn, true
+			return nil, true
 		}
 
-		kn2 := newKeyNode(bt.storage, ln, ln2)
-		_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", kn2.i), kn2)
-		return kn2, true
+		return nil, false
 	} else {
 		// Child is a keyNode
+		kn, _ := bt.storage.GetKeyNode(context.Background(), storage.NewBlockID("", n))
+		off, _ := kn.getChild(k)
+		ln, _ := bt.getChild(context.Background(), k, off)
+		return bt.insertLeaf(ln, k, rid)
 	}
-
-	// if !ok {
-	// 	return nil, false
-	// }
-
-	// .insert(bt.FanOut(), k, rid)
-
-	return kn.insert(bt.FanOut(), k, n)
 }
 
-func (bt *Cursor[K]) insertLeaf(ln *leafNode[K], k K, rid RecordID) (node[K], bool) {
-	ln2, ok := ln.insert(bt.FanOut(), k, rid)
+func (bt *Cursor[K]) insertLeaf(root *leafNode[K], k K, rid RecordID) (node[K], bool) {
+	ln2, ok := root.insert(bt.FanOut(), k, rid)
 	if !ok {
-		return ln, true
+		return nil, true
 	}
 
 	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", ln2.i), ln2)
 
-	kn2 := newKeyNode(bt.storage, ln, ln2)
-	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", kn2.i), kn2)
-	return kn2, true
+	// Move root to ln3
+	root.i = nextID()
+	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", root.i), root)
+
+	kn := newKeyNode(bt.storage, 0, root, ln2)
+	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", kn.i), kn)
+	return kn, true
 }
 
 func (bt *Cursor[K]) DeleteAll(ctx context.Context, k K) error {
-	r, err := bt.storage.GetRoot(ctx)
+	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
 		if errors.Is(err, ErrEmptyTree) {
 			return nil
