@@ -98,6 +98,7 @@ func (ln *leafNode[K]) split() *leafNode[K] {
 	half := len(ln.children) / 2
 
 	ln2 := &leafNode[K]{
+		storage:  ln.storage,
 		i:        ln.storage.NextID(),
 		k:        ln.children[half].key,
 		children: ln.children[half:],

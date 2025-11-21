@@ -44,7 +44,7 @@ func TestCursor_Insert(t *testing.T) {
 		{message: "should split leaf nodes",
 			items: newItemsAscending(4), fanout: 3, height: 2, skip: false},
 		{message: "should split key nodes",
-			items: newItemsAscending(9), fanout: 3, height: 3, skip: true},
+			items: newItemsAscending(9), fanout: 3, height: 3, skip: false},
 		{message: "should insert in any order",
 			items: newItemsReversed(9), fanout: 3, height: 3, skip: true},
 		{message: "should handle repeated items",
