@@ -1,6 +1,9 @@
 package btreememory
 
-import "cmp"
+import (
+	"cmp"
+	"fmt"
+)
 
 type leafEntry[K cmp.Ordered] struct {
 	key   K
@@ -12,4 +15,8 @@ func newLeafEntry[K cmp.Ordered](k K, rid RecordID) *leafEntry[K] {
 		key:   k,
 		value: rid,
 	}
+}
+
+func (le leafEntry[K]) String() string {
+	return fmt.Sprintf("(%v -> X)", le.key)
 }

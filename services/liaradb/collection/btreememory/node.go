@@ -18,4 +18,5 @@ type node[K cmp.Ordered] interface {
 	deleteAll(fanout int, k K)
 	height() int
 	count() int
+	String() string
 }

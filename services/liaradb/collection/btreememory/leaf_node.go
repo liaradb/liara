@@ -2,7 +2,9 @@ package btreememory
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/liaradb/liaradb/storage"
 )
@@ -41,6 +43,14 @@ func (ln *leafNode[K]) isKeyNode() bool    { return false }
 func (ln *leafNode[K]) isLeafNode() bool   { return true }
 func (ln *leafNode[K]) count() int         { return len(ln.children) }
 func (ln *leafNode[K]) height() int        { return 1 }
+
+func (ln *leafNode[K]) String() string {
+	entries := make([]string, 0, len(ln.children))
+	for _, ke := range ln.children {
+		entries = append(entries, ke.String())
+	}
+	return fmt.Sprintf("Leaf: <(%v, %v): %v>", ln.i, ln.k, strings.Join(entries, ", "))
+}
 
 func (ln *leafNode[K]) getChild(k K) (storage.Offset, bool) {
 	return 0, false

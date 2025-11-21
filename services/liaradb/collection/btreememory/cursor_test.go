@@ -3,6 +3,7 @@ package btreememory
 import (
 	"cmp"
 	"context"
+	"fmt"
 	"slices"
 	"testing"
 
@@ -58,7 +59,8 @@ func TestCursor_Insert(t *testing.T) {
 
 			ctx := t.Context()
 
-			bt := NewCursor(&mockStorage[int]{})
+			s := &mockStorage[int]{}
+			bt := NewCursor(s)
 			if err := bt.CreateBTree(ctx); err != nil {
 				t.Error(err)
 			}
@@ -66,6 +68,8 @@ func TestCursor_Insert(t *testing.T) {
 			for _, i := range row.items {
 				bt.Insert(ctx, i.key, i.rid)
 			}
+
+			// s.Print()
 
 			testFanout(t, row.message, bt, row.fanout)
 			testHeight(t, row.message, bt, row.height)
@@ -238,4 +242,19 @@ func (m *mockStorage[K]) NextID() storage.Offset {
 	id := m.id
 	m.id++
 	return id
+}
+
+func (m *mockStorage[K]) Print() {
+	nodes := make([]node[K], 0, len(m.nodes))
+	for _, n := range m.nodes {
+		nodes = append(nodes, n)
+	}
+
+	slices.SortFunc(nodes, func(a, b node[K]) int {
+		return int(a.id().Value() - b.id().Value())
+	})
+
+	for _, n := range nodes {
+		fmt.Println(n)
+	}
 }
