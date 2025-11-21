@@ -56,10 +56,15 @@ func TestCursor_Insert(t *testing.T) {
 				t.Skip()
 			}
 
+			ctx := t.Context()
+
 			bt := NewCursor(&mockStorage[int]{})
+			if err := bt.CreateBTree(ctx); err != nil {
+				t.Error(err)
+			}
 
 			for _, i := range row.items {
-				bt.Insert(t.Context(), i.key, i.rid)
+				bt.Insert(ctx, i.key, i.rid)
 			}
 
 			testFanout(t, row.message, bt, row.fanout)
@@ -73,13 +78,18 @@ func TestCursor_Insert(t *testing.T) {
 func TestCursor_Delete(t *testing.T) {
 	t.Parallel()
 
-	bt := NewCursor(&mockStorage[int]{})
+	ctx := t.Context()
 
-	if err := bt.Insert(t.Context(), 1, NewRecordID(0, 1)); err != nil {
+	bt := NewCursor(&mockStorage[int]{})
+	if err := bt.CreateBTree(ctx); err != nil {
 		t.Error(err)
 	}
 
-	if err := bt.DeleteAll(t.Context(), 1); err != nil {
+	if err := bt.Insert(ctx, 1, NewRecordID(0, 1)); err != nil {
+		t.Error(err)
+	}
+
+	if err := bt.DeleteAll(ctx, 1); err != nil {
 		t.Error(err)
 	}
 
@@ -165,6 +175,7 @@ func testItems(t *testing.T, message string, bt *Cursor[int], items []item) {
 type mockStorage[K cmp.Ordered] struct {
 	root  node[K]
 	nodes map[storage.BlockID]node[K]
+	id    storage.Offset
 }
 
 var _ Storage[int] = (*mockStorage[int])(nil)
@@ -221,4 +232,10 @@ func (m *mockStorage[K]) InsertNode(ctx context.Context, bid storage.BlockID, n 
 
 	m.nodes[bid] = n
 	return nil
+}
+
+func (m *mockStorage[K]) NextID() storage.Offset {
+	id := m.id
+	m.id++
+	return id
 }

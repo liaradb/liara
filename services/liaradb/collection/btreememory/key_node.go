@@ -92,7 +92,7 @@ func (kn *keyNode[K]) split() *keyNode[K] {
 	half := len(kn.children) / 2
 
 	kn2 := &keyNode[K]{
-		i:        nextID(),
+		i:        kn.storage.NextID(),
 		k:        kn.children[half].k,
 		children: kn.children[half:],
 		leftID:   kn.i,

@@ -8,18 +8,12 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-var id storage.Offset = -1
-
-func nextID() storage.Offset {
-	id++
-	return id
-}
-
 type Storage[K cmp.Ordered] interface {
 	GetNode(context.Context, storage.BlockID) (node[K], error)
 	GetKeyNode(context.Context, storage.BlockID) (*keyNode[K], error)
 	GetLeafNode(context.Context, storage.BlockID) (*leafNode[K], error)
 	InsertNode(context.Context, storage.BlockID, node[K]) error
+	NextID() storage.Offset
 }
 
 type Cursor[K cmp.Ordered] struct {
@@ -41,17 +35,12 @@ func (bt *Cursor[K]) CreateBTree(ctx context.Context) error {
 		return err
 	}
 
-	return bt.storage.InsertNode(ctx, storage.NewBlockID("", 0), newEmptyLeafNode(bt.storage, 0))
-
+	return bt.storage.InsertNode(ctx, storage.NewBlockID("", 0), newEmptyLeafNode(bt.storage, bt.storage.NextID()))
 }
 
 func (bt *Cursor[K]) Height(ctx context.Context) (int, error) {
 	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			return 0, nil
-		}
-
 		return 0, err
 	}
 
@@ -125,15 +114,6 @@ func (bt *Cursor[K]) getChild(ctx context.Context, k K, off storage.Offset) (*le
 func (bt *Cursor[K]) Insert(ctx context.Context, k K, rid RecordID) error {
 	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
-			ln := newLeafNode(bt.storage, k, rid)
-			if err := bt.storage.InsertNode(ctx, storage.NewBlockID("", ln.i), ln); err != nil {
-				return err
-			}
-
-			return bt.storage.InsertNode(ctx, storage.NewBlockID("", 0), ln)
-		}
-
 		return err
 	}
 
@@ -176,15 +156,15 @@ func (bt *Cursor[K]) insertKey(kn *keyNode[K], k K, rid RecordID) (node[K], bool
 }
 
 func (bt *Cursor[K]) insertLeaf(root *leafNode[K], k K, rid RecordID) (node[K], bool) {
-	ln2, ok := root.insert(bt.FanOut(), k, rid)
-	if !ok {
+	ln2, split := root.insert(bt.FanOut(), k, rid)
+	if !split {
 		return nil, true
 	}
 
 	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", ln2.i), ln2)
 
 	// Move root to ln3
-	root.i = nextID()
+	root.i = bt.storage.NextID()
 	_ = bt.storage.InsertNode(context.Background(), storage.NewBlockID("", root.i), root)
 
 	kn := newKeyNode(bt.storage, 0, root, ln2)
