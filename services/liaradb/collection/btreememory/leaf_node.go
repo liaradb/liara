@@ -18,6 +18,14 @@ type leafNode[K cmp.Ordered] struct {
 
 var _ node[int] = (*leafNode[int])(nil)
 
+func newEmptyLeafNode[K cmp.Ordered](s Storage[K], i storage.Offset) *leafNode[K] {
+	return &leafNode[K]{
+		i:        i,
+		storage:  s,
+		children: []*leafEntry[K]{},
+	}
+}
+
 func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 	return &leafNode[K]{
 		i:        nextID(),

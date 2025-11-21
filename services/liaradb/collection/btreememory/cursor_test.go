@@ -12,12 +12,17 @@ import (
 func TestCursor_Default(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
+
 	bt := NewCursor(&mockStorage[int]{})
+	if err := bt.CreateBTree(ctx); err != nil {
+		t.Error(err)
+	}
 
 	testFanout(t, "default", bt, 3)
-	// testHeight(t, "default", bt, 0)
+	testHeight(t, "default", bt, 1)
 
-	if rid, err := bt.GetValue(t.Context(), 0); err == nil {
+	if rid, err := bt.GetValue(ctx, 0); err == nil {
 		t.Error("should have no value by default")
 	} else if rid != (RecordID{}) {
 		t.Error("should have no value by default")
@@ -166,7 +171,7 @@ var _ Storage[int] = (*mockStorage[int])(nil)
 
 func (m *mockStorage[K]) GetNode(ctx context.Context, bid storage.BlockID) (node[K], error) {
 	if m.nodes == nil {
-		return nil, ErrEmptyTree
+		return nil, ErrNotFound
 	}
 
 	n, ok := m.nodes[bid]
@@ -181,7 +186,7 @@ func (m *mockStorage[K]) GetNode(ctx context.Context, bid storage.BlockID) (node
 
 func (m *mockStorage[K]) GetKeyNode(ctx context.Context, bid storage.BlockID) (*keyNode[K], error) {
 	if m.nodes == nil {
-		return nil, ErrEmptyTree
+		return nil, ErrNotFound
 	}
 
 	n, ok := m.nodes[bid]
@@ -196,7 +201,7 @@ func (m *mockStorage[K]) GetKeyNode(ctx context.Context, bid storage.BlockID) (*
 
 func (m *mockStorage[K]) GetLeafNode(ctx context.Context, bid storage.BlockID) (*leafNode[K], error) {
 	if m.nodes == nil {
-		return nil, ErrEmptyTree
+		return nil, ErrNotFound
 	}
 
 	n, ok := m.nodes[bid]
@@ -215,18 +220,5 @@ func (m *mockStorage[K]) InsertNode(ctx context.Context, bid storage.BlockID, n 
 	}
 
 	m.nodes[bid] = n
-	return nil
-}
-
-func (m *mockStorage[K]) GetRoot(context.Context) (node[K], error) {
-	if m.root == nil {
-		return nil, ErrEmptyTree
-	}
-
-	return m.root, nil
-}
-
-func (m *mockStorage[K]) SetRoot(ctx context.Context, root node[K]) error {
-	m.root = root
 	return nil
 }

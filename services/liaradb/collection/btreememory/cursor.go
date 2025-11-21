@@ -32,10 +32,23 @@ func NewCursor[K cmp.Ordered](s Storage[K]) *Cursor[K] {
 	}
 }
 
+func (bt *Cursor[K]) CreateBTree(ctx context.Context) error {
+	_, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
+	if err == nil {
+		return ErrAlreadyInitialized
+	}
+	if err != ErrNotFound {
+		return err
+	}
+
+	return bt.storage.InsertNode(ctx, storage.NewBlockID("", 0), newEmptyLeafNode(bt.storage, 0))
+
+}
+
 func (bt *Cursor[K]) Height(ctx context.Context) (int, error) {
 	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
-		if errors.Is(err, ErrEmptyTree) {
+		if errors.Is(err, ErrNotFound) {
 			return 0, nil
 		}
 
@@ -112,7 +125,7 @@ func (bt *Cursor[K]) getChild(ctx context.Context, k K, off storage.Offset) (*le
 func (bt *Cursor[K]) Insert(ctx context.Context, k K, rid RecordID) error {
 	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
-		if errors.Is(err, ErrEmptyTree) {
+		if errors.Is(err, ErrNotFound) {
 			ln := newLeafNode(bt.storage, k, rid)
 			if err := bt.storage.InsertNode(ctx, storage.NewBlockID("", ln.i), ln); err != nil {
 				return err
@@ -182,7 +195,7 @@ func (bt *Cursor[K]) insertLeaf(root *leafNode[K], k K, rid RecordID) (node[K], 
 func (bt *Cursor[K]) DeleteAll(ctx context.Context, k K) error {
 	r, err := bt.storage.GetNode(ctx, storage.NewBlockID("", 0))
 	if err != nil {
-		if errors.Is(err, ErrEmptyTree) {
+		if errors.Is(err, ErrNotFound) {
 			return nil
 		}
 
