@@ -9,6 +9,8 @@ import (
 type node[K cmp.Ordered] interface {
 	key() K
 	id() storage.Offset
+	isKeyNode() bool
+	isLeafNode() bool
 	getChild(k K) (storage.Offset, bool)
 	getValue(k K) (RecordID, bool)
 	// insert(fanout int, k K, rid RecordID) (node[K], bool)

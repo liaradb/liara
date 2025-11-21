@@ -37,7 +37,10 @@ func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 
 func (ln *leafNode[K]) key() K             { return ln.k }
 func (ln *leafNode[K]) id() storage.Offset { return ln.i }
+func (ln *leafNode[K]) isKeyNode() bool    { return false }
+func (ln *leafNode[K]) isLeafNode() bool   { return true }
 func (ln *leafNode[K]) count() int         { return len(ln.children) }
+func (ln *leafNode[K]) height() int        { return 1 }
 
 func (ln *leafNode[K]) getChild(k K) (storage.Offset, bool) {
 	return 0, false
@@ -199,12 +202,4 @@ func (ln *leafNode[K]) minimum(f int) int {
 
 func ceiling(a, b int) int {
 	return (a + b - 1) / b
-}
-
-func (ln *leafNode[K]) height() int {
-	if ln == nil {
-		return 0
-	}
-
-	return 1
 }

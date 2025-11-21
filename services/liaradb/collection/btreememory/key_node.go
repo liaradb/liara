@@ -38,11 +38,10 @@ func newKeyNode[K cmp.Ordered](s Storage[K], i storage.Offset, a, b node[K]) *ke
 
 func (kn *keyNode[K]) key() K             { return kn.k }
 func (kn *keyNode[K]) id() storage.Offset { return kn.i }
+func (kn *keyNode[K]) isKeyNode() bool    { return true }
+func (kn *keyNode[K]) isLeafNode() bool   { return false }
 func (kn *keyNode[K]) count() int         { return len(kn.children) }
-
-func (kn *keyNode[K]) getValue(k K) (RecordID, bool) {
-	return RecordID{}, false
-}
+func (kn *keyNode[K]) height() int        { return kn.level }
 
 func (kn *keyNode[K]) getChild(k K) (storage.Offset, bool) {
 	a := kn.children[0]
@@ -58,6 +57,10 @@ func (kn *keyNode[K]) getChild(k K) (storage.Offset, bool) {
 	}
 
 	return a.id, true
+}
+
+func (kn *keyNode[K]) getValue(k K) (RecordID, bool) {
+	return RecordID{}, false
 }
 
 func (kn *keyNode[K]) insert(f int, k K, id storage.Offset) (*keyNode[K], bool) {
@@ -109,12 +112,4 @@ func (kn *keyNode[K]) delete(f int, k K, rid RecordID) {
 
 func (kn *keyNode[K]) deleteAll(f int, k K) {
 
-}
-
-func (kn *keyNode[K]) height() int {
-	if kn == nil {
-		return 0
-	}
-
-	return kn.level
 }
