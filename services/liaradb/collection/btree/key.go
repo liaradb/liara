@@ -1,7 +1,48 @@
 package btree
 
-import "github.com/liaradb/liaradb/encoder/raw"
+type Key string
 
-type Key struct {
-	raw.BaseString
+func (k Key) Equal(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k == b
+}
+
+func (k Key) Greater(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k > b
+}
+
+func (k Key) GreaterEqual(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k >= b
+}
+
+func (k Key) Less(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k < b
+}
+
+func (k Key) LessEqual(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k <= b
 }
