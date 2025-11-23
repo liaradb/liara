@@ -12,7 +12,6 @@ import (
 type leafNode[K cmp.Ordered] struct {
 	storage  Storage[K]
 	i        storage.Offset
-	k        K
 	children []*leafEntry[K]
 	leftID   storage.Offset
 	rightID  storage.Offset
@@ -32,24 +31,23 @@ func newLeafNode[K cmp.Ordered](s Storage[K], k K, rid RecordID) *leafNode[K] {
 	return &leafNode[K]{
 		i:        s.NextID(),
 		storage:  s,
-		k:        k,
 		children: []*leafEntry[K]{newLeafEntry(k, rid)},
 	}
 }
 
-func (ln *leafNode[K]) key() K             { return ln.k }
 func (ln *leafNode[K]) id() storage.Offset { return ln.i }
 func (ln *leafNode[K]) isKeyNode() bool    { return false }
 func (ln *leafNode[K]) isLeafNode() bool   { return true }
 func (ln *leafNode[K]) count() int         { return len(ln.children) }
 func (ln *leafNode[K]) height() int        { return 1 }
+func (ln *leafNode[K]) firstKey() K        { return ln.children[0].key }
 
 func (ln *leafNode[K]) String() string {
 	entries := make([]string, 0, len(ln.children))
 	for _, ke := range ln.children {
 		entries = append(entries, ke.String())
 	}
-	return fmt.Sprintf("Leaf: <(%v, %v): %v>", ln.i, ln.k, strings.Join(entries, ", "))
+	return fmt.Sprintf("Leaf: <(%v): %v>", ln.i, strings.Join(entries, ", "))
 }
 
 func (ln *leafNode[K]) getChild(k K) (storage.Offset, bool) {
@@ -71,9 +69,6 @@ func (ln *leafNode[K]) insert(f int, k K, rid RecordID) (*leafNode[K], bool) {
 	}
 
 	i := ln.getInsertionIndex(k)
-	if i == 0 {
-		ln.k = k
-	}
 
 	// TODO: Split before inserting
 	ln.children = slices.Insert(ln.children, i, newLeafEntry(k, rid))
@@ -110,7 +105,6 @@ func (ln *leafNode[K]) split() *leafNode[K] {
 	ln2 := &leafNode[K]{
 		storage:  ln.storage,
 		i:        ln.storage.NextID(),
-		k:        ln.children[half].key,
 		children: ln.children[half:],
 		leftID:   ln.i,
 		rightID:  ln.rightID,

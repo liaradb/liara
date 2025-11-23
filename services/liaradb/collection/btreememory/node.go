@@ -7,8 +7,8 @@ import (
 )
 
 type node[K cmp.Ordered] interface {
-	key() K
 	id() storage.Offset
+	firstKey() K
 	isKeyNode() bool
 	isLeafNode() bool
 	getChild(k K) (storage.Offset, bool)

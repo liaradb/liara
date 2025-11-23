@@ -12,7 +12,6 @@ import (
 type keyNode[K cmp.Ordered] struct {
 	storage  Storage[K]
 	i        storage.Offset
-	k        K
 	level    int
 	children []*keyEntry[K]
 	leftID   storage.Offset
@@ -21,31 +20,29 @@ type keyNode[K cmp.Ordered] struct {
 
 var _ node[int] = (*keyNode[int])(nil)
 
-func newKeyNode[K cmp.Ordered](s Storage[K], i storage.Offset, a, b node[K]) *keyNode[K] {
+func newKeyNode[K cmp.Ordered](s Storage[K], i storage.Offset, level int, a, b *keyEntry[K]) *keyNode[K] {
 	kn := &keyNode[K]{
-		i:       i,
-		storage: s,
-		level:   a.height() + 1,
-		children: []*keyEntry[K]{
-			{k: a.key(), id: a.id()},
-			{k: b.key(), id: b.id()}},
+		i:        i,
+		storage:  s,
+		level:    level,
+		children: []*keyEntry[K]{a, b},
 	}
 	return kn
 }
 
-func (kn *keyNode[K]) key() K             { return kn.k }
 func (kn *keyNode[K]) id() storage.Offset { return kn.i }
 func (kn *keyNode[K]) isKeyNode() bool    { return true }
 func (kn *keyNode[K]) isLeafNode() bool   { return false }
 func (kn *keyNode[K]) count() int         { return len(kn.children) }
 func (kn *keyNode[K]) height() int        { return kn.level }
+func (kn *keyNode[K]) firstKey() K        { return kn.children[0].k }
 
 func (kn *keyNode[K]) String() string {
 	entries := make([]string, 0, len(kn.children))
 	for _, ke := range kn.children {
 		entries = append(entries, ke.String())
 	}
-	return fmt.Sprintf("Key:  <(%v, %v): %v>", kn.i, kn.k, strings.Join(entries, ", "))
+	return fmt.Sprintf("Key:  <(%v): %v>", kn.i, strings.Join(entries, ", "))
 }
 
 func (kn *keyNode[K]) getChild(k K) (storage.Offset, bool) {
@@ -70,9 +67,6 @@ func (kn *keyNode[K]) getValue(k K) (RecordID, bool) {
 
 func (kn *keyNode[K]) insert(f int, k K, id storage.Offset) (*keyNode[K], bool) {
 	i := kn.getInsertionIndex(k)
-	if i == 0 {
-		kn.k = k
-	}
 
 	// TODO: Split before inserting
 	kn.children = slices.Insert(kn.children, i, &keyEntry[K]{k: k, id: id})
@@ -98,7 +92,6 @@ func (kn *keyNode[K]) split() *keyNode[K] {
 
 	kn2 := &keyNode[K]{
 		i:        kn.storage.NextID(),
-		k:        kn.children[half].k,
 		children: kn.children[half:],
 		leftID:   kn.i,
 		rightID:  kn.rightID,

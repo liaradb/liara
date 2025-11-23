@@ -152,8 +152,10 @@ func (bt *Cursor[K]) insertKey(ctx context.Context, root *keyNode[K], k K, rid R
 		root.i = bt.storage.NextID()
 		_ = bt.storage.InsertNode(ctx, storage.NewBlockID("", root.i), root)
 
-		kn := newKeyNode(bt.storage, i, root, kn2)
-		kn.k = ln.k
+		aK, bK := root.firstKey(), kn2.firstKey()
+		kn := newKeyNode(bt.storage, i, 3,
+			&keyEntry[K]{aK, root.i},
+			&keyEntry[K]{bK, kn2.i})
 		_ = bt.storage.InsertNode(ctx, storage.NewBlockID("", kn.i), kn)
 
 		return kn, false
@@ -179,8 +181,10 @@ func (bt *Cursor[K]) insertLeaf(ctx context.Context, root *leafNode[K], k K, rid
 	root.i = bt.storage.NextID()
 	_ = bt.storage.InsertNode(ctx, storage.NewBlockID("", root.i), root)
 
-	kn := newKeyNode(bt.storage, i, root, ln2)
-	kn.k = ln2.k // TODO: What value should we use?
+	aK, bK := root.firstKey(), ln2.firstKey()
+	kn := newKeyNode(bt.storage, i, 2,
+		&keyEntry[K]{aK, root.i},
+		&keyEntry[K]{bK, ln2.i})
 	_ = bt.storage.InsertNode(ctx, storage.NewBlockID("", kn.i), kn)
 	return kn, true
 }
