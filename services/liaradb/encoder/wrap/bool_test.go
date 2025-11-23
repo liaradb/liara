@@ -2,15 +2,33 @@ package wrap
 
 import "testing"
 
+func TestBool_Defaults(t *testing.T) {
+	var b Bool
+	testBool(t, b, [8]bool{})
+}
+
 func TestBool(t *testing.T) {
 	var b Bool
 
-	b.Set(0)
-	if b != 0b00000001 {
-		t.Errorf("incorrect value: %v, expected: %v", b, 0b00000001)
-	}
+	b.Set(0, true)
+	testBool(t, b, [8]bool{true})
 
-	if r := b.Get(0); !r {
-		t.Errorf("incorrect result: %v, expected: %v", r, true)
+	b.Set(0, false)
+	testBool(t, b, [8]bool{})
+
+	b.Set(3, true)
+	b.Set(5, true)
+	testBool(t, b, [8]bool{false, false, false, true, false, true})
+
+	b.Set(3, false)
+	testBool(t, b, [8]bool{false, false, false, false, false, true})
+}
+
+func testBool(t *testing.T, b Bool, values [8]bool) {
+	t.Helper()
+	for i, v := range values {
+		if r := b.Get(byte(i)); r != v {
+			t.Errorf("incorrect result: (%v, %v), expected: (%v, %v)", i, r, i, v)
+		}
 	}
 }
