@@ -19,11 +19,6 @@ type keyNode[K cmp.Ordered] struct {
 	rightID  storage.Offset
 }
 
-type keyEntry[K cmp.Ordered] struct {
-	k  K
-	id storage.Offset
-}
-
 var _ node[int] = (*keyNode[int])(nil)
 
 func newKeyNode[K cmp.Ordered](s Storage[K], i storage.Offset, a, b node[K]) *keyNode[K] {
@@ -51,10 +46,6 @@ func (kn *keyNode[K]) String() string {
 		entries = append(entries, ke.String())
 	}
 	return fmt.Sprintf("Key:  <(%v, %v): %v>", kn.i, kn.k, strings.Join(entries, ", "))
-}
-
-func (ke keyEntry[K]) String() string {
-	return fmt.Sprintf("(%v -> %v)", ke.k, ke.id)
 }
 
 func (kn *keyNode[K]) getChild(k K) (storage.Offset, bool) {
