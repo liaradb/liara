@@ -14,8 +14,6 @@ type keyNode[K cmp.Ordered] struct {
 	i        storage.Offset
 	level    int
 	children []*keyEntry[K]
-	leftID   storage.Offset
-	rightID  storage.Offset
 }
 
 var _ node[int] = (*keyNode[int])(nil)
@@ -93,13 +91,10 @@ func (kn *keyNode[K]) split() *keyNode[K] {
 	kn2 := &keyNode[K]{
 		i:        kn.storage.NextID(),
 		children: kn.children[half:],
-		leftID:   kn.i,
-		rightID:  kn.rightID,
 	}
 
 	// TODO: Should we copy slices?
 	kn.children = slices.Clone(kn.children[:half])
-	kn.rightID = kn2.i
 
 	return kn2
 }
