@@ -5,6 +5,10 @@ type CompositeKey struct {
 	B Key
 }
 
+func (k CompositeKey) Length() int16 {
+	return k.A.Length() + k.B.Length()
+}
+
 func (k CompositeKey) Equal(o any) bool {
 	b, ok := o.(CompositeKey)
 	if !ok {

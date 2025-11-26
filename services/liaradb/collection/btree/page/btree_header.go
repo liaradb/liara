@@ -17,6 +17,7 @@ const (
 		nextSize
 )
 
+// TODO: Should we store HighKey?
 type btreeHeader struct {
 	level  wrap.Byte
 	highID wrap.Int64

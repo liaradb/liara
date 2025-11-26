@@ -2,6 +2,10 @@ package btree
 
 type Key string
 
+func (k Key) Length() int16 {
+	return int16(len(k))
+}
+
 func (k Key) Equal(o any) bool {
 	b, ok := o.(Key)
 	if !ok {
