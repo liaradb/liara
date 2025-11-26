@@ -6,62 +6,44 @@ import (
 )
 
 const (
-	levelSize    = 1
-	parentIDSize = 8
-	prevIDSize   = 8
-	nextIDSize   = 8
-	lowIDSize    = 8
-	nextSize     = 4
+	levelSize  = 1
+	highIDSize = 8
+	lowIDSize  = 8
+	nextSize   = 4
 
 	btreePageHeaderSize = levelSize +
-		parentIDSize +
-		prevIDSize +
-		nextIDSize +
+		highIDSize +
 		lowIDSize +
 		nextSize
 )
 
 type btreeHeader struct {
-	level    wrap.Byte
-	parentID wrap.Int64
-	prevID   wrap.Int64
-	nextID   wrap.Int64
-	lowID    wrap.Int64
-	next     wrap.Int32
+	level  wrap.Byte
+	highID wrap.Int64
+	lowID  wrap.Int64
+	next   wrap.Int32
 }
 
 func newHeader(data []byte) (btreeHeader, []byte) {
 	level, data0 := wrap.NewByte(data)
-	parentID, data1 := wrap.NewInt64(data0)
-	prevID, data2 := wrap.NewInt64(data1)
-	nextID, data3 := wrap.NewInt64(data2)
-	lowID, data4 := wrap.NewInt64(data3)
-	next, data5 := wrap.NewInt32(data4)
+	highID, data1 := wrap.NewInt64(data0)
+	lowID, data2 := wrap.NewInt64(data1)
+	next, data3 := wrap.NewInt32(data2)
 
 	return btreeHeader{
-		level:    level,
-		parentID: parentID,
-		prevID:   prevID,
-		nextID:   nextID,
-		lowID:    lowID,
-		next:     next,
-	}, data5
+		level:  level,
+		highID: highID,
+		lowID:  lowID,
+		next:   next,
+	}, data3
 }
 
 func (p *btreeHeader) Level() byte {
 	return p.level.GetUnsigned()
 }
 
-func (p *btreeHeader) ParentID() storage.Offset {
-	return storage.Offset(p.parentID.Get())
-}
-
-func (p *btreeHeader) PrevID() storage.Offset {
-	return storage.Offset(p.prevID.Get())
-}
-
-func (p *btreeHeader) NextID() storage.Offset {
-	return storage.Offset(p.nextID.Get())
+func (p *btreeHeader) HighID() storage.Offset {
+	return storage.Offset(p.highID.Get())
 }
 
 func (p *btreeHeader) LowID() storage.Offset {
@@ -72,16 +54,8 @@ func (p *btreeHeader) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
 
-func (p *btreeHeader) setParentID(o storage.Offset) {
-	p.parentID.Set(o.Value())
-}
-
-func (p *btreeHeader) setPrevID(o storage.Offset) {
-	p.prevID.Set(o.Value())
-}
-
-func (p *btreeHeader) setNextID(o storage.Offset) {
-	p.nextID.Set(o.Value())
+func (p *btreeHeader) setHighID(o storage.Offset) {
+	p.highID.Set(o.Value())
 }
 
 func (p *btreeHeader) setLowID(o storage.Offset) {
