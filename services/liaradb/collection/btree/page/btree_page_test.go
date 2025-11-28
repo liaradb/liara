@@ -7,15 +7,14 @@ import (
 )
 
 const (
-	headerSize = 8 + btreePageHeaderSize
-	itemSize   = 4
+	headerSize = 4 + btreePageHeaderSize
 )
 
 func TestBTreePage(t *testing.T) {
 	t.Parallel()
 
 	const (
-		size int32 = 256
+		size int16 = 256
 		s0         = size - itemSize - headerSize
 		s1         = s0 - itemSize - 16
 		s2         = s1 - itemSize - 16

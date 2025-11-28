@@ -3,7 +3,7 @@ package int16list
 import "encoding/binary"
 
 const (
-	itemSize = 4
+	itemSize = 2
 )
 
 type Int16List struct {

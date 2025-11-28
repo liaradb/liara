@@ -6,6 +6,10 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
+const (
+	itemSize = 2
+)
+
 type header = btreeHeader
 
 type BTreePage struct {
@@ -26,7 +30,7 @@ func New(data []byte) BTreePage {
 	}
 }
 
-func (p *BTreePage) Append(size int32) (int32, *raw.Buffer, bool) {
+func (p *BTreePage) Append(size int16) (int16, *raw.Buffer, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -47,15 +51,15 @@ func (p *BTreePage) Append(size int32) (int32, *raw.Buffer, bool) {
 	return i, b, true
 }
 
-func (p BTreePage) Length() int32 {
-	return int32(len(p.data))
+func (p BTreePage) Length() int16 {
+	return int16(len(p.data))
 }
 
-func (p BTreePage) Space() int32 {
-	return max(p.list.Next()-p.list.Size()-4, 0)
+func (p BTreePage) Space() int16 {
+	return max(p.list.Next()-p.list.Size()-itemSize, 0)
 }
 
-func (p BTreePage) hasSpace(size int32) bool {
+func (p BTreePage) hasSpace(size int16) bool {
 	s := p.Space()
 	return size <= s
 }

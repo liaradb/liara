@@ -28,21 +28,21 @@ func TestList_GetSet(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", length, 16)
 		}
 
-		if s := l.Size(); s != 4 {
+		if s := l.Size(); s != 8 {
 			t.Errorf("incorrect size: %v, expected: %v", s, 1)
 		}
 
-		for i := range int16(4) {
+		for i := range int16(8) {
 			if ok := l.Set(i, (i+1)*11); !ok {
 				t.Error("should set value")
 			}
 		}
 
-		if ok := l.Set(4, 55); ok {
+		if ok := l.Set(8, 55); ok {
 			t.Error("should not set value beyond size")
 		}
 
-		for i := range int16(4) {
+		for i := range int16(8) {
 			want := (i + 1) * 11
 			if v, ok := l.Get(i); !ok {
 				t.Error("should set value")
@@ -51,7 +51,7 @@ func TestList_GetSet(t *testing.T) {
 			}
 		}
 
-		if _, ok := l.Get(4); ok {
+		if _, ok := l.Get(8); ok {
 			t.Error("should not set value beyond size")
 		}
 	})
