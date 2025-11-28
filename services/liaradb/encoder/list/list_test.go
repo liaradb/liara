@@ -14,8 +14,8 @@ func TestList_Default(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 0)
 	}
 
-	if s := l.Size(); s != 4 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 4)
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
 	}
 
 	if c := l.Count(); c != 0 {
@@ -38,8 +38,8 @@ func TestList_Push(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if s := l.Size(); s != 6 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 6)
+	if s := l.Size(); s != 4 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 
 	if c := l.Count(); c != 1 {
@@ -52,8 +52,8 @@ func TestList_Push(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if s := l.Size(); s != 8 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 6 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 6)
 	}
 
 	if c := l.Count(); c != 2 {
@@ -92,8 +92,8 @@ func TestList_Pop(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 
-	if s := l.Size(); s != 6 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 6)
+	if s := l.Size(); s != 4 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 
 	if c := l.Count(); c != 1 {
@@ -106,8 +106,8 @@ func TestList_Pop(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", v, 1)
 	}
 
-	if s := l.Size(); s != 4 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 4)
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
 	}
 
 	if c := l.Count(); c != 0 {
@@ -116,22 +116,6 @@ func TestList_Pop(t *testing.T) {
 
 	if _, ok := l.Pop(); ok {
 		t.Error("should not pop beyond empty")
-	}
-}
-
-func TestList_Next(t *testing.T) {
-	t.Parallel()
-
-	l := New(make([]byte, 16))
-
-	if n := l.Next(); n != 16 {
-		t.Errorf("incorrect next: %v, expected: %v", n, 0)
-	}
-
-	l.SetNext(10)
-
-	if n := l.Next(); n != 10 {
-		t.Errorf("incorrect next: %v, expected: %v", n, 10)
 	}
 }
 

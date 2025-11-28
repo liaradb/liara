@@ -35,13 +35,13 @@ func (p *BTreePage) Append(size int16) (int16, *raw.Buffer, bool) {
 		return 0, nil, false
 	}
 
-	offset := p.list.Next() - size
+	offset := p.next() - size
 	i, ok := p.list.Push(offset)
 	if !ok {
 		return 0, nil, false
 	}
 
-	p.list.SetNext(offset)
+	p.header.setNext(offset)
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok {
@@ -55,8 +55,19 @@ func (p BTreePage) Length() int16 {
 	return int16(len(p.data))
 }
 
+func (p *BTreePage) next() int16 {
+	size := p.list.Count()
+	if size == 0 {
+		return int16(p.list.Length())
+	} else {
+		return p.header.Next()
+	}
+}
+
 func (p BTreePage) Space() int16 {
-	return max(p.list.Next()-p.list.Size()-itemSize, 0)
+	next := p.next()
+	size := p.list.Size()
+	return max(next-size-itemSize, 0)
 }
 
 func (p BTreePage) hasSpace(size int16) bool {

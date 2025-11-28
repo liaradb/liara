@@ -9,7 +9,7 @@ const (
 	levelSize  = 1
 	highIDSize = 8
 	lowIDSize  = 8
-	nextSize   = 4
+	nextSize   = 2
 
 	btreePageHeaderSize = levelSize +
 		highIDSize +
@@ -22,14 +22,14 @@ type btreeHeader struct {
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
-	next   wrap.Int32
+	next   wrap.Int16
 }
 
 func newHeader(data []byte) (btreeHeader, []byte) {
 	level, data0 := wrap.NewByte(data)
 	highID, data1 := wrap.NewInt64(data0)
 	lowID, data2 := wrap.NewInt64(data1)
-	next, data3 := wrap.NewInt32(data2)
+	next, data3 := wrap.NewInt16(data2)
 
 	return btreeHeader{
 		level:  level,
@@ -51,6 +51,10 @@ func (p *btreeHeader) LowID() storage.Offset {
 	return storage.Offset(p.lowID.Get())
 }
 
+func (p *btreeHeader) Next() int16 {
+	return p.next.Get()
+}
+
 func (p *btreeHeader) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
@@ -61,4 +65,8 @@ func (p *btreeHeader) setHighID(o storage.Offset) {
 
 func (p *btreeHeader) setLowID(o storage.Offset) {
 	p.lowID.Set(o.Value())
+}
+
+func (p *btreeHeader) setNext(o int16) {
+	p.next.Set(o)
 }

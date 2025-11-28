@@ -7,13 +7,12 @@ import (
 )
 
 const (
-	headerSize = 2
+	headerSize = 1
 	itemSize   = 2
 )
 
 type List struct {
 	size int16
-	next int16
 	list int16list.Int16List
 }
 
@@ -21,16 +20,8 @@ func New(data []byte) List {
 	l := int16list.New(data)
 	size, _ := l.Get(0)
 
-	var next int16
-	if size == 0 {
-		next = int16(len(data))
-	} else {
-		next, _ = l.Get(1)
-	}
-
 	return List{
 		size: size,
-		next: next,
 		list: l,
 	}
 }
@@ -50,16 +41,6 @@ func (l *List) Count() int16 {
 func (l *List) setSize(size int16) {
 	if l.list.Set(0, size) {
 		l.size = size
-	}
-}
-
-func (l *List) Next() int16 {
-	return l.next
-}
-
-func (l *List) SetNext(next int16) {
-	if l.list.Set(1, next) {
-		l.next = next
 	}
 }
 

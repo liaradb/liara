@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	headerSize = 4 + btreePageHeaderSize
+	headerSize = 2 + btreePageHeaderSize
 )
 
 func TestBTreePage(t *testing.T) {
