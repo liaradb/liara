@@ -1,6 +1,8 @@
 package list
 
 import (
+	"iter"
+
 	"github.com/liaradb/liaradb/encoder/int32list"
 )
 
@@ -63,6 +65,17 @@ func (l *List) SetNext(next int32) {
 
 func (l *List) Item(index int32) (int32, bool) {
 	return l.list.Get(index + headerSize)
+}
+
+func (l *List) Items() iter.Seq2[int32, int32] {
+	return func(yield func(int32, int32) bool) {
+		for i := range l.size {
+			item, ok := l.Item(i)
+			if !ok || !yield(i, item) {
+				return
+			}
+		}
+	}
 }
 
 func (l *List) Pop() (int32, bool) {

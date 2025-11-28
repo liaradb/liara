@@ -1,6 +1,7 @@
 package list
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -131,5 +132,28 @@ func TestList_Next(t *testing.T) {
 
 	if n := l.Next(); n != 10 {
 		t.Errorf("incorrect next: %v, expected: %v", n, 10)
+	}
+}
+
+func TestList_Items(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 32))
+
+	items := []int32{10, 20, 30, 40, 50}
+
+	for _, item := range items {
+		if _, ok := l.Push(item); !ok {
+			t.Error("should push")
+		}
+	}
+
+	result := make([]int32, 0, len(items))
+	for _, item := range l.Items() {
+		result = append(result, item)
+	}
+
+	if !slices.Equal(result, items) {
+		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 }
