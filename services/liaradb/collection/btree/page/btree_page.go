@@ -2,12 +2,12 @@ package page
 
 import (
 	"github.com/liaradb/liaradb/encoder/bytelist"
-	"github.com/liaradb/liaradb/encoder/list"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/tuplelist"
 )
 
 const (
-	itemSize = 2
+	itemSize = 4
 )
 
 type header = btreeHeader
@@ -15,7 +15,7 @@ type header = btreeHeader
 type BTreePage struct {
 	header
 	data     []byte
-	list     list.List
+	list     tuplelist.TupleList
 	byteList bytelist.ByteList
 }
 
@@ -25,7 +25,7 @@ func New(data []byte) BTreePage {
 	return BTreePage{
 		header:   header,
 		data:     data,
-		list:     list.New(data0),
+		list:     tuplelist.New(data0),
 		byteList: bytelist.New(data0),
 	}
 }
@@ -36,14 +36,14 @@ func (p *BTreePage) Append(size int16) (int16, *raw.Buffer, bool) {
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Push(offset)
+	i, ok := p.list.Push(offset, size) // TODO: Is this the correct order?
 	if !ok {
 		return 0, nil, false
 	}
 
 	p.header.setNext(offset)
 
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	b, ok := p.byteList.Slice(int64(offset), int64(size)) // TODO: Is this the correct order?
 	if !ok {
 		return 0, nil, false
 	}
