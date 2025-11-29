@@ -77,6 +77,15 @@ func (p BTreePage) hasSpace(size int16) bool {
 	return size <= s
 }
 
+func (p BTreePage) Child(index int16) (*raw.Buffer, bool) {
+	offset, size, ok := p.list.Item(index)
+	if !ok {
+		return nil, false
+	}
+
+	return p.byteList.Slice(int64(offset), int64(size))
+}
+
 func (p BTreePage) Children() iter.Seq[*raw.Buffer] {
 	return func(yield func(*raw.Buffer) bool) {
 		for offset, size := range p.list.Items() {

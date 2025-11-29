@@ -107,6 +107,51 @@ func TestBTreePage_Space(t *testing.T) {
 	}
 }
 
+func TestBTreePage_Child(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, 256))
+	values := [][]byte{
+		{1, 2, 3, 4, 5},
+		{6, 7, 8, 9, 10}}
+	_, b0, ok := p.Append(16)
+	if !ok {
+		t.Error("should get a buffer")
+	}
+
+	if _, err := b0.Write(values[0]); err != nil {
+		t.Error(err)
+	}
+
+	_, b1, ok := p.Append(16)
+	if !ok {
+		t.Error("should get a buffer")
+	}
+
+	if _, err := b1.Write(values[1]); err != nil {
+		t.Error(err)
+	}
+
+	result := make([][]byte, 0, 2)
+	for i := range 2 {
+		c, ok := p.Child(int16(i))
+		if !ok {
+			t.Fatal("should get a buffer")
+		}
+
+		v := make([]byte, 5)
+		if _, err := c.Read(v); err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, v)
+	}
+
+	if !slices.EqualFunc(result, values, slices.Equal) {
+		t.Errorf("incorrect result: %v, expected: %v", result, values)
+	}
+}
+
 func TestBTreePage_Children(t *testing.T) {
 	t.Parallel()
 
