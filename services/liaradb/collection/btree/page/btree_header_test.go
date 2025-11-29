@@ -38,7 +38,7 @@ func TestBTreePage_LowID(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", p, 0)
 	}
 
-	p.setLowID(1)
+	p.SetLowID(1)
 	if id := p.LowID(); id != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", p, 1)
 	}

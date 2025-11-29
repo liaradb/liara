@@ -62,7 +62,7 @@ func (p *btreeHeader) setHighID(o int64) {
 	p.highID.Set(o)
 }
 
-func (p *btreeHeader) setLowID(o int64) {
+func (p *btreeHeader) SetLowID(o int64) {
 	p.lowID.Set(o)
 }
 

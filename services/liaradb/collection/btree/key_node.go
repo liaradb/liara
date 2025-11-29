@@ -10,6 +10,24 @@ type KeyNode struct {
 	page page.BTreePage
 }
 
+func (kn *KeyNode) Init(p BlockPosition) {
+	kn.page.SetLowID(p.Value())
+}
+
+func (kn *KeyNode) Append(ke KeyEntry) (int16, bool) {
+	i, b, ok := kn.page.Append(int16(ke.Size()))
+	if !ok {
+		return 0, false
+	}
+
+	// TODO: Change to bool instead of error
+	if err := ke.Write(b); err != nil {
+		return 0, false
+	}
+
+	return i, true
+}
+
 // TODO: Test this
 // TODO: Change to bool instead of error
 func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
