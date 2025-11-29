@@ -27,3 +27,21 @@ func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
 		}
 	}
 }
+
+// TODO: Test this
+// TODO: Change to bool instead of error
+func (kn *KeyNode) Search(k Key) (BlockPosition, error) {
+	p := BlockPosition(kn.page.LowID())
+	for ke, err := range kn.Children() {
+		if err != nil {
+			return 0, err
+		}
+
+		if k < ke.key {
+			break
+		}
+
+		p = ke.block
+	}
+	return p, nil
+}

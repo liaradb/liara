@@ -12,10 +12,6 @@ type BlockPosition uint64
 
 const BlockPositionSize = 8
 
-func NewBlockPosition(value int64) BlockPosition {
-	return BlockPosition(value)
-}
-
 func (b BlockPosition) Value() int64   { return int64(b) }
 func (b BlockPosition) Size() int      { return BlockPositionSize }
 func (b BlockPosition) String() string { return fmt.Sprintf("%v", b.Value()) }

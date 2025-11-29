@@ -12,10 +12,6 @@ type RecordPosition int8
 
 const RecordPositionSize = 1
 
-func NewRecordPosition(value int8) RecordPosition {
-	return RecordPosition(value)
-}
-
 func (b RecordPosition) Value() int8    { return int8(b) }
 func (b RecordPosition) Size() int      { return RecordPositionSize }
 func (b RecordPosition) String() string { return fmt.Sprintf("%v", b.Value()) }

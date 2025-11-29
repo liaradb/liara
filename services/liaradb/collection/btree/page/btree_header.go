@@ -2,7 +2,6 @@ package page
 
 import (
 	"github.com/liaradb/liaradb/encoder/wrap"
-	"github.com/liaradb/liaradb/storage"
 )
 
 const (
@@ -43,12 +42,12 @@ func (p *btreeHeader) Level() byte {
 	return p.level.GetUnsigned()
 }
 
-func (p *btreeHeader) HighID() storage.Offset {
-	return storage.Offset(p.highID.Get())
+func (p *btreeHeader) HighID() int64 {
+	return p.highID.Get()
 }
 
-func (p *btreeHeader) LowID() storage.Offset {
-	return storage.Offset(p.lowID.Get())
+func (p *btreeHeader) LowID() int64 {
+	return p.lowID.Get()
 }
 
 func (p *btreeHeader) Next() int16 {
@@ -59,12 +58,12 @@ func (p *btreeHeader) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
 
-func (p *btreeHeader) setHighID(o storage.Offset) {
-	p.highID.Set(o.Value())
+func (p *btreeHeader) setHighID(o int64) {
+	p.highID.Set(o)
 }
 
-func (p *btreeHeader) setLowID(o storage.Offset) {
-	p.lowID.Set(o.Value())
+func (p *btreeHeader) setLowID(o int64) {
+	p.lowID.Set(o)
 }
 
 func (p *btreeHeader) setNext(o int16) {
