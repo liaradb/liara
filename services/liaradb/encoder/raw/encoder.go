@@ -87,10 +87,16 @@ func readData(r io.Reader, l uint32) ([]byte, error) {
 	return b, nil
 }
 
-// TODO: Test this
 func WriteInt8[T ~uint8 | ~int8](w io.Writer, v T) error {
 	d := [1]byte{}
 	d[0] = byte(v)
+	_, err := w.Write(d[:])
+	return err
+}
+
+func WriteInt16[T ~uint16 | ~int16](w io.Writer, v T) error {
+	d := [2]byte{}
+	binary.BigEndian.PutUint16(d[:], uint16(v))
 	_, err := w.Write(d[:])
 	return err
 }
@@ -109,7 +115,6 @@ func WriteInt64[T ~uint64 | ~int64](w io.Writer, v T) error {
 	return err
 }
 
-// TODO: Test this
 func ReadInt8[T ~uint8 | ~int8](r io.Reader, v *T) error {
 	d := [1]byte{}
 	if err := readToSlice(r, d[:]); err != nil {
@@ -117,6 +122,16 @@ func ReadInt8[T ~uint8 | ~int8](r io.Reader, v *T) error {
 	}
 
 	*v = T(d[0])
+	return nil
+}
+
+func ReadInt16[T ~uint16 | ~int16](r io.Reader, v *T) error {
+	d := [2]byte{}
+	if err := readToSlice(r, d[:]); err != nil {
+		return err
+	}
+
+	*v = T(binary.BigEndian.Uint16(d[:]))
 	return nil
 }
 
