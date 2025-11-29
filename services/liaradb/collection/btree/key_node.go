@@ -11,6 +11,7 @@ type KeyNode struct {
 }
 
 // TODO: Test this
+// TODO: Change to bool instead of error
 func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
 	return func(yield func(KeyEntry, error) bool) {
 		for b := range kn.page.Children() {

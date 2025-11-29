@@ -11,6 +11,12 @@ type LeafNode struct {
 	page page.BTreePage
 }
 
+func NewLeafNode(page page.BTreePage) *LeafNode {
+	return &LeafNode{
+		page: page,
+	}
+}
+
 func (ln *LeafNode) LeftID() storage.Offset {
 	return ln.page.LowID()
 }
@@ -19,7 +25,21 @@ func (ln *LeafNode) RightID() storage.Offset {
 	return ln.page.HighID()
 }
 
-// TODO: Test this
+func (ln *LeafNode) Append(le LeafEntry) (int16, bool) {
+	i, b, ok := ln.page.Append(int16(le.Size()))
+	if !ok {
+		return 0, false
+	}
+
+	// TODO: Change to bool instead of error
+	if err := le.Write(b); err != nil {
+		return 0, false
+	}
+
+	return i, true
+}
+
+// TODO: Change to bool instead of error
 func (ln *LeafNode) Child(index int16) (LeafEntry, error) {
 	b, ok := ln.page.Child(index)
 	if !ok {
@@ -34,7 +54,7 @@ func (ln *LeafNode) Child(index int16) (LeafEntry, error) {
 	return le, nil
 }
 
-// TODO: Test this
+// TODO: Change to bool instead of error
 func (ln *LeafNode) Children() iter.Seq2[LeafEntry, error] {
 	return func(yield func(LeafEntry, error) bool) {
 		for b := range ln.page.Children() {
