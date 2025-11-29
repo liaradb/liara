@@ -10,7 +10,19 @@ type KeyNode struct {
 	page page.BTreePage
 }
 
-func (kn *KeyNode) Keys() iter.Seq[string] {
-	return func(yield func(string) bool) {
+// TODO: Test this
+func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
+	return func(yield func(KeyEntry, error) bool) {
+		for b := range kn.page.Children() {
+			ke := KeyEntry{}
+			if err := ke.Read(b); err != nil {
+				yield(KeyEntry{}, err)
+				return
+			}
+
+			if !yield(ke, nil) {
+				return
+			}
+		}
 	}
 }
