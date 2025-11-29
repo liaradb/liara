@@ -1,6 +1,8 @@
 package page
 
 import (
+	"iter"
+
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/tuplelist"
@@ -73,4 +75,15 @@ func (p BTreePage) Space() int16 {
 func (p BTreePage) hasSpace(size int16) bool {
 	s := p.Space()
 	return size <= s
+}
+
+func (p BTreePage) Children() iter.Seq[*raw.Buffer] {
+	return func(yield func(*raw.Buffer) bool) {
+		for offset, size := range p.list.Items() {
+			b, ok := p.byteList.Slice(int64(offset), int64(size))
+			if !ok || !yield(b) {
+				return
+			}
+		}
+	}
 }
