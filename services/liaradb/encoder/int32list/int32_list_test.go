@@ -3,6 +3,8 @@ package int32list
 import "testing"
 
 func TestInt32List_Default(t *testing.T) {
+	t.Parallel()
+
 	t.Run("default data", func(t *testing.T) {
 		l := New([]byte{})
 

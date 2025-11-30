@@ -8,6 +8,8 @@ import (
 )
 
 func TestStringSize(t *testing.T) {
+	t.Parallel()
+
 	value := "abcde"
 	want := HeaderSize + len(value)
 

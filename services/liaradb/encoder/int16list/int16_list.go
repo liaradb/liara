@@ -44,3 +44,16 @@ func (l Int16List) Set(index int16, value int16) bool {
 func (l Int16List) offset(index int16) int16 {
 	return index * itemSize
 }
+
+func (l Int16List) Shift(index, count int16) bool {
+	if index < 0 || count < 0 {
+		return false
+	}
+
+	if count == 0 {
+		return true
+	}
+
+	copy(l.data[index*itemSize:], l.data[(index-count)*itemSize:])
+	return true
+}
