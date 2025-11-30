@@ -70,6 +70,26 @@ func (l *TupleList) Items() iter.Seq2[int16, int16] {
 	}
 }
 
+func (l *TupleList) Insert(a int16, b int16, i int16) (int16, bool) {
+	index := i*tupleSize + headerSize
+
+	if ok := l.list.Shift(index, 2); !ok {
+		return 0, false
+	}
+
+	if ok := l.list.Set(index, a); !ok {
+		return 0, false
+	}
+
+	if ok := l.list.Set(index+1, b); !ok {
+		return 0, false
+	}
+
+	size := l.Count()
+	l.setSize(size + 1)
+	return size, true
+}
+
 func (l *TupleList) Pop() (int16, int16, bool) {
 	size := l.Count()
 	if size < 1 {

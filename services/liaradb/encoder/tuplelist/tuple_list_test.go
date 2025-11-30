@@ -133,7 +133,7 @@ func TestTupleList_Items(t *testing.T) {
 	l := New(make([]byte, 32))
 
 	as := []int16{10, 20, 30, 40, 50}
-	bs := []int16{10, 20, 30, 40, 50}
+	bs := []int16{60, 70, 80, 90, 100}
 
 	for i, item := range as {
 		if _, ok := l.Push(item, bs[i]); !ok {
@@ -154,5 +154,46 @@ func TestTupleList_Items(t *testing.T) {
 
 	if !slices.Equal(resultB, bs) {
 		t.Errorf("incorrect result: %v, expected: %v", resultB, bs)
+	}
+}
+
+func TestTupleList_Insert(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 32))
+
+	as := []int16{10, 20, 40, 50}
+	bs := []int16{60, 70, 90, 100}
+
+	wantAs := []int16{10, 20, 30, 40, 50}
+	wantBs := []int16{60, 70, 80, 90, 100}
+
+	for i, item := range as {
+		if _, ok := l.Push(item, bs[i]); !ok {
+			t.Error("should push")
+		}
+	}
+
+	if _, ok := l.Insert(30, 80, 2); !ok {
+		t.Error("should insert")
+	}
+
+	if c := l.Count(); c != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 5)
+	}
+
+	resultA := make([]int16, 0, len(as))
+	resultB := make([]int16, 0, len(bs))
+	for a, b := range l.Items() {
+		resultA = append(resultA, a)
+		resultB = append(resultB, b)
+	}
+
+	if !slices.Equal(resultA, wantAs) {
+		t.Errorf("incorrect result: %v, expected: %v", resultA, wantAs)
+	}
+
+	if !slices.Equal(resultB, wantBs) {
+		t.Errorf("incorrect result: %v, expected: %v", resultB, wantBs)
 	}
 }
