@@ -157,6 +157,7 @@ func TestTupleList_Items(t *testing.T) {
 	}
 }
 
+// TODO: Should not affect items outside of range
 func TestTupleList_Insert(t *testing.T) {
 	t.Parallel()
 

@@ -59,7 +59,7 @@ func (p *BTreePage) Insert(size int16, index int16) (int16, *raw.Buffer, bool) {
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Push(offset, size)
+	i, ok := p.list.Insert(offset, size, index)
 	if !ok {
 		return 0, nil, false
 	}
