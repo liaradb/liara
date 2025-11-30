@@ -7,10 +7,10 @@ version: 2
 updates:
   - package-ecosystem: "gomod" # See documentation for possible values
     directories: # Location of package manifests
-      - "/modules/liara"
-      - "/modules/liaractl"
+      # - "/modules/liara"
+      # - "/modules/liaractl"
       - "/modules/eventsource_go"
       - "/services/liaradb"
-      - "/services/liarasql"
+      # - "/services/liarasql"
     schedule:
       interval: "weekly"
