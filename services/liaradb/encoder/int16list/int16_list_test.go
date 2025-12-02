@@ -74,12 +74,6 @@ func TestInt16List_Shift(t *testing.T) {
 		count   int16
 		succeed bool
 	}{
-		"should shift": {
-			want:    []int16{1, 2, 1, 2, 3, 4, 5, 6},
-			index:   2,
-			count:   2,
-			succeed: true,
-		},
 		"should not shift negative index": {
 			want:    data,
 			index:   -2,
@@ -91,6 +85,18 @@ func TestInt16List_Shift(t *testing.T) {
 			index:   2,
 			count:   -2,
 			succeed: false,
+		},
+		"should shift count 0": {
+			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
+			index:   2,
+			count:   0,
+			succeed: true,
+		},
+		"should shift": {
+			want:    []int16{1, 2, 1, 2, 3, 4, 5, 6},
+			index:   2,
+			count:   2,
+			succeed: true,
 		},
 	} {
 		t.Run(message, func(t *testing.T) {
@@ -108,6 +114,113 @@ func TestInt16List_Shift(t *testing.T) {
 			}
 
 			ok := l.Shift(c.index, c.count)
+			if c.succeed && !ok {
+				t.Fatal("should shift")
+			} else if !c.succeed && ok {
+				t.Fatal("should not shift")
+			}
+
+			result := make([]int16, 0, len(data))
+			for i := range data {
+				d, ok := l.Get(int16(i))
+				if !ok {
+					t.Error("should get value")
+				}
+				result = append(result, d)
+			}
+
+			if !slices.Equal(result, c.want) {
+				t.Errorf("incorrect : %v, expected: %v", result, c.want)
+			}
+		})
+	}
+}
+
+func TestInt16List_ShiftRange(t *testing.T) {
+	t.Parallel()
+
+	data := []int16{1, 2, 3, 4, 5, 6, 7, 8}
+
+	for message, c := range map[string]struct {
+		skip    bool
+		want    []int16
+		index   int16
+		count   int16
+		size    int16
+		succeed bool
+	}{
+		"should not shift negative index": {
+			want:    data,
+			index:   -2,
+			count:   2,
+			size:    2,
+			succeed: false,
+		},
+		"should not shift negative count": {
+			want:    data,
+			index:   2,
+			count:   -2,
+			size:    2,
+			succeed: false,
+		},
+		"should not shift negative size": {
+			want:    data,
+			index:   2,
+			count:   2,
+			size:    -2,
+			succeed: false,
+		},
+		"should shift count 0": {
+			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
+			index:   2,
+			count:   0,
+			size:    2,
+			succeed: true,
+		},
+		"should shift size 0": {
+			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
+			index:   2,
+			count:   2,
+			size:    0,
+			succeed: true,
+		},
+		"should shift": {
+			want:    []int16{1, 2, 1, 2, 5, 6, 7, 8},
+			index:   2,
+			count:   2,
+			size:    2,
+			succeed: true,
+		},
+		"should not shift index above size": {
+			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
+			index:   8,
+			count:   2,
+			size:    2,
+			succeed: false,
+		},
+		"should not shift below start": {
+			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
+			index:   2,
+			count:   4,
+			size:    2,
+			succeed: false,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			l := New(make([]byte, 16))
+
+			for i, d := range data {
+				if ok := l.Set(int16(i), d); !ok {
+					t.Error("should set value")
+				}
+			}
+
+			ok := l.ShiftRange(c.index, c.count, c.size)
 			if c.succeed && !ok {
 				t.Fatal("should shift")
 			} else if !c.succeed && ok {
