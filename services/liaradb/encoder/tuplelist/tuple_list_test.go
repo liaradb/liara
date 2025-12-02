@@ -164,41 +164,60 @@ func TestTupleList_Items(t *testing.T) {
 func TestTupleList_Insert(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 32))
+	for message, c := range map[string]struct {
+		skip   bool
+		data   []tuple
+		want   []tuple
+		insert tuple
+		index  int16
+	}{
+		"should insert into middle": {
+			data: []tuple{
+				{10, 60},
+				{20, 70},
+				{40, 90},
+				{50, 100}},
+			want: []tuple{
+				{10, 60},
+				{20, 70},
+				{30, 80},
+				{40, 90},
+				{50, 100}},
+			insert: tuple{30, 80},
+			index:  2,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
 
-	data := []tuple{
-		{10, 60},
-		{20, 70},
-		{40, 90},
-		{50, 100}}
+			l := New(make([]byte, 32))
 
-	want := []tuple{
-		{10, 60},
-		{20, 70},
-		{30, 80},
-		{40, 90},
-		{50, 100}}
+			for _, i := range c.data {
+				if _, ok := l.Push(i.a, i.b); !ok {
+					t.Error("should push")
+				}
+			}
 
-	for _, i := range data {
-		if _, ok := l.Push(i.a, i.b); !ok {
-			t.Error("should push")
-		}
-	}
+			if _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
+				t.Error("should insert")
+			}
 
-	if _, ok := l.Insert(30, 80, 2); !ok {
-		t.Error("should insert")
-	}
+			wantCount := int16(len(c.want))
+			if count := l.Count(); count != wantCount {
+				t.Errorf("incorrect count: %v, expected: %v", count, wantCount)
+			}
 
-	if c := l.Count(); c != 5 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 5)
-	}
+			result := make([]tuple, 0, len(c.data))
+			for a, b := range l.Items() {
+				result = append(result, tuple{a, b})
+			}
 
-	result := make([]tuple, 0, len(data))
-	for a, b := range l.Items() {
-		result = append(result, tuple{a, b})
-	}
-
-	if !slices.Equal(result, want) {
-		t.Errorf("incorrect result: %v, expected: %v", result, want)
+			if !slices.Equal(result, c.want) {
+				t.Errorf("incorrect result: %v, expected: %v", result, c.want)
+			}
+		})
 	}
 }
