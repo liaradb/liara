@@ -101,59 +101,59 @@ func TestBTreePage_Insert(t *testing.T) {
 	v1 := []byte{6, 7, 8, 9, 10}
 
 	if s := p.Space(); s != s0 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s0)
+		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
 	}
 
 	i, b0, ok := p.Insert(16, 0)
 	if !ok {
-		t.Error("should get a buffer")
+		t.Fatal("should get a buffer")
 	} else if i != 0 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+		t.Fatalf("incorrect index: %v, expected: %v", i, 0)
 	}
 
 	if s := p.Space(); s != s1 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s1)
+		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
 	}
 
 	if _, err := b0.Write(v0); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	i, b1, ok := p.Insert(16, 1)
 	if !ok {
-		t.Error("should get a buffer")
+		t.Fatal("should get a buffer")
 	} else if i != 1 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 1)
+		t.Fatalf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	if s := p.Space(); s != s2 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s2)
+		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
 	}
 
 	if _, err := b1.Write(v1); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if _, err := b0.Seek(0, io.SeekStart); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	r0 := make([]byte, 5)
 	if _, err := b0.Read(r0); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !slices.Equal(r0, v0) {
-		t.Errorf("incorrect result: %v, expected: %v", r0, v0)
+		t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
 	}
 
 	if _, err := b1.Seek(0, io.SeekStart); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	r1 := make([]byte, 5)
 	if _, err := b1.Read(r1); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !slices.Equal(r1, v1) {

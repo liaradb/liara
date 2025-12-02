@@ -13,7 +13,7 @@ const (
 )
 
 type TupleList struct {
-	size int16
+	size int16 // TODO: Rename to Count
 	list int16list.Int16List
 }
 
@@ -72,8 +72,9 @@ func (l *TupleList) Items() iter.Seq2[int16, int16] {
 
 func (l *TupleList) Insert(a int16, b int16, i int16) (int16, bool) {
 	index := i*tupleSize + headerSize
+	s := l.size + 2 + headerSize
 
-	if ok := l.list.Shift(index, 2); !ok {
+	if ok := l.list.ShiftRange(index, 2, s); !ok {
 		return 0, false
 	}
 

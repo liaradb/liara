@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+type tuple struct {
+	a int16
+	b int16
+}
+
 func TestTupleList_Default(t *testing.T) {
 	t.Parallel()
 
@@ -132,28 +137,26 @@ func TestTupleList_Items(t *testing.T) {
 
 	l := New(make([]byte, 32))
 
-	as := []int16{10, 20, 30, 40, 50}
-	bs := []int16{60, 70, 80, 90, 100}
+	data := []tuple{
+		{10, 60},
+		{20, 70},
+		{30, 80},
+		{40, 90},
+		{50, 100}}
 
-	for i, item := range as {
-		if _, ok := l.Push(item, bs[i]); !ok {
+	for _, i := range data {
+		if _, ok := l.Push(i.a, i.b); !ok {
 			t.Error("should push")
 		}
 	}
 
-	resultA := make([]int16, 0, len(as))
-	resultB := make([]int16, 0, len(bs))
+	result := make([]tuple, 0, len(data))
 	for a, b := range l.Items() {
-		resultA = append(resultA, a)
-		resultB = append(resultB, b)
+		result = append(result, tuple{a, b})
 	}
 
-	if !slices.Equal(resultA, as) {
-		t.Errorf("incorrect result: %v, expected: %v", resultA, as)
-	}
-
-	if !slices.Equal(resultB, bs) {
-		t.Errorf("incorrect result: %v, expected: %v", resultB, bs)
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
 }
 
@@ -163,14 +166,21 @@ func TestTupleList_Insert(t *testing.T) {
 
 	l := New(make([]byte, 32))
 
-	as := []int16{10, 20, 40, 50}
-	bs := []int16{60, 70, 90, 100}
+	data := []tuple{
+		{10, 60},
+		{20, 70},
+		{40, 90},
+		{50, 100}}
 
-	wantAs := []int16{10, 20, 30, 40, 50}
-	wantBs := []int16{60, 70, 80, 90, 100}
+	want := []tuple{
+		{10, 60},
+		{20, 70},
+		{30, 80},
+		{40, 90},
+		{50, 100}}
 
-	for i, item := range as {
-		if _, ok := l.Push(item, bs[i]); !ok {
+	for _, i := range data {
+		if _, ok := l.Push(i.a, i.b); !ok {
 			t.Error("should push")
 		}
 	}
@@ -183,18 +193,12 @@ func TestTupleList_Insert(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 5)
 	}
 
-	resultA := make([]int16, 0, len(as))
-	resultB := make([]int16, 0, len(bs))
+	result := make([]tuple, 0, len(data))
 	for a, b := range l.Items() {
-		resultA = append(resultA, a)
-		resultB = append(resultB, b)
+		result = append(result, tuple{a, b})
 	}
 
-	if !slices.Equal(resultA, wantAs) {
-		t.Errorf("incorrect result: %v, expected: %v", resultA, wantAs)
-	}
-
-	if !slices.Equal(resultB, wantBs) {
-		t.Errorf("incorrect result: %v, expected: %v", resultB, wantBs)
+	if !slices.Equal(result, want) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 }

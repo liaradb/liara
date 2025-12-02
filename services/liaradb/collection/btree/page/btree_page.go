@@ -73,6 +73,7 @@ func (p *BTreePage) Insert(size int16, index int16) (int16, *raw.Buffer, bool) {
 
 	return i, b, true
 }
+
 func (p BTreePage) Length() int16 {
 	return int16(len(p.data))
 }
