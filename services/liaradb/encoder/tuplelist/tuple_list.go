@@ -72,9 +72,9 @@ func (l *TupleList) Items() iter.Seq2[int16, int16] {
 
 func (l *TupleList) Insert(a int16, b int16, i int16) (int16, bool) {
 	index := i*tupleSize + headerSize
-	s := l.size + 2 + headerSize
+	s := l.size*tupleSize + headerSize
 
-	if ok := l.list.ShiftRange(index, 2, s); !ok {
+	if ok := l.list.ShiftRange(index, s, 2); !ok {
 		return 0, false
 	}
 

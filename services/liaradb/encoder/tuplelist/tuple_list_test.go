@@ -171,6 +171,21 @@ func TestTupleList_Insert(t *testing.T) {
 		insert tuple
 		index  int16
 	}{
+		"should insert into beginning": {
+			data: []tuple{
+				{20, 70},
+				{30, 80},
+				{40, 90},
+				{50, 100}},
+			want: []tuple{
+				{10, 60},
+				{20, 70},
+				{30, 80},
+				{40, 90},
+				{50, 100}},
+			insert: tuple{10, 60},
+			index:  0,
+		},
 		"should insert into middle": {
 			data: []tuple{
 				{10, 60},
@@ -197,12 +212,12 @@ func TestTupleList_Insert(t *testing.T) {
 
 			for _, i := range c.data {
 				if _, ok := l.Push(i.a, i.b); !ok {
-					t.Error("should push")
+					t.Fatal("should push")
 				}
 			}
 
 			if _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
-				t.Error("should insert")
+				t.Fatal("should insert")
 			}
 
 			wantCount := int16(len(c.want))

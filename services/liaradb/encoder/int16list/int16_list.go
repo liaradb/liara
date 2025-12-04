@@ -58,27 +58,44 @@ func (l Int16List) Shift(index, count int16) bool {
 	return true
 }
 
-func (l Int16List) ShiftRange(index, count, size int16) bool {
-	if index < 0 || count < 0 || size < 0 {
+func (l Int16List) ShiftRange(start, end, shift int16) bool {
+	length := end - start
+
+	if start < 0 || length < 0 {
 		return false
 	}
 
-	if count == 0 || size == 0 {
+	if length == 0 || shift == 0 {
 		return true
 	}
 
-	dstStart := index * itemSize
-	dstEnd := dstStart + size*itemSize
+	if shift < 0 {
+		return l.shiftRangeLeft(start, end, -shift)
+	} else {
+		return l.shiftRangeRight(start, end, shift)
+	}
+}
 
+func (l Int16List) shiftRangeLeft(start, end, shift int16) bool {
+	dstStart := (start - shift) * itemSize
+	if dstStart < 0 {
+		return false
+	}
+
+	container := l.data[dstStart : end*itemSize]
+	copy(container, container[shift*itemSize:])
+
+	return true
+}
+
+func (l Int16List) shiftRangeRight(start, end, shift int16) bool {
+	dstEnd := (end + shift) * itemSize
 	if dstEnd > int16(len(l.data)) {
 		return false
 	}
 
-	srcStart := (index - count) * itemSize
-	if srcStart < 0 {
-		return false
-	}
+	container := l.data[start*itemSize : dstEnd]
+	copy(container[shift*itemSize:], container)
 
-	copy(l.data[dstStart:dstEnd], l.data[srcStart:])
 	return true
 }

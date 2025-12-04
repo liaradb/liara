@@ -144,65 +144,65 @@ func TestInt16List_ShiftRange(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip    bool
 		want    []int16
-		index   int16
-		count   int16
-		size    int16
+		start   int16
+		end     int16
+		shift   int16
 		succeed bool
 	}{
-		"should not shift negative index": {
+		"should not shift negative start": {
 			want:    data,
-			index:   -2,
-			count:   2,
-			size:    2,
+			start:   -2,
+			end:     2,
+			shift:   2,
 			succeed: false,
 		},
-		"should not shift negative count": {
+		"should not shift negative length": {
 			want:    data,
-			index:   2,
-			count:   -2,
-			size:    2,
-			succeed: false,
-		},
-		"should not shift negative size": {
-			want:    data,
-			index:   2,
-			count:   2,
-			size:    -2,
+			start:   2,
+			end:     0,
+			shift:   2,
 			succeed: false,
 		},
 		"should shift count 0": {
 			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
-			index:   2,
-			count:   0,
-			size:    2,
+			start:   2,
+			end:     4,
+			shift:   0,
 			succeed: true,
 		},
-		"should shift size 0": {
+		"should shift length 0": {
 			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
-			index:   2,
-			count:   2,
-			size:    0,
+			start:   2,
+			end:     2,
+			shift:   2,
 			succeed: true,
 		},
-		"should shift": {
-			want:    []int16{1, 2, 1, 2, 5, 6, 7, 8},
-			index:   2,
-			count:   2,
-			size:    2,
+		"should shift left": {
+			want:    []int16{1, 2, 5, 6, 5, 6, 7, 8},
+			start:   4,
+			end:     6,
+			shift:   -2,
 			succeed: true,
 		},
-		"should not shift index above size": {
+		"should shift right": {
+			want:    []int16{1, 2, 3, 4, 3, 4, 7, 8},
+			start:   2,
+			end:     4,
+			shift:   2,
+			succeed: true,
+		},
+		"should not shift above size": {
 			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
-			index:   8,
-			count:   2,
-			size:    2,
+			start:   6,
+			end:     8,
+			shift:   2,
 			succeed: false,
 		},
 		"should not shift below start": {
 			want:    []int16{1, 2, 3, 4, 5, 6, 7, 8},
-			index:   2,
-			count:   4,
-			size:    2,
+			start:   0,
+			end:     2,
+			shift:   -2,
 			succeed: false,
 		},
 	} {
@@ -220,7 +220,7 @@ func TestInt16List_ShiftRange(t *testing.T) {
 				}
 			}
 
-			ok := l.ShiftRange(c.index, c.count, c.size)
+			ok := l.ShiftRange(c.start, c.end, c.shift)
 			if c.succeed && !ok {
 				t.Fatal("should shift")
 			} else if !c.succeed && ok {

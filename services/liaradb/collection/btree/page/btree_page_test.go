@@ -87,7 +87,6 @@ func TestBTreePage_Append(t *testing.T) {
 
 func TestBTreePage_Insert(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 
 	const (
 		size int16 = 256
