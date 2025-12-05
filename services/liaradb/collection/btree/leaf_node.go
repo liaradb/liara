@@ -38,6 +38,22 @@ func (ln *LeafNode) Append(le LeafEntry) (int16, bool) {
 	return i, true
 }
 
+func (ln *LeafNode) Insert(le LeafEntry) (int16, bool) {
+	i, _ := ln.SearchIndex(le.key)
+
+	i, b, ok := ln.page.Insert(int16(le.Size()), i)
+	if !ok {
+		return 0, false
+	}
+
+	// TODO: Change to bool instead of error
+	if err := le.Write(b); err != nil {
+		return 0, false
+	}
+
+	return i, true
+}
+
 // TODO: Change to bool instead of error
 func (ln *LeafNode) Child(index int16) (LeafEntry, error) {
 	b, ok := ln.page.Child(index)
@@ -68,4 +84,20 @@ func (ln *LeafNode) Children() iter.Seq2[LeafEntry, error] {
 			}
 		}
 	}
+}
+
+func (ln *LeafNode) SearchIndex(k Key) (int16, error) {
+	var i int16 = 0
+	for ke, err := range ln.Children() {
+		if err != nil {
+			return 0, err
+		}
+
+		if k < ke.key {
+			break
+		}
+
+		i++
+	}
+	return i, nil
 }

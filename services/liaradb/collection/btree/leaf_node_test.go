@@ -85,3 +85,46 @@ func TestLeafNode_Children(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, children)
 	}
 }
+
+func TestLeafNode_Insert(t *testing.T) {
+	bp := page.New(make([]byte, 256))
+	ln := NewLeafNode(bp)
+
+	data := []LeafEntry{
+		newLeafEntry(
+			Key("a"),
+			NewRecordID(1, 2)),
+		newLeafEntry(
+			Key("b"),
+			NewRecordID(3, 4)),
+		newLeafEntry(
+			Key("c"),
+			NewRecordID(5, 6)),
+	}
+
+	if _, ok := ln.Insert(data[0]); !ok {
+		t.Error("should insert")
+	}
+
+	if _, ok := ln.Insert(data[2]); !ok {
+		t.Error("should insert")
+	}
+
+	if _, ok := ln.Insert(data[1]); !ok {
+		t.Error("should insert")
+	}
+
+	result := make([]LeafEntry, 0, len(data))
+
+	for c, err := range ln.Children() {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, c)
+	}
+
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+}
