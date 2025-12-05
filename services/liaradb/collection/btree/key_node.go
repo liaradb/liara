@@ -10,11 +10,18 @@ type KeyNode struct {
 	page page.BTreePage
 }
 
+func newKeyNode(page page.BTreePage) *KeyNode {
+	return &KeyNode{
+		page: page,
+	}
+}
+
 func (kn *KeyNode) Init(p BlockPosition) {
 	kn.page.SetLowID(p.Value())
 }
 
-func (kn *KeyNode) Insert(ke KeyEntry) (int16, bool) {
+// TODO: Test this
+func (kn *KeyNode) Append(ke KeyEntry) (int16, bool) {
 	i, b, ok := kn.page.Append(int16(ke.Size()))
 	if !ok {
 		return 0, false
@@ -28,7 +35,22 @@ func (kn *KeyNode) Insert(ke KeyEntry) (int16, bool) {
 	return i, true
 }
 
-// TODO: Test this
+func (kn *KeyNode) Insert(ke KeyEntry) (int16, bool) {
+	i, _ := kn.SearchIndex(ke.key)
+
+	i, b, ok := kn.page.Insert(int16(ke.Size()), i)
+	if !ok {
+		return 0, false
+	}
+
+	// TODO: Change to bool instead of error
+	if err := ke.Write(b); err != nil {
+		return 0, false
+	}
+
+	return i, true
+}
+
 // TODO: Change to bool instead of error
 func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
 	return func(yield func(KeyEntry, error) bool) {
@@ -65,7 +87,7 @@ func (kn *KeyNode) Search(k Key) (BlockPosition, error) {
 }
 
 func (kn *KeyNode) SearchIndex(k Key) (int16, error) {
-	var i int16 = -1
+	var i int16 = 0
 	for ke, err := range kn.Children() {
 		if err != nil {
 			return 0, err
