@@ -6,6 +6,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
@@ -17,17 +18,20 @@ import (
 type EventRepository struct {
 	txManager *transaction.Manager
 	eventLog  *eventlog.EventLog
+	btree     *btree.TreeCursor[btree.Key, any]
 	fileName  string // TODO: Remove this
 }
 
 func NewEventRepository(
 	txManager *transaction.Manager,
 	eventLog *eventlog.EventLog,
+	btree *btree.TreeCursor[btree.Key, any],
 	fileName string,
 ) *EventRepository {
 	return &EventRepository{
 		txManager: txManager,
 		eventLog:  eventLog,
+		btree:     btree,
 		fileName:  fileName,
 	}
 }

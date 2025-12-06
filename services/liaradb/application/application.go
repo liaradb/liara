@@ -179,6 +179,7 @@ func (a *Application) createRepositories() (*repositories, error) {
 		eventRepository: infrastructure.NewEventRepository(
 			a.txManager,
 			a.eventLog,
+			nil,
 			"testfile"),
 	}, nil
 }
