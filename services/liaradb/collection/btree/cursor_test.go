@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"context"
 	"testing"
 	"testing/synctest"
 
@@ -29,12 +30,12 @@ func testCursor(t *testing.T) {
 	}
 }
 
-func TestCursor_Insert(t *testing.T) {
+func TestCursor_Insert__Root(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testCursor_Insert)
+	synctest.Test(t, testCursor_Insert__Root)
 }
 
-func testCursor_Insert(t *testing.T) {
+func testCursor_Insert__Root(t *testing.T) {
 	s := createStorage(t, 2, 256)
 	ctx := t.Context()
 
@@ -50,12 +51,35 @@ func testCursor_Insert(t *testing.T) {
 	}
 
 	ln := NewLeafNode(r)
-	_, ok := ln.Insert("a", NewRecordID(1, 2))
+	wantRID := NewRecordID(1, 2)
+	_, ok := ln.Insert("a", wantRID)
 	if !ok {
 		t.Error("should insert")
 	}
 
 	// TODO: Need to flush to disk
+	if rid, err := getRecordID(ctx, s, n, "a"); err != nil {
+		t.Fatal(err)
+	} else if rid != wantRID {
+		t.Errorf("incorrect record id: %v, expected: %v", rid, wantRID)
+	}
+}
+
+func getRecordID(
+	ctx context.Context,
+	s *storage.Storage,
+	name string,
+	key Key,
+) (RecordID, error) {
+	c := NewCursor[Key, any](s)
+	r, err := c.GetRoot(ctx, name)
+	if err != nil {
+		return RecordID{}, err
+	}
+
+	// TODO: Support tree search
+	ln := NewLeafNode(r)
+	return ln.Search(key)
 }
 
 func createStorage(t *testing.T, max int, bs int64) *storage.Storage {

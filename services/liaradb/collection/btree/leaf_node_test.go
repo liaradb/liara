@@ -127,4 +127,10 @@ func TestLeafNode_Insert(t *testing.T) {
 	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
+
+	if rid, err := ln.Search(data[1].key); err != nil {
+		t.Error(err)
+	} else if rid != data[1].recordID {
+		t.Errorf("incorrect record id: %v, expected: %v", rid, data[1].recordID)
+	}
 }
