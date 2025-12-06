@@ -102,20 +102,17 @@ func TestLeafNode_Insert(t *testing.T) {
 			NewRecordID(5, 6)),
 	}
 
-	if _, ok := ln.Insert(data[0].key, data[0].recordID); !ok {
-		t.Error("should insert")
+	// Insert in mixed order
+	order := []int{0, 2, 1}
+	for _, i := range order {
+		e := data[i]
+		if _, ok := ln.Insert(e.key, e.recordID); !ok {
+			t.Error("should insert")
+		}
 	}
 
-	if _, ok := ln.Insert(data[2].key, data[2].recordID); !ok {
-		t.Error("should insert")
-	}
-
-	if _, ok := ln.Insert(data[1].key, data[1].recordID); !ok {
-		t.Error("should insert")
-	}
-
+	// Verify items are in order
 	result := make([]LeafEntry, 0, len(data))
-
 	for c, err := range ln.Children() {
 		if err != nil {
 			t.Fatal(err)
@@ -128,9 +125,12 @@ func TestLeafNode_Insert(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
 
-	if rid, err := ln.Search(data[1].key); err != nil {
-		t.Error(err)
-	} else if rid != data[1].recordID {
-		t.Errorf("incorrect record id: %v, expected: %v", rid, data[1].recordID)
+	// Verify items are all searchable
+	for _, e := range data {
+		if rid, err := ln.Search(e.key); err != nil {
+			t.Error(err)
+		} else if rid != e.recordID {
+			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
 	}
 }
