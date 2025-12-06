@@ -13,7 +13,7 @@ func StringSize[S ~string](s S) int {
 }
 
 func Write(w io.Writer, value []byte) error {
-	if err := binary.Write(w, binary.BigEndian, uint32(len(value))); err != nil {
+	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func Read(r io.Reader, value *[]byte) error {
 }
 
 func WriteString[S ~string](w io.Writer, value S) error {
-	if err := binary.Write(w, binary.BigEndian, uint32(len(value))); err != nil {
+	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func ReadString[S ~string](r io.Reader, s *S) error {
 
 func readLength(r io.Reader) (uint32, error) {
 	var l uint32
-	err := binary.Read(r, binary.BigEndian, &l)
+	err := ReadInt32(r, &l)
 	return l, err
 }
 
