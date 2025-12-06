@@ -23,10 +23,12 @@ func newBuffer(s *Storage) *Buffer {
 	}
 }
 
+// TODO: Test these
 func (b *Buffer) BlockID() BlockID { return b.blockID }
 func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int        { return b.pins }
 func (b *Buffer) Size() int64      { return b.s.BufferSize() }
+func (b *Buffer) Raw() []byte      { return b.buffer.Bytes() }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }

@@ -3,6 +3,7 @@ package btree
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -17,31 +18,32 @@ func NewTreeCursor[K Key, V any](s storage.Storage) *TreeCursor[K, V] {
 	}
 }
 
-func (tc *TreeCursor[K, V]) GetNode(ctx context.Context, id storage.BlockID) (node[K, V], error) {
-	b, err := tc.s.Request(ctx, id)
+func (tc *TreeCursor[K, V]) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
+	b, err := tc.s.Request(ctx, bid)
 	if err != nil {
-		return nil, err
+		return page.BTreePage{}, err
 	}
 
-	bn := &BaseNode[K, V]{
-		b: b,
+	return page.New(b.Raw()), nil
+}
+
+func (tc *TreeCursor[K, V]) GetNode(ctx context.Context, bid storage.BlockID) error {
+	bp, err := tc.GetPage(ctx, bid)
+	if err != nil {
+		return err
 	}
 
-	return bn, nil
+	if bp.Level() == 0 {
+		// Leaf
+		_ = NewLeafNode(bp)
+	} else {
+		// Key
+		_ = newKeyNode(bp)
+	}
+
+	return nil
 }
 
 func (tc *TreeCursor[K, V]) Current() (node[K, V], error) {
 	return tc.current, nil
-}
-
-func (tc *TreeCursor[K, V]) Left(ctx context.Context) (node[K, V], error) {
-	return tc.GetNode(ctx, tc.current.leftID())
-}
-
-func (tc *TreeCursor[K, V]) Parent(ctx context.Context) (node[K, V], error) {
-	return tc.GetNode(ctx, tc.current.parentID())
-}
-
-func (tc *TreeCursor[K, V]) Right(ctx context.Context) (node[K, V], error) {
-	return tc.GetNode(ctx, tc.current.rightID())
 }
