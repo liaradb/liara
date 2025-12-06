@@ -21,7 +21,8 @@ func (kn *KeyNode) Init(p BlockPosition) {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Append(ke KeyEntry) (int16, bool) {
+func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
+	ke := newKeyEntry(key, block)
 	i, b, ok := kn.page.Append(int16(ke.Size()))
 	if !ok {
 		return 0, false
@@ -35,7 +36,8 @@ func (kn *KeyNode) Append(ke KeyEntry) (int16, bool) {
 	return i, true
 }
 
-func (kn *KeyNode) Insert(ke KeyEntry) (int16, bool) {
+func (kn *KeyNode) Insert(key Key, block BlockPosition) (int16, bool) {
+	ke := newKeyEntry(key, block)
 	i, _ := kn.SearchIndex(ke.key)
 
 	i, b, ok := kn.page.Insert(int16(ke.Size()), i)

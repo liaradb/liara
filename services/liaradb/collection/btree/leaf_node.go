@@ -24,7 +24,8 @@ func (ln *LeafNode) RightID() BlockPosition {
 	return BlockPosition(ln.page.HighID())
 }
 
-func (ln *LeafNode) Append(le LeafEntry) (int16, bool) {
+func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
+	le := newLeafEntry(key, recordID)
 	i, b, ok := ln.page.Append(int16(le.Size()))
 	if !ok {
 		return 0, false
@@ -38,7 +39,8 @@ func (ln *LeafNode) Append(le LeafEntry) (int16, bool) {
 	return i, true
 }
 
-func (ln *LeafNode) Insert(le LeafEntry) (int16, bool) {
+func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
+	le := newLeafEntry(key, recordID)
 	i, _ := ln.SearchIndex(le.key)
 
 	i, b, ok := ln.page.Insert(int16(le.Size()), i)

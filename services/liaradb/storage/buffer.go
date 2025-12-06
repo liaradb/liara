@@ -36,7 +36,9 @@ func (b *Buffer) Unlatch()  { b.mux.Unlock() }
 func (b *Buffer) RLatch()   { b.mux.RLock() }
 func (b *Buffer) RUnlatch() { b.mux.RUnlock() }
 
-func (b *Buffer) setDirty() { b.status = BufferStatusDirty }
+// This is usually managed by the Buffer itself.
+// However, it is useful when using Raw.
+func (b *Buffer) SetDirty() { b.status = BufferStatusDirty }
 
 func (b *Buffer) pin() {
 	b.pins++
@@ -153,7 +155,7 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 func (b *Buffer) Write(p []byte) (int, error) {
 	n, err := b.buffer.Write(p)
 	if n != 0 {
-		b.setDirty()
+		b.SetDirty()
 	}
 
 	return n, err

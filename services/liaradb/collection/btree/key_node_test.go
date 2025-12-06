@@ -17,15 +17,15 @@ func TestKeyNode(t *testing.T) {
 		{"c", 3},
 	}
 
-	if _, ok := kn.Insert(data[0]); !ok {
+	if _, ok := kn.Insert(data[0].key, data[0].block); !ok {
 		t.Error("should insert")
 	}
 
-	if _, ok := kn.Insert(data[2]); !ok {
+	if _, ok := kn.Insert(data[2].key, data[2].block); !ok {
 		t.Error("should insert")
 	}
 
-	if _, ok := kn.Insert(data[1]); !ok {
+	if _, ok := kn.Insert(data[1].key, data[1].block); !ok {
 		t.Error("should insert")
 	}
 

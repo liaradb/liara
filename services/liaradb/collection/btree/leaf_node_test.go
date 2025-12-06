@@ -11,7 +11,7 @@ func TestLeafNode_Child(t *testing.T) {
 	p := page.New(make([]byte, 256))
 	ln := NewLeafNode(p)
 
-	children := []LeafEntry{
+	data := []LeafEntry{
 		newLeafEntry(
 			Key("abcde"),
 			NewRecordID(1, 2)),
@@ -20,20 +20,20 @@ func TestLeafNode_Child(t *testing.T) {
 			NewRecordID(3, 4)),
 	}
 
-	if i, ok := ln.Append(children[0]); !ok {
+	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i, ok := ln.Append(children[1]); !ok {
+	if i, ok := ln.Append(data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	result := make([]LeafEntry, 0, len(children))
-	for i := range len(children) {
+	result := make([]LeafEntry, 0, len(data))
+	for i := range len(data) {
 		c, err := ln.Child(int16(i))
 		if err != nil {
 			t.Fatal(err)
@@ -42,8 +42,8 @@ func TestLeafNode_Child(t *testing.T) {
 		result = append(result, c)
 	}
 
-	if !slices.Equal(result, children) {
-		t.Errorf("incorrect result: %v, expected: %v", result, children)
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
 }
 
@@ -51,7 +51,7 @@ func TestLeafNode_Children(t *testing.T) {
 	p := page.New(make([]byte, 256))
 	ln := NewLeafNode(p)
 
-	children := []LeafEntry{
+	data := []LeafEntry{
 		newLeafEntry(
 			Key("abcde"),
 			NewRecordID(1, 2)),
@@ -60,19 +60,19 @@ func TestLeafNode_Children(t *testing.T) {
 			NewRecordID(3, 4)),
 	}
 
-	if i, ok := ln.Append(children[0]); !ok {
+	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i, ok := ln.Append(children[1]); !ok {
+	if i, ok := ln.Append(data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	result := make([]LeafEntry, 0, len(children))
+	result := make([]LeafEntry, 0, len(data))
 	for c, err := range ln.Children() {
 		if err != nil {
 			t.Fatal(err)
@@ -81,8 +81,8 @@ func TestLeafNode_Children(t *testing.T) {
 		result = append(result, c)
 	}
 
-	if !slices.Equal(result, children) {
-		t.Errorf("incorrect result: %v, expected: %v", result, children)
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
 }
 
@@ -102,15 +102,15 @@ func TestLeafNode_Insert(t *testing.T) {
 			NewRecordID(5, 6)),
 	}
 
-	if _, ok := ln.Insert(data[0]); !ok {
+	if _, ok := ln.Insert(data[0].key, data[0].recordID); !ok {
 		t.Error("should insert")
 	}
 
-	if _, ok := ln.Insert(data[2]); !ok {
+	if _, ok := ln.Insert(data[2].key, data[2].recordID); !ok {
 		t.Error("should insert")
 	}
 
-	if _, ok := ln.Insert(data[1]); !ok {
+	if _, ok := ln.Insert(data[1].key, data[1].recordID); !ok {
 		t.Error("should insert")
 	}
 
