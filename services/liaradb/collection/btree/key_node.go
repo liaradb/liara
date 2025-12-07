@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type KeyNode struct {
@@ -29,7 +30,7 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 	}
 
 	// TODO: Change to bool instead of error
-	if err := ke.Write(b); err != nil {
+	if err := ke.Write(raw.NewBufferFromSlice(b)); err != nil {
 		return 0, false
 	}
 
@@ -46,7 +47,7 @@ func (kn *KeyNode) Insert(key Key, block BlockPosition) (int16, bool) {
 	}
 
 	// TODO: Change to bool instead of error
-	if err := ke.Write(b); err != nil {
+	if err := ke.Write(raw.NewBufferFromSlice(b)); err != nil {
 		return 0, false
 	}
 
@@ -58,7 +59,7 @@ func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
 	return func(yield func(KeyEntry, error) bool) {
 		for b := range kn.page.Children() {
 			ke := KeyEntry{}
-			if err := ke.Read(b); err != nil {
+			if err := ke.Read(raw.NewBufferFromSlice(b)); err != nil {
 				yield(KeyEntry{}, err)
 				return
 			}

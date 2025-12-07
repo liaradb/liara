@@ -12,7 +12,7 @@ func TestByteList(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if l := b.Length(); l != 16 {
+	if l := len(b); l != 16 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 16)
 	}
 

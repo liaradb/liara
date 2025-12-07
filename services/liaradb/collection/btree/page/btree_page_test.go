@@ -4,6 +4,8 @@ import (
 	"io"
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 const (
@@ -39,7 +41,7 @@ func TestBTreePage_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s1)
 	}
 
-	if _, err := b0.Write(v0); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
 		t.Error(err)
 	}
 
@@ -54,16 +56,16 @@ func TestBTreePage_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s2)
 	}
 
-	if _, err := b1.Write(v1); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
 		t.Error(err)
 	}
 
-	if _, err := b0.Seek(0, io.SeekStart); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
 		t.Error(err)
 	}
 
 	r0 := make([]byte, 5)
-	if _, err := b0.Read(r0); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
 		t.Error(err)
 	}
 
@@ -71,12 +73,12 @@ func TestBTreePage_Append(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", r0, v0)
 	}
 
-	if _, err := b1.Seek(0, io.SeekStart); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
 		t.Error(err)
 	}
 
 	r1 := make([]byte, 5)
-	if _, err := b1.Read(r1); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
 		t.Error(err)
 	}
 
@@ -114,7 +116,7 @@ func TestBTreePage_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
 	}
 
-	if _, err := b0.Write(v0); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -129,16 +131,16 @@ func TestBTreePage_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
 	}
 
-	if _, err := b1.Write(v1); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := b0.Seek(0, io.SeekStart); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
 	r0 := make([]byte, 5)
-	if _, err := b0.Read(r0); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -146,12 +148,12 @@ func TestBTreePage_Insert(t *testing.T) {
 		t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
 	}
 
-	if _, err := b1.Seek(0, io.SeekStart); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
 		t.Fatal(err)
 	}
 
 	r1 := make([]byte, 5)
-	if _, err := b1.Read(r1); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,7 +196,7 @@ func TestBTreePage_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := b0.Write(values[0]); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
 	}
 
@@ -203,7 +205,7 @@ func TestBTreePage_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := b1.Write(values[1]); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
 	}
 
@@ -215,7 +217,7 @@ func TestBTreePage_Child(t *testing.T) {
 		}
 
 		v := make([]byte, 5)
-		if _, err := c.Read(v); err != nil {
+		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 
@@ -239,7 +241,7 @@ func TestBTreePage_Children(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := b0.Write(values[0]); err != nil {
+	if _, err := raw.NewBufferFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
 	}
 
@@ -248,14 +250,14 @@ func TestBTreePage_Children(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := b1.Write(values[1]); err != nil {
+	if _, err := raw.NewBufferFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
 	}
 
 	result := make([][]byte, 0, 2)
 	for c := range p.Children() {
 		v := make([]byte, 5)
-		if _, err := c.Read(v); err != nil {
+		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 

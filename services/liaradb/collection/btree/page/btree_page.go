@@ -4,7 +4,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/tuplelist"
 )
 
@@ -32,7 +31,7 @@ func New(data []byte) BTreePage {
 	}
 }
 
-func (p *BTreePage) Append(size int16) (int16, *raw.Buffer, bool) {
+func (p *BTreePage) Append(size int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -53,7 +52,7 @@ func (p *BTreePage) Append(size int16) (int16, *raw.Buffer, bool) {
 	return i, b, true
 }
 
-func (p *BTreePage) Insert(size int16, index int16) (int16, *raw.Buffer, bool) {
+func (p *BTreePage) Insert(size int16, index int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -98,7 +97,7 @@ func (p BTreePage) hasSpace(size int16) bool {
 	return size <= s
 }
 
-func (p BTreePage) Child(index int16) (*raw.Buffer, bool) {
+func (p BTreePage) Child(index int16) ([]byte, bool) {
 	offset, size, ok := p.list.Item(index)
 	if !ok {
 		return nil, false
@@ -107,8 +106,8 @@ func (p BTreePage) Child(index int16) (*raw.Buffer, bool) {
 	return p.byteList.Slice(int64(offset), int64(size))
 }
 
-func (p BTreePage) Children() iter.Seq[*raw.Buffer] {
-	return func(yield func(*raw.Buffer) bool) {
+func (p BTreePage) Children() iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
 		for offset, size := range p.list.Items() {
 			b, ok := p.byteList.Slice(int64(offset), int64(size))
 			if !ok || !yield(b) {

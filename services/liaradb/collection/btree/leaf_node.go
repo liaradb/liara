@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type LeafNode struct {
@@ -32,7 +33,7 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 	}
 
 	// TODO: Change to bool instead of error
-	if err := le.Write(b); err != nil {
+	if err := le.Write(raw.NewBufferFromSlice(b)); err != nil {
 		return 0, false
 	}
 
@@ -52,7 +53,7 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
 	}
 
 	// TODO: Change to bool instead of error
-	if err := le.Write(b); err != nil {
+	if err := le.Write(raw.NewBufferFromSlice(b)); err != nil {
 		return 0, false
 	}
 
@@ -67,7 +68,7 @@ func (ln *LeafNode) Child(index int16) (LeafEntry, error) {
 	}
 
 	le := LeafEntry{}
-	if err := le.Read(b); err != nil {
+	if err := le.Read(raw.NewBufferFromSlice(b)); err != nil {
 		return LeafEntry{}, err
 	}
 
@@ -79,7 +80,7 @@ func (ln *LeafNode) Children() iter.Seq2[LeafEntry, error] {
 	return func(yield func(LeafEntry, error) bool) {
 		for b := range ln.page.Children() {
 			le := LeafEntry{}
-			if err := le.Read(b); err != nil {
+			if err := le.Read(raw.NewBufferFromSlice(b)); err != nil {
 				yield(LeafEntry{}, err)
 				return
 			}
