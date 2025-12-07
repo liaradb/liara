@@ -17,20 +17,17 @@ func TestKeyNode(t *testing.T) {
 		{"c", 3},
 	}
 
-	if _, ok := kn.Insert(data[0].key, data[0].block); !ok {
-		t.Error("should insert")
+	// Insert in mixed order
+	order := []int{0, 2, 1}
+	for _, i := range order {
+		e := data[i]
+		if _, ok := kn.Insert(e.key, e.block); !ok {
+			t.Error("should insert")
+		}
 	}
 
-	if _, ok := kn.Insert(data[2].key, data[2].block); !ok {
-		t.Error("should insert")
-	}
-
-	if _, ok := kn.Insert(data[1].key, data[1].block); !ok {
-		t.Error("should insert")
-	}
-
+	// Verify items are in order
 	result := make([]KeyEntry, 0, len(data))
-
 	for c, err := range kn.Children() {
 		if err != nil {
 			t.Fatal(err)
@@ -41,5 +38,14 @@ func TestKeyNode(t *testing.T) {
 
 	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+
+	// Verify items are all searchable
+	for _, e := range data {
+		if block, err := kn.Search(e.key); err != nil {
+			t.Error(err)
+		} else if block != e.block {
+			t.Errorf("incorrect record id: %v, expected: %v", block, e.block)
+		}
 	}
 }

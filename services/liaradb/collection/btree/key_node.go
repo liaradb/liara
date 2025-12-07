@@ -38,7 +38,7 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 
 func (kn *KeyNode) Insert(key Key, block BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
-	i, _ := kn.SearchIndex(ke.key)
+	i, _ := kn.searchIndex(ke.key)
 
 	i, b, ok := kn.page.Insert(int16(ke.Size()), i)
 	if !ok {
@@ -70,7 +70,6 @@ func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
 	}
 }
 
-// TODO: Test this
 // TODO: Change to bool instead of error
 func (kn *KeyNode) Search(k Key) (BlockPosition, error) {
 	p := BlockPosition(kn.page.LowID())
@@ -88,14 +87,14 @@ func (kn *KeyNode) Search(k Key) (BlockPosition, error) {
 	return p, nil
 }
 
-func (kn *KeyNode) SearchIndex(k Key) (int16, error) {
+func (kn *KeyNode) searchIndex(k Key) (int16, error) {
 	var i int16 = 0
 	for ke, err := range kn.Children() {
 		if err != nil {
 			return 0, err
 		}
 
-		if k < ke.key {
+		if k <= ke.key {
 			break
 		}
 
