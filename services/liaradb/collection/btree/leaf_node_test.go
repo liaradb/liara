@@ -34,9 +34,9 @@ func TestLeafNode_Child(t *testing.T) {
 
 	result := make([]LeafEntry, 0, len(data))
 	for i := range len(data) {
-		c, err := ln.Child(int16(i))
-		if err != nil {
-			t.Fatal(err)
+		c, ok := ln.Child(int16(i))
+		if !ok {
+			t.Fatal("should get child")
 		}
 
 		result = append(result, c)
@@ -73,11 +73,7 @@ func TestLeafNode_Children(t *testing.T) {
 	}
 
 	result := make([]LeafEntry, 0, len(data))
-	for c, err := range ln.Children() {
-		if err != nil {
-			t.Fatal(err)
-		}
-
+	for c := range ln.Children() {
 		result = append(result, c)
 	}
 
@@ -113,11 +109,7 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify items are in order
 	result := make([]LeafEntry, 0, len(data))
-	for c, err := range ln.Children() {
-		if err != nil {
-			t.Fatal(err)
-		}
-
+	for c := range ln.Children() {
 		result = append(result, c)
 	}
 
@@ -127,8 +119,8 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify items are all searchable
 	for _, e := range data {
-		if rid, err := ln.Search(e.key); err != nil {
-			t.Error(err)
+		if rid, ok := ln.Search(e.key); !ok {
+			t.Error("should find record id")
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}

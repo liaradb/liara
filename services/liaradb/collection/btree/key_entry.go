@@ -1,9 +1,7 @@
 package btree
 
 import (
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/wrap"
 )
 
 // TODO: Test this
@@ -19,17 +17,16 @@ func newKeyEntry(key Key, block BlockPosition) KeyEntry {
 	}
 }
 
-func (le KeyEntry) Size() int { return le.key.Size() + BlockPositionSize }
+func (ke KeyEntry) Size() int { return ke.key.Size() + BlockPositionSize }
 
-func (le KeyEntry) Write(w io.Writer) error {
-	return raw.WriteAll(w,
-		le.key,
-		le.block,
-	)
+func (ke KeyEntry) Write(data []byte) {
+	block, data0 := wrap.NewInt64(data)
+	block.Set(ke.block.Value())
+	copy(data0, []byte(ke.key))
 }
 
-func (le *KeyEntry) Read(r io.Reader) error {
-	return raw.ReadAll(r,
-		&le.key,
-		&le.block)
+func (ke *KeyEntry) Read(data []byte) {
+	block, data0 := wrap.NewInt64(data)
+	ke.block = BlockPosition(block.Get())
+	ke.key = Key(data0)
 }

@@ -4,7 +4,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type LeafNode struct {
@@ -32,92 +31,70 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 		return 0, false
 	}
 
-	// TODO: Change to bool instead of error
-	if err := le.Write(raw.NewBufferFromSlice(b)); err != nil {
-		return 0, false
-	}
+	le.Write(b)
 
 	return i, true
 }
 
 func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
 	le := newLeafEntry(key, recordID)
-	i, err := ln.searchIndex(le.key)
-	if err != nil {
-		return 0, false
-	}
+	i := ln.searchIndex(le.key)
 
 	i, b, ok := ln.page.Insert(int16(le.Size()), i)
 	if !ok {
 		return 0, false
 	}
 
-	// TODO: Change to bool instead of error
-	if err := le.Write(raw.NewBufferFromSlice(b)); err != nil {
-		return 0, false
-	}
+	le.Write(b)
 
 	return i, true
 }
 
-// TODO: Change to bool instead of error
-func (ln *LeafNode) Child(index int16) (LeafEntry, error) {
+func (ln *LeafNode) Child(index int16) (LeafEntry, bool) {
 	b, ok := ln.page.Child(index)
 	if !ok {
-		return LeafEntry{}, ErrNotFound
+		return LeafEntry{}, false
 	}
 
 	le := LeafEntry{}
-	if err := le.Read(raw.NewBufferFromSlice(b)); err != nil {
-		return LeafEntry{}, err
-	}
+	le.Read(b)
 
-	return le, nil
+	return le, true
 }
 
-// TODO: Change to bool instead of error
-func (ln *LeafNode) Children() iter.Seq2[LeafEntry, error] {
-	return func(yield func(LeafEntry, error) bool) {
+func (ln *LeafNode) Children() iter.Seq[LeafEntry] {
+	return func(yield func(LeafEntry) bool) {
 		for b := range ln.page.Children() {
 			le := LeafEntry{}
-			if err := le.Read(raw.NewBufferFromSlice(b)); err != nil {
-				yield(LeafEntry{}, err)
-				return
-			}
-
-			if !yield(le, nil) {
+			le.Read(b)
+			if !yield(le) {
 				return
 			}
 		}
 	}
 }
 
-func (ln *LeafNode) Search(k Key) (RecordID, error) {
-	i, err := ln.searchIndex(k)
-	if err != nil {
-		return RecordID{}, err
+// TODO: Handle not found
+func (ln *LeafNode) Search(k Key) (RecordID, bool) {
+	i := ln.searchIndex(k)
+
+	le, ok := ln.Child(i)
+	if !ok {
+		return RecordID{}, false
 	}
 
-	le, err := ln.Child(i)
-	if err != nil {
-		return RecordID{}, err
-	}
-
-	return le.recordID, nil
+	return le.recordID, true
 }
 
-func (ln *LeafNode) searchIndex(k Key) (int16, error) {
+// TODO: Handle not found
+func (ln *LeafNode) searchIndex(k Key) int16 {
 	var i int16 = 0
-	for ke, err := range ln.Children() {
-		if err != nil {
-			return 0, err
-		}
-
+	for ke := range ln.Children() {
 		if k <= ke.key {
 			break
 		}
 
 		i++
 	}
-	return i, nil
+	return i
 }

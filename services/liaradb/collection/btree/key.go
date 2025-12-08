@@ -63,6 +63,6 @@ func (k Key) LessEqual(o any) bool {
 }
 
 // TODO: Test this
-func (i Key) Size() int               { return raw.StringSize(i) }
+func (i Key) Size() int               { return len(i) }
 func (i Key) Write(w io.Writer) error { return raw.WriteString(w, i) }
 func (i *Key) Read(r io.Reader) error { return raw.ReadString(r, i) }

@@ -1,11 +1,5 @@
 package btree
 
-import (
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/raw"
-)
-
 // TODO: Test this
 type LeafEntry struct {
 	key      Key
@@ -21,15 +15,12 @@ func newLeafEntry(key Key, recordID RecordID) LeafEntry {
 
 func (le LeafEntry) Size() int { return le.key.Size() + RecordIDSize }
 
-func (le LeafEntry) Write(w io.Writer) error {
-	return raw.WriteAll(w,
-		le.key,
-		le.recordID,
-	)
+func (le LeafEntry) Write(data []byte) {
+	data0 := le.recordID.Write(data)
+	copy(data0, []byte(le.key))
 }
 
-func (le *LeafEntry) Read(r io.Reader) error {
-	return raw.ReadAll(r,
-		&le.key,
-		&le.recordID)
+func (le *LeafEntry) Read(data []byte) {
+	data0 := le.recordID.Read(data)
+	le.key = Key(data0)
 }

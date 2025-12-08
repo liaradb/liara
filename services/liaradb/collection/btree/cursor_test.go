@@ -79,7 +79,12 @@ func getRecordID(
 
 	// TODO: Support tree search
 	ln := NewLeafNode(r)
-	return ln.Search(key)
+	rid, ok := ln.Search(key)
+	if !ok {
+		return RecordID{}, ErrNotFound
+	}
+
+	return rid, nil
 }
 
 func createStorage(t *testing.T, max int, bs int64) *storage.Storage {

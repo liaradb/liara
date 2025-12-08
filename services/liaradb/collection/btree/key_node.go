@@ -4,7 +4,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type KeyNode struct {
@@ -29,77 +28,59 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 		return 0, false
 	}
 
-	// TODO: Change to bool instead of error
-	if err := ke.Write(raw.NewBufferFromSlice(b)); err != nil {
-		return 0, false
-	}
+	ke.Write(b)
 
 	return i, true
 }
 
 func (kn *KeyNode) Insert(key Key, block BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
-	i, _ := kn.searchIndex(ke.key)
+	i := kn.searchIndex(ke.key)
 
 	i, b, ok := kn.page.Insert(int16(ke.Size()), i)
 	if !ok {
 		return 0, false
 	}
 
-	// TODO: Change to bool instead of error
-	if err := ke.Write(raw.NewBufferFromSlice(b)); err != nil {
-		return 0, false
-	}
+	ke.Write(b)
 
 	return i, true
 }
 
-// TODO: Change to bool instead of error
-func (kn *KeyNode) Children() iter.Seq2[KeyEntry, error] {
-	return func(yield func(KeyEntry, error) bool) {
+func (kn *KeyNode) Children() iter.Seq[KeyEntry] {
+	return func(yield func(KeyEntry) bool) {
 		for b := range kn.page.Children() {
 			ke := KeyEntry{}
-			if err := ke.Read(raw.NewBufferFromSlice(b)); err != nil {
-				yield(KeyEntry{}, err)
-				return
-			}
-
-			if !yield(ke, nil) {
+			ke.Read(b)
+			if !yield(ke) {
 				return
 			}
 		}
 	}
 }
 
-// TODO: Change to bool instead of error
-func (kn *KeyNode) Search(k Key) (BlockPosition, error) {
+// TODO: Handle not found
+func (kn *KeyNode) Search(k Key) BlockPosition {
 	p := BlockPosition(kn.page.LowID())
-	for ke, err := range kn.Children() {
-		if err != nil {
-			return 0, err
-		}
-
+	for ke := range kn.Children() {
 		if k < ke.key {
 			break
 		}
 
 		p = ke.block
 	}
-	return p, nil
+	return p
 }
 
-func (kn *KeyNode) searchIndex(k Key) (int16, error) {
+// TODO: Handle not found
+func (kn *KeyNode) searchIndex(k Key) int16 {
 	var i int16 = 0
-	for ke, err := range kn.Children() {
-		if err != nil {
-			return 0, err
-		}
-
+	for ke := range kn.Children() {
 		if k <= ke.key {
 			break
 		}
 
 		i++
 	}
-	return i, nil
+	return i
 }

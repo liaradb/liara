@@ -1,9 +1,7 @@
 package btree
 
 import (
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/wrap"
 )
 
 const RecordIDSize = 8 + 1
@@ -26,15 +24,24 @@ func (i RecordID) Position() int8 { return i.position.Value() }
 
 func (i RecordID) Size() int { return RecordIDSize }
 
-func (le RecordID) Write(w io.Writer) error {
-	return raw.WriteAll(w,
-		le.block,
-		le.position,
-	)
+// TODO: Use simpler wrap
+func (le RecordID) Write(data []byte) []byte {
+	block, data0 := wrap.NewInt64(data)
+	position, data1 := wrap.NewByte(data0)
+
+	block.Set(le.block.Value())
+	position.Set(le.position.Value())
+
+	return data1
 }
 
-func (le *RecordID) Read(r io.Reader) error {
-	return raw.ReadAll(r,
-		&le.block,
-		&le.position)
+// TODO: Use simpler wrap
+func (le *RecordID) Read(data []byte) []byte {
+	block, data0 := wrap.NewInt64(data)
+	position, data1 := wrap.NewByte(data0)
+
+	le.block = BlockPosition(block.Get())
+	le.position = RecordPosition(position.Get())
+
+	return data1
 }
