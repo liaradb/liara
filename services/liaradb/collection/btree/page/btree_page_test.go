@@ -1,7 +1,6 @@
 package page
 
 import (
-	"io"
 	"slices"
 	"testing"
 
@@ -60,9 +59,9 @@ func TestBTreePage_Append(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
-		t.Error(err)
-	}
+	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
+	// 	t.Error(err)
+	// }
 
 	r0 := make([]byte, 5)
 	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
@@ -73,9 +72,9 @@ func TestBTreePage_Append(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", r0, v0)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
-		t.Error(err)
-	}
+	// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
+	// 	t.Error(err)
+	// }
 
 	r1 := make([]byte, 5)
 	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
@@ -135,9 +134,9 @@ func TestBTreePage_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
+	// 	t.Fatal(err)
+	// }
 
 	r0 := make([]byte, 5)
 	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
@@ -148,9 +147,9 @@ func TestBTreePage_Insert(t *testing.T) {
 		t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+	// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
+	// 	t.Fatal(err)
+	// }
 
 	r1 := make([]byte, 5)
 	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
