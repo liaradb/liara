@@ -42,20 +42,18 @@ func (c *Cursor[K, V]) insertPage(
 	}
 
 	if page.Level() == 0 {
-		// Leaf
 		return c.insertLeaf(page, k, rid)
 	} else {
-		// Key
 		return c.insertKey(ctx, bid.FileName, page, k, rid)
 	}
 }
 
 func (c *Cursor[K, V]) insertLeaf(
-	r page.BTreePage,
+	p page.BTreePage,
 	k Key,
 	rid RecordID,
 ) error {
-	ln := NewLeafNode(r)
+	ln := NewLeafNode(p)
 	_, ok := ln.Insert(k, rid)
 	if !ok {
 		return ErrNoInsert
@@ -67,17 +65,68 @@ func (c *Cursor[K, V]) insertLeaf(
 func (c *Cursor[K, V]) insertKey(
 	ctx context.Context,
 	fileName string,
-	r page.BTreePage,
+	p page.BTreePage,
 	k Key,
 	rid RecordID,
 ) error {
-	kn := newKeyNode(r)
+	kn := newKeyNode(p)
 	block := kn.Search(k)
 
 	return c.insertPage(ctx,
 		storage.NewBlockID(fileName, storage.Offset(block)),
 		k,
 		rid)
+}
+
+func (c *Cursor[K, V]) Search(
+	ctx context.Context,
+	fileName string,
+	k Key,
+) (RecordID, error) {
+	return c.searchPage(ctx, storage.NewBlockID(fileName, 0), k)
+}
+
+func (c *Cursor[K, V]) searchPage(
+	ctx context.Context,
+	bid storage.BlockID,
+	k Key,
+) (RecordID, error) {
+	p, err := c.GetPage(ctx, bid)
+	if err != nil {
+		return RecordID{}, err
+	}
+
+	if p.Level() == 0 {
+		return c.searchLeaf(p, k)
+	} else {
+		return c.searchKey(ctx, bid.FileName, p, k)
+	}
+}
+
+func (*Cursor[K, V]) searchLeaf(
+	p page.BTreePage,
+	k Key,
+) (RecordID, error) {
+	ln := NewLeafNode(p)
+	rid, ok := ln.Search(k)
+	if !ok {
+		return RecordID{}, ErrNotFound
+	}
+
+	return rid, nil
+}
+
+func (c *Cursor[K, V]) searchKey(
+	ctx context.Context,
+	fileName string,
+	p page.BTreePage,
+	k Key,
+) (RecordID, error) {
+	kn := newKeyNode(p)
+	block := kn.Search(k)
+	return c.searchPage(ctx,
+		storage.NewBlockID(fileName, storage.Offset(block)),
+		k)
 }
 
 func (c *Cursor[K, V]) GetRoot(ctx context.Context, fileName string) (page.BTreePage, error) {

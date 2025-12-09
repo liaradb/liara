@@ -70,19 +70,7 @@ func getRecordID(
 	key Key,
 ) (RecordID, error) {
 	c := NewCursor[Key, any](s)
-	r, err := c.GetRoot(ctx, name)
-	if err != nil {
-		return RecordID{}, err
-	}
-
-	// TODO: Support tree search
-	ln := NewLeafNode(r)
-	rid, ok := ln.Search(key)
-	if !ok {
-		return RecordID{}, ErrNotFound
-	}
-
-	return rid, nil
+	return c.Search(ctx, name, key)
 }
 
 func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
