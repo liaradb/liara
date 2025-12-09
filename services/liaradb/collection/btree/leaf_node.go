@@ -42,12 +42,24 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
 
 	i, b, ok := ln.page.Insert(int16(le.Size()), i)
 	if !ok {
+		// Split
+		_, _ = ln.split()
 		return 0, false
 	}
 
 	le.Write(b)
 
 	return i, true
+}
+
+func (ln *LeafNode) split() (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {
+	mid := ln.mid()
+	return ln.childrenRange(0, mid),
+		ln.childrenRange(mid, -1)
+}
+
+func (ln *LeafNode) mid() int16 {
+	return ln.page.Count() / 2
 }
 
 func (ln *LeafNode) Child(index int16) (LeafEntry, bool) {
@@ -65,6 +77,18 @@ func (ln *LeafNode) Child(index int16) (LeafEntry, bool) {
 func (ln *LeafNode) Children() iter.Seq[LeafEntry] {
 	return func(yield func(LeafEntry) bool) {
 		for b := range ln.page.Children() {
+			le := LeafEntry{}
+			le.Read(b)
+			if !yield(le) {
+				return
+			}
+		}
+	}
+}
+
+func (ln *LeafNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
+	return func(yield func(LeafEntry) bool) {
+		for b := range ln.page.ChildrenRange(start, end) {
 			le := LeafEntry{}
 			le.Read(b)
 			if !yield(le) {

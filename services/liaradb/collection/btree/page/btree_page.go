@@ -77,6 +77,11 @@ func (p BTreePage) Length() int16 {
 	return int16(len(p.data))
 }
 
+// TODO: Test this
+func (p BTreePage) Count() int16 {
+	return p.list.Count()
+}
+
 func (p *BTreePage) next() int16 {
 	size := p.list.Count()
 	if size == 0 {
