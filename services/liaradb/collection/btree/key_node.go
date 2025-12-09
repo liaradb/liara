@@ -33,23 +33,23 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 	return i, true
 }
 
-func (kn *KeyNode) Insert(key Key, block BlockPosition) (int16, bool) {
+func (kn *KeyNode) Insert(key Key, block BlockPosition) (iter.Seq[KeyEntry], iter.Seq[KeyEntry], bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
-	i, b, ok := kn.page.Insert(int16(ke.Size()), i)
+	_, b, ok := kn.page.Insert(int16(ke.Size()), i)
 	if !ok {
 		// Split
-		_, _ = kn.split()
-		return 0, false
+		a, b := kn.split()
+		return a, b, false
 	}
 
 	ke.Write(b)
 
-	return i, true
+	return nil, nil, true
 }
 
-func (kn *KeyNode) split() (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {
+func (kn *KeyNode) split() (iter.Seq[KeyEntry], iter.Seq[KeyEntry]) {
 	mid := kn.mid()
 	return kn.childrenRange(0, mid),
 		kn.childrenRange(mid, -1)
@@ -71,10 +71,10 @@ func (kn *KeyNode) Children() iter.Seq[KeyEntry] {
 	}
 }
 
-func (kn *KeyNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
-	return func(yield func(LeafEntry) bool) {
+func (kn *KeyNode) childrenRange(start, end int16) iter.Seq[KeyEntry] {
+	return func(yield func(KeyEntry) bool) {
 		for b := range kn.page.ChildrenRange(start, end) {
-			le := LeafEntry{}
+			le := KeyEntry{}
 			le.Read(b)
 			if !yield(le) {
 				return

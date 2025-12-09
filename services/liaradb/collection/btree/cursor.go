@@ -53,7 +53,7 @@ func (c *Cursor) insertLeaf(
 	rid RecordID,
 ) error {
 	ln := NewLeafNode(p)
-	_, ok := ln.Insert(k, rid)
+	_, _, ok := ln.Insert(k, rid)
 	if !ok {
 		return ErrNoInsert
 	}

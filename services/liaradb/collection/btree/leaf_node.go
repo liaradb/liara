@@ -36,20 +36,19 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 	return i, true
 }
 
-func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
+func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], iter.Seq[LeafEntry], bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
-	i, b, ok := ln.page.Insert(int16(le.Size()), i)
+	_, b, ok := ln.page.Insert(int16(le.Size()), i)
 	if !ok {
-		// Split
-		_, _ = ln.split()
-		return 0, false
+		a, b := ln.split()
+		return a, b, false
 	}
 
 	le.Write(b)
 
-	return i, true
+	return nil, nil, true
 }
 
 func (ln *LeafNode) split() (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {

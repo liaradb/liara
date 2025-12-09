@@ -8,6 +8,8 @@ import (
 )
 
 func TestLeafNode_Child(t *testing.T) {
+	t.Parallel()
+
 	p := page.New(make([]byte, 256))
 	ln := NewLeafNode(p)
 
@@ -48,6 +50,8 @@ func TestLeafNode_Child(t *testing.T) {
 }
 
 func TestLeafNode_Children(t *testing.T) {
+	t.Parallel()
+
 	p := page.New(make([]byte, 256))
 	ln := NewLeafNode(p)
 
@@ -83,6 +87,8 @@ func TestLeafNode_Children(t *testing.T) {
 }
 
 func TestLeafNode_Insert(t *testing.T) {
+	t.Parallel()
+
 	bp := page.New(make([]byte, 256))
 	ln := NewLeafNode(bp)
 
@@ -102,7 +108,7 @@ func TestLeafNode_Insert(t *testing.T) {
 	order := []int{0, 2, 1}
 	for _, i := range order {
 		e := data[i]
-		if _, ok := ln.Insert(e.key, e.recordID); !ok {
+		if _, _, ok := ln.Insert(e.key, e.recordID); !ok {
 			t.Error("should insert")
 		}
 	}
