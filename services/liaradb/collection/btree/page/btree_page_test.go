@@ -233,29 +233,26 @@ func TestBTreePage_Children(t *testing.T) {
 
 	p := New(make([]byte, 256))
 	values := [][]byte{
-		{1, 2, 3, 4, 5},
-		{6, 7, 8, 9, 10}}
-	_, b0, ok := p.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
+		{1, 2},
+		{3, 4},
+		{5, 6},
+		{7, 8},
+		{9, 10}}
+
+	for _, v := range values {
+		_, b, ok := p.Append(itemSize * int16(len(v)))
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		if _, err := raw.NewBufferFromSlice(b).Write(v); err != nil {
+			t.Error(err)
+		}
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(values[0]); err != nil {
-		t.Error(err)
-	}
-
-	_, b1, ok := p.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	if _, err := raw.NewBufferFromSlice(b1).Write(values[1]); err != nil {
-		t.Error(err)
-	}
-
-	result := make([][]byte, 0, 2)
+	result := make([][]byte, 0, len(values))
 	for c := range p.Children() {
-		v := make([]byte, 5)
+		v := make([]byte, 2)
 		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
@@ -265,5 +262,47 @@ func TestBTreePage_Children(t *testing.T) {
 
 	if !slices.EqualFunc(result, values, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, values)
+	}
+}
+
+func TestBTreePage_ChildrenRange(t *testing.T) {
+	t.Parallel()
+
+	p := New(make([]byte, 256))
+	values := [][]byte{
+		{1, 2},
+		{3, 4},
+		{5, 6},
+		{7, 8},
+		{9, 10}}
+
+	for _, v := range values {
+		_, b0, ok := p.Append(itemSize * int16(len(v)))
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		if _, err := raw.NewBufferFromSlice(b0).Write(v); err != nil {
+			t.Error(err)
+		}
+	}
+
+	result := make([][]byte, 0, len(values))
+	for c := range p.ChildrenRange(1, 4) {
+		v := make([]byte, 2)
+		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, v)
+	}
+
+	want := [][]byte{
+		{3, 4},
+		{5, 6},
+		{7, 8}}
+
+	if !slices.EqualFunc(result, want, slices.Equal) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 }

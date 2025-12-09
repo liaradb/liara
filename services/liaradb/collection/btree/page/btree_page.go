@@ -116,3 +116,14 @@ func (p BTreePage) Children() iter.Seq[[]byte] {
 		}
 	}
 }
+
+func (p BTreePage) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
+		for offset, size := range p.list.ItemsRange(start, end) {
+			b, ok := p.byteList.Slice(int64(offset), int64(size))
+			if !ok || !yield(b) {
+				return
+			}
+		}
+	}
+}
