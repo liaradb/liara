@@ -50,11 +50,9 @@ func testCursor_Insert__Root(t *testing.T) {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
 	}
 
-	ln := NewLeafNode(r)
 	wantRID := NewRecordID(1, 2)
-	_, ok := ln.Insert("a", wantRID)
-	if !ok {
-		t.Error("should insert")
+	if err := c.Insert(ctx, n, "a", wantRID); err != nil {
+		t.Error(err)
 	}
 
 	// TODO: Need to flush to disk
