@@ -38,7 +38,7 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 
 func (ln *LeafNode) Insert(key Key, recordID RecordID) (int16, bool) {
 	le := newLeafEntry(key, recordID)
-	i := ln.searchIndex(le.key)
+	i := ln.searchIndexRange(le.key)
 
 	i, b, ok := ln.page.Insert(int16(le.Size()), i)
 	if !ok {
@@ -74,9 +74,11 @@ func (ln *LeafNode) Children() iter.Seq[LeafEntry] {
 	}
 }
 
-// TODO: Handle not found
 func (ln *LeafNode) Search(k Key) (RecordID, bool) {
-	i := ln.searchIndex(k)
+	i, ok := ln.searchIndex(k)
+	if !ok {
+		return RecordID{}, false
+	}
 
 	le, ok := ln.Child(i)
 	if !ok {
@@ -86,8 +88,22 @@ func (ln *LeafNode) Search(k Key) (RecordID, bool) {
 	return le.recordID, true
 }
 
-// TODO: Handle not found
-func (ln *LeafNode) searchIndex(k Key) int16 {
+func (ln *LeafNode) searchIndex(k Key) (int16, bool) {
+	var i int16 = 0
+	for ke := range ln.Children() {
+		if k == ke.key {
+			return i, true
+		}
+		if k <= ke.key {
+			return 0, false
+		}
+
+		i++
+	}
+	return 0, false
+}
+
+func (ln *LeafNode) searchIndexRange(k Key) int16 {
 	var i int16 = 0
 	for ke := range ln.Children() {
 		if k <= ke.key {
