@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -131,4 +132,59 @@ func TestLeafNode_Insert(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
+}
+
+func TestLeafNode_Insert__Split(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+
+	bp := page.New(make([]byte, 62))
+	ln := NewLeafNode(bp)
+
+	data := []LeafEntry{
+		newLeafEntry(
+			Key("a"),
+			NewRecordID(1, 2)),
+		newLeafEntry(
+			Key("b"),
+			NewRecordID(3, 4)),
+		newLeafEntry(
+			Key("c"),
+			NewRecordID(5, 6)),
+	}
+
+	// Insert in mixed order
+	order := []int{0, 2, 1}
+	for _, i := range order {
+		e := data[i]
+		if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
+			fmt.Println("a...")
+			for e := range a {
+				fmt.Println(e.key, e.recordID)
+			}
+			fmt.Println("b...")
+			for e := range b {
+				fmt.Println(e.key, e.recordID)
+			}
+		}
+	}
+
+	// // Verify items are in order
+	// result := make([]LeafEntry, 0, len(data))
+	// for c := range ln.Children() {
+	// 	result = append(result, c)
+	// }
+
+	// if !slices.Equal(result, data) {
+	// 	t.Errorf("incorrect result: %v, expected: %v", result, data)
+	// }
+
+	// // Verify items are all searchable
+	// for _, e := range data {
+	// 	if rid, ok := ln.Search(e.key); !ok {
+	// 		t.Error("should find record id")
+	// 	} else if rid != e.recordID {
+	// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+	// 	}
+	// }
 }
