@@ -160,6 +160,69 @@ func TestTupleList_Items(t *testing.T) {
 	}
 }
 
+func TestTupleList_ItemsRange(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 32))
+
+	data := []tuple{
+		{10, 60},
+		{20, 70},
+		{30, 80},
+		{40, 90},
+		{50, 100}}
+
+	for _, i := range data {
+		if _, ok := l.Push(i.a, i.b); !ok {
+			t.Error("should push")
+		}
+	}
+
+	for message, c := range map[string]struct {
+		skip  bool
+		want  []tuple
+		start int16
+		end   int16
+	}{
+		"should iterate the range": {
+			want: []tuple{
+				{20, 70},
+				{30, 80},
+				{40, 90}},
+			start: 1,
+			end:   4,
+		},
+		"should iterate wrapping the end": {
+			want:  data,
+			start: 0,
+			end:   -1,
+		},
+		"should iterate wrapping the start": {
+			want: []tuple{
+				{30, 80},
+				{40, 90}},
+			start: -4,
+			end:   -2,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			result := make([]tuple, 0, len(c.want))
+			for a, b := range l.ItemsRange(c.start, c.end) {
+				result = append(result, tuple{a, b})
+			}
+
+			if !slices.Equal(result, c.want) {
+				t.Errorf("incorrect result: %v, expected: %v", result, c.want)
+			}
+		})
+	}
+}
+
 // TODO: Should not affect items outside of range
 func TestTupleList_Insert(t *testing.T) {
 	t.Parallel()

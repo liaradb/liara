@@ -70,6 +70,23 @@ func (l *TupleList) Items() iter.Seq2[int16, int16] {
 	}
 }
 
+func (l *TupleList) ItemsRange(start, end int16) iter.Seq2[int16, int16] {
+	return func(yield func(int16, int16) bool) {
+		if start < 0 {
+			start = l.count + 1 + start
+		}
+		if end < 0 {
+			end = l.count + 1 + end
+		}
+		for i := start; i < end; i++ {
+			a, b, ok := l.Item(i)
+			if !ok || !yield(a, b) {
+				return
+			}
+		}
+	}
+}
+
 func (l *TupleList) Insert(a int16, b int16, i int16) (int16, bool) {
 	index := i*tupleSize + headerSize
 	s := l.count*tupleSize + headerSize
