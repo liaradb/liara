@@ -13,17 +13,17 @@ const (
 )
 
 type TupleList struct {
-	size int16 // TODO: Rename to Count
-	list int16list.Int16List
+	count int16
+	list  int16list.Int16List
 }
 
 func New(data []byte) TupleList {
 	l := int16list.New(data)
-	size, _ := l.Get(0)
+	count, _ := l.Get(0)
 
 	return TupleList{
-		size: size,
-		list: l,
+		count: count,
+		list:  l,
 	}
 }
 
@@ -36,12 +36,12 @@ func (l *TupleList) Size() int16 {
 }
 
 func (l *TupleList) Count() int16 {
-	return l.size
+	return l.count
 }
 
 func (l *TupleList) setSize(size int16) {
 	if l.list.Set(0, size) {
-		l.size = size
+		l.count = size
 	}
 }
 
@@ -61,7 +61,7 @@ func (l *TupleList) Item(index int16) (int16, int16, bool) {
 
 func (l *TupleList) Items() iter.Seq2[int16, int16] {
 	return func(yield func(int16, int16) bool) {
-		for i := range l.size {
+		for i := range l.count {
 			a, b, ok := l.Item(i)
 			if !ok || !yield(a, b) {
 				return
@@ -72,7 +72,7 @@ func (l *TupleList) Items() iter.Seq2[int16, int16] {
 
 func (l *TupleList) Insert(a int16, b int16, i int16) (int16, bool) {
 	index := i*tupleSize + headerSize
-	s := l.size*tupleSize + headerSize
+	s := l.count*tupleSize + headerSize
 
 	if ok := l.list.ShiftRange(index, s, 2); !ok {
 		return 0, false
