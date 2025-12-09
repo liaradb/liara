@@ -7,18 +7,17 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-type Cursor[K Key, V any] struct {
-	s       *storage.Storage
-	current node[K, V]
+type Cursor struct {
+	s *storage.Storage
 }
 
-func NewCursor[K Key, V any](s *storage.Storage) *Cursor[K, V] {
-	return &Cursor[K, V]{
+func NewCursor(s *storage.Storage) *Cursor {
+	return &Cursor{
 		s: s,
 	}
 }
 
-func (c *Cursor[K, V]) Insert(
+func (c *Cursor) Insert(
 	ctx context.Context,
 	fileName string,
 	k Key,
@@ -30,7 +29,7 @@ func (c *Cursor[K, V]) Insert(
 		rid)
 }
 
-func (c *Cursor[K, V]) insertPage(
+func (c *Cursor) insertPage(
 	ctx context.Context,
 	bid storage.BlockID,
 	k Key,
@@ -48,7 +47,7 @@ func (c *Cursor[K, V]) insertPage(
 	}
 }
 
-func (c *Cursor[K, V]) insertLeaf(
+func (c *Cursor) insertLeaf(
 	p page.BTreePage,
 	k Key,
 	rid RecordID,
@@ -62,7 +61,7 @@ func (c *Cursor[K, V]) insertLeaf(
 	return nil
 }
 
-func (c *Cursor[K, V]) insertKey(
+func (c *Cursor) insertKey(
 	ctx context.Context,
 	fileName string,
 	p page.BTreePage,
@@ -78,7 +77,7 @@ func (c *Cursor[K, V]) insertKey(
 		rid)
 }
 
-func (c *Cursor[K, V]) Search(
+func (c *Cursor) Search(
 	ctx context.Context,
 	fileName string,
 	k Key,
@@ -86,7 +85,7 @@ func (c *Cursor[K, V]) Search(
 	return c.searchPage(ctx, storage.NewBlockID(fileName, 0), k)
 }
 
-func (c *Cursor[K, V]) searchPage(
+func (c *Cursor) searchPage(
 	ctx context.Context,
 	bid storage.BlockID,
 	k Key,
@@ -103,7 +102,7 @@ func (c *Cursor[K, V]) searchPage(
 	}
 }
 
-func (*Cursor[K, V]) searchLeaf(
+func (*Cursor) searchLeaf(
 	p page.BTreePage,
 	k Key,
 ) (RecordID, error) {
@@ -116,7 +115,7 @@ func (*Cursor[K, V]) searchLeaf(
 	return rid, nil
 }
 
-func (c *Cursor[K, V]) searchKey(
+func (c *Cursor) searchKey(
 	ctx context.Context,
 	fileName string,
 	p page.BTreePage,
@@ -129,11 +128,11 @@ func (c *Cursor[K, V]) searchKey(
 		k)
 }
 
-func (c *Cursor[K, V]) GetRoot(ctx context.Context, fileName string) (page.BTreePage, error) {
+func (c *Cursor) GetRoot(ctx context.Context, fileName string) (page.BTreePage, error) {
 	return c.GetPage(ctx, storage.NewBlockID(fileName, 0))
 }
 
-func (c *Cursor[K, V]) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
+func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
 	b, err := c.s.Request(ctx, bid)
 	if err != nil {
 		return page.BTreePage{}, err
@@ -142,7 +141,7 @@ func (c *Cursor[K, V]) GetPage(ctx context.Context, bid storage.BlockID) (page.B
 	return page.New(b.Raw()), nil
 }
 
-func (c *Cursor[K, V]) GetNode(ctx context.Context, bid storage.BlockID) error {
+func (c *Cursor) GetNode(ctx context.Context, bid storage.BlockID) error {
 	bp, err := c.GetPage(ctx, bid)
 	if err != nil {
 		return err
@@ -157,8 +156,4 @@ func (c *Cursor[K, V]) GetNode(ctx context.Context, bid storage.BlockID) error {
 	}
 
 	return nil
-}
-
-func (c *Cursor[K, V]) Current() (node[K, V], error) {
-	return c.current, nil
 }

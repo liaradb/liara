@@ -18,14 +18,14 @@ import (
 type EventRepository struct {
 	txManager *transaction.Manager
 	eventLog  *eventlog.EventLog
-	btree     *btree.Cursor[btree.Key, any]
+	btree     *btree.Cursor
 	fileName  string // TODO: Remove this
 }
 
 func NewEventRepository(
 	txManager *transaction.Manager,
 	eventLog *eventlog.EventLog,
-	btree *btree.Cursor[btree.Key, any],
+	btree *btree.Cursor,
 	fileName string,
 ) *EventRepository {
 	return &EventRepository{

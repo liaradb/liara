@@ -19,7 +19,7 @@ func testCursor(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	c := NewCursor[Key, any](s)
+	c := NewCursor(s)
 	r, err := c.GetRoot(ctx, n)
 	if err != nil {
 		t.Error(err)
@@ -40,7 +40,7 @@ func testCursor_Insert__Root(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	c := NewCursor[Key, any](s)
+	c := NewCursor(s)
 	r, err := c.GetRoot(ctx, n)
 	if err != nil {
 		t.Error(err)
@@ -69,7 +69,7 @@ func getRecordID(
 	name string,
 	key Key,
 ) (RecordID, error) {
-	c := NewCursor[Key, any](s)
+	c := NewCursor(s)
 	return c.Search(ctx, name, key)
 }
 
