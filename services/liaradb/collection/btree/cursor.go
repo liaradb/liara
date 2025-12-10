@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
+// TODO: Create latching support
 type Cursor struct {
 	s *storage.Storage
 }
@@ -41,22 +42,39 @@ func (c *Cursor) insertPage(
 	}
 
 	if page.Level() == 0 {
-		return c.insertLeaf(page, k, rid)
+		return c.insertLeaf(ctx, bid.FileName, page, k, rid)
 	} else {
 		return c.insertKey(ctx, bid.FileName, page, k, rid)
 	}
 }
 
 func (c *Cursor) insertLeaf(
+	ctx context.Context,
+	fileName string,
 	p page.BTreePage,
 	k Key,
 	rid RecordID,
 ) error {
 	ln := NewLeafNode(p)
-	_, _, ok := ln.Insert(k, rid)
-	if !ok {
-		return ErrNoInsert
+	_, second, ok := ln.Insert(k, rid)
+	if ok {
+		return nil
 	}
+
+	b, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return err
+	}
+
+	p2 := page.New(b.Raw())
+	ln2 := NewLeafNode(p2)
+	for e := range second {
+		if _, ok := ln2.Append(e.key, e.recordID); !ok {
+			// This should always be ok
+			return ErrNoInsert
+		}
+	}
+	b.SetDirty()
 
 	return nil
 }
@@ -133,7 +151,7 @@ func (c *Cursor) GetRoot(ctx context.Context, fileName string) (page.BTreePage, 
 }
 
 func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
-	b, err := c.s.Request(ctx, bid)
+	b, err := c.GetBuffer(ctx, bid)
 	if err != nil {
 		return page.BTreePage{}, err
 	}
@@ -141,19 +159,6 @@ func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePa
 	return page.New(b.Raw()), nil
 }
 
-func (c *Cursor) GetNode(ctx context.Context, bid storage.BlockID) error {
-	bp, err := c.GetPage(ctx, bid)
-	if err != nil {
-		return err
-	}
-
-	if bp.Level() == 0 {
-		// Leaf
-		_ = NewLeafNode(bp)
-	} else {
-		// Key
-		_ = newKeyNode(bp)
-	}
-
-	return nil
+func (c *Cursor) GetBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
+	return c.s.Request(ctx, bid)
 }

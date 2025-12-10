@@ -50,16 +50,80 @@ func testCursor_Insert__Root(t *testing.T) {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
 	}
 
-	wantRID := NewRecordID(1, 2)
-	if err := c.Insert(ctx, n, "a", wantRID); err != nil {
+	data := []LeafEntry{
+		newLeafEntry(
+			Key("a"),
+			NewRecordID(1, 2)),
+		newLeafEntry(
+			Key("b"),
+			NewRecordID(3, 4)),
+		newLeafEntry(
+			Key("c"),
+			NewRecordID(5, 6)),
+	}
+
+	for _, e := range data {
+		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+			t.Error(err)
+		}
+		// TODO: Need to flush to disk
+	}
+
+	for _, e := range data {
+		if rid, err := getRecordID(ctx, s, n, e.key); err != nil {
+			t.Fatal(err)
+		} else if rid != e.recordID {
+			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
+	}
+}
+
+func TestCursor_Insert__RootSplit(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testCursor_Insert__RootSplit)
+}
+
+func testCursor_Insert__RootSplit(t *testing.T) {
+	s := createStorage(t, 2, 256)
+	ctx := t.Context()
+
+	n := "testfile"
+	c := NewCursor(s)
+	r, err := c.GetRoot(ctx, n)
+	if err != nil {
 		t.Error(err)
 	}
 
-	// TODO: Need to flush to disk
-	if rid, err := getRecordID(ctx, s, n, "a"); err != nil {
-		t.Fatal(err)
-	} else if rid != wantRID {
-		t.Errorf("incorrect record id: %v, expected: %v", rid, wantRID)
+	if l := r.Level(); l != 0 {
+		t.Errorf("incorrect level: %v, expected: %v", l, 0)
+	}
+
+	data := []LeafEntry{
+		newLeafEntry(
+			Key("a"),
+			NewRecordID(1, 2)),
+		newLeafEntry(
+			Key("b"),
+			NewRecordID(3, 4)),
+		newLeafEntry(
+			Key("c"),
+			NewRecordID(5, 6)),
+	}
+
+	for _, e := range data {
+		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+			t.Error(err)
+		}
+		// TODO: Need to flush to disk
+	}
+
+	for _, e := range data {
+		if rid, err := getRecordID(ctx, s, n, e.key); err != nil {
+			t.Fatal(err)
+		} else if rid != e.recordID {
+			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
 	}
 }
 

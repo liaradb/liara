@@ -31,6 +31,11 @@ func New(data []byte) BTreePage {
 	}
 }
 
+// TODO: Test this
+func (p *BTreePage) Clear() {
+	clear(p.data)
+}
+
 func (p *BTreePage) Append(size int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
