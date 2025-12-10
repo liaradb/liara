@@ -42,7 +42,8 @@ func (c *Cursor) insertPage(
 	}
 
 	if page.Level() == 0 {
-		return c.insertLeaf(ctx, bid.FileName, page, k, rid)
+		_, _, err := c.insertLeaf(ctx, bid.FileName, page, k, rid)
+		return err
 	} else {
 		return c.insertKey(ctx, bid.FileName, page, k, rid)
 	}
@@ -54,29 +55,25 @@ func (c *Cursor) insertLeaf(
 	p page.BTreePage,
 	k Key,
 	rid RecordID,
-) error {
+) (storage.BlockID, bool, error) {
 	ln := NewLeafNode(p)
-	_, second, ok := ln.Insert(k, rid)
+	first, second, ok := ln.Insert(k, rid)
 	if ok {
-		return nil
+		return storage.BlockID{}, false, nil
 	}
 
 	b, err := c.s.RequestNext(ctx, fileName)
 	if err != nil {
-		return err
+		return storage.BlockID{}, false, err
 	}
 
 	p2 := page.New(b)
 	ln2 := NewLeafNode(p2)
-	for e := range second {
-		if _, ok := ln2.Append(e.key, e.recordID); !ok {
-			// This should always be ok
-			return ErrNoInsert
-		}
-	}
-	b.SetDirty()
 
-	return nil
+	ln2.Fill(second)
+	ln.Replace(first)
+
+	return b.BlockID(), true, nil
 }
 
 func (c *Cursor) insertKey(

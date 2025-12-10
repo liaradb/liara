@@ -53,6 +53,33 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], ite
 	return nil, nil, true
 }
 
+// TODO: Test this
+func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) {
+	for e := range entries {
+		// This will definitely fit
+		_, _ = ln.Append(e.key, e.recordID)
+	}
+	ln.page.SetDirty()
+}
+
+// TODO: Test this
+// TODO: Find a faster way
+func (ln *LeafNode) Replace(entries iter.Seq[LeafEntry]) {
+	cache := make([]LeafEntry, 0, ln.mid())
+	for e := range entries {
+		cache = append(cache, e)
+	}
+
+	ln.page.Clear()
+
+	for _, e := range cache {
+		// This will definitely fit
+		_, _ = ln.Append(e.key, e.recordID)
+	}
+
+	ln.page.SetDirty()
+}
+
 func (ln *LeafNode) split(i int16, le LeafEntry) (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {
 	mid := ln.mid()
 	return ln.first(i, mid, le), ln.second(i, mid, le)
