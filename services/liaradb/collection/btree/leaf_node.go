@@ -53,55 +53,54 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], ite
 
 func (ln *LeafNode) split(i int16, le LeafEntry) (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {
 	mid := ln.mid()
-	return func(yield func(LeafEntry) bool) {
-			if i < mid {
-				var j int16
-				for e := range ln.childrenRange(0, mid) {
-					if i == j {
-						if !yield(le) {
-							return
-						}
-					}
-					if !yield(e) {
-						return
-					}
-					j++
-				}
-			} else {
-				for e := range ln.childrenRange(0, mid) {
-					if !yield(e) {
-						return
-					}
-				}
-			}
-		},
-		func(yield func(LeafEntry) bool) {
-			if i >= mid {
-				k := i - mid
-				var j int16
-				for e := range ln.childrenRange(mid, -1) {
-					if k == j {
-						if !yield(le) {
-							return
-						}
-					}
-					if !yield(e) {
-						return
-					}
-					j++
-				}
-			} else {
-				for e := range ln.childrenRange(mid, -1) {
-					if !yield(e) {
-						return
-					}
-				}
-			}
-		}
+	return ln.first(i, mid, le), ln.second(i, mid, le)
 }
 
 func (ln *LeafNode) mid() int16 {
 	return ln.page.Count() / 2
+}
+
+func (ln *LeafNode) first(i int16, mid int16, le LeafEntry) func(yield func(LeafEntry) bool) {
+	if i >= mid {
+		return ln.childrenRange(0, mid)
+	}
+
+	return func(yield func(LeafEntry) bool) {
+		var j int16
+		for e := range ln.childrenRange(0, mid) {
+			if i == j {
+				if !yield(le) {
+					return
+				}
+			}
+			if !yield(e) {
+				return
+			}
+			j++
+		}
+	}
+}
+
+func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(LeafEntry) bool) {
+	if i < mid {
+		return ln.childrenRange(mid, -1)
+	}
+
+	return func(yield func(LeafEntry) bool) {
+		k := i - mid
+		var j int16
+		for e := range ln.childrenRange(mid, -1) {
+			if k == j {
+				if !yield(le) {
+					return
+				}
+			}
+			if !yield(e) {
+				return
+			}
+			j++
+		}
+	}
 }
 
 func (ln *LeafNode) Child(index int16) (LeafEntry, bool) {
