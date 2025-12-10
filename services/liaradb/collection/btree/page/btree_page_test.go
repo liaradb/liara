@@ -21,7 +21,7 @@ func TestBTreePage_Append(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	p := New(make([]byte, size))
+	p := New(newMockBuffer(size))
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -96,7 +96,7 @@ func TestBTreePage_Insert(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	p := New(make([]byte, size))
+	p := New(newMockBuffer(size))
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -164,7 +164,7 @@ func TestBTreePage_Insert(t *testing.T) {
 func TestBTreePage_Space(t *testing.T) {
 	t.Parallel()
 
-	p := New(make([]byte, 16+itemSize+headerSize))
+	p := New(newMockBuffer(16 + itemSize + headerSize))
 
 	if s := p.Space(); s != 16 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
@@ -186,7 +186,7 @@ func TestBTreePage_Space(t *testing.T) {
 func TestBTreePage_Child(t *testing.T) {
 	t.Parallel()
 
-	p := New(make([]byte, 256))
+	p := New(newMockBuffer(256))
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -231,7 +231,7 @@ func TestBTreePage_Child(t *testing.T) {
 func TestBTreePage_Children(t *testing.T) {
 	t.Parallel()
 
-	p := New(make([]byte, 256))
+	p := New(newMockBuffer(256))
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -268,7 +268,7 @@ func TestBTreePage_Children(t *testing.T) {
 func TestBTreePage_ChildrenRange(t *testing.T) {
 	t.Parallel()
 
-	p := New(make([]byte, 256))
+	p := New(newMockBuffer(256))
 	values := [][]byte{
 		{1, 2},
 		{3, 4},

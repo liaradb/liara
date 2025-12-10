@@ -66,7 +66,7 @@ func (c *Cursor) insertLeaf(
 		return err
 	}
 
-	p2 := page.New(b.Raw())
+	p2 := page.New(b)
 	ln2 := NewLeafNode(p2)
 	for e := range second {
 		if _, ok := ln2.Append(e.key, e.recordID); !ok {
@@ -156,7 +156,7 @@ func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePa
 		return page.BTreePage{}, err
 	}
 
-	return page.New(b.Raw()), nil
+	return page.New(b), nil
 }
 
 func (c *Cursor) GetBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {

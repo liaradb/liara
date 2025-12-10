@@ -29,6 +29,7 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 	}
 
 	ke.Write(b)
+	kn.page.SetDirty()
 
 	return i, true
 }
@@ -45,6 +46,7 @@ func (kn *KeyNode) Insert(key Key, block BlockPosition) (iter.Seq[KeyEntry], ite
 	}
 
 	ke.Write(b)
+	kn.page.SetDirty()
 
 	return nil, nil, true
 }

@@ -15,16 +15,25 @@ type header = btreeHeader
 
 type BTreePage struct {
 	header
+	buffer   Buffer
 	data     []byte
 	list     tuplelist.TupleList
 	byteList bytelist.ByteList
 }
 
-func New(data []byte) BTreePage {
+type Buffer interface {
+	Raw() []byte
+	Clear()
+	SetDirty()
+}
+
+func New(buffer Buffer) BTreePage {
+	data := buffer.Raw()
 	header, data0 := newHeader(data)
 
 	return BTreePage{
 		header:   header,
+		buffer:   buffer,
 		data:     data,
 		list:     tuplelist.New(data0),
 		byteList: bytelist.New(data0),
@@ -33,7 +42,12 @@ func New(data []byte) BTreePage {
 
 // TODO: Test this
 func (p *BTreePage) Clear() {
-	clear(p.data)
+	p.buffer.Clear()
+}
+
+// TODO: Test this
+func (p *BTreePage) SetDirty() {
+	p.buffer.SetDirty()
 }
 
 func (p *BTreePage) Append(size int16) (int16, []byte, bool) {

@@ -13,7 +13,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should insert", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(make([]byte, 256))
+		bp := page.New(newMockBuffer(256))
 		kn := newKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -23,7 +23,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should iterate in order", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(make([]byte, 256))
+		bp := page.New(newMockBuffer(256))
 		kn := newKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -33,7 +33,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search items", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(make([]byte, 256))
+		bp := page.New(newMockBuffer(256))
 		kn := newKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)

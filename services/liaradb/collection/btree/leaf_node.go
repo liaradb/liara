@@ -32,6 +32,7 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 	}
 
 	le.Write(b)
+	ln.page.SetDirty()
 
 	return i, true
 }
@@ -47,6 +48,7 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], ite
 	}
 
 	le.Write(b)
+	ln.page.SetDirty()
 
 	return nil, nil, true
 }

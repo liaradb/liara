@@ -85,7 +85,7 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	s := createStorage(t, 2, 256)
+	s := createStorage(t, 2, 62)
 	ctx := t.Context()
 
 	n := "testfile"

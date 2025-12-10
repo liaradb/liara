@@ -11,7 +11,7 @@ import (
 func TestLeafNode_Child(t *testing.T) {
 	t.Parallel()
 
-	p := page.New(make([]byte, 256))
+	p := page.New(newMockBuffer(256))
 	ln := NewLeafNode(p)
 
 	data := []LeafEntry{
@@ -53,7 +53,7 @@ func TestLeafNode_Child(t *testing.T) {
 func TestLeafNode_Children(t *testing.T) {
 	t.Parallel()
 
-	p := page.New(make([]byte, 256))
+	p := page.New(newMockBuffer(256))
 	ln := NewLeafNode(p)
 
 	data := []LeafEntry{
@@ -90,7 +90,7 @@ func TestLeafNode_Children(t *testing.T) {
 func TestLeafNode_Insert(t *testing.T) {
 	t.Parallel()
 
-	bp := page.New(make([]byte, 256))
+	bp := page.New(newMockBuffer(256))
 	ln := NewLeafNode(bp)
 
 	data := []LeafEntry{
@@ -136,9 +136,9 @@ func TestLeafNode_Insert(t *testing.T) {
 
 func TestLeafNode_Insert__Split(t *testing.T) {
 	t.Parallel()
-	t.Skip()
+	// t.Skip()
 
-	bp := page.New(make([]byte, 62))
+	bp := page.New(newMockBuffer(62))
 	ln := NewLeafNode(bp)
 
 	data := []LeafEntry{
