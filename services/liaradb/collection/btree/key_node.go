@@ -40,7 +40,7 @@ func (kn *KeyNode) Insert(key Key, block BlockPosition) (iter.Seq[KeyEntry], ite
 	_, b, ok := kn.page.Insert(int16(ke.Size()), i)
 	if !ok {
 		// Split
-		a, b := kn.split()
+		a, b := kn.split(i, ke)
 		return a, b, false
 	}
 
@@ -49,14 +49,57 @@ func (kn *KeyNode) Insert(key Key, block BlockPosition) (iter.Seq[KeyEntry], ite
 	return nil, nil, true
 }
 
-func (kn *KeyNode) split() (iter.Seq[KeyEntry], iter.Seq[KeyEntry]) {
+func (kn *KeyNode) split(i int16, ke KeyEntry) (iter.Seq[KeyEntry], iter.Seq[KeyEntry]) {
 	mid := kn.mid()
-	return kn.childrenRange(0, mid),
-		kn.childrenRange(mid, -1)
+	return kn.first(i, mid, ke),
+		kn.second(i, mid, ke)
 }
 
 func (kn *KeyNode) mid() int16 {
 	return kn.page.Count() / 2
+}
+
+func (kn *KeyNode) first(i int16, mid int16, ke KeyEntry) func(yield func(KeyEntry) bool) {
+	if i >= mid {
+		return kn.childrenRange(0, mid)
+	}
+
+	return func(yield func(KeyEntry) bool) {
+		var j int16
+		for e := range kn.childrenRange(0, mid) {
+			if i == j {
+				if !yield(ke) {
+					return
+				}
+			}
+			if !yield(e) {
+				return
+			}
+			j++
+		}
+	}
+}
+
+func (kn *KeyNode) second(i int16, mid int16, ke KeyEntry) func(yield func(KeyEntry) bool) {
+	if i < mid {
+		return kn.childrenRange(mid, -1)
+	}
+
+	return func(yield func(KeyEntry) bool) {
+		k := i - mid
+		var j int16
+		for e := range kn.childrenRange(mid, -1) {
+			if k == j {
+				if !yield(ke) {
+					return
+				}
+			}
+			if !yield(e) {
+				return
+			}
+			j++
+		}
+	}
 }
 
 func (kn *KeyNode) Children() iter.Seq[KeyEntry] {
