@@ -24,10 +24,11 @@ func (c *Cursor) Insert(
 	k Key,
 	rid RecordID,
 ) error {
-	return c.insertPage(ctx,
+	_, _, err := c.insertPage(ctx,
 		storage.NewBlockID(fileName, 0),
 		k,
 		rid)
+	return err
 }
 
 func (c *Cursor) insertPage(
@@ -35,15 +36,14 @@ func (c *Cursor) insertPage(
 	bid storage.BlockID,
 	k Key,
 	rid RecordID,
-) error {
+) (storage.BlockID, bool, error) {
 	page, err := c.GetPage(ctx, bid)
 	if err != nil {
-		return err
+		return storage.BlockID{}, false, err
 	}
 
 	if page.Level() == 0 {
-		_, _, err := c.insertLeaf(ctx, bid.FileName, page, k, rid)
-		return err
+		return c.insertLeaf(ctx, bid.FileName, page, k, rid)
 	} else {
 		return c.insertKey(ctx, bid.FileName, page, k, rid)
 	}
@@ -82,7 +82,7 @@ func (c *Cursor) insertKey(
 	p page.BTreePage,
 	k Key,
 	rid RecordID,
-) error {
+) (storage.BlockID, bool, error) {
 	kn := newKeyNode(p)
 	block := kn.Search(k)
 
