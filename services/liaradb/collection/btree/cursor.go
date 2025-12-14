@@ -18,19 +18,18 @@ func NewCursor(s *storage.Storage) *Cursor {
 	}
 }
 
+// Insert key value pair into tree
 func (c *Cursor) Insert(
 	ctx context.Context,
 	fileName string,
 	k Key,
 	rid RecordID,
 ) error {
-	_, _, err := c.insertPage(ctx,
-		storage.NewBlockID(fileName, 0),
-		k,
-		rid)
+	_, _, err := c.insertPage(ctx, storage.NewBlockID(fileName, 0), k, rid)
 	return err
 }
 
+// Get page from buffer pool and insert key value pair
 func (c *Cursor) insertPage(
 	ctx context.Context,
 	bid storage.BlockID,
@@ -44,11 +43,13 @@ func (c *Cursor) insertPage(
 
 	if page.Level() == 0 {
 		return c.insertLeaf(ctx, bid.FileName, page, k, rid)
-	} else {
-		return c.insertKey(ctx, bid.FileName, page, k, rid)
 	}
+
+	return c.insertKey(ctx, bid.FileName, page, k, rid)
 }
 
+// This is a leaf level page.
+//   - Insert, and handle a split.
 func (c *Cursor) insertLeaf(
 	ctx context.Context,
 	fileName string,
@@ -76,6 +77,11 @@ func (c *Cursor) insertLeaf(
 	return b.BlockID(), true, nil
 }
 
+// This is a key level page.
+//   - Find the correct child.
+//   - Insert into the child.
+//   - If child splits, insert into this page.
+//   - Handle a split
 func (c *Cursor) insertKey(
 	ctx context.Context,
 	fileName string,
