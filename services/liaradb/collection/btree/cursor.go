@@ -58,8 +58,8 @@ func (c *Cursor) insertLeaf(
 	rid RecordID,
 ) (storage.BlockID, bool, error) {
 	ln := NewLeafNode(p)
-	first, second, ok := ln.Insert(k, rid)
-	if ok {
+	first, second, split := ln.Insert(k, rid)
+	if split {
 		return storage.BlockID{}, false, nil
 	}
 
@@ -90,12 +90,35 @@ func (c *Cursor) insertKey(
 	rid RecordID,
 ) (storage.BlockID, bool, error) {
 	kn := newKeyNode(p)
-	block := kn.Search(k)
+	childID := kn.Search(k)
 
-	return c.insertPage(ctx,
-		storage.NewBlockID(fileName, storage.Offset(block)),
+	b2, split, err := c.insertPage(ctx,
+		storage.NewBlockID(fileName, storage.Offset(childID)),
 		k,
 		rid)
+	if err != nil {
+		return storage.BlockID{}, false, err
+	} else if !split {
+		return storage.BlockID{}, false, nil
+	}
+
+	first, second, split := kn.Insert(k, BlockPosition(b2.Position))
+	if !split {
+		return storage.BlockID{}, false, nil
+	}
+
+	b, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return storage.BlockID{}, false, err
+	}
+
+	p2 := page.New(b)
+	kn2 := newKeyNode(p2)
+
+	kn2.Fill(second)
+	kn.Replace(first)
+
+	return b.BlockID(), true, nil
 }
 
 func (c *Cursor) Search(

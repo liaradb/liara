@@ -104,6 +104,33 @@ func (kn *KeyNode) second(i int16, mid int16, ke KeyEntry) func(yield func(KeyEn
 	}
 }
 
+// TODO: Test this
+func (kn *KeyNode) Fill(entries iter.Seq[KeyEntry]) {
+	for e := range entries {
+		// This will definitely fit
+		_, _ = kn.Append(e.key, e.block)
+	}
+	kn.page.SetDirty()
+}
+
+// TODO: Test this
+// TODO: Find a faster way
+func (kn *KeyNode) Replace(entries iter.Seq[KeyEntry]) {
+	cache := make([]KeyEntry, 0, kn.mid())
+	for e := range entries {
+		cache = append(cache, e)
+	}
+
+	kn.page.Clear()
+
+	for _, e := range cache {
+		// This will definitely fit
+		_, _ = kn.Append(e.key, e.block)
+	}
+
+	kn.page.SetDirty()
+}
+
 func (kn *KeyNode) Children() iter.Seq[KeyEntry] {
 	return func(yield func(KeyEntry) bool) {
 		for b := range kn.page.Children() {
