@@ -25,8 +25,35 @@ func (c *Cursor) Insert(
 	k Key,
 	rid RecordID,
 ) error {
-	_, _, err := c.insertPage(ctx, storage.NewBlockID(fileName, 0), k, rid)
-	return err
+	bid0 := storage.NewBlockID(fileName, 0)
+	bid1, split, err := c.insertPage(ctx, bid0, k, rid)
+	if err != nil {
+		return err
+	} else if !split {
+		return nil
+	}
+
+	// Swap block2 with root
+	b2, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return err
+	}
+
+	b0, err := c.GetBuffer(ctx, bid0)
+	if err != nil {
+		return err
+	}
+
+	copy(b2.Raw(), b0.Raw())
+	b2.SetDirty()
+
+	page := page.New(b0)
+	page.Clear()
+	root := newKeyNode(page)
+	root.Init(BlockPosition(bid0.Position))
+	_, _ = root.Append(k, BlockPosition(bid1.Position))
+
+	return nil
 }
 
 // Get page from buffer pool and insert key value pair
@@ -40,6 +67,8 @@ func (c *Cursor) insertPage(
 	if err != nil {
 		return storage.BlockID{}, false, err
 	}
+
+	defer page.Release()
 
 	if page.Level() == 0 {
 		return c.insertLeaf(ctx, bid.FileName, page, k, rid)
@@ -111,6 +140,8 @@ func (c *Cursor) insertKey(
 	if err != nil {
 		return storage.BlockID{}, false, err
 	}
+
+	defer b.Release()
 
 	p2 := page.New(b)
 	kn2 := newKeyNode(p2)

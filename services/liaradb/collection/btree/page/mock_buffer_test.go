@@ -17,4 +17,5 @@ func newMockBuffer[T Number](size T) *mockBuffer {
 
 func (b *mockBuffer) Raw() []byte { return b.data }
 func (b *mockBuffer) Clear()      { clear(b.data) }
+func (b *mockBuffer) Release()    {}
 func (b *mockBuffer) SetDirty()   {}

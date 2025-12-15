@@ -24,6 +24,7 @@ type BTreePage struct {
 type Buffer interface {
 	Raw() []byte
 	Clear()
+	Release()
 	SetDirty()
 }
 
@@ -43,6 +44,11 @@ func New(buffer Buffer) BTreePage {
 // TODO: Test this
 func (p *BTreePage) Clear() {
 	p.buffer.Clear()
+}
+
+// TODO: Test this
+func (p *BTreePage) Release() {
+	p.buffer.Release()
 }
 
 // TODO: Test this
