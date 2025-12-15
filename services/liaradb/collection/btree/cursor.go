@@ -1,7 +1,10 @@
 package btree
 
 import (
+	"container/list"
 	"context"
+	"errors"
+	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
@@ -18,6 +21,58 @@ func NewCursor(s *storage.Storage) *Cursor {
 	}
 }
 
+func (c *Cursor) getChain(
+	ctx context.Context,
+	fileName string,
+	k Key,
+) (*list.List, error) {
+	bid := storage.NewBlockID(fileName, 0)
+	p, err := c.GetPage(ctx, bid)
+	if err != nil {
+		return nil, err
+	}
+
+	l := list.New()
+
+	level := p.Level()
+	if level == 0 {
+		// leaf
+		ln := NewLeafNode(p)
+		l.PushFront(ln)
+	}
+	for i := range level {
+		if p.Level() != i {
+			return nil, errors.New("level mismatch")
+		}
+
+		if i == 0 {
+			// leaf
+			ln := NewLeafNode(p)
+			l.PushFront(ln)
+			break
+		}
+
+		kn := newKeyNode(p)
+		l.PushFront(kn)
+		block := kn.Search(k)
+
+		if p, err = c.GetPage(ctx, storage.NewBlockID(fileName, storage.Offset(block))); err != nil {
+			return nil, err
+		}
+	}
+
+	return l, nil
+}
+
+func iterateList(l *list.List) iter.Seq[any] {
+	return func(yield func(any) bool) {
+		e := l.Front()
+		if e == nil || !yield(e.Value) {
+			return
+		}
+	}
+}
+
 // Insert key value pair into tree
 func (c *Cursor) Insert(
 	ctx context.Context,
@@ -25,13 +80,37 @@ func (c *Cursor) Insert(
 	k Key,
 	rid RecordID,
 ) error {
-	bid0 := storage.NewBlockID(fileName, 0)
-	bid1, split, err := c.insertPage(ctx, bid0, k, rid)
+	chain, err := c.getChain(ctx, fileName, k)
 	if err != nil {
 		return err
-	} else if !split {
+	}
+
+	var i int
+	var bid storage.BlockID
+	var key Key
+	var split bool
+	for n := range iterateList(chain) {
+		if i == 0 {
+			ln, ok := n.(*LeafNode)
+			if !ok {
+				return errors.New("type mismatch")
+			}
+
+			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, k, rid)
+			if err != nil {
+				return err
+			}
+		} else {
+			// TODO: Split Key Node
+		}
+		i++
+	}
+
+	if !split {
 		return nil
 	}
+
+	bid0 := storage.NewBlockID(fileName, 0)
 
 	// Swap block2 with root
 	b2, err := c.s.RequestNext(ctx, fileName)
@@ -39,10 +118,14 @@ func (c *Cursor) Insert(
 		return err
 	}
 
+	defer b2.Release()
+
 	b0, err := c.GetBuffer(ctx, bid0)
 	if err != nil {
 		return err
 	}
+
+	defer b0.Release()
 
 	copy(b2.Raw(), b0.Raw())
 	b2.SetDirty()
@@ -50,10 +133,42 @@ func (c *Cursor) Insert(
 	page := page.New(b0)
 	page.Clear()
 	root := newKeyNode(page)
-	root.Init(BlockPosition(bid0.Position))
-	_, _ = root.Append(k, BlockPosition(bid1.Position))
+	root.Init(BlockPosition(b2.BlockID().Position))
+	// TODO: Clean this
+	root.page.SetLevel(byte(chain.Len()))
+	_, _ = root.Append(key, BlockPosition(bid.Position))
 
 	return nil
+}
+
+// This is a leaf level page.
+//   - Insert, and handle a split.
+func (c *Cursor) insertChainLeaf(
+	ctx context.Context,
+	fileName string,
+	ln *LeafNode,
+	k Key,
+	rid RecordID,
+) (storage.BlockID, Key, bool, error) {
+	first, second, ok := ln.Insert(k, rid)
+	if ok {
+		return storage.BlockID{}, "", false, nil
+	}
+
+	b, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return storage.BlockID{}, "", false, err
+	}
+
+	defer b.Release()
+
+	p2 := page.New(b)
+	ln2 := NewLeafNode(p2)
+
+	key := ln2.Fill(second)
+	ln.Replace(first)
+
+	return b.BlockID(), key, true, nil
 }
 
 // Get page from buffer pool and insert key value pair
@@ -169,6 +284,8 @@ func (c *Cursor) searchPage(
 	if err != nil {
 		return RecordID{}, err
 	}
+
+	defer p.Release()
 
 	if p.Level() == 0 {
 		return c.searchLeaf(p, k)

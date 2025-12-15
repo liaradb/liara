@@ -44,6 +44,7 @@ func New(buffer Buffer) BTreePage {
 // TODO: Test this
 func (p *BTreePage) Clear() {
 	p.buffer.Clear()
+	p.list.Clear()
 }
 
 // TODO: Test this
@@ -54,6 +55,11 @@ func (p *BTreePage) Release() {
 // TODO: Test this
 func (p *BTreePage) SetDirty() {
 	p.buffer.SetDirty()
+}
+
+// TODO: Test this
+func (p *BTreePage) SetLevel(l byte) {
+	p.header.setLevel(l)
 }
 
 func (p *BTreePage) Append(size int16) (int16, []byte, bool) {

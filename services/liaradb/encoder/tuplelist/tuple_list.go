@@ -27,6 +27,11 @@ func New(data []byte) TupleList {
 	}
 }
 
+// TODO: Test this
+func (l *TupleList) Clear() {
+	l.count = 0
+}
+
 func (l *TupleList) Length() int {
 	return l.list.Length()
 }

@@ -54,12 +54,19 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], ite
 }
 
 // TODO: Test this
-func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) {
+func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) Key {
+	var k Key
+	first := true
 	for e := range entries {
+		if first {
+			k = e.key
+		}
+		first = false
 		// This will definitely fit
 		_, _ = ln.Append(e.key, e.recordID)
 	}
 	ln.page.SetDirty()
+	return k
 }
 
 // TODO: Test this
@@ -115,19 +122,27 @@ func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(Lea
 		return ln.childrenRange(mid, -1)
 	}
 
+	// TODO: This does not work if le is at the end
 	return func(yield func(LeafEntry) bool) {
 		k := i - mid
+		if k == 0 {
+			if !yield(le) {
+				return
+			}
+		}
 		var j int16
 		for e := range ln.childrenRange(mid, -1) {
+			if !yield(e) {
+				return
+			}
+
+			j++
+
 			if k == j {
 				if !yield(le) {
 					return
 				}
 			}
-			if !yield(e) {
-				return
-			}
-			j++
 		}
 	}
 }

@@ -80,7 +80,6 @@ func testCursor_Insert__Root(t *testing.T) {
 
 func TestCursor_Insert__RootSplit(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testCursor_Insert__RootSplit)
 }
 
@@ -120,7 +119,7 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 
 	for _, e := range data {
 		if rid, err := getRecordID(ctx, s, n, e.key); err != nil {
-			t.Fatal(err)
+			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
