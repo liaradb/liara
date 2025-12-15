@@ -102,6 +102,19 @@ func (c *Cursor) Insert(
 			}
 		} else {
 			// TODO: Split Key Node
+			if !split {
+				return nil
+			}
+
+			kn, ok := n.(*KeyNode)
+			if !ok {
+				return errors.New("type mismatch")
+			}
+
+			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, k, BlockPosition(bid.Position))
+			if err != nil {
+				return err
+			}
 		}
 		i++
 	}
@@ -167,6 +180,36 @@ func (c *Cursor) insertChainLeaf(
 
 	key := ln2.Fill(second)
 	ln.Replace(first)
+
+	return b.BlockID(), key, true, nil
+}
+
+// This is a key level page.
+//   - Insert, and handle a split.
+func (c *Cursor) insertChainKey(
+	ctx context.Context,
+	fileName string,
+	kn *KeyNode,
+	k Key,
+	block BlockPosition,
+) (storage.BlockID, Key, bool, error) {
+	first, second, ok := kn.Insert(k, block)
+	if ok {
+		return storage.BlockID{}, "", false, nil
+	}
+
+	b, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return storage.BlockID{}, "", false, err
+	}
+
+	defer b.Release()
+
+	p2 := page.New(b)
+	kn2 := newKeyNode(p2)
+
+	key := kn2.Fill(second)
+	kn.Replace(first)
 
 	return b.BlockID(), key, true, nil
 }

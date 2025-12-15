@@ -67,17 +67,25 @@ func (kn *KeyNode) first(i int16, mid int16, ke KeyEntry) func(yield func(KeyEnt
 	}
 
 	return func(yield func(KeyEntry) bool) {
+		if i == 0 {
+			if !yield(ke) {
+				return
+			}
+		}
+
 		var j int16
 		for e := range kn.childrenRange(0, mid) {
+			if !yield(e) {
+				return
+			}
+
+			j++
+
 			if i == j {
 				if !yield(ke) {
 					return
 				}
 			}
-			if !yield(e) {
-				return
-			}
-			j++
 		}
 	}
 }
@@ -89,28 +97,43 @@ func (kn *KeyNode) second(i int16, mid int16, ke KeyEntry) func(yield func(KeyEn
 
 	return func(yield func(KeyEntry) bool) {
 		k := i - mid
+		if k == 0 {
+			if !yield(ke) {
+				return
+			}
+		}
+
 		var j int16
 		for e := range kn.childrenRange(mid, -1) {
+			if !yield(e) {
+				return
+			}
+
+			j++
+
 			if k == j {
 				if !yield(ke) {
 					return
 				}
 			}
-			if !yield(e) {
-				return
-			}
-			j++
 		}
 	}
 }
 
 // TODO: Test this
-func (kn *KeyNode) Fill(entries iter.Seq[KeyEntry]) {
+func (kn *KeyNode) Fill(entries iter.Seq[KeyEntry]) Key {
+	var k Key
+	first := true
 	for e := range entries {
+		if first {
+			k = e.key
+		}
+		first = false
 		// This will definitely fit
 		_, _ = kn.Append(e.key, e.block)
 	}
 	kn.page.SetDirty()
+	return k
 }
 
 // TODO: Test this

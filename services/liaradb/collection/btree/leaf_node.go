@@ -102,17 +102,25 @@ func (ln *LeafNode) first(i int16, mid int16, le LeafEntry) func(yield func(Leaf
 	}
 
 	return func(yield func(LeafEntry) bool) {
+		if i == 0 {
+			if !yield(le) {
+				return
+			}
+		}
+
 		var j int16
 		for e := range ln.childrenRange(0, mid) {
+			if !yield(e) {
+				return
+			}
+
+			j++
+
 			if i == j {
 				if !yield(le) {
 					return
 				}
 			}
-			if !yield(e) {
-				return
-			}
-			j++
 		}
 	}
 }
@@ -122,7 +130,6 @@ func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(Lea
 		return ln.childrenRange(mid, -1)
 	}
 
-	// TODO: This does not work if le is at the end
 	return func(yield func(LeafEntry) bool) {
 		k := i - mid
 		if k == 0 {
@@ -130,6 +137,7 @@ func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(Lea
 				return
 			}
 		}
+
 		var j int16
 		for e := range ln.childrenRange(mid, -1) {
 			if !yield(e) {
