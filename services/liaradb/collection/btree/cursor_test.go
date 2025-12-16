@@ -84,7 +84,7 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	s := createStorage(t, 2, 62)
+	s := createStorage(t, 3, 62)
 	ctx := t.Context()
 
 	n := "testfile"
@@ -108,11 +108,14 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 		newLeafEntry(
 			Key("c"),
 			NewRecordID(5, 6)),
+		newLeafEntry(
+			Key("d"),
+			NewRecordID(7, 8)),
 	}
 
 	for _, e := range data {
 		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 		// TODO: Need to flush to disk
 	}

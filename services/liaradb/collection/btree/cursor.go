@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"context"
 	"errors"
-	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
@@ -25,7 +24,7 @@ func (c *Cursor) getChain(
 	ctx context.Context,
 	fileName string,
 	k Key,
-) (*list.List, error) {
+) (*chain, error) {
 	bid := storage.NewBlockID(fileName, 0)
 	p, err := c.GetPage(ctx, bid)
 	if err != nil {
@@ -39,9 +38,12 @@ func (c *Cursor) getChain(
 		// leaf
 		ln := NewLeafNode(p)
 		l.PushFront(ln)
+		return newChain(l), nil
 	}
-	for i := range level {
-		if p.Level() != i {
+
+	for i := int(level); i >= 0; i-- {
+		lvl := p.Level()
+		if lvl != byte(i) {
 			return nil, errors.New("level mismatch")
 		}
 
@@ -61,16 +63,7 @@ func (c *Cursor) getChain(
 		}
 	}
 
-	return l, nil
-}
-
-func iterateList(l *list.List) iter.Seq[any] {
-	return func(yield func(any) bool) {
-		e := l.Front()
-		if e == nil || !yield(e.Value) {
-			return
-		}
-	}
+	return newChain(l), nil
 }
 
 // Insert key value pair into tree
@@ -85,11 +78,12 @@ func (c *Cursor) Insert(
 		return err
 	}
 
-	var i int
+	defer chain.release()
+
 	var bid storage.BlockID
 	var key Key
 	var split bool
-	for n := range iterateList(chain) {
+	for i, n := range chain.items() {
 		if i == 0 {
 			ln, ok := n.(*LeafNode)
 			if !ok {
@@ -148,7 +142,7 @@ func (c *Cursor) Insert(
 	root := newKeyNode(page)
 	root.Init(BlockPosition(b2.BlockID().Position))
 	// TODO: Clean this
-	root.page.SetLevel(byte(chain.Len()))
+	root.page.SetLevel(byte(chain.length()))
 	_, _ = root.Append(key, BlockPosition(bid.Position))
 
 	return nil
@@ -205,11 +199,16 @@ func (c *Cursor) insertChainKey(
 
 	defer b.Release()
 
+	level := kn.page.Level()
+
 	p2 := page.New(b)
 	kn2 := newKeyNode(p2)
+	kn2.page.SetLevel(level)
 
 	key := kn2.Fill(second)
 	kn.Replace(first)
+	// TODO: Clean this
+	kn.page.SetLevel(level + 1)
 
 	return b.BlockID(), key, true, nil
 }
