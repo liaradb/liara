@@ -177,8 +177,7 @@ func (c *Cursor) insertRoot(
 
 	defer b0.Release()
 
-	copy(b2.Raw(), b0.Raw())
-	b2.SetDirty()
+	b2.Clone(b0)
 
 	root := newKeyNode(page.New(b0))
 

@@ -160,3 +160,9 @@ func (b *Buffer) Write(p []byte) (int, error) {
 
 	return n, err
 }
+
+// TODO: Test this
+func (b *Buffer) Clone(o *Buffer) {
+	copy(b.Raw(), o.Raw())
+	b.SetDirty()
+}
