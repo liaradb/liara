@@ -117,7 +117,7 @@ func (kn *KeyNode) second(i int16, mid int16, ke KeyEntry) func(yield func(KeyEn
 }
 
 // TODO: Test this
-func (kn *KeyNode) Fill(entries iter.Seq[KeyEntry]) Key {
+func (kn *KeyNode) Fill(l byte, entries iter.Seq[KeyEntry]) Key {
 	var k Key
 	first := true
 	for e := range entries {
@@ -128,13 +128,15 @@ func (kn *KeyNode) Fill(entries iter.Seq[KeyEntry]) Key {
 		// This will definitely fit
 		_, _ = kn.Append(e.key, e.block)
 	}
+
+	kn.page.SetLevel(l)
 	kn.page.SetDirty()
 	return k
 }
 
 // TODO: Test this
 // TODO: Find a faster way
-func (kn *KeyNode) Replace(entries iter.Seq[KeyEntry]) {
+func (kn *KeyNode) Replace(l byte, entries iter.Seq[KeyEntry]) {
 	cache := make([]KeyEntry, 0, kn.mid())
 	for e := range entries {
 		cache = append(cache, e)
@@ -147,7 +149,20 @@ func (kn *KeyNode) Replace(entries iter.Seq[KeyEntry]) {
 		_, _ = kn.Append(e.key, e.block)
 	}
 
+	kn.page.SetLevel(l)
 	kn.page.SetDirty()
+}
+
+func (kn *KeyNode) ReplaceRoot(l byte, key0 Key, block0 BlockPosition, key1 Key, block1 BlockPosition) bool {
+	kn.page.Clear()
+	kn.page.SetLevel(l)
+
+	if _, ok := kn.Append(key0, block0); !ok {
+		return false
+	}
+
+	_, ok := kn.Append(key1, block1)
+	return ok
 }
 
 func (kn *KeyNode) Children() iter.Seq[KeyEntry] {

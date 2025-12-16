@@ -66,7 +66,7 @@ func (c *Cursor) Insert(
 		}
 	}
 
-	return c.promoteRoot(ctx, fileName, level, key, bid)
+	return c.insertRoot(ctx, fileName, level, key, bid)
 }
 
 func (c *Cursor) getChain(
@@ -121,10 +121,7 @@ func (c *Cursor) insertChainLeaf(
 
 	defer b.Release()
 
-	p2 := page.New(b)
-	ln2 := newLeafNode(p2)
-
-	key := ln2.Fill(second)
+	key := newLeafNode(page.New(b)).Fill(second)
 	ln.Replace(first)
 
 	return b.BlockID(), key, true, nil
@@ -152,29 +149,20 @@ func (c *Cursor) insertChainKey(
 	defer b.Release()
 
 	level := kn.page.Level()
-
-	p2 := page.New(b)
-	kn2 := newKeyNode(p2)
-	kn2.page.SetLevel(level)
-
-	key := kn2.Fill(second)
-	kn.Replace(first)
-	// TODO: Clean this
-	kn.page.SetLevel(level)
+	key := newKeyNode(page.New(b)).Fill(level, second)
+	kn.Replace(level, first)
 
 	return b.BlockID(), key, true, nil
 }
 
-func (c *Cursor) promoteRoot(
+// Created new KeyNode and swap with root
+func (c *Cursor) insertRoot(
 	ctx context.Context,
 	fileName string,
 	level byte,
 	key Key,
 	bid storage.BlockID,
 ) error {
-	bid0 := storage.NewBlockID(fileName, 0)
-
-	// Swap block2 with root
 	b2, err := c.s.RequestNext(ctx, fileName)
 	if err != nil {
 		return err
@@ -182,25 +170,25 @@ func (c *Cursor) promoteRoot(
 
 	defer b2.Release()
 
-	b0, err := c.GetBuffer(ctx, bid0)
+	b0, err := c.GetBuffer(ctx, storage.NewBlockID(fileName, 0))
 	if err != nil {
 		return err
 	}
 
 	defer b0.Release()
 
+	copy(b2.Raw(), b0.Raw())
+	b2.SetDirty()
+
 	root := newKeyNode(page.New(b0))
 
 	// This should always have a child
 	child0, _ := root.Child(0)
 
-	copy(b2.Raw(), b0.Raw())
-	b2.SetDirty()
-
-	root.page.Clear()
-	root.page.SetLevel(level + 1)
-	_, _ = root.Append(child0.key, BlockPosition(b2.BlockID().Position))
-	_, _ = root.Append(key, BlockPosition(bid.Position))
+	// This should always return true
+	_ = root.ReplaceRoot(level+1,
+		child0.key, BlockPosition(b2.BlockID().Position),
+		key, BlockPosition(bid.Position))
 
 	return nil
 }
