@@ -18,52 +18,6 @@ func NewCursor(s *storage.Storage) *Cursor {
 	}
 }
 
-func (c *Cursor) getChain(
-	ctx context.Context,
-	fileName string,
-	k Key,
-) (*chain, error) {
-	bid := storage.NewBlockID(fileName, 0)
-	p, err := c.GetPage(ctx, bid)
-	if err != nil {
-		return nil, err
-	}
-
-	chain := newChain()
-
-	level := p.Level()
-	if level == 0 {
-		// leaf
-		ln := NewLeafNode(p)
-		chain.append(ln)
-		return chain, nil
-	}
-
-	for i := int(level); i >= 0; i-- {
-		lvl := p.Level()
-		if lvl != byte(i) {
-			return nil, ErrLevelMismatch
-		}
-
-		if i == 0 {
-			// leaf
-			ln := NewLeafNode(p)
-			chain.append(ln)
-			break
-		}
-
-		kn := newKeyNode(p)
-		chain.append(kn)
-		block := kn.Search(k)
-
-		if p, err = c.GetPage(ctx, storage.NewBlockID(fileName, storage.Offset(block))); err != nil {
-			return nil, err
-		}
-	}
-
-	return chain, nil
-}
-
 // Insert key value pair into tree
 func (c *Cursor) Insert(
 	ctx context.Context,
@@ -117,37 +71,53 @@ func (c *Cursor) Insert(
 		return nil
 	}
 
-	bid0 := storage.NewBlockID(fileName, 0)
+	return c.promoteRoot(ctx, fileName, level, key, bid)
+}
 
-	// Swap block2 with root
-	b2, err := c.s.RequestNext(ctx, fileName)
+func (c *Cursor) getChain(
+	ctx context.Context,
+	fileName string,
+	k Key,
+) (*chain, error) {
+	bid := storage.NewBlockID(fileName, 0)
+	p, err := c.GetPage(ctx, bid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	defer b2.Release()
+	chain := newChain()
 
-	b0, err := c.GetBuffer(ctx, bid0)
-	if err != nil {
-		return err
+	level := p.Level()
+	if level == 0 {
+		// leaf
+		ln := NewLeafNode(p)
+		chain.append(ln)
+		return chain, nil
 	}
 
-	defer b0.Release()
+	for i := int(level); i >= 0; i-- {
+		lvl := p.Level()
+		if lvl != byte(i) {
+			return nil, ErrLevelMismatch
+		}
 
-	root := newKeyNode(page.New(b0))
+		if i == 0 {
+			// leaf
+			ln := NewLeafNode(p)
+			chain.append(ln)
+			break
+		}
 
-	// This should always have a child
-	child0, _ := root.Child(0)
+		kn := newKeyNode(p)
+		chain.append(kn)
+		block := kn.Search(k)
 
-	copy(b2.Raw(), b0.Raw())
-	b2.SetDirty()
+		if p, err = c.GetPage(ctx, storage.NewBlockID(fileName, storage.Offset(block))); err != nil {
+			return nil, err
+		}
+	}
 
-	root.page.Clear()
-	root.page.SetLevel(level + 1)
-	_, _ = root.Append(child0.key, BlockPosition(b2.BlockID().Position))
-	_, _ = root.Append(key, BlockPosition(bid.Position))
-
-	return nil
+	return chain, nil
 }
 
 // This is a leaf level page.
@@ -213,6 +183,46 @@ func (c *Cursor) insertChainKey(
 	kn.page.SetLevel(level)
 
 	return b.BlockID(), key, true, nil
+}
+
+func (c *Cursor) promoteRoot(
+	ctx context.Context,
+	fileName string,
+	level byte,
+	key Key,
+	bid storage.BlockID,
+) error {
+	bid0 := storage.NewBlockID(fileName, 0)
+
+	// Swap block2 with root
+	b2, err := c.s.RequestNext(ctx, fileName)
+	if err != nil {
+		return err
+	}
+
+	defer b2.Release()
+
+	b0, err := c.GetBuffer(ctx, bid0)
+	if err != nil {
+		return err
+	}
+
+	defer b0.Release()
+
+	root := newKeyNode(page.New(b0))
+
+	// This should always have a child
+	child0, _ := root.Child(0)
+
+	copy(b2.Raw(), b0.Raw())
+	b2.SetDirty()
+
+	root.page.Clear()
+	root.page.SetLevel(level + 1)
+	_, _ = root.Append(child0.key, BlockPosition(b2.BlockID().Position))
+	_, _ = root.Append(key, BlockPosition(bid.Position))
+
+	return nil
 }
 
 func (c *Cursor) Search(
