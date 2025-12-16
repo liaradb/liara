@@ -182,15 +182,12 @@ func (c *Cursor) insertRoot(
 
 	b2.Clone(b0)
 
-	root := keynode.New(page.New(b0))
-
-	// This should always have a child
-	child0, _ := root.Child(0)
-
 	// This should always return true
-	_ = root.ReplaceRoot(level+1,
-		child0.Key(), keynode.BlockPosition(b2.BlockID().Position),
-		key, keynode.BlockPosition(bid.Position))
+	_ = keynode.New(page.New(b0)).ReplaceRoot(
+		level+1,
+		keynode.BlockPosition(b2.BlockID().Position),
+		key,
+		keynode.BlockPosition(bid.Position))
 
 	return nil
 }

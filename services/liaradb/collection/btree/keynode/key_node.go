@@ -154,15 +154,21 @@ func (kn *KeyNode) Replace(l byte, entries iter.Seq[KeyEntry]) {
 	kn.page.SetDirty()
 }
 
-func (kn *KeyNode) ReplaceRoot(l byte, key0 key.Key, block0 BlockPosition, key1 key.Key, block1 BlockPosition) bool {
-	kn.page.Clear()
-	kn.page.SetLevel(l)
+// TODO: Test this
+func (kn *KeyNode) ReplaceRoot(l byte, block0 BlockPosition, key1 key.Key, block1 BlockPosition) bool {
+	// This should always have a child
+	// TODO: Will this always be the lower key?
+	child0, _ := kn.Child(0)
 
-	if _, ok := kn.Append(key0, block0); !ok {
+	kn.page.Clear()
+
+	if _, ok := kn.Append(child0.Key(), block0); !ok {
 		return false
 	}
 
 	_, ok := kn.Append(key1, block1)
+	kn.page.SetLevel(l)
+	kn.page.SetDirty()
 	return ok
 }
 
