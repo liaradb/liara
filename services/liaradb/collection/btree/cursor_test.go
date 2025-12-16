@@ -151,6 +151,76 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	}
 }
 
+func TestCursor_Insert__Random(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testCursor_Insert__Random)
+}
+
+func testCursor_Insert__Random(t *testing.T) {
+	s := createStorage(t, 8, 62)
+	ctx := t.Context()
+
+	n := "testfile"
+	c := NewCursor(s)
+	r, err := c.GetRoot(ctx, n)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if l := r.Level(); l != 0 {
+		t.Errorf("incorrect level: %v, expected: %v", l, 0)
+	}
+
+	data := []LeafEntry{
+		newLeafEntry(
+			Key("a"),
+			NewRecordID(1, 2)),
+		newLeafEntry(
+			Key("b"),
+			NewRecordID(3, 4)),
+		newLeafEntry(
+			Key("c"),
+			NewRecordID(5, 6)),
+		newLeafEntry(
+			Key("d"),
+			NewRecordID(7, 8)),
+		newLeafEntry(
+			Key("e"),
+			NewRecordID(9, 10)),
+		newLeafEntry(
+			Key("f"),
+			NewRecordID(11, 12)),
+		newLeafEntry(
+			Key("g"),
+			NewRecordID(13, 14)),
+		newLeafEntry(
+			Key("h"),
+			NewRecordID(15, 16)),
+		newLeafEntry(
+			Key("i"),
+			NewRecordID(17, 18)),
+	}
+
+	// Insert in mixed order
+	order := []int{5, 8, 2, 4, 3, 6, 0, 7, 1}
+	for index, i := range order {
+		e := data[i]
+		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+			t.Fatal(index, i, e.key, err)
+		}
+		// TODO: Need to flush to disk
+	}
+
+	for _, e := range data {
+		if rid, err := getRecordID(ctx, s, n, e.key); err != nil {
+			t.Error(err, e.key)
+		} else if rid != e.recordID {
+			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
+	}
+}
+
 func getRecordID(
 	ctx context.Context,
 	s *storage.Storage,
