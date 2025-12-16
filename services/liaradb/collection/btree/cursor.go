@@ -80,7 +80,7 @@ func (c *Cursor) Insert(
 	defer chain.release()
 
 	var bid storage.BlockID
-	var key Key
+	var key = k
 	var level byte
 	var split bool
 	for i, n := range chain.items() {
@@ -90,7 +90,7 @@ func (c *Cursor) Insert(
 				return errors.New("type mismatch")
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, k, rid)
+			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, key, rid)
 			if err != nil {
 				return err
 			}
@@ -105,7 +105,7 @@ func (c *Cursor) Insert(
 				return errors.New("type mismatch")
 			}
 
-			bid, key, level, split, err = c.insertChainKey(ctx, fileName, kn, k, BlockPosition(bid.Position))
+			bid, key, level, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
 			if err != nil {
 				return err
 			}

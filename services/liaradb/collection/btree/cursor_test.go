@@ -114,12 +114,12 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 		newLeafEntry(
 			Key("c"),
 			NewRecordID(5, 6)),
-		// newLeafEntry(
-		// 	Key("d"),
-		// 	NewRecordID(7, 8)),
-		// newLeafEntry(
-		// 	Key("e"),
-		// 	NewRecordID(9, 10)),
+		newLeafEntry(
+			Key("d"),
+			NewRecordID(7, 8)),
+		newLeafEntry(
+			Key("e"),
+			NewRecordID(9, 10)),
 		// newLeafEntry(
 		// 	Key("f"),
 		// 	NewRecordID(11, 12)),
@@ -207,7 +207,7 @@ func testCursor_Insert__Random(t *testing.T) {
 		2,
 		4,
 		3,
-		// 6,
+		6,
 		// 0,
 		// 7,
 		// 1,
