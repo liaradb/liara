@@ -1,8 +1,9 @@
-package btree
+package leafnode
 
 import "github.com/liaradb/liaradb/collection/btree/key"
 
 // TODO: Test this
+// TODO: This should be private
 type LeafEntry struct {
 	key      key.Key
 	recordID RecordID

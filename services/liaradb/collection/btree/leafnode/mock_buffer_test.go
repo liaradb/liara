@@ -1,4 +1,4 @@
-package btree
+package leafnode
 
 type mockBuffer struct {
 	data []byte

@@ -1,4 +1,4 @@
-package btree
+package leafnode
 
 import (
 	"iter"
@@ -12,7 +12,7 @@ type LeafNode struct {
 	page page.BTreePage
 }
 
-func newLeafNode(page page.BTreePage) *LeafNode {
+func NewLeafNode(page page.BTreePage) *LeafNode {
 	return &LeafNode{
 		page: page,
 	}
@@ -232,4 +232,9 @@ func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
 		i++
 	}
 	return i
+}
+
+// TODO: Test this
+func (ln *LeafNode) Release() {
+	ln.page.Release()
 }

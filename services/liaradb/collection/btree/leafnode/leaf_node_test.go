@@ -1,4 +1,4 @@
-package btree
+package leafnode
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func TestLeafNode_Child(t *testing.T) {
 	t.Parallel()
 
 	p := page.New(newMockBuffer(256))
-	ln := newLeafNode(p)
+	ln := NewLeafNode(p)
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -55,7 +55,7 @@ func TestLeafNode_Children(t *testing.T) {
 	t.Parallel()
 
 	p := page.New(newMockBuffer(256))
-	ln := newLeafNode(p)
+	ln := NewLeafNode(p)
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -92,7 +92,7 @@ func TestLeafNode_Insert(t *testing.T) {
 	t.Parallel()
 
 	bp := page.New(newMockBuffer(256))
-	ln := newLeafNode(bp)
+	ln := NewLeafNode(bp)
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -140,7 +140,7 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	// t.Skip()
 
 	bp := page.New(newMockBuffer(62))
-	ln := newLeafNode(bp)
+	ln := NewLeafNode(bp)
 
 	data := []LeafEntry{
 		newLeafEntry(

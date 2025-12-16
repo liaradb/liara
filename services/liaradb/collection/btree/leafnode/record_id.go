@@ -1,4 +1,4 @@
-package btree
+package leafnode
 
 import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"

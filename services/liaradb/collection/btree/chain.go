@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
+	"github.com/liaradb/liaradb/collection/btree/leafnode"
 )
 
 // TODO: Test this
@@ -37,8 +38,8 @@ func (c *chain) append(v any) {
 func (c *chain) release() {
 	for i, n := range c.items() {
 		if i == 0 {
-			ln := n.(*LeafNode)
-			ln.page.Release()
+			ln := n.(*leafnode.LeafNode)
+			ln.Release()
 		} else {
 			kn := n.(*keynode.KeyNode)
 			kn.Release()

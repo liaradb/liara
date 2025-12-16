@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
+	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -25,7 +26,7 @@ func (c *Cursor) Insert(
 	ctx context.Context,
 	fn string,
 	k key.Key,
-	rid RecordID,
+	rid leafnode.RecordID,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
@@ -40,7 +41,7 @@ func (c *Cursor) Insert(
 	for i, n := range chain.items() {
 		var split bool
 		if i == 0 {
-			ln, ok := n.(*LeafNode)
+			ln, ok := n.(*leafnode.LeafNode)
 			if !ok {
 				return ErrTypeMismatch
 			}
@@ -97,7 +98,7 @@ func (c *Cursor) getChain(
 		}
 	}
 
-	chain.append(newLeafNode(p))
+	chain.append(leafnode.NewLeafNode(p))
 
 	return chain, nil
 }
@@ -107,9 +108,9 @@ func (c *Cursor) getChain(
 func (c *Cursor) insertChainLeaf(
 	ctx context.Context,
 	fn string,
-	ln *LeafNode,
+	ln *leafnode.LeafNode,
 	k key.Key,
-	rid RecordID,
+	rid leafnode.RecordID,
 ) (storage.BlockID, key.Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
@@ -123,7 +124,7 @@ func (c *Cursor) insertChainLeaf(
 
 	defer b.Release()
 
-	key := newLeafNode(page.New(b)).Fill(second)
+	key := leafnode.NewLeafNode(page.New(b)).Fill(second)
 	ln.Replace(first)
 
 	return b.BlockID(), key, true, nil
@@ -198,7 +199,7 @@ func (c *Cursor) Search(
 	ctx context.Context,
 	fn string,
 	k key.Key,
-) (RecordID, error) {
+) (leafnode.RecordID, error) {
 	return c.searchPage(ctx, storage.NewBlockID(fn, 0), k)
 }
 
@@ -206,10 +207,10 @@ func (c *Cursor) searchPage(
 	ctx context.Context,
 	bid storage.BlockID,
 	k key.Key,
-) (RecordID, error) {
+) (leafnode.RecordID, error) {
 	p, err := c.GetPage(ctx, bid)
 	if err != nil {
-		return RecordID{}, err
+		return leafnode.RecordID{}, err
 	}
 
 	defer p.Release()
@@ -221,11 +222,11 @@ func (c *Cursor) searchPage(
 	}
 }
 
-func (*Cursor) searchLeaf(p page.BTreePage, k key.Key) (RecordID, error) {
-	ln := newLeafNode(p)
+func (*Cursor) searchLeaf(p page.BTreePage, k key.Key) (leafnode.RecordID, error) {
+	ln := leafnode.NewLeafNode(p)
 	rid, ok := ln.Search(k)
 	if !ok {
-		return RecordID{}, ErrNotFound
+		return leafnode.RecordID{}, ErrNotFound
 	}
 
 	return rid, nil
@@ -236,7 +237,7 @@ func (c *Cursor) searchKey(
 	fn string,
 	p page.BTreePage,
 	k key.Key,
-) (RecordID, error) {
+) (leafnode.RecordID, error) {
 	bid := storage.NewBlockID(fn, storage.Offset(keynode.NewKeyNode(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
 }

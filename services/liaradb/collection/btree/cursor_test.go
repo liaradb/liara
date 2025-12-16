@@ -5,6 +5,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -54,21 +55,33 @@ func TestCursor_Insert__Root(t *testing.T) {
 	synctest.Test(t, testCursor_Insert__Root)
 }
 
+type leafEntry struct {
+	key      key.Key
+	recordID leafnode.RecordID
+}
+
+func newLeafEntry(key key.Key, recordID leafnode.RecordID) leafEntry {
+	return leafEntry{
+		key:      key,
+		recordID: recordID,
+	}
+}
+
 func testCursor_Insert__Root(t *testing.T) {
 	s := createStorage(t, 2, 256)
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("a"),
-			NewRecordID(1, 2)),
+			leafnode.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.Key("b"),
-			NewRecordID(3, 4)),
+			leafnode.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.Key("c"),
-			NewRecordID(5, 6)),
+			leafnode.NewRecordID(5, 6)),
 	}
 
 	for _, e := range data {
@@ -110,34 +123,34 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("a"),
-			NewRecordID(1, 2)),
+			leafnode.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.Key("b"),
-			NewRecordID(3, 4)),
+			leafnode.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.Key("c"),
-			NewRecordID(5, 6)),
+			leafnode.NewRecordID(5, 6)),
 		newLeafEntry(
 			key.Key("d"),
-			NewRecordID(7, 8)),
+			leafnode.NewRecordID(7, 8)),
 		newLeafEntry(
 			key.Key("e"),
-			NewRecordID(9, 10)),
+			leafnode.NewRecordID(9, 10)),
 		newLeafEntry(
 			key.Key("f"),
-			NewRecordID(11, 12)),
+			leafnode.NewRecordID(11, 12)),
 		newLeafEntry(
 			key.Key("g"),
-			NewRecordID(13, 14)),
+			leafnode.NewRecordID(13, 14)),
 		newLeafEntry(
 			key.Key("h"),
-			NewRecordID(15, 16)),
+			leafnode.NewRecordID(15, 16)),
 		newLeafEntry(
 			key.Key("i"),
-			NewRecordID(17, 18)),
+			leafnode.NewRecordID(17, 18)),
 	}
 
 	for _, e := range data {
@@ -172,34 +185,34 @@ func testCursor_Insert__Random(t *testing.T) {
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("0"),
-			NewRecordID(1, 2)),
+			leafnode.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.Key("1"),
-			NewRecordID(3, 4)),
+			leafnode.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.Key("2"),
-			NewRecordID(5, 6)),
+			leafnode.NewRecordID(5, 6)),
 		newLeafEntry(
 			key.Key("3"),
-			NewRecordID(7, 8)),
+			leafnode.NewRecordID(7, 8)),
 		newLeafEntry(
 			key.Key("4"),
-			NewRecordID(9, 10)),
+			leafnode.NewRecordID(9, 10)),
 		newLeafEntry(
 			key.Key("5"),
-			NewRecordID(11, 12)),
+			leafnode.NewRecordID(11, 12)),
 		newLeafEntry(
 			key.Key("6"),
-			NewRecordID(13, 14)),
+			leafnode.NewRecordID(13, 14)),
 		newLeafEntry(
 			key.Key("7"),
-			NewRecordID(15, 16)),
+			leafnode.NewRecordID(15, 16)),
 		newLeafEntry(
 			key.Key("8"),
-			NewRecordID(17, 18)),
+			leafnode.NewRecordID(17, 18)),
 	}
 
 	// Insert in mixed order
