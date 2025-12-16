@@ -36,7 +36,3 @@ func (c *chain) release() {
 		}
 	}
 }
-
-func (c *chain) length() int {
-	return c.l.Len()
-}
