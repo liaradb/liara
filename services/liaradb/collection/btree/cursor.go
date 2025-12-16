@@ -79,43 +79,28 @@ func (c *Cursor) getChain(
 	fileName string,
 	k Key,
 ) (*chain, error) {
-	bid := storage.NewBlockID(fileName, 0)
-	p, err := c.GetPage(ctx, bid)
+	p, err := c.GetPage(ctx, storage.NewBlockID(fileName, 0))
 	if err != nil {
 		return nil, err
 	}
 
 	chain := newChain()
 
-	level := p.Level()
-	if level == 0 {
-		// leaf
-		ln := NewLeafNode(p)
-		chain.append(ln)
-		return chain, nil
-	}
-
-	for i := int(level); i >= 0; i-- {
-		lvl := p.Level()
-		if lvl != byte(i) {
+	for i := int(p.Level()); i > 0; i-- {
+		if lvl := p.Level(); lvl != byte(i) {
 			return nil, ErrLevelMismatch
-		}
-
-		if i == 0 {
-			// leaf
-			ln := NewLeafNode(p)
-			chain.append(ln)
-			break
 		}
 
 		kn := newKeyNode(p)
 		chain.append(kn)
-		block := kn.Search(k)
 
-		if p, err = c.GetPage(ctx, storage.NewBlockID(fileName, storage.Offset(block))); err != nil {
+		bid := storage.NewBlockID(fileName, storage.Offset(kn.Search(k)))
+		if p, err = c.GetPage(ctx, bid); err != nil {
 			return nil, err
 		}
 	}
+
+	chain.append(newLeafNode(p))
 
 	return chain, nil
 }
@@ -142,7 +127,7 @@ func (c *Cursor) insertChainLeaf(
 	defer b.Release()
 
 	p2 := page.New(b)
-	ln2 := NewLeafNode(p2)
+	ln2 := newLeafNode(p2)
 
 	key := ln2.Fill(second)
 	ln.Replace(first)
@@ -256,7 +241,7 @@ func (*Cursor) searchLeaf(
 	p page.BTreePage,
 	k Key,
 ) (RecordID, error) {
-	ln := NewLeafNode(p)
+	ln := newLeafNode(p)
 	rid, ok := ln.Search(k)
 	if !ok {
 		return RecordID{}, ErrNotFound
