@@ -35,8 +35,8 @@ func (c *Cursor) Insert(
 	var bid storage.BlockID
 	var key = k
 	var level byte
-	var split bool
 	for i, n := range chain.items() {
+		var split bool
 		if i == 0 {
 			ln, ok := n.(*LeafNode)
 			if !ok {
@@ -46,13 +46,10 @@ func (c *Cursor) Insert(
 			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, key, rid)
 			if err != nil {
 				return err
-			}
-		} else {
-			// TODO: Split Key Node
-			if !split {
+			} else if !split {
 				return nil
 			}
-
+		} else {
 			kn, ok := n.(*KeyNode)
 			if !ok {
 				return ErrTypeMismatch
@@ -61,14 +58,12 @@ func (c *Cursor) Insert(
 			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
 			if err != nil {
 				return err
+			} else if !split {
+				return nil
 			}
+
 			level++
 		}
-		i++
-	}
-
-	if !split {
-		return nil
 	}
 
 	return c.promoteRoot(ctx, fileName, level, key, bid)
