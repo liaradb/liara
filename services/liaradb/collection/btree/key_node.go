@@ -16,10 +16,6 @@ func newKeyNode(page page.BTreePage) *KeyNode {
 	}
 }
 
-func (kn *KeyNode) Init(p BlockPosition) {
-	kn.page.SetLowID(p.Value())
-}
-
 // TODO: Test this
 func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
@@ -166,6 +162,18 @@ func (kn *KeyNode) Children() iter.Seq[KeyEntry] {
 	}
 }
 
+// TODO: Test this
+func (kn *KeyNode) Child(i int16) (KeyEntry, bool) {
+	b, ok := kn.page.Child(i)
+	if !ok {
+		return KeyEntry{}, false
+	}
+
+	ke := KeyEntry{}
+	ke.Read(b)
+	return ke, true
+}
+
 func (kn *KeyNode) childrenRange(start, end int16) iter.Seq[KeyEntry] {
 	return func(yield func(KeyEntry) bool) {
 		for b := range kn.page.ChildrenRange(start, end) {
@@ -178,10 +186,15 @@ func (kn *KeyNode) childrenRange(start, end int16) iter.Seq[KeyEntry] {
 	}
 }
 
-// TODO: Handle not found
 func (kn *KeyNode) Search(k Key) BlockPosition {
-	p := BlockPosition(kn.page.LowID())
+	var p BlockPosition
+	first := true
 	for ke := range kn.Children() {
+		if first {
+			p = ke.block
+			first = false
+			continue
+		}
 		if k < ke.key {
 			break
 		}
@@ -191,7 +204,6 @@ func (kn *KeyNode) Search(k Key) BlockPosition {
 	return p
 }
 
-// TODO: Handle not found
 func (kn *KeyNode) searchIndex(k Key) int16 {
 	var i int16 = 0
 	for ke := range kn.Children() {

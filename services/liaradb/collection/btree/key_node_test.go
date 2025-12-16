@@ -39,14 +39,72 @@ func TestKeyNode(t *testing.T) {
 		data := testKeyNodeInsertData(t, kn)
 		testKeyNodeSearch(t, kn, data)
 	})
+
+	// TODO: This method is private
+	t.Run("should search indexes", func(t *testing.T) {
+		t.Parallel()
+
+		bp := page.New(newMockBuffer(256))
+		kn := newKeyNode(bp)
+
+		data := testKeyNodeInsertData(t, kn)
+		for i, e := range data {
+			index := kn.searchIndex(e.key)
+			if index != int16(i) {
+				t.Errorf("incorrect index: %v, expected: %v", index, int16(i))
+			}
+		}
+		{
+			before := int16(0)
+			result := kn.searchIndex("a")
+			if result != before {
+				t.Errorf("incorrect before: %v, expected: %v", result, before)
+			}
+		}
+		{
+			after := int16(len(data))
+			result := kn.searchIndex("e")
+			if result != after {
+				t.Errorf("incorrect after: %v, expected: %v", result, after)
+			}
+		}
+	})
+
+	t.Run("should search before items", func(t *testing.T) {
+		t.Parallel()
+
+		bp := page.New(newMockBuffer(256))
+		kn := newKeyNode(bp)
+
+		data := testKeyNodeInsertData(t, kn)
+		want := data[0].block
+		result := kn.Search("a")
+		if result != want {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	})
+
+	t.Run("should search after items", func(t *testing.T) {
+		t.Parallel()
+
+		bp := page.New(newMockBuffer(256))
+		kn := newKeyNode(bp)
+
+		data := testKeyNodeInsertData(t, kn)
+		want := data[2].block
+		result := kn.Search("e")
+		if result != want {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	})
 }
 
 // Insert in mixed order
 func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []KeyEntry {
 	data := []KeyEntry{
-		{"a", 1},
-		{"b", 2},
-		{"c", 3},
+		{"b", 1},
+		{"c", 2},
+		{"d", 3},
 	}
 
 	order := []int{0, 2, 1}

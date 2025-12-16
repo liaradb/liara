@@ -105,10 +105,11 @@ func (c *Cursor) Insert(
 				return errors.New("type mismatch")
 			}
 
-			bid, key, level, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
+			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
 			if err != nil {
 				return err
 			}
+			level++
 		}
 		i++
 	}
@@ -134,15 +135,17 @@ func (c *Cursor) Insert(
 
 	defer b0.Release()
 
+	root := newKeyNode(page.New(b0))
+
+	// This should always have a child
+	child0, _ := root.Child(0)
+
 	copy(b2.Raw(), b0.Raw())
 	b2.SetDirty()
 
-	page := page.New(b0)
-	page.Clear()
-	root := newKeyNode(page)
-	root.Init(BlockPosition(b2.BlockID().Position))
-	// TODO: Clean this
+	root.page.Clear()
 	root.page.SetLevel(level + 1)
+	_, _ = root.Append(child0.key, BlockPosition(b2.BlockID().Position))
 	_, _ = root.Append(key, BlockPosition(bid.Position))
 
 	return nil
@@ -186,15 +189,15 @@ func (c *Cursor) insertChainKey(
 	kn *KeyNode,
 	k Key,
 	block BlockPosition,
-) (storage.BlockID, Key, byte, bool, error) {
+) (storage.BlockID, Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return storage.BlockID{}, "", 0, false, nil
+		return storage.BlockID{}, "", false, nil
 	}
 
 	b, err := c.s.RequestNext(ctx, fileName)
 	if err != nil {
-		return storage.BlockID{}, "", 0, false, err
+		return storage.BlockID{}, "", false, err
 	}
 
 	defer b.Release()
@@ -208,9 +211,9 @@ func (c *Cursor) insertChainKey(
 	key := kn2.Fill(second)
 	kn.Replace(first)
 	// TODO: Clean this
-	kn.page.SetLevel(level + 1)
+	kn.page.SetLevel(level)
 
-	return b.BlockID(), key, level + 1, true, nil
+	return b.BlockID(), key, true, nil
 }
 
 func (c *Cursor) Search(
