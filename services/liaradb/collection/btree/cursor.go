@@ -1,7 +1,6 @@
 package btree
 
 import (
-	"container/list"
 	"context"
 	"errors"
 
@@ -31,14 +30,14 @@ func (c *Cursor) getChain(
 		return nil, err
 	}
 
-	l := list.New()
+	chain := newChain()
 
 	level := p.Level()
 	if level == 0 {
 		// leaf
 		ln := NewLeafNode(p)
-		l.PushFront(ln)
-		return newChain(l), nil
+		chain.append(ln)
+		return chain, nil
 	}
 
 	for i := int(level); i >= 0; i-- {
@@ -50,12 +49,12 @@ func (c *Cursor) getChain(
 		if i == 0 {
 			// leaf
 			ln := NewLeafNode(p)
-			l.PushFront(ln)
+			chain.append(ln)
 			break
 		}
 
 		kn := newKeyNode(p)
-		l.PushFront(kn)
+		chain.append(kn)
 		block := kn.Search(k)
 
 		if p, err = c.GetPage(ctx, storage.NewBlockID(fileName, storage.Offset(block))); err != nil {
@@ -63,7 +62,7 @@ func (c *Cursor) getChain(
 		}
 	}
 
-	return newChain(l), nil
+	return chain, nil
 }
 
 // Insert key value pair into tree
