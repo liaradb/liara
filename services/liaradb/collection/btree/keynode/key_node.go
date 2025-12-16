@@ -11,7 +11,7 @@ type KeyNode struct {
 	page page.BTreePage
 }
 
-func NewKeyNode(page page.BTreePage) *KeyNode {
+func New(page page.BTreePage) *KeyNode {
 	return &KeyNode{
 		page: page,
 	}

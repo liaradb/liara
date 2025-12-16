@@ -12,7 +12,7 @@ type LeafNode struct {
 	page page.BTreePage
 }
 
-func NewLeafNode(page page.BTreePage) *LeafNode {
+func New(page page.BTreePage) *LeafNode {
 	return &LeafNode{
 		page: page,
 	}

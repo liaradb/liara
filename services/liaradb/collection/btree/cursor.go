@@ -89,7 +89,7 @@ func (c *Cursor) getChain(
 			return nil, ErrLevelMismatch
 		}
 
-		kn := keynode.NewKeyNode(p)
+		kn := keynode.New(p)
 		chain.append(kn)
 
 		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
@@ -98,7 +98,7 @@ func (c *Cursor) getChain(
 		}
 	}
 
-	chain.append(leafnode.NewLeafNode(p))
+	chain.append(leafnode.New(p))
 
 	return chain, nil
 }
@@ -124,7 +124,7 @@ func (c *Cursor) insertChainLeaf(
 
 	defer b.Release()
 
-	key := leafnode.NewLeafNode(page.New(b)).Fill(second)
+	key := leafnode.New(page.New(b)).Fill(second)
 	ln.Replace(first)
 
 	return b.BlockID(), key, true, nil
@@ -152,7 +152,7 @@ func (c *Cursor) insertChainKey(
 	defer b.Release()
 
 	level := kn.Level()
-	key := keynode.NewKeyNode(page.New(b)).Fill(level, second)
+	key := keynode.New(page.New(b)).Fill(level, second)
 	kn.Replace(level, first)
 
 	return b.BlockID(), key, true, nil
@@ -182,7 +182,7 @@ func (c *Cursor) insertRoot(
 
 	b2.Clone(b0)
 
-	root := keynode.NewKeyNode(page.New(b0))
+	root := keynode.New(page.New(b0))
 
 	// This should always have a child
 	child0, _ := root.Child(0)
@@ -223,7 +223,7 @@ func (c *Cursor) searchPage(
 }
 
 func (*Cursor) searchLeaf(p page.BTreePage, k key.Key) (leafnode.RecordID, error) {
-	ln := leafnode.NewLeafNode(p)
+	ln := leafnode.New(p)
 	rid, ok := ln.Search(k)
 	if !ok {
 		return leafnode.RecordID{}, ErrNotFound
@@ -238,7 +238,7 @@ func (c *Cursor) searchKey(
 	p page.BTreePage,
 	k key.Key,
 ) (leafnode.RecordID, error) {
-	bid := storage.NewBlockID(fn, storage.Offset(keynode.NewKeyNode(p).Search(k)))
+	bid := storage.NewBlockID(fn, storage.Offset(keynode.New(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
 }
 
