@@ -8,6 +8,18 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
+// TODO: Test this
+// {message: "should insert",
+// 	items: newItemsAscending(2), fanout: 3, height: 1, skip: false},
+// {message: "should split leaf nodes",
+// 	items: newItemsAscending(4), fanout: 3, height: 2, skip: false},
+// {message: "should split key nodes",
+// 	items: newItemsAscending(9), fanout: 3, height: 3, skip: false},
+// {message: "should insert in any order",
+// 	items: newItemsReversed(9), fanout: 3, height: 3, skip: true},
+// {message: "should handle repeated items",
+// 	items: newItems(1, 2, 2, 3), fanout: 3, height: 1, skip: true},
+
 func TestCursor_GetRoot_Default(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testCursor)
