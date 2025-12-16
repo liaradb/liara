@@ -2,7 +2,6 @@ package btree
 
 import (
 	"context"
-	"errors"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
@@ -43,7 +42,7 @@ func (c *Cursor) getChain(
 	for i := int(level); i >= 0; i-- {
 		lvl := p.Level()
 		if lvl != byte(i) {
-			return nil, errors.New("level mismatch")
+			return nil, ErrLevelMismatch
 		}
 
 		if i == 0 {
@@ -87,7 +86,7 @@ func (c *Cursor) Insert(
 		if i == 0 {
 			ln, ok := n.(*LeafNode)
 			if !ok {
-				return errors.New("type mismatch")
+				return ErrTypeMismatch
 			}
 
 			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, key, rid)
@@ -102,7 +101,7 @@ func (c *Cursor) Insert(
 
 			kn, ok := n.(*KeyNode)
 			if !ok {
-				return errors.New("type mismatch")
+				return ErrTypeMismatch
 			}
 
 			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
