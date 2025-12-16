@@ -21,11 +21,11 @@ func NewCursor(s *storage.Storage) *Cursor {
 // Insert key value pair into tree
 func (c *Cursor) Insert(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	k Key,
 	rid RecordID,
 ) error {
-	chain, err := c.getChain(ctx, fileName, k)
+	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (c *Cursor) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, fileName, ln, key, rid)
+			bid, key, split, err = c.insertChainLeaf(ctx, fn, ln, key, rid)
 			if err != nil {
 				return err
 			} else if !split {
@@ -55,7 +55,7 @@ func (c *Cursor) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, key, BlockPosition(bid.Position))
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, BlockPosition(bid.Position))
 			if err != nil {
 				return err
 			} else if !split {
@@ -66,15 +66,15 @@ func (c *Cursor) Insert(
 		}
 	}
 
-	return c.insertRoot(ctx, fileName, level, key, bid)
+	return c.insertRoot(ctx, fn, level, key, bid)
 }
 
 func (c *Cursor) getChain(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	k Key,
 ) (*chain, error) {
-	p, err := c.GetPage(ctx, storage.NewBlockID(fileName, 0))
+	p, err := c.GetPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (c *Cursor) getChain(
 		kn := newKeyNode(p)
 		chain.append(kn)
 
-		bid := storage.NewBlockID(fileName, storage.Offset(kn.Search(k)))
+		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
 		if p, err = c.GetPage(ctx, bid); err != nil {
 			return nil, err
 		}
@@ -104,7 +104,7 @@ func (c *Cursor) getChain(
 //   - Insert, and handle a split.
 func (c *Cursor) insertChainLeaf(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	ln *LeafNode,
 	k Key,
 	rid RecordID,
@@ -114,7 +114,7 @@ func (c *Cursor) insertChainLeaf(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	b, err := c.s.RequestNext(ctx, fileName)
+	b, err := c.s.RequestNext(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
@@ -131,7 +131,7 @@ func (c *Cursor) insertChainLeaf(
 //   - Insert, and handle a split.
 func (c *Cursor) insertChainKey(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	kn *KeyNode,
 	k Key,
 	block BlockPosition,
@@ -141,7 +141,7 @@ func (c *Cursor) insertChainKey(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	b, err := c.s.RequestNext(ctx, fileName)
+	b, err := c.s.RequestNext(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
@@ -158,19 +158,19 @@ func (c *Cursor) insertChainKey(
 // Created new KeyNode and swap with root
 func (c *Cursor) insertRoot(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	level byte,
 	key Key,
 	bid storage.BlockID,
 ) error {
-	b2, err := c.s.RequestNext(ctx, fileName)
+	b2, err := c.s.RequestNext(ctx, fn)
 	if err != nil {
 		return err
 	}
 
 	defer b2.Release()
 
-	b0, err := c.GetBuffer(ctx, storage.NewBlockID(fileName, 0))
+	b0, err := c.getBuffer(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return err
 	}
@@ -195,10 +195,10 @@ func (c *Cursor) insertRoot(
 
 func (c *Cursor) Search(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	k Key,
 ) (RecordID, error) {
-	return c.searchPage(ctx, storage.NewBlockID(fileName, 0), k)
+	return c.searchPage(ctx, storage.NewBlockID(fn, 0), k)
 }
 
 func (c *Cursor) searchPage(
@@ -220,10 +220,7 @@ func (c *Cursor) searchPage(
 	}
 }
 
-func (*Cursor) searchLeaf(
-	p page.BTreePage,
-	k Key,
-) (RecordID, error) {
+func (*Cursor) searchLeaf(p page.BTreePage, k Key) (RecordID, error) {
 	ln := newLeafNode(p)
 	rid, ok := ln.Search(k)
 	if !ok {
@@ -235,23 +232,16 @@ func (*Cursor) searchLeaf(
 
 func (c *Cursor) searchKey(
 	ctx context.Context,
-	fileName string,
+	fn string,
 	p page.BTreePage,
 	k Key,
 ) (RecordID, error) {
-	kn := newKeyNode(p)
-	block := kn.Search(k)
-	return c.searchPage(ctx,
-		storage.NewBlockID(fileName, storage.Offset(block)),
-		k)
-}
-
-func (c *Cursor) GetRoot(ctx context.Context, fileName string) (page.BTreePage, error) {
-	return c.GetPage(ctx, storage.NewBlockID(fileName, 0))
+	bid := storage.NewBlockID(fn, storage.Offset(newKeyNode(p).Search(k)))
+	return c.searchPage(ctx, bid, k)
 }
 
 func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
-	b, err := c.GetBuffer(ctx, bid)
+	b, err := c.getBuffer(ctx, bid)
 	if err != nil {
 		return page.BTreePage{}, err
 	}
@@ -259,6 +249,6 @@ func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePa
 	return page.New(b), nil
 }
 
-func (c *Cursor) GetBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
+func (c *Cursor) getBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
 	return c.s.Request(ctx, bid)
 }

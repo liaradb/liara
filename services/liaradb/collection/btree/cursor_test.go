@@ -30,7 +30,7 @@ func testCursor(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	r, err := NewCursor(s).GetRoot(ctx, n)
+	r, err := NewCursor(s).GetPage(ctx, storage.NewBlockID(n, 0))
 	if err != nil {
 		t.Error(err)
 	}
