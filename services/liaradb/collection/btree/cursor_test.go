@@ -30,14 +30,21 @@ func testCursor(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	c := NewCursor(s)
-	r, err := c.GetRoot(ctx, n)
+	r, err := NewCursor(s).GetRoot(ctx, n)
 	if err != nil {
 		t.Error(err)
 	}
 
 	if l := r.Level(); l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
+	}
+
+	r.Release()
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
@@ -49,17 +56,7 @@ func TestCursor_Insert__Root(t *testing.T) {
 func testCursor_Insert__Root(t *testing.T) {
 	s := createStorage(t, 2, 256)
 	ctx := t.Context()
-
 	n := "testfile"
-	c := NewCursor(s)
-	r, err := c.GetRoot(ctx, n)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if l := r.Level(); l != 0 {
-		t.Errorf("incorrect level: %v, expected: %v", l, 0)
-	}
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -74,7 +71,7 @@ func testCursor_Insert__Root(t *testing.T) {
 	}
 
 	for _, e := range data {
-		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
 			t.Error(err)
 		}
 		// TODO: Need to flush to disk
@@ -86,6 +83,12 @@ func testCursor_Insert__Root(t *testing.T) {
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
@@ -104,17 +107,7 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 
 	s := createStorage(t, 8, 62)
 	ctx := t.Context()
-
 	n := "testfile"
-	c := NewCursor(s)
-	r, err := c.GetRoot(ctx, n)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if l := r.Level(); l != 0 {
-		t.Errorf("incorrect level: %v, expected: %v", l, 0)
-	}
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -147,7 +140,7 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	}
 
 	for _, e := range data {
-		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 		// TODO: Need to flush to disk
@@ -160,6 +153,12 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
 }
 
 func TestCursor_Insert__Random(t *testing.T) {
@@ -170,17 +169,7 @@ func TestCursor_Insert__Random(t *testing.T) {
 func testCursor_Insert__Random(t *testing.T) {
 	s := createStorage(t, 8, 62)
 	ctx := t.Context()
-
 	n := "testfile"
-	c := NewCursor(s)
-	r, err := c.GetRoot(ctx, n)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if l := r.Level(); l != 0 {
-		t.Errorf("incorrect level: %v, expected: %v", l, 0)
-	}
 
 	data := []LeafEntry{
 		newLeafEntry(
@@ -226,7 +215,7 @@ func testCursor_Insert__Random(t *testing.T) {
 	}
 	for index, i := range order {
 		e := data[i]
-		if err := c.Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
 			t.Fatal(index, i, e.key, err)
 		}
 		// TODO: Need to flush to disk
@@ -239,6 +228,12 @@ func testCursor_Insert__Random(t *testing.T) {
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
