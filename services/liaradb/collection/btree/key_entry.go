@@ -1,16 +1,17 @@
 package btree
 
 import (
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/encoder/wrap"
 )
 
 // TODO: Test this
 type KeyEntry struct {
-	key   Key
+	key   key.Key
 	block BlockPosition
 }
 
-func newKeyEntry(key Key, block BlockPosition) KeyEntry {
+func newKeyEntry(key key.Key, block BlockPosition) KeyEntry {
 	return KeyEntry{
 		key:   key,
 		block: block,
@@ -28,5 +29,5 @@ func (ke KeyEntry) Write(data []byte) {
 func (ke *KeyEntry) Read(data []byte) {
 	block, data0 := wrap.NewInt64(data)
 	ke.block = BlockPosition(block.Get())
-	ke.key = Key(data0)
+	ke.key = key.Key(data0)
 }

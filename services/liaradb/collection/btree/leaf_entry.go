@@ -1,12 +1,14 @@
 package btree
 
+import "github.com/liaradb/liaradb/collection/btree/key"
+
 // TODO: Test this
 type LeafEntry struct {
-	key      Key
+	key      key.Key
 	recordID RecordID
 }
 
-func newLeafEntry(key Key, recordID RecordID) LeafEntry {
+func newLeafEntry(key key.Key, recordID RecordID) LeafEntry {
 	return LeafEntry{
 		key:      key,
 		recordID: recordID,
@@ -22,5 +24,5 @@ func (le LeafEntry) Write(data []byte) {
 
 func (le *LeafEntry) Read(data []byte) {
 	data0 := le.recordID.Read(data)
-	le.key = Key(data0)
+	le.key = key.Key(data0)
 }

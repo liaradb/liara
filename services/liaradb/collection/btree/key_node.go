@@ -3,6 +3,7 @@ package btree
 import (
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/page"
 )
 
@@ -17,7 +18,7 @@ func newKeyNode(page page.BTreePage) *KeyNode {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
+func (kn *KeyNode) Append(key key.Key, block BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
 	i, b, ok := kn.page.Append(int16(ke.Size()))
 	if !ok {
@@ -30,7 +31,7 @@ func (kn *KeyNode) Append(key Key, block BlockPosition) (int16, bool) {
 	return i, true
 }
 
-func (kn *KeyNode) Insert(key Key, block BlockPosition) (iter.Seq[KeyEntry], iter.Seq[KeyEntry], bool) {
+func (kn *KeyNode) Insert(key key.Key, block BlockPosition) (iter.Seq[KeyEntry], iter.Seq[KeyEntry], bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
@@ -117,8 +118,8 @@ func (kn *KeyNode) second(i int16, mid int16, ke KeyEntry) func(yield func(KeyEn
 }
 
 // TODO: Test this
-func (kn *KeyNode) Fill(l byte, entries iter.Seq[KeyEntry]) Key {
-	var k Key
+func (kn *KeyNode) Fill(l byte, entries iter.Seq[KeyEntry]) key.Key {
+	var k key.Key
 	first := true
 	for e := range entries {
 		if first {
@@ -153,7 +154,7 @@ func (kn *KeyNode) Replace(l byte, entries iter.Seq[KeyEntry]) {
 	kn.page.SetDirty()
 }
 
-func (kn *KeyNode) ReplaceRoot(l byte, key0 Key, block0 BlockPosition, key1 Key, block1 BlockPosition) bool {
+func (kn *KeyNode) ReplaceRoot(l byte, key0 key.Key, block0 BlockPosition, key1 key.Key, block1 BlockPosition) bool {
 	kn.page.Clear()
 	kn.page.SetLevel(l)
 
@@ -201,7 +202,7 @@ func (kn *KeyNode) childrenRange(start, end int16) iter.Seq[KeyEntry] {
 	}
 }
 
-func (kn *KeyNode) Search(k Key) BlockPosition {
+func (kn *KeyNode) Search(k key.Key) BlockPosition {
 	var p BlockPosition
 	first := true
 	for ke := range kn.Children() {
@@ -219,7 +220,7 @@ func (kn *KeyNode) Search(k Key) BlockPosition {
 	return p
 }
 
-func (kn *KeyNode) searchIndex(k Key) int16 {
+func (kn *KeyNode) searchIndex(k key.Key) int16 {
 	var i int16 = 0
 	for ke := range kn.Children() {
 		if k <= ke.key {

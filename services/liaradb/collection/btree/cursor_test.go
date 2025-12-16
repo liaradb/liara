@@ -4,6 +4,7 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -60,13 +61,13 @@ func testCursor_Insert__Root(t *testing.T) {
 
 	data := []LeafEntry{
 		newLeafEntry(
-			Key("a"),
+			key.Key("a"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			Key("b"),
+			key.Key("b"),
 			NewRecordID(3, 4)),
 		newLeafEntry(
-			Key("c"),
+			key.Key("c"),
 			NewRecordID(5, 6)),
 	}
 
@@ -111,31 +112,31 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 
 	data := []LeafEntry{
 		newLeafEntry(
-			Key("a"),
+			key.Key("a"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			Key("b"),
+			key.Key("b"),
 			NewRecordID(3, 4)),
 		newLeafEntry(
-			Key("c"),
+			key.Key("c"),
 			NewRecordID(5, 6)),
 		newLeafEntry(
-			Key("d"),
+			key.Key("d"),
 			NewRecordID(7, 8)),
 		newLeafEntry(
-			Key("e"),
+			key.Key("e"),
 			NewRecordID(9, 10)),
 		newLeafEntry(
-			Key("f"),
+			key.Key("f"),
 			NewRecordID(11, 12)),
 		newLeafEntry(
-			Key("g"),
+			key.Key("g"),
 			NewRecordID(13, 14)),
 		newLeafEntry(
-			Key("h"),
+			key.Key("h"),
 			NewRecordID(15, 16)),
 		newLeafEntry(
-			Key("i"),
+			key.Key("i"),
 			NewRecordID(17, 18)),
 	}
 
@@ -173,31 +174,31 @@ func testCursor_Insert__Random(t *testing.T) {
 
 	data := []LeafEntry{
 		newLeafEntry(
-			Key("0"),
+			key.Key("0"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			Key("1"),
+			key.Key("1"),
 			NewRecordID(3, 4)),
 		newLeafEntry(
-			Key("2"),
+			key.Key("2"),
 			NewRecordID(5, 6)),
 		newLeafEntry(
-			Key("3"),
+			key.Key("3"),
 			NewRecordID(7, 8)),
 		newLeafEntry(
-			Key("4"),
+			key.Key("4"),
 			NewRecordID(9, 10)),
 		newLeafEntry(
-			Key("5"),
+			key.Key("5"),
 			NewRecordID(11, 12)),
 		newLeafEntry(
-			Key("6"),
+			key.Key("6"),
 			NewRecordID(13, 14)),
 		newLeafEntry(
-			Key("7"),
+			key.Key("7"),
 			NewRecordID(15, 16)),
 		newLeafEntry(
-			Key("8"),
+			key.Key("8"),
 			NewRecordID(17, 18)),
 	}
 

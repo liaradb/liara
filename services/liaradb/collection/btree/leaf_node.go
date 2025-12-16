@@ -3,6 +3,7 @@ package btree
 import (
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/page"
 )
 
@@ -24,7 +25,7 @@ func (ln *LeafNode) RightID() BlockPosition {
 	return BlockPosition(ln.page.HighID())
 }
 
-func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
+func (ln *LeafNode) Append(key key.Key, recordID RecordID) (int16, bool) {
 	le := newLeafEntry(key, recordID)
 	i, b, ok := ln.page.Append(int16(le.Size()))
 	if !ok {
@@ -37,7 +38,7 @@ func (ln *LeafNode) Append(key Key, recordID RecordID) (int16, bool) {
 	return i, true
 }
 
-func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], iter.Seq[LeafEntry], bool) {
+func (ln *LeafNode) Insert(key key.Key, recordID RecordID) (iter.Seq[LeafEntry], iter.Seq[LeafEntry], bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
@@ -54,8 +55,8 @@ func (ln *LeafNode) Insert(key Key, recordID RecordID) (iter.Seq[LeafEntry], ite
 }
 
 // TODO: Test this
-func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) Key {
-	var k Key
+func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) key.Key {
+	var k key.Key
 	first := true
 	for e := range entries {
 		if first {
@@ -191,7 +192,7 @@ func (ln *LeafNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
 	}
 }
 
-func (ln *LeafNode) Search(k Key) (RecordID, bool) {
+func (ln *LeafNode) Search(k key.Key) (RecordID, bool) {
 	i, ok := ln.searchIndex(k)
 	if !ok {
 		return RecordID{}, false
@@ -205,7 +206,7 @@ func (ln *LeafNode) Search(k Key) (RecordID, bool) {
 	return le.recordID, true
 }
 
-func (ln *LeafNode) searchIndex(k Key) (int16, bool) {
+func (ln *LeafNode) searchIndex(k key.Key) (int16, bool) {
 	var i int16 = 0
 	for ke := range ln.Children() {
 		if k == ke.key {
@@ -220,7 +221,7 @@ func (ln *LeafNode) searchIndex(k Key) (int16, bool) {
 	return 0, false
 }
 
-func (ln *LeafNode) searchIndexRange(k Key) int16 {
+func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
 	var i int16 = 0
 	for ke := range ln.Children() {
 		if k <= ke.key {

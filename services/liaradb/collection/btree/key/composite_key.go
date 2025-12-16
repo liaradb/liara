@@ -1,4 +1,4 @@
-package btree
+package key
 
 type CompositeKey struct {
 	A Key
