@@ -82,6 +82,7 @@ func (c *Cursor) Insert(
 
 	var bid storage.BlockID
 	var key Key
+	var level byte
 	var split bool
 	for i, n := range chain.items() {
 		if i == 0 {
@@ -105,7 +106,7 @@ func (c *Cursor) Insert(
 				return errors.New("type mismatch")
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fileName, kn, k, BlockPosition(bid.Position))
+			bid, key, level, split, err = c.insertChainKey(ctx, fileName, kn, k, BlockPosition(bid.Position))
 			if err != nil {
 				return err
 			}
@@ -142,7 +143,7 @@ func (c *Cursor) Insert(
 	root := newKeyNode(page)
 	root.Init(BlockPosition(b2.BlockID().Position))
 	// TODO: Clean this
-	root.page.SetLevel(byte(chain.length()))
+	root.page.SetLevel(level + 1)
 	_, _ = root.Append(key, BlockPosition(bid.Position))
 
 	return nil
@@ -186,15 +187,15 @@ func (c *Cursor) insertChainKey(
 	kn *KeyNode,
 	k Key,
 	block BlockPosition,
-) (storage.BlockID, Key, bool, error) {
+) (storage.BlockID, Key, byte, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return storage.BlockID{}, "", false, nil
+		return storage.BlockID{}, "", 0, false, nil
 	}
 
 	b, err := c.s.RequestNext(ctx, fileName)
 	if err != nil {
-		return storage.BlockID{}, "", false, err
+		return storage.BlockID{}, "", 0, false, err
 	}
 
 	defer b.Release()
@@ -210,7 +211,7 @@ func (c *Cursor) insertChainKey(
 	// TODO: Clean this
 	kn.page.SetLevel(level + 1)
 
-	return b.BlockID(), key, true, nil
+	return b.BlockID(), key, level + 1, true, nil
 }
 
 // Get page from buffer pool and insert key value pair

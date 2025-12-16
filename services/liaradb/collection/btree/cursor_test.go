@@ -84,7 +84,8 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	s := createStorage(t, 3, 62)
+	// TODO: Why does this use so many buffers?
+	s := createStorage(t, 8, 62)
 	ctx := t.Context()
 
 	n := "testfile"
@@ -111,6 +112,21 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 		newLeafEntry(
 			Key("d"),
 			NewRecordID(7, 8)),
+		newLeafEntry(
+			Key("e"),
+			NewRecordID(9, 10)),
+		newLeafEntry(
+			Key("f"),
+			NewRecordID(11, 12)),
+		newLeafEntry(
+			Key("g"),
+			NewRecordID(13, 14)),
+		newLeafEntry(
+			Key("h"),
+			NewRecordID(15, 16)),
+		newLeafEntry(
+			Key("i"),
+			NewRecordID(17, 18)),
 	}
 
 	for _, e := range data {
