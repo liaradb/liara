@@ -85,6 +85,12 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 
 func testCursor_Insert__RootSplit(t *testing.T) {
 	// TODO: Why does this use so many buffers?
+	//                            [7]
+	//               .............   .........
+	//         [3        5]                 [9]
+	//     ....   ......   ....          ...   ..
+	// [1   2]   [3   4]   [5   6]   [7   8]   [9]
+
 	s := createStorage(t, 8, 62)
 	ctx := t.Context()
 
