@@ -1,4 +1,4 @@
-package btree
+package keynode
 
 import (
 	"iter"
@@ -11,7 +11,7 @@ type KeyNode struct {
 	page page.BTreePage
 }
 
-func newKeyNode(page page.BTreePage) *KeyNode {
+func NewKeyNode(page page.BTreePage) *KeyNode {
 	return &KeyNode{
 		page: page,
 	}
@@ -230,4 +230,13 @@ func (kn *KeyNode) searchIndex(k key.Key) int16 {
 		i++
 	}
 	return i
+}
+
+func (kn *KeyNode) Level() byte {
+	return kn.page.Level()
+}
+
+// TODO: Test this
+func (kn *KeyNode) Release() {
+	kn.page.Release()
 }

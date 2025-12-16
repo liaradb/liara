@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -51,12 +52,12 @@ func (c *Cursor) Insert(
 				return nil
 			}
 		} else {
-			kn, ok := n.(*KeyNode)
+			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, BlockPosition(bid.Position))
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, keynode.BlockPosition(bid.Position))
 			if err != nil {
 				return err
 			} else if !split {
@@ -87,7 +88,7 @@ func (c *Cursor) getChain(
 			return nil, ErrLevelMismatch
 		}
 
-		kn := newKeyNode(p)
+		kn := keynode.NewKeyNode(p)
 		chain.append(kn)
 
 		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
@@ -133,9 +134,9 @@ func (c *Cursor) insertChainLeaf(
 func (c *Cursor) insertChainKey(
 	ctx context.Context,
 	fn string,
-	kn *KeyNode,
+	kn *keynode.KeyNode,
 	k key.Key,
-	block BlockPosition,
+	block keynode.BlockPosition,
 ) (storage.BlockID, key.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
@@ -149,8 +150,8 @@ func (c *Cursor) insertChainKey(
 
 	defer b.Release()
 
-	level := kn.page.Level()
-	key := newKeyNode(page.New(b)).Fill(level, second)
+	level := kn.Level()
+	key := keynode.NewKeyNode(page.New(b)).Fill(level, second)
 	kn.Replace(level, first)
 
 	return b.BlockID(), key, true, nil
@@ -180,15 +181,15 @@ func (c *Cursor) insertRoot(
 
 	b2.Clone(b0)
 
-	root := newKeyNode(page.New(b0))
+	root := keynode.NewKeyNode(page.New(b0))
 
 	// This should always have a child
 	child0, _ := root.Child(0)
 
 	// This should always return true
 	_ = root.ReplaceRoot(level+1,
-		child0.key, BlockPosition(b2.BlockID().Position),
-		key, BlockPosition(bid.Position))
+		child0.Key(), keynode.BlockPosition(b2.BlockID().Position),
+		key, keynode.BlockPosition(bid.Position))
 
 	return nil
 }
@@ -236,7 +237,7 @@ func (c *Cursor) searchKey(
 	p page.BTreePage,
 	k key.Key,
 ) (RecordID, error) {
-	bid := storage.NewBlockID(fn, storage.Offset(newKeyNode(p).Search(k)))
+	bid := storage.NewBlockID(fn, storage.Offset(keynode.NewKeyNode(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
 }
 

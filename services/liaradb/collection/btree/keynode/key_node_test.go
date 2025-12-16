@@ -1,4 +1,4 @@
-package btree
+package keynode
 
 import (
 	"slices"
@@ -14,7 +14,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		testKeyNodeChildren(t, kn, data)
@@ -24,7 +24,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		testKeyNodeChildren(t, kn, data)
@@ -34,7 +34,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		testKeyNodeSearch(t, kn, data)
@@ -45,7 +45,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		for i, e := range data {
@@ -74,7 +74,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		want := data[0].block
@@ -88,7 +88,7 @@ func TestKeyNode(t *testing.T) {
 		t.Parallel()
 
 		bp := page.New(newMockBuffer(256))
-		kn := newKeyNode(bp)
+		kn := NewKeyNode(bp)
 
 		data := testKeyNodeInsertData(t, kn)
 		want := data[2].block

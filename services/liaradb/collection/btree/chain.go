@@ -3,6 +3,8 @@ package btree
 import (
 	"container/list"
 	"iter"
+
+	"github.com/liaradb/liaradb/collection/btree/keynode"
 )
 
 // TODO: Test this
@@ -38,8 +40,8 @@ func (c *chain) release() {
 			ln := n.(*LeafNode)
 			ln.page.Release()
 		} else {
-			kn := n.(*KeyNode)
-			kn.page.Release()
+			kn := n.(*keynode.KeyNode)
+			kn.Release()
 		}
 	}
 }

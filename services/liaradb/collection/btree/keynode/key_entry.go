@@ -1,4 +1,4 @@
-package btree
+package keynode
 
 import (
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -10,6 +10,9 @@ type KeyEntry struct {
 	key   key.Key
 	block BlockPosition
 }
+
+func (ke KeyEntry) Key() key.Key         { return ke.key }
+func (ke KeyEntry) Block() BlockPosition { return ke.block }
 
 func newKeyEntry(key key.Key, block BlockPosition) KeyEntry {
 	return KeyEntry{

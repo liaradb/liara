@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/page"
 )
 
@@ -17,12 +18,12 @@ func newLeafNode(page page.BTreePage) *LeafNode {
 	}
 }
 
-func (ln *LeafNode) LeftID() BlockPosition {
-	return BlockPosition(ln.page.LowID())
+func (ln *LeafNode) LeftID() keynode.BlockPosition {
+	return keynode.BlockPosition(ln.page.LowID())
 }
 
-func (ln *LeafNode) RightID() BlockPosition {
-	return BlockPosition(ln.page.HighID())
+func (ln *LeafNode) RightID() keynode.BlockPosition {
+	return keynode.BlockPosition(ln.page.HighID())
 }
 
 func (ln *LeafNode) Append(key key.Key, recordID RecordID) (int16, bool) {

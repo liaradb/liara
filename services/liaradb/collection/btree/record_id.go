@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/encoder/wrap"
 )
 
@@ -8,11 +9,11 @@ const RecordIDSize = 8 + 1
 
 // TODO: Test this
 type RecordID struct {
-	block    BlockPosition
+	block    keynode.BlockPosition
 	position RecordPosition
 }
 
-func NewRecordID(block BlockPosition, position RecordPosition) RecordID {
+func NewRecordID(block keynode.BlockPosition, position RecordPosition) RecordID {
 	return RecordID{
 		block:    block,
 		position: position,
@@ -40,7 +41,7 @@ func (le *RecordID) Read(data []byte) []byte {
 	block, data0 := wrap.NewInt64(data)
 	position, data1 := wrap.NewByte(data0)
 
-	le.block = BlockPosition(block.Get())
+	le.block = keynode.BlockPosition(block.Get())
 	le.position = RecordPosition(position.Get())
 
 	return data1
