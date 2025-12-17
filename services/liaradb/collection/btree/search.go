@@ -34,7 +34,7 @@ func (c *search) searchPage(
 	bid storage.BlockID,
 	k key.Key,
 ) (leafnode.RecordID, error) {
-	p, err := c.GetPage(ctx, bid)
+	p, err := c.ns.getPage(ctx, bid)
 	if err != nil {
 		return leafnode.RecordID{}, err
 	}
@@ -66,8 +66,4 @@ func (c *search) searchKey(
 ) (leafnode.RecordID, error) {
 	bid := storage.NewBlockID(fn, storage.Offset(keynode.New(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
-}
-
-func (c *search) GetPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
-	return c.ns.getPage(ctx, bid)
 }

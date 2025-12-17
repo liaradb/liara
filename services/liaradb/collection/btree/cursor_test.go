@@ -30,18 +30,13 @@ func TestCursor_GetRoot_Default(t *testing.T) {
 func testCursor(t *testing.T) {
 	s := createStorage(t, 2, 256)
 	ctx := t.Context()
-
 	n := "testfile"
-	r, err := NewCursor(s).GetPage(ctx, storage.NewBlockID(n, 0))
-	if err != nil {
-		t.Error(err)
-	}
 
-	if l := r.Level(); l != 0 {
+	if l, err := NewCursor(s).Level(ctx, n); err != nil {
+		t.Error(err)
+	} else if l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
 	}
-
-	r.Release()
 
 	synctest.Wait()
 
