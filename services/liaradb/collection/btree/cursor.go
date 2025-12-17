@@ -11,6 +11,7 @@ import (
 )
 
 // TODO: Create latching support
+// TODO: What happens if two goroutines append simultaneously?
 type Cursor struct {
 	s *storage.Storage
 }
@@ -117,17 +118,17 @@ func (c *Cursor) insertChainLeaf(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	b, err := c.s.RequestNext(ctx, fn)
+	ln2, bid, err := c.getNextLeafNode(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
 
-	defer b.Release()
+	defer ln2.Release()
 
-	key := leafnode.New(page.New(b)).Fill(second)
+	key := ln2.Fill(second)
 	ln.Replace(first)
 
-	return b.BlockID(), key, true, nil
+	return bid, key, true, nil
 }
 
 // This is a key level page.
@@ -144,18 +145,18 @@ func (c *Cursor) insertChainKey(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	b, err := c.s.RequestNext(ctx, fn)
+	kn2, bid, err := c.getNextKeyNode(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
 
-	defer b.Release()
+	defer kn2.Release()
 
 	level := kn.Level()
-	key := keynode.New(page.New(b)).Fill(level, second)
+	key := kn2.Fill(level, second)
 	kn.Replace(level, first)
 
-	return b.BlockID(), key, true, nil
+	return bid, key, true, nil
 }
 
 // Created new KeyNode and swap with root
@@ -166,19 +167,20 @@ func (c *Cursor) insertRoot(
 	key key.Key,
 	bid storage.BlockID,
 ) error {
-	b2, err := c.s.RequestNext(ctx, fn)
-	if err != nil {
-		return err
-	}
-
-	defer b2.Release()
-
 	b0, err := c.getBuffer(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return err
 	}
 
 	defer b0.Release()
+
+	// TODO: Should we wrap with KeyNode to simplify latching?
+	b2, err := c.s.RequestNext(ctx, fn)
+	if err != nil {
+		return err
+	}
+
+	defer b2.Release()
 
 	b2.Clone(b0)
 
@@ -237,6 +239,24 @@ func (c *Cursor) searchKey(
 ) (leafnode.RecordID, error) {
 	bid := storage.NewBlockID(fn, storage.Offset(keynode.New(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
+}
+
+func (c *Cursor) getNextKeyNode(ctx context.Context, fn string) (*keynode.KeyNode, storage.BlockID, error) {
+	b, err := c.s.RequestNext(ctx, fn)
+	if err != nil {
+		return nil, storage.BlockID{}, err
+	}
+
+	return keynode.New(page.New(b)), b.BlockID(), nil
+}
+
+func (c *Cursor) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, storage.BlockID, error) {
+	b, err := c.s.RequestNext(ctx, fn)
+	if err != nil {
+		return nil, storage.BlockID{}, err
+	}
+
+	return leafnode.New(page.New(b)), b.BlockID(), nil
 }
 
 func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
