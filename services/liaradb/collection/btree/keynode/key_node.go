@@ -8,10 +8,10 @@ import (
 )
 
 type KeyNode struct {
-	page page.BTreePage
+	page page.Page
 }
 
-func New(page page.BTreePage) *KeyNode {
+func New(page page.Page) *KeyNode {
 	return &KeyNode{
 		page: page,
 	}

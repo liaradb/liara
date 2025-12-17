@@ -17,20 +17,20 @@ const (
 )
 
 // TODO: Should we store HighKey?
-type btreeHeader struct {
+type header struct {
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
 	next   wrap.Int16
 }
 
-func newHeader(data []byte) (btreeHeader, []byte) {
+func newHeader(data []byte) (header, []byte) {
 	level, data0 := wrap.NewByte(data)
 	highID, data1 := wrap.NewInt64(data0)
 	lowID, data2 := wrap.NewInt64(data1)
 	next, data3 := wrap.NewInt16(data2)
 
-	return btreeHeader{
+	return header{
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
@@ -38,34 +38,34 @@ func newHeader(data []byte) (btreeHeader, []byte) {
 	}, data3
 }
 
-func (p *btreeHeader) Level() byte {
+func (p *header) Level() byte {
 	return p.level.GetUnsigned()
 }
 
-func (p *btreeHeader) HighID() int64 {
+func (p *header) HighID() int64 {
 	return p.highID.Get()
 }
 
-func (p *btreeHeader) LowID() int64 {
+func (p *header) LowID() int64 {
 	return p.lowID.Get()
 }
 
-func (p *btreeHeader) Next() int16 {
+func (p *header) Next() int16 {
 	return p.next.Get()
 }
 
-func (p *btreeHeader) setLevel(l byte) {
+func (p *header) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
 
-func (p *btreeHeader) setHighID(o int64) {
+func (p *header) setHighID(o int64) {
 	p.highID.Set(o)
 }
 
-func (p *btreeHeader) SetLowID(o int64) {
+func (p *header) SetLowID(o int64) {
 	p.lowID.Set(o)
 }
 
-func (p *btreeHeader) setNext(o int16) {
+func (p *header) setNext(o int16) {
 	p.next.Set(o)
 }

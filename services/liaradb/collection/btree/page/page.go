@@ -11,9 +11,7 @@ const (
 	itemSize = 4
 )
 
-type header = btreeHeader
-
-type BTreePage struct {
+type Page struct {
 	header
 	buffer   Buffer
 	data     []byte
@@ -28,11 +26,11 @@ type Buffer interface {
 	SetDirty()
 }
 
-func New(buffer Buffer) BTreePage {
+func New(buffer Buffer) Page {
 	data := buffer.Raw()
 	header, data0 := newHeader(data)
 
-	return BTreePage{
+	return Page{
 		header:   header,
 		buffer:   buffer,
 		data:     data,
@@ -42,27 +40,27 @@ func New(buffer Buffer) BTreePage {
 }
 
 // TODO: Test this
-func (p *BTreePage) Clear() {
+func (p *Page) Clear() {
 	p.buffer.Clear()
 	p.list.Clear()
 }
 
 // TODO: Test this
-func (p *BTreePage) Release() {
+func (p *Page) Release() {
 	p.buffer.Release()
 }
 
 // TODO: Test this
-func (p *BTreePage) SetDirty() {
+func (p *Page) SetDirty() {
 	p.buffer.SetDirty()
 }
 
 // TODO: Test this
-func (p *BTreePage) SetLevel(l byte) {
+func (p *Page) SetLevel(l byte) {
 	p.header.setLevel(l)
 }
 
-func (p *BTreePage) Append(size int16) (int16, []byte, bool) {
+func (p *Page) Append(size int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -83,7 +81,7 @@ func (p *BTreePage) Append(size int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p *BTreePage) Insert(size int16, index int16) (int16, []byte, bool) {
+func (p *Page) Insert(size int16, index int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -104,16 +102,16 @@ func (p *BTreePage) Insert(size int16, index int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p BTreePage) Length() int16 {
+func (p Page) Length() int16 {
 	return int16(len(p.data))
 }
 
 // TODO: Test this
-func (p BTreePage) Count() int16 {
+func (p Page) Count() int16 {
 	return p.list.Count()
 }
 
-func (p *BTreePage) next() int16 {
+func (p *Page) next() int16 {
 	size := p.list.Count()
 	if size == 0 {
 		return int16(p.list.Length())
@@ -122,18 +120,18 @@ func (p *BTreePage) next() int16 {
 	}
 }
 
-func (p BTreePage) Space() int16 {
+func (p Page) Space() int16 {
 	next := p.next()
 	size := p.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
-func (p BTreePage) hasSpace(size int16) bool {
+func (p Page) hasSpace(size int16) bool {
 	s := p.Space()
 	return size <= s
 }
 
-func (p BTreePage) Child(index int16) ([]byte, bool) {
+func (p Page) Child(index int16) ([]byte, bool) {
 	offset, size, ok := p.list.Item(index)
 	if !ok {
 		return nil, false
@@ -142,7 +140,7 @@ func (p BTreePage) Child(index int16) ([]byte, bool) {
 	return p.byteList.Slice(int64(offset), int64(size))
 }
 
-func (p BTreePage) Children() iter.Seq[[]byte] {
+func (p Page) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range p.list.Items() {
 			b, ok := p.byteList.Slice(int64(offset), int64(size))
@@ -153,7 +151,7 @@ func (p BTreePage) Children() iter.Seq[[]byte] {
 	}
 }
 
-func (p BTreePage) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (p Page) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range p.list.ItemsRange(start, end) {
 			b, ok := p.byteList.Slice(int64(offset), int64(size))

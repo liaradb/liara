@@ -9,10 +9,10 @@ import (
 )
 
 type LeafNode struct {
-	page page.BTreePage
+	page page.Page
 }
 
-func New(page page.BTreePage) *LeafNode {
+func New(page page.Page) *LeafNode {
 	return &LeafNode{
 		page: page,
 	}

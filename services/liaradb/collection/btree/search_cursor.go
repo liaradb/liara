@@ -48,7 +48,7 @@ func (c *searchCursor) searchPage(
 	}
 }
 
-func (*searchCursor) searchLeaf(p page.BTreePage, k key.Key) (leafnode.RecordID, error) {
+func (*searchCursor) searchLeaf(p page.Page, k key.Key) (leafnode.RecordID, error) {
 	ln := leafnode.New(p)
 	rid, ok := ln.Search(k)
 	if !ok {
@@ -61,13 +61,13 @@ func (*searchCursor) searchLeaf(p page.BTreePage, k key.Key) (leafnode.RecordID,
 func (c *searchCursor) searchKey(
 	ctx context.Context,
 	fn string,
-	p page.BTreePage,
+	p page.Page,
 	k key.Key,
 ) (leafnode.RecordID, error) {
 	bid := storage.NewBlockID(fn, storage.Offset(keynode.New(p).Search(k)))
 	return c.searchPage(ctx, bid, k)
 }
 
-func (c *searchCursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
+func (c *searchCursor) GetPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
 	return c.ns.getPage(ctx, bid)
 }

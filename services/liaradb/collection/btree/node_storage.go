@@ -43,10 +43,10 @@ func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnod
 	return leafnode.New(page.New(b)), b.BlockID(), nil
 }
 
-func (ns *nodeStorage) getPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
+func (ns *nodeStorage) getPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
 	b, err := ns.getBuffer(ctx, bid)
 	if err != nil {
-		return page.BTreePage{}, err
+		return page.Page{}, err
 	}
 
 	return page.New(b), nil
