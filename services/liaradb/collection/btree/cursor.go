@@ -13,12 +13,12 @@ import (
 // TODO: Create latching support
 // TODO: What happens if two goroutines append simultaneously?
 type Cursor struct {
-	s *storage.Storage
+	ns *nodeStorage
 }
 
 func NewCursor(s *storage.Storage) *Cursor {
 	return &Cursor{
-		s: s,
+		ns: newNodeStorage(s),
 	}
 }
 
@@ -118,7 +118,7 @@ func (c *Cursor) insertChainLeaf(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	ln2, bid, err := c.getNextLeafNode(ctx, fn)
+	ln2, bid, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
@@ -145,7 +145,7 @@ func (c *Cursor) insertChainKey(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	kn2, bid, err := c.getNextKeyNode(ctx, fn)
+	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
@@ -167,7 +167,7 @@ func (c *Cursor) insertRoot(
 	key key.Key,
 	bid storage.BlockID,
 ) error {
-	b0, err := c.getBuffer(ctx, storage.NewBlockID(fn, 0))
+	b0, err := c.ns.getBuffer(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (c *Cursor) insertRoot(
 	defer b0.Release()
 
 	// TODO: Should we wrap with KeyNode to simplify latching?
-	b2, err := c.s.RequestNext(ctx, fn)
+	b2, err := c.ns.getNextBuffer(ctx, fn)
 	if err != nil {
 		return err
 	}
@@ -241,33 +241,6 @@ func (c *Cursor) searchKey(
 	return c.searchPage(ctx, bid, k)
 }
 
-func (c *Cursor) getNextKeyNode(ctx context.Context, fn string) (*keynode.KeyNode, storage.BlockID, error) {
-	b, err := c.s.RequestNext(ctx, fn)
-	if err != nil {
-		return nil, storage.BlockID{}, err
-	}
-
-	return keynode.New(page.New(b)), b.BlockID(), nil
-}
-
-func (c *Cursor) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, storage.BlockID, error) {
-	b, err := c.s.RequestNext(ctx, fn)
-	if err != nil {
-		return nil, storage.BlockID{}, err
-	}
-
-	return leafnode.New(page.New(b)), b.BlockID(), nil
-}
-
 func (c *Cursor) GetPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
-	b, err := c.getBuffer(ctx, bid)
-	if err != nil {
-		return page.BTreePage{}, err
-	}
-
-	return page.New(b), nil
-}
-
-func (c *Cursor) getBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
-	return c.s.Request(ctx, bid)
+	return c.ns.getPage(ctx, bid)
 }
