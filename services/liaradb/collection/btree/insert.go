@@ -12,18 +12,18 @@ import (
 
 // TODO: Create latching support
 // TODO: What happens if two goroutines append simultaneously?
-type insertCursor struct {
+type insert struct {
 	ns *nodeStorage
 }
 
-func newInsertCursor(s *storage.Storage) insertCursor {
-	return insertCursor{
+func newInsert(s *storage.Storage) insert {
+	return insert{
 		ns: newNodeStorage(s),
 	}
 }
 
 // Insert key value pair into tree
-func (c *insertCursor) Insert(
+func (c *insert) Insert(
 	ctx context.Context,
 	fn string,
 	k key.Key,
@@ -67,7 +67,7 @@ func (c *insertCursor) Insert(
 	return c.insertRoot(ctx, fn, level, key, bid)
 }
 
-func (c *insertCursor) getChain(
+func (c *insert) getChain(
 	ctx context.Context,
 	fn string,
 	k key.Key,
@@ -100,7 +100,7 @@ func (c *insertCursor) getChain(
 
 // This is a leaf level page.
 //   - Insert, and handle a split.
-func (c *insertCursor) insertChainLeaf(
+func (c *insert) insertChainLeaf(
 	ctx context.Context,
 	fn string,
 	ln *leafnode.LeafNode,
@@ -127,7 +127,7 @@ func (c *insertCursor) insertChainLeaf(
 
 // This is a key level page.
 //   - Insert, and handle a split.
-func (c *insertCursor) insertChainKey(
+func (c *insert) insertChainKey(
 	ctx context.Context,
 	fn string,
 	kn *keynode.KeyNode,
@@ -154,7 +154,7 @@ func (c *insertCursor) insertChainKey(
 }
 
 // Created new KeyNode and swap with root
-func (c *insertCursor) insertRoot(
+func (c *insert) insertRoot(
 	ctx context.Context,
 	fn string,
 	level byte,

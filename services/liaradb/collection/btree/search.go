@@ -11,17 +11,17 @@ import (
 )
 
 // TODO: Create latching support
-type searchCursor struct {
+type search struct {
 	ns *nodeStorage
 }
 
-func newSearchCursor(s *storage.Storage) searchCursor {
-	return searchCursor{
+func newSearch(s *storage.Storage) search {
+	return search{
 		ns: newNodeStorage(s),
 	}
 }
 
-func (c *searchCursor) Search(
+func (c *search) Search(
 	ctx context.Context,
 	fn string,
 	k key.Key,
@@ -29,7 +29,7 @@ func (c *searchCursor) Search(
 	return c.searchPage(ctx, storage.NewBlockID(fn, 0), k)
 }
 
-func (c *searchCursor) searchPage(
+func (c *search) searchPage(
 	ctx context.Context,
 	bid storage.BlockID,
 	k key.Key,
@@ -48,7 +48,7 @@ func (c *searchCursor) searchPage(
 	}
 }
 
-func (*searchCursor) searchLeaf(p page.Page, k key.Key) (leafnode.RecordID, error) {
+func (*search) searchLeaf(p page.Page, k key.Key) (leafnode.RecordID, error) {
 	ln := leafnode.New(p)
 	rid, ok := ln.Search(k)
 	if !ok {
@@ -58,7 +58,7 @@ func (*searchCursor) searchLeaf(p page.Page, k key.Key) (leafnode.RecordID, erro
 	return rid, nil
 }
 
-func (c *searchCursor) searchKey(
+func (c *search) searchKey(
 	ctx context.Context,
 	fn string,
 	p page.Page,
@@ -68,6 +68,6 @@ func (c *searchCursor) searchKey(
 	return c.searchPage(ctx, bid, k)
 }
 
-func (c *searchCursor) GetPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
+func (c *search) GetPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
 	return c.ns.getPage(ctx, bid)
 }
