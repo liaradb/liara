@@ -48,11 +48,6 @@ func (c *insertCursor) Insert(
 			}
 
 			bid, key, split, err = c.insertChainLeaf(ctx, fn, ln, key, rid)
-			if err != nil {
-				return err
-			} else if !split {
-				return nil
-			}
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
@@ -60,13 +55,12 @@ func (c *insertCursor) Insert(
 			}
 
 			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, keynode.BlockPosition(bid.Position))
-			if err != nil {
-				return err
-			} else if !split {
-				return nil
-			}
-
 			level++
+		}
+		if err != nil {
+			return err
+		} else if !split {
+			return nil
 		}
 	}
 
@@ -78,7 +72,7 @@ func (c *insertCursor) getChain(
 	fn string,
 	k key.Key,
 ) (*chain, error) {
-	p, err := c.getPage(ctx, storage.NewBlockID(fn, 0))
+	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +88,7 @@ func (c *insertCursor) getChain(
 		chain.append(kn)
 
 		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
-		if p, err = c.getPage(ctx, bid); err != nil {
+		if p, err = c.ns.getPage(ctx, bid); err != nil {
 			return nil, err
 		}
 	}
@@ -192,8 +186,4 @@ func (c *insertCursor) insertRoot(
 		keynode.BlockPosition(bid.Position))
 
 	return nil
-}
-
-func (c *insertCursor) getPage(ctx context.Context, bid storage.BlockID) (page.BTreePage, error) {
-	return c.ns.getPage(ctx, bid)
 }
