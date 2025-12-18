@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"slices"
 	"testing"
 	"testing/synctest"
 
@@ -236,6 +237,83 @@ func testCursor_Insert__Random(t *testing.T) {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
+}
+
+func TestCursor_SearchRange(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testCursor_SearchRange)
+}
+
+func testCursor_SearchRange(t *testing.T) {
+	s := createStorage(t, 8, 62)
+	ctx := t.Context()
+	n := "testfile"
+
+	data := []leafEntry{
+		newLeafEntry(
+			key.Key("a"),
+			leafnode.NewRecordID(1, 2)),
+		newLeafEntry(
+			key.Key("b"),
+			leafnode.NewRecordID(3, 4)),
+		newLeafEntry(
+			key.Key("c"),
+			leafnode.NewRecordID(5, 6)),
+		newLeafEntry(
+			key.Key("d"),
+			leafnode.NewRecordID(7, 8)),
+		newLeafEntry(
+			key.Key("e"),
+			leafnode.NewRecordID(9, 10)),
+		newLeafEntry(
+			key.Key("f"),
+			leafnode.NewRecordID(11, 12)),
+		newLeafEntry(
+			key.Key("g"),
+			leafnode.NewRecordID(13, 14)),
+		newLeafEntry(
+			key.Key("h"),
+			leafnode.NewRecordID(15, 16)),
+		newLeafEntry(
+			key.Key("i"),
+			leafnode.NewRecordID(17, 18)),
+	}
+
+	for _, e := range data {
+		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+			t.Fatal(e.key, err)
+		}
+		// TODO: Need to flush to disk
+	}
+
+	wantAll := make([]leafnode.RecordID, 0, len(data))
+	for _, e := range data {
+		wantAll = append(wantAll, e.recordID)
+	}
+
+	for i, e := range data {
+		c := NewCursor(s)
+		result := make([]leafnode.RecordID, 0, len(data))
+		for rid, err := range c.SearchRange(ctx, n, e.key) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, rid)
+		}
+
+		want := wantAll[i:]
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
 	}
 

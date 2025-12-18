@@ -57,8 +57,7 @@ func (c *search) searchRoot(
 		return 0, 0, leafnode.RecordID{}, err
 	}
 
-	l := p.Level()
-	if l == 0 {
+	if l := p.Level(); l == 0 {
 		ln := leafnode.New(p)
 		defer ln.Release()
 		rid, ok := ln.Search(k)
@@ -111,13 +110,15 @@ func (c *search) searchLeaf(
 
 func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq2[leafnode.RecordID, error] {
 	return func(yield func(leafnode.RecordID, error) bool) {
-		rid, _, err := s.searchRange(ctx, fn, k)
+		ln, err := s.searchRange(ctx, fn, k)
 		if err != nil {
 			yield(leafnode.RecordID{}, err)
 			return
 		}
 
-		if !yield(rid, nil) {
+		defer ln.Release()
+
+		if rid, ok := ln.Search(k); !ok || !yield(rid, nil) {
 			return
 		}
 	}
@@ -127,52 +128,44 @@ func (c *search) searchRange(
 	ctx context.Context,
 	fn string,
 	k key.Key,
-) (leafnode.RecordID, keynode.BlockPosition, error) {
-	level, block, rid, err := c.searchRangeRoot(ctx, fn, k)
+) (*leafnode.LeafNode, error) {
+	level, block, ln, err := c.searchRangeRoot(ctx, fn, k)
 	if err != nil {
-		return leafnode.RecordID{}, 0, err
+		return nil, err
 	}
 
 	if level == 0 {
-		return rid, 0, nil
+		return ln, nil
 	}
 
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchRangeKey(ctx,
 			storage.NewBlockID(fn, storage.Offset(block)), k)
 		if err != nil {
-			return leafnode.RecordID{}, 0, err
+			return nil, err
 		}
 	}
 
-	return c.searchRangeLeaf(ctx,
-		storage.NewBlockID(fn, storage.Offset(block)), k)
+	return c.ns.getLeafNode(ctx,
+		storage.NewBlockID(fn, storage.Offset(block)))
 }
 
 func (c *search) searchRangeRoot(
 	ctx context.Context,
 	fn string,
 	k key.Key,
-) (byte, keynode.BlockPosition, leafnode.RecordID, error) {
+) (byte, keynode.BlockPosition, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
-		return 0, 0, leafnode.RecordID{}, err
+		return 0, 0, nil, err
 	}
 
-	l := p.Level()
-	if l == 0 {
-		ln := leafnode.New(p)
-		defer ln.Release()
-		rid, ok := ln.Search(k)
-		if !ok {
-			return l, 0, leafnode.RecordID{}, ErrNotFound
-		}
-
-		return l, 0, rid, nil
+	if l := p.Level(); l == 0 {
+		return l, 0, leafnode.New(p), ErrNotFound
 	} else {
 		kn := keynode.New(p)
 		defer kn.Release()
-		return l, kn.Search(k), leafnode.RecordID{}, nil
+		return l, kn.Search(k), nil, nil
 	}
 }
 
@@ -189,24 +182,4 @@ func (c *search) searchRangeKey(
 	defer kn.Release()
 
 	return kn.Level(), kn.Search(k), nil
-}
-
-func (c *search) searchRangeLeaf(
-	ctx context.Context,
-	bid storage.BlockID,
-	k key.Key,
-) (leafnode.RecordID, keynode.BlockPosition, error) {
-	ln, err := c.ns.getLeafNode(ctx, bid)
-	if err != nil {
-		return leafnode.RecordID{}, 0, err
-	}
-
-	defer ln.Release()
-
-	rid, ok := ln.Search(k)
-	if !ok {
-		return leafnode.RecordID{}, 0, ErrNotFound
-	}
-
-	return rid, ln.RightID(), nil
 }
