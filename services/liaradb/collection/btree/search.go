@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
-	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -22,59 +21,12 @@ func newSearch(s *storage.Storage) search {
 	}
 }
 
-func (c *search) SearchRecursive(
-	ctx context.Context,
-	fn string,
-	k key.Key,
-) (leafnode.RecordID, error) {
-	return c.searchPage(ctx, storage.NewBlockID(fn, 0), k)
-}
-
-func (c *search) searchPage(
-	ctx context.Context,
-	bid storage.BlockID,
-	k key.Key,
-) (leafnode.RecordID, error) {
-	p, err := c.ns.getPage(ctx, bid)
-	if err != nil {
-		return leafnode.RecordID{}, err
-	}
-
-	defer p.Release()
-
-	if p.Level() == 0 {
-		return c.searchLeaf(p, k)
-	} else {
-		return c.searchKey(ctx, bid.FileName, p, k)
-	}
-}
-
-func (*search) searchLeaf(p page.Page, k key.Key) (leafnode.RecordID, error) {
-	ln := leafnode.New(p)
-	rid, ok := ln.Search(k)
-	if !ok {
-		return leafnode.RecordID{}, ErrNotFound
-	}
-
-	return rid, nil
-}
-
-func (c *search) searchKey(
-	ctx context.Context,
-	fn string,
-	p page.Page,
-	k key.Key,
-) (leafnode.RecordID, error) {
-	bid := storage.NewBlockID(fn, storage.Offset(keynode.New(p).Search(k)))
-	return c.searchPage(ctx, bid, k)
-}
-
 func (c *search) Search(
 	ctx context.Context,
 	fn string,
 	k key.Key,
 ) (leafnode.RecordID, error) {
-	level, block, rid, err := c.searchRootNode(ctx, fn, k)
+	level, block, rid, err := c.searchRoot(ctx, fn, k)
 	if err != nil {
 		return leafnode.RecordID{}, err
 	}
@@ -84,18 +36,18 @@ func (c *search) Search(
 	}
 
 	for i := level - 1; i > 0; i-- {
-		_, block, err = c.searchKeyNode(ctx,
+		_, block, err = c.searchKey(ctx,
 			storage.NewBlockID(fn, storage.Offset(block)), k)
 		if err != nil {
 			return leafnode.RecordID{}, err
 		}
 	}
 
-	return c.searchLeafNode(ctx,
+	return c.searchLeaf(ctx,
 		storage.NewBlockID(fn, storage.Offset(block)), k)
 }
 
-func (c *search) searchRootNode(
+func (c *search) searchRoot(
 	ctx context.Context,
 	fn string,
 	k key.Key,
@@ -122,7 +74,7 @@ func (c *search) searchRootNode(
 	}
 }
 
-func (c *search) searchKeyNode(
+func (c *search) searchKey(
 	ctx context.Context,
 	bid storage.BlockID,
 	k key.Key,
@@ -137,7 +89,7 @@ func (c *search) searchKeyNode(
 	return kn.Level(), kn.Search(k), nil
 }
 
-func (c *search) searchLeafNode(
+func (c *search) searchLeaf(
 	ctx context.Context,
 	bid storage.BlockID,
 	k key.Key,
