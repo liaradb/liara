@@ -21,6 +21,24 @@ func (ns *nodeStorage) getBuffer(ctx context.Context, bid storage.BlockID) (*sto
 	return ns.s.Request(ctx, bid)
 }
 
+func (ns *nodeStorage) getKeyNode(ctx context.Context, bid storage.BlockID) (*keynode.KeyNode, error) {
+	b, err := ns.s.Request(ctx, bid)
+	if err != nil {
+		return nil, err
+	}
+
+	return keynode.New(page.New(b)), nil
+}
+
+func (ns *nodeStorage) getLeafNode(ctx context.Context, bid storage.BlockID) (*leafnode.LeafNode, error) {
+	b, err := ns.s.Request(ctx, bid)
+	if err != nil {
+		return nil, err
+	}
+
+	return leafnode.New(page.New(b)), nil
+}
+
 func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn string) (*storage.Buffer, error) {
 	return ns.s.RequestNext(ctx, fn)
 }
