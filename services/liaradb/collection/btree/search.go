@@ -111,12 +111,102 @@ func (c *search) searchLeaf(
 
 func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq2[leafnode.RecordID, error] {
 	return func(yield func(leafnode.RecordID, error) bool) {
-		p, err := s.ns.getPage(ctx, storage.NewBlockID(fn, 0))
+		rid, _, err := s.searchRange(ctx, fn, k)
 		if err != nil {
 			yield(leafnode.RecordID{}, err)
 			return
 		}
 
-		defer p.Release()
+		if !yield(rid, nil) {
+			return
+		}
 	}
+}
+
+func (c *search) searchRange(
+	ctx context.Context,
+	fn string,
+	k key.Key,
+) (leafnode.RecordID, keynode.BlockPosition, error) {
+	level, block, rid, err := c.searchRangeRoot(ctx, fn, k)
+	if err != nil {
+		return leafnode.RecordID{}, 0, err
+	}
+
+	if level == 0 {
+		return rid, 0, nil
+	}
+
+	for i := level - 1; i > 0; i-- {
+		_, block, err = c.searchRangeKey(ctx,
+			storage.NewBlockID(fn, storage.Offset(block)), k)
+		if err != nil {
+			return leafnode.RecordID{}, 0, err
+		}
+	}
+
+	return c.searchRangeLeaf(ctx,
+		storage.NewBlockID(fn, storage.Offset(block)), k)
+}
+
+func (c *search) searchRangeRoot(
+	ctx context.Context,
+	fn string,
+	k key.Key,
+) (byte, keynode.BlockPosition, leafnode.RecordID, error) {
+	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
+	if err != nil {
+		return 0, 0, leafnode.RecordID{}, err
+	}
+
+	l := p.Level()
+	if l == 0 {
+		ln := leafnode.New(p)
+		defer ln.Release()
+		rid, ok := ln.Search(k)
+		if !ok {
+			return l, 0, leafnode.RecordID{}, ErrNotFound
+		}
+
+		return l, 0, rid, nil
+	} else {
+		kn := keynode.New(p)
+		defer kn.Release()
+		return l, kn.Search(k), leafnode.RecordID{}, nil
+	}
+}
+
+func (c *search) searchRangeKey(
+	ctx context.Context,
+	bid storage.BlockID,
+	k key.Key,
+) (byte, keynode.BlockPosition, error) {
+	kn, err := c.ns.getKeyNode(ctx, bid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	defer kn.Release()
+
+	return kn.Level(), kn.Search(k), nil
+}
+
+func (c *search) searchRangeLeaf(
+	ctx context.Context,
+	bid storage.BlockID,
+	k key.Key,
+) (leafnode.RecordID, keynode.BlockPosition, error) {
+	ln, err := c.ns.getLeafNode(ctx, bid)
+	if err != nil {
+		return leafnode.RecordID{}, 0, err
+	}
+
+	defer ln.Release()
+
+	rid, ok := ln.Search(k)
+	if !ok {
+		return leafnode.RecordID{}, 0, ErrNotFound
+	}
+
+	return rid, ln.RightID(), nil
 }
