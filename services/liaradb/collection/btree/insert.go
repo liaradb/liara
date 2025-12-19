@@ -125,12 +125,19 @@ func (c *insert) insertChainLeaf(
 
 	defer ln2.Release()
 
+	ln2.Latch()
+	defer ln2.Unlatch()
+
 	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(ln.RightID())))
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
 
 	defer ln3.Release()
+
+	// TODO: Figure out latching
+	// ln3.Latch()
+	// defer ln3.Unlatch()
 
 	ln3.SetLeftID(keynode.BlockPosition(bid2.Position))
 	key := ln2.Fill(keynode.BlockPosition(bid.Position), ln.RightID(), second)
@@ -160,6 +167,9 @@ func (c *insert) insertChainKey(
 
 	defer kn2.Release()
 
+	kn2.Latch()
+	defer kn2.Unlatch()
+
 	level := kn.Level()
 	key := kn2.Fill(level, second)
 	kn.Replace(level, first)
@@ -182,6 +192,10 @@ func (c *insert) insertRoot(
 
 	defer b0.Release()
 
+	// TODO: Figure out latching
+	// b0.Latch()
+	// defer b0.Unlatch()
+
 	// TODO: Should we wrap with KeyNode to simplify latching?
 	b2, err := c.ns.getNextBuffer(ctx, fn)
 	if err != nil {
@@ -189,6 +203,9 @@ func (c *insert) insertRoot(
 	}
 
 	defer b2.Release()
+
+	b2.Latch()
+	defer b2.Unlatch()
 
 	b2.Clone(b0)
 
