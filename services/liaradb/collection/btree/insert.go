@@ -118,8 +118,15 @@ func (c *insert) insertChainLeaf(
 		return storage.BlockID{}, "", false, err
 	}
 
-	defer ln2.Release()
+	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(ln.RightID())))
+	if err != nil {
+		return storage.BlockID{}, "", false, err
+	}
 
+	defer ln2.Release()
+	defer ln3.Release()
+
+	ln3.SetLeftID(keynode.BlockPosition(bid2.Position))
 	key := ln2.Fill(keynode.BlockPosition(bid.Position), ln.RightID(), second)
 	ln.Replace(keynode.BlockPosition(bid2.Position), first)
 
