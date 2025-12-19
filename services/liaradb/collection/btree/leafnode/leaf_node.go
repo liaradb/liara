@@ -238,3 +238,12 @@ func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
 func (ln *LeafNode) Release() {
 	ln.page.Release()
 }
+
+func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[LeafEntry] {
+	i, ok := ln.searchIndex(k)
+	if !ok {
+		return func(yield func(LeafEntry) bool) {}
+	}
+
+	return ln.childrenRange(i, -1)
+}

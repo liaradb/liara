@@ -133,6 +133,20 @@ func TestLeafNode_Insert(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
+
+	// Verify search range
+	for i, e := range data {
+		want := data[i:]
+
+		result := make([]LeafEntry, 0, len(want))
+		for c := range ln.SearchRange(e.Key()) {
+			result = append(result, c)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	}
 }
 
 func TestLeafNode_Insert__Split(t *testing.T) {

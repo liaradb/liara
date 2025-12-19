@@ -118,8 +118,10 @@ func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq
 
 		defer ln.Release()
 
-		if rid, ok := ln.Search(k); !ok || !yield(rid, nil) {
-			return
+		for le := range ln.SearchRange(k) {
+			if !yield(le.RecordID(), nil) {
+				return
+			}
 		}
 	}
 }

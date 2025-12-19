@@ -16,7 +16,9 @@ func newLeafEntry(key key.Key, recordID RecordID) LeafEntry {
 	}
 }
 
-func (le LeafEntry) Size() int { return le.key.Size() + RecordIDSize }
+func (le LeafEntry) Key() key.Key       { return le.key }
+func (le LeafEntry) RecordID() RecordID { return le.recordID }
+func (le LeafEntry) Size() int          { return le.key.Size() + RecordIDSize }
 
 func (le LeafEntry) Write(data []byte) {
 	data0 := le.recordID.Write(data)
