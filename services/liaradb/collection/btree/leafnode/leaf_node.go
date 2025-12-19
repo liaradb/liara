@@ -193,6 +193,16 @@ func (ln *LeafNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
 	}
 }
 
+func (ln *LeafNode) RecordIDs() iter.Seq[RecordID] {
+	return func(yield func(RecordID) bool) {
+		for le := range ln.Children() {
+			if !yield(le.RecordID()) {
+				return
+			}
+		}
+	}
+}
+
 func (ln *LeafNode) Search(k key.Key) (RecordID, bool) {
 	i, ok := ln.searchIndex(k)
 	if !ok {

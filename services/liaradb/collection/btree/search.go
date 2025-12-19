@@ -110,7 +110,7 @@ func (c *search) searchLeaf(
 
 func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq2[leafnode.RecordID, error] {
 	return func(yield func(leafnode.RecordID, error) bool) {
-		_, rids, err := s.searchRangeFirst(ctx, fn, k)
+		block, rids, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
 			yield(leafnode.RecordID{}, err)
 			return
@@ -119,6 +119,20 @@ func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq
 		for rid := range rids {
 			if !yield(rid, nil) {
 				return
+			}
+		}
+
+		for block != 0 {
+			block, rids, err = s.searchRangeNext(ctx, fn, block)
+			if err != nil {
+				yield(leafnode.RecordID{}, err)
+				return
+			}
+
+			for rid := range rids {
+				if !yield(rid, nil) {
+					return
+				}
 			}
 		}
 	}
@@ -133,6 +147,17 @@ func (s *search) searchRangeFirst(ctx context.Context, fn string, k key.Key) (ke
 	defer ln.Release()
 
 	return ln.RightID(), ln.SearchRange(k), nil
+}
+
+func (s *search) searchRangeNext(ctx context.Context, fn string, block keynode.BlockPosition) (keynode.BlockPosition, iter.Seq[leafnode.RecordID], error) {
+	ln, err := s.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(block)))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	defer ln.Release()
+
+	return ln.RightID(), ln.RecordIDs(), nil
 }
 
 func (c *search) searchRange(

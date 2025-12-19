@@ -125,6 +125,23 @@ func TestLeafNode_Insert(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
 
+	// Verify record ids
+	{
+		want := make([]RecordID, 0, len(data))
+		for _, e := range data {
+			want = append(want, e.RecordID())
+		}
+
+		result := make([]RecordID, 0, len(want))
+		for c := range ln.RecordIDs() {
+			result = append(result, c)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	}
+
 	// Verify items are all searchable
 	for _, e := range data {
 		if rid, ok := ln.Search(e.key); !ok {
