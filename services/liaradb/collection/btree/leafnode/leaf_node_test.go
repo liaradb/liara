@@ -7,12 +7,17 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestLeafNode_Child(t *testing.T) {
 	t.Parallel()
 
-	p := page.New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := page.New(b)
 	ln := New(p)
 
 	data := []LeafEntry{
@@ -54,7 +59,10 @@ func TestLeafNode_Child(t *testing.T) {
 func TestLeafNode_Children(t *testing.T) {
 	t.Parallel()
 
-	p := page.New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := page.New(b)
 	ln := New(p)
 
 	data := []LeafEntry{
@@ -91,7 +99,10 @@ func TestLeafNode_Children(t *testing.T) {
 func TestLeafNode_Insert(t *testing.T) {
 	t.Parallel()
 
-	bp := page.New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	bp := page.New(b)
 	ln := New(bp)
 
 	data := []LeafEntry{
@@ -171,9 +182,11 @@ func TestLeafNode_Insert(t *testing.T) {
 
 func TestLeafNode_Insert__Split(t *testing.T) {
 	t.Parallel()
-	// t.Skip()
 
-	bp := page.New(newMockBuffer(62))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	bp := page.New(b)
 	ln := New(bp)
 
 	data := []LeafEntry{
@@ -222,4 +235,23 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 	// 	}
 	// }
+}
+
+func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	s := storage.New(fsys, max, bs, t.TempDir())
+	if err := s.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	return s
+}
+
+func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
+	b, err := s.Request(t.Context(), storage.BlockID{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return b
 }

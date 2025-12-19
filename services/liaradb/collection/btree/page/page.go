@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/tuplelist"
+	"github.com/liaradb/liaradb/storage"
 )
 
 const (
@@ -13,20 +14,13 @@ const (
 
 type Page struct {
 	header
-	buffer   Buffer
+	buffer   *storage.Buffer
 	data     []byte
 	list     tuplelist.TupleList
 	byteList bytelist.ByteList
 }
 
-type Buffer interface {
-	Raw() []byte
-	Clear()
-	Release()
-	SetDirty()
-}
-
-func New(buffer Buffer) Page {
+func New(buffer *storage.Buffer) Page {
 	data := buffer.Raw()
 	header, data0 := newHeader(data)
 

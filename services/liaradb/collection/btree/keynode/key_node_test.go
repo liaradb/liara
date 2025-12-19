@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/storage"
 )
 
 func TestKeyNode(t *testing.T) {
@@ -13,7 +15,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should insert", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -23,7 +28,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should iterate in order", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -33,7 +41,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search items", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -44,7 +55,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search indexes", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -73,7 +87,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search before items", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -87,7 +104,10 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search after items", func(t *testing.T) {
 		t.Parallel()
 
-		bp := page.New(newMockBuffer(256))
+		s := createStorage(t, 2, 256)
+		b := createBuffer(t, s)
+
+		bp := page.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -137,4 +157,23 @@ func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []KeyEntry) {
 			t.Errorf("incorrect record id: %v, expected: %v", block, e.block)
 		}
 	}
+}
+
+func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	s := storage.New(fsys, max, bs, t.TempDir())
+	if err := s.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	return s
+}
+
+func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
+	b, err := s.Request(t.Context(), storage.BlockID{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return b
 }

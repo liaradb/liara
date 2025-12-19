@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/storage"
 )
 
 const (
@@ -21,7 +23,10 @@ func TestBTreePage_Append(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	p := New(newMockBuffer(size))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -96,7 +101,10 @@ func TestBTreePage_Insert(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	p := New(newMockBuffer(size))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -164,7 +172,10 @@ func TestBTreePage_Insert(t *testing.T) {
 func TestBTreePage_Space(t *testing.T) {
 	t.Parallel()
 
-	p := New(newMockBuffer(16 + itemSize + headerSize))
+	s := createStorage(t, 2, 16+itemSize+headerSize)
+	b := createBuffer(t, s)
+
+	p := New(b)
 
 	if s := p.Space(); s != 16 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
@@ -186,7 +197,10 @@ func TestBTreePage_Space(t *testing.T) {
 func TestBTreePage_Child(t *testing.T) {
 	t.Parallel()
 
-	p := New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := New(b)
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -231,7 +245,10 @@ func TestBTreePage_Child(t *testing.T) {
 func TestBTreePage_Children(t *testing.T) {
 	t.Parallel()
 
-	p := New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := New(b)
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -268,7 +285,10 @@ func TestBTreePage_Children(t *testing.T) {
 func TestBTreePage_ChildrenRange(t *testing.T) {
 	t.Parallel()
 
-	p := New(newMockBuffer(256))
+	s := createStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	p := New(b)
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -305,4 +325,23 @@ func TestBTreePage_ChildrenRange(t *testing.T) {
 	if !slices.EqualFunc(result, want, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+}
+
+func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	s := storage.New(fsys, max, bs, t.TempDir())
+	if err := s.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	return s
+}
+
+func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
+	b, err := s.Request(t.Context(), storage.BlockID{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return b
 }
