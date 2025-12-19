@@ -136,9 +136,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify search range
 	for i, e := range data {
-		want := data[i:]
+		want := make([]RecordID, 0, len(data[i:]))
+		for _, e := range data[i:] {
+			want = append(want, e.RecordID())
+		}
 
-		result := make([]LeafEntry, 0, len(want))
+		result := make([]RecordID, 0, len(want))
 		for c := range ln.SearchRange(e.Key()) {
 			result = append(result, c)
 		}

@@ -239,11 +239,17 @@ func (ln *LeafNode) Release() {
 	ln.page.Release()
 }
 
-func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[LeafEntry] {
-	i, ok := ln.searchIndex(k)
-	if !ok {
-		return func(yield func(LeafEntry) bool) {}
-	}
+func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[RecordID] {
+	return func(yield func(RecordID) bool) {
+		i, ok := ln.searchIndex(k)
+		if !ok {
+			return
+		}
 
-	return ln.childrenRange(i, -1)
+		for le := range ln.childrenRange(i, -1) {
+			if !yield(le.RecordID()) {
+				return
+			}
+		}
+	}
 }
