@@ -26,6 +26,18 @@ func (ln *LeafNode) RightID() keynode.BlockPosition {
 	return keynode.BlockPosition(ln.page.HighID())
 }
 
+// TODO: Test this
+func (ln *LeafNode) SetLeftID(block keynode.BlockPosition) {
+	ln.page.SetLowID(block.Value())
+	ln.page.SetDirty()
+}
+
+// TODO: Test this
+func (ln *LeafNode) SetRightID(block keynode.BlockPosition) {
+	ln.page.SetHighID(block.Value())
+	ln.page.SetDirty()
+}
+
 func (ln *LeafNode) Append(key key.Key, recordID RecordID) (int16, bool) {
 	le := newLeafEntry(key, recordID)
 	i, b, ok := ln.page.Append(int16(le.Size()))

@@ -58,7 +58,7 @@ func (p *header) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
 
-func (p *header) setHighID(o int64) {
+func (p *header) SetHighID(o int64) {
 	p.highID.Set(o)
 }
 
