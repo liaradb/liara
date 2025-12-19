@@ -40,9 +40,11 @@ func (p *Page) Clear() {
 }
 
 // TODO: Test this
-func (p *Page) Release() {
-	p.buffer.Release()
-}
+func (p *Page) Release()  { p.buffer.Release() }
+func (p *Page) Latch()    { p.buffer.Latch() }
+func (p *Page) Unlatch()  { p.buffer.Unlatch() }
+func (p *Page) RLatch()   { p.buffer.RLatch() }
+func (p *Page) RUnlatch() { p.buffer.RUnlatch() }
 
 // TODO: Test this
 func (p *Page) SetDirty() {

@@ -272,9 +272,11 @@ func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
 }
 
 // TODO: Test this
-func (ln *LeafNode) Release() {
-	ln.page.Release()
-}
+func (ln *LeafNode) Release()  { ln.page.Release() }
+func (ln *LeafNode) Latch()    { ln.page.Latch() }
+func (ln *LeafNode) Unlatch()  { ln.page.Unlatch() }
+func (ln *LeafNode) RLatch()   { ln.page.RLatch() }
+func (ln *LeafNode) RUnlatch() { ln.page.RUnlatch() }
 
 func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[RecordID] {
 	return func(yield func(RecordID) bool) {

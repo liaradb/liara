@@ -243,6 +243,8 @@ func (kn *KeyNode) Level() byte {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Release() {
-	kn.page.Release()
-}
+func (kn *KeyNode) Release()  { kn.page.Release() }
+func (kn *KeyNode) Latch()    { kn.page.Latch() }
+func (kn *KeyNode) Unlatch()  { kn.page.Unlatch() }
+func (kn *KeyNode) RLatch()   { kn.page.RLatch() }
+func (kn *KeyNode) RUnlatch() { kn.page.RUnlatch() }
