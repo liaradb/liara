@@ -68,7 +68,11 @@ func (ln *LeafNode) Insert(key key.Key, recordID RecordID) (iter.Seq[LeafEntry],
 }
 
 // TODO: Test this
-func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) key.Key {
+func (ln *LeafNode) Fill(
+	leftID keynode.BlockPosition,
+	rightID keynode.BlockPosition,
+	entries iter.Seq[LeafEntry],
+) key.Key {
 	var k key.Key
 	first := true
 	for e := range entries {
@@ -79,17 +83,23 @@ func (ln *LeafNode) Fill(entries iter.Seq[LeafEntry]) key.Key {
 		// This will definitely fit
 		_, _ = ln.Append(e.key, e.recordID)
 	}
+
+	// TODO: We are duplicating set dirty calls
+	ln.SetLeftID(leftID)
+	ln.SetRightID(rightID)
 	ln.page.SetDirty()
 	return k
 }
 
 // TODO: Test this
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(entries iter.Seq[LeafEntry]) {
+func (ln *LeafNode) Replace(rightID keynode.BlockPosition, entries iter.Seq[LeafEntry]) {
 	cache := make([]LeafEntry, 0, ln.mid())
 	for e := range entries {
 		cache = append(cache, e)
 	}
+
+	leftID := ln.LeftID()
 
 	ln.page.Clear()
 
@@ -98,6 +108,9 @@ func (ln *LeafNode) Replace(entries iter.Seq[LeafEntry]) {
 		_, _ = ln.Append(e.key, e.recordID)
 	}
 
+	// TODO: We are duplicating set dirty calls
+	ln.SetLeftID(leftID)
+	ln.SetRightID(rightID)
 	ln.page.SetDirty()
 }
 
@@ -115,6 +128,7 @@ func (ln *LeafNode) first(i int16, mid int16, le LeafEntry) func(yield func(Leaf
 		return ln.childrenRange(0, mid)
 	}
 
+	// TODO: Simplify this
 	return func(yield func(LeafEntry) bool) {
 		if i == 0 {
 			if !yield(le) {
@@ -144,6 +158,7 @@ func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(Lea
 		return ln.childrenRange(mid, -1)
 	}
 
+	// TODO: Simplify this
 	return func(yield func(LeafEntry) bool) {
 		k := i - mid
 		if k == 0 {

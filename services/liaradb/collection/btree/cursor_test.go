@@ -249,7 +249,6 @@ func testCursor_Insert__Random(t *testing.T) {
 
 func TestCursor_SearchRange(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testCursor_SearchRange)
 }
 

@@ -47,7 +47,7 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, fn, ln, key, rid)
+			bid, key, split, err = c.insertChainLeaf(ctx, fn, bid, ln, key, rid)
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
@@ -103,6 +103,7 @@ func (c *insert) getChain(
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
 	fn string,
+	bid storage.BlockID,
 	ln *leafnode.LeafNode,
 	k key.Key,
 	rid leafnode.RecordID,
@@ -112,17 +113,17 @@ func (c *insert) insertChainLeaf(
 		return storage.BlockID{}, "", false, nil
 	}
 
-	ln2, bid, err := c.ns.getNextLeafNode(ctx, fn)
+	ln2, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
 
 	defer ln2.Release()
 
-	key := ln2.Fill(second)
-	ln.Replace(first)
+	key := ln2.Fill(keynode.BlockPosition(bid.Position), ln.RightID(), second)
+	ln.Replace(keynode.BlockPosition(bid2.Position), first)
 
-	return bid, key, true, nil
+	return bid2, key, true, nil
 }
 
 // This is a key level page.
