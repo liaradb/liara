@@ -108,7 +108,15 @@ func (c *search) searchLeaf(
 	return rid, nil
 }
 
-func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq2[leafnode.RecordID, error] {
+func (s *search) SearchRange(
+	ctx context.Context,
+	fn string,
+	k key.Key,
+	skip int,
+	limit int,
+) iter.Seq2[leafnode.RecordID, error] {
+	skipped := 0
+	returned := 0
 	return func(yield func(leafnode.RecordID, error) bool) {
 		block, rids, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
@@ -117,12 +125,21 @@ func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq
 		}
 
 		for rid := range rids {
-			if !yield(rid, nil) {
+			if skip > skipped {
+				skipped++
+				continue
+			}
+			if s.isLimit(limit, returned) || !yield(rid, nil) {
 				return
 			}
+			returned++
 		}
 
 		for block != 0 {
+			if s.isLimit(limit, returned) {
+				return
+			}
+
 			block, rids, err = s.searchRangeNext(ctx, fn, block)
 			if err != nil {
 				yield(leafnode.RecordID{}, err)
@@ -130,12 +147,21 @@ func (s *search) SearchRange(ctx context.Context, fn string, k key.Key) iter.Seq
 			}
 
 			for rid := range rids {
-				if !yield(rid, nil) {
+				if skip > skipped {
+					skipped++
+					continue
+				}
+				if s.isLimit(limit, returned) || !yield(rid, nil) {
 					return
 				}
+				returned++
 			}
 		}
 	}
+}
+
+func (s *search) isLimit(limit int, returned int) bool {
+	return limit > 0 && returned >= limit
 }
 
 func (s *search) searchRangeFirst(ctx context.Context, fn string, k key.Key) (keynode.BlockPosition, iter.Seq[leafnode.RecordID], error) {

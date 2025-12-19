@@ -302,7 +302,7 @@ func testCursor_SearchRange(t *testing.T) {
 	for i, e := range data {
 		c := NewCursor(s)
 		result := make([]leafnode.RecordID, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, n, e.key) {
+		for rid, err := range c.SearchRange(ctx, n, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -311,6 +311,24 @@ func testCursor_SearchRange(t *testing.T) {
 		}
 
 		want := wantAll[i:]
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	}
+
+	// Skip and Limit
+	{
+		c := NewCursor(s)
+		result := make([]leafnode.RecordID, 0, len(data))
+		for rid, err := range c.SearchRange(ctx, n, "b", 1, 3) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, rid)
+		}
+
+		want := wantAll[2:5]
 		if !slices.Equal(result, want) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
