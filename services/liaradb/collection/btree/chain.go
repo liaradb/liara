@@ -46,3 +46,27 @@ func (c *chain) release() {
 		}
 	}
 }
+
+func (c *chain) latch() {
+	for i, n := range c.items() {
+		if i == 0 {
+			ln := n.(*leafnode.LeafNode)
+			ln.Latch()
+		} else {
+			kn := n.(*keynode.KeyNode)
+			kn.Latch()
+		}
+	}
+}
+
+func (c *chain) unlatch() {
+	for i, n := range c.items() {
+		if i == 0 {
+			ln := n.(*leafnode.LeafNode)
+			ln.Unlatch()
+		} else {
+			kn := n.(*keynode.KeyNode)
+			kn.Unlatch()
+		}
+	}
+}

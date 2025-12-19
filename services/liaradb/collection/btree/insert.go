@@ -36,6 +36,9 @@ func (c *insert) Insert(
 
 	defer chain.release()
 
+	chain.latch()
+	defer chain.unlatch()
+
 	var bid storage.BlockID
 	var key = k
 	var level byte
@@ -81,6 +84,7 @@ func (c *insert) getChain(
 
 	for i := int(p.Level()); i > 0; i-- {
 		if lvl := p.Level(); lvl != byte(i) {
+			chain.release()
 			return nil, ErrLevelMismatch
 		}
 
@@ -89,6 +93,7 @@ func (c *insert) getChain(
 
 		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
 		if p, err = c.ns.getPage(ctx, bid); err != nil {
+			chain.release()
 			return nil, err
 		}
 	}
@@ -118,12 +123,13 @@ func (c *insert) insertChainLeaf(
 		return storage.BlockID{}, "", false, err
 	}
 
+	defer ln2.Release()
+
 	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(ln.RightID())))
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}
 
-	defer ln2.Release()
 	defer ln3.Release()
 
 	ln3.SetLeftID(keynode.BlockPosition(bid2.Position))
