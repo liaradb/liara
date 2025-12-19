@@ -119,37 +119,43 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.Key("a"),
-			leafnode.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.Key("b"),
-			leafnode.NewRecordID(3, 4)),
-		newLeafEntry(
-			key.Key("c"),
-			leafnode.NewRecordID(5, 6)),
-		newLeafEntry(
-			key.Key("d"),
-			leafnode.NewRecordID(7, 8)),
-		newLeafEntry(
-			key.Key("e"),
-			leafnode.NewRecordID(9, 10)),
-		newLeafEntry(
-			key.Key("f"),
-			leafnode.NewRecordID(11, 12)),
-		newLeafEntry(
-			key.Key("g"),
-			leafnode.NewRecordID(13, 14)),
-		newLeafEntry(
-			key.Key("h"),
-			leafnode.NewRecordID(15, 16)),
-		newLeafEntry(
-			key.Key("i"),
-			leafnode.NewRecordID(17, 18)),
+	data := createData()
+
+	for _, e := range data {
+		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+			t.Fatal(e.key, err)
+		}
+		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
+		if rid, err := NewCursor(s).Search(ctx, n, e.key); err != nil {
+			t.Error(err, e.key)
+		} else if rid != e.recordID {
+			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		}
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
+}
+
+func TestCursor_Insert__Reverse(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testCursor_Insert__Reverse)
+}
+
+func testCursor_Insert__Reverse(t *testing.T) {
+	s := createStorage(t, 8, 62)
+	ctx := t.Context()
+	n := "testfile"
+
+	data := createData()
+
+	for _, e := range reverseData(data) {
 		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
@@ -181,35 +187,7 @@ func testCursor_Insert__Random(t *testing.T) {
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.Key("0"),
-			leafnode.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.Key("1"),
-			leafnode.NewRecordID(3, 4)),
-		newLeafEntry(
-			key.Key("2"),
-			leafnode.NewRecordID(5, 6)),
-		newLeafEntry(
-			key.Key("3"),
-			leafnode.NewRecordID(7, 8)),
-		newLeafEntry(
-			key.Key("4"),
-			leafnode.NewRecordID(9, 10)),
-		newLeafEntry(
-			key.Key("5"),
-			leafnode.NewRecordID(11, 12)),
-		newLeafEntry(
-			key.Key("6"),
-			leafnode.NewRecordID(13, 14)),
-		newLeafEntry(
-			key.Key("7"),
-			leafnode.NewRecordID(15, 16)),
-		newLeafEntry(
-			key.Key("8"),
-			leafnode.NewRecordID(17, 18)),
-	}
+	data := createData()
 
 	// Insert in mixed order
 	order := []int{
@@ -223,10 +201,10 @@ func testCursor_Insert__Random(t *testing.T) {
 		7,
 		1,
 	}
-	for index, i := range order {
-		e := data[i]
+
+	for i, e := range reorderData(order, data) {
 		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
-			t.Fatal(index, i, e.key, err)
+			t.Fatal(i, e.key, err)
 		}
 		// TODO: Need to flush to disk
 	}
@@ -257,35 +235,7 @@ func testCursor_SearchRange(t *testing.T) {
 	ctx := t.Context()
 	n := "testfile"
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.Key("a"),
-			leafnode.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.Key("b"),
-			leafnode.NewRecordID(3, 4)),
-		newLeafEntry(
-			key.Key("c"),
-			leafnode.NewRecordID(5, 6)),
-		newLeafEntry(
-			key.Key("d"),
-			leafnode.NewRecordID(7, 8)),
-		newLeafEntry(
-			key.Key("e"),
-			leafnode.NewRecordID(9, 10)),
-		newLeafEntry(
-			key.Key("f"),
-			leafnode.NewRecordID(11, 12)),
-		newLeafEntry(
-			key.Key("g"),
-			leafnode.NewRecordID(13, 14)),
-		newLeafEntry(
-			key.Key("h"),
-			leafnode.NewRecordID(15, 16)),
-		newLeafEntry(
-			key.Key("i"),
-			leafnode.NewRecordID(17, 18)),
-	}
+	data := createData()
 
 	for _, e := range data {
 		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
@@ -320,7 +270,7 @@ func testCursor_SearchRange(t *testing.T) {
 	{
 		c := NewCursor(s)
 		result := make([]leafnode.RecordID, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, n, "b", 1, 3) {
+		for rid, err := range c.SearchRange(ctx, n, "1", 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -349,4 +299,72 @@ func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	}
 
 	return s
+}
+
+func reverseData(data []leafEntry) []leafEntry {
+	data = slices.Clone(data)
+	slices.Reverse(data)
+	return data
+}
+
+func reorderData(order []int, data []leafEntry) []leafEntry {
+	data = slices.Clone(data)
+
+	hash := make(map[key.Key]int)
+	for i, le := range data {
+		if i >= len(order) {
+			break
+		}
+
+		hash[le.key] = order[i]
+	}
+	l := len(data)
+
+	slices.SortFunc(data, func(a, b leafEntry) int {
+		c, ok := hash[a.key]
+		if !ok {
+			c = l
+		}
+
+		d, ok := hash[b.key]
+		if !ok {
+			d = l
+		}
+
+		return c - d
+	})
+
+	return data
+}
+
+func createData() []leafEntry {
+	return []leafEntry{
+		newLeafEntry(
+			key.Key("0"),
+			leafnode.NewRecordID(1, 2)),
+		newLeafEntry(
+			key.Key("1"),
+			leafnode.NewRecordID(3, 4)),
+		newLeafEntry(
+			key.Key("2"),
+			leafnode.NewRecordID(5, 6)),
+		newLeafEntry(
+			key.Key("3"),
+			leafnode.NewRecordID(7, 8)),
+		newLeafEntry(
+			key.Key("4"),
+			leafnode.NewRecordID(9, 10)),
+		newLeafEntry(
+			key.Key("5"),
+			leafnode.NewRecordID(11, 12)),
+		newLeafEntry(
+			key.Key("6"),
+			leafnode.NewRecordID(13, 14)),
+		newLeafEntry(
+			key.Key("7"),
+			leafnode.NewRecordID(15, 16)),
+		newLeafEntry(
+			key.Key("8"),
+			leafnode.NewRecordID(17, 18)),
+	}
 }
