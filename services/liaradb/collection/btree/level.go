@@ -25,5 +25,8 @@ func (l *level) Level(ctx context.Context, fn string) (byte, error) {
 
 	defer p.Release()
 
+	p.RLatch()
+	defer p.RUnlatch()
+
 	return p.Level(), nil
 }

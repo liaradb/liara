@@ -60,6 +60,10 @@ func (c *search) searchRoot(
 	if l := p.Level(); l == 0 {
 		ln := leafnode.New(p)
 		defer ln.Release()
+
+		ln.RLatch()
+		defer ln.RUnlatch()
+
 		rid, ok := ln.Search(k)
 		if !ok {
 			return l, 0, leafnode.RecordID{}, ErrNotFound
@@ -69,6 +73,10 @@ func (c *search) searchRoot(
 	} else {
 		kn := keynode.New(p)
 		defer kn.Release()
+
+		kn.RLatch()
+		defer kn.RUnlatch()
+
 		return l, kn.Search(k), leafnode.RecordID{}, nil
 	}
 }
@@ -85,6 +93,9 @@ func (c *search) searchKey(
 
 	defer kn.Release()
 
+	kn.RLatch()
+	defer kn.RUnlatch()
+
 	return kn.Level(), kn.Search(k), nil
 }
 
@@ -99,6 +110,9 @@ func (c *search) searchLeaf(
 	}
 
 	defer ln.Release()
+
+	ln.RLatch()
+	defer ln.RUnlatch()
 
 	rid, ok := ln.Search(k)
 	if !ok {
@@ -172,6 +186,9 @@ func (s *search) searchRangeFirst(ctx context.Context, fn string, k key.Key) (ke
 
 	defer ln.Release()
 
+	ln.RLatch()
+	defer ln.RUnlatch()
+
 	return ln.RightID(), ln.SearchRange(k), nil
 }
 
@@ -182,6 +199,9 @@ func (s *search) searchRangeNext(ctx context.Context, fn string, block keynode.B
 	}
 
 	defer ln.Release()
+
+	ln.RLatch()
+	defer ln.RUnlatch()
 
 	return ln.RightID(), ln.RecordIDs(), nil
 }
@@ -227,6 +247,10 @@ func (c *search) searchRangeRoot(
 	} else {
 		kn := keynode.New(p)
 		defer kn.Release()
+
+		kn.RLatch()
+		defer kn.RUnlatch()
+
 		return l, kn.Search(k), nil, nil
 	}
 }
