@@ -1,20 +1,20 @@
 package leafnode
 
-import "github.com/liaradb/liaradb/collection/btree/key"
+import "github.com/liaradb/liaradb/collection/btree/value"
 
 type leafEntry struct {
-	key      key.Key
+	key      value.Key
 	recordID RecordID
 }
 
-func newLeafEntry(key key.Key, recordID RecordID) leafEntry {
+func newLeafEntry(key value.Key, recordID RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
 	}
 }
 
-func (le leafEntry) Key() key.Key       { return le.key }
+func (le leafEntry) Key() value.Key     { return le.key }
 func (le leafEntry) RecordID() RecordID { return le.recordID }
 func (le leafEntry) Size() int          { return le.key.Size() + RecordIDSize }
 
@@ -25,5 +25,5 @@ func (le leafEntry) Write(data []byte) {
 
 func (le *leafEntry) Read(data []byte) {
 	data0 := le.recordID.Read(data)
-	le.key = key.Key(data0)
+	le.key = value.Key(data0)
 }

@@ -5,8 +5,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -22,10 +22,10 @@ func TestLeafNode_Child(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			key.Key("abcde"),
+			value.Key("abcde"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("fghij"),
+			value.Key("fghij"),
 			NewRecordID(3, 4)),
 	}
 
@@ -67,10 +67,10 @@ func TestLeafNode_Children(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			key.Key("abcde"),
+			value.Key("abcde"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("fghij"),
+			value.Key("fghij"),
 			NewRecordID(3, 4)),
 	}
 
@@ -107,13 +107,13 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			key.Key("a"),
+			value.Key("a"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("b"),
+			value.Key("b"),
 			NewRecordID(3, 4)),
 		newLeafEntry(
-			key.Key("c"),
+			value.Key("c"),
 			NewRecordID(5, 6)),
 	}
 
@@ -191,13 +191,13 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			key.Key("a"),
+			value.Key("a"),
 			NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("b"),
+			value.Key("b"),
 			NewRecordID(3, 4)),
 		newLeafEntry(
-			key.Key("c"),
+			value.Key("c"),
 			NewRecordID(5, 6)),
 	}
 

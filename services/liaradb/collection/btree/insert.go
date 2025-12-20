@@ -3,10 +3,10 @@ package btree
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -25,7 +25,7 @@ func newInsert(s *storage.Storage) insert {
 func (c *insert) Insert(
 	ctx context.Context,
 	fn string,
-	k key.Key,
+	k value.Key,
 	rid leafnode.RecordID,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
@@ -72,7 +72,7 @@ func (c *insert) Insert(
 func (c *insert) getChain(
 	ctx context.Context,
 	fn string,
-	k key.Key,
+	k value.Key,
 ) (*chain, error) {
 	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
@@ -109,9 +109,9 @@ func (c *insert) insertChainLeaf(
 	fn string,
 	bid storage.BlockID,
 	ln *leafnode.LeafNode,
-	k key.Key,
+	k value.Key,
 	rid leafnode.RecordID,
-) (storage.BlockID, key.Key, bool, error) {
+) (storage.BlockID, value.Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
 		return storage.BlockID{}, "", false, nil
@@ -151,9 +151,9 @@ func (c *insert) insertChainKey(
 	ctx context.Context,
 	fn string,
 	kn *keynode.KeyNode,
-	k key.Key,
+	k value.Key,
 	block keynode.BlockPosition,
-) (storage.BlockID, key.Key, bool, error) {
+) (storage.BlockID, value.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
 		return storage.BlockID{}, "", false, nil
@@ -181,7 +181,7 @@ func (c *insert) insertRoot(
 	ctx context.Context,
 	fn string,
 	level byte,
-	key key.Key,
+	key value.Key,
 	bid storage.BlockID,
 ) error {
 	b0, err := c.ns.getBuffer(ctx, storage.NewBlockID(fn, 0))

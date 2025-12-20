@@ -5,8 +5,8 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -53,11 +53,11 @@ func TestCursor_Insert__Root(t *testing.T) {
 }
 
 type leafEntry struct {
-	key      key.Key
+	key      value.Key
 	recordID leafnode.RecordID
 }
 
-func newLeafEntry(key key.Key, recordID leafnode.RecordID) leafEntry {
+func newLeafEntry(key value.Key, recordID leafnode.RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -71,13 +71,13 @@ func testCursor_Insert__Root(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			key.Key("a"),
+			value.Key("a"),
 			leafnode.NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("b"),
+			value.Key("b"),
 			leafnode.NewRecordID(3, 4)),
 		newLeafEntry(
-			key.Key("c"),
+			value.Key("c"),
 			leafnode.NewRecordID(5, 6)),
 	}
 
@@ -311,7 +311,7 @@ func reverseData(data []leafEntry) []leafEntry {
 func reorderData(order []int, data []leafEntry) []leafEntry {
 	data = slices.Clone(data)
 
-	hash := make(map[key.Key]int)
+	hash := make(map[value.Key]int)
 	for i, le := range data {
 		if i >= len(order) {
 			break
@@ -341,31 +341,31 @@ func reorderData(order []int, data []leafEntry) []leafEntry {
 func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
-			key.Key("0"),
+			value.Key("0"),
 			leafnode.NewRecordID(1, 2)),
 		newLeafEntry(
-			key.Key("1"),
+			value.Key("1"),
 			leafnode.NewRecordID(3, 4)),
 		newLeafEntry(
-			key.Key("2"),
+			value.Key("2"),
 			leafnode.NewRecordID(5, 6)),
 		newLeafEntry(
-			key.Key("3"),
+			value.Key("3"),
 			leafnode.NewRecordID(7, 8)),
 		newLeafEntry(
-			key.Key("4"),
+			value.Key("4"),
 			leafnode.NewRecordID(9, 10)),
 		newLeafEntry(
-			key.Key("5"),
+			value.Key("5"),
 			leafnode.NewRecordID(11, 12)),
 		newLeafEntry(
-			key.Key("6"),
+			value.Key("6"),
 			leafnode.NewRecordID(13, 14)),
 		newLeafEntry(
-			key.Key("7"),
+			value.Key("7"),
 			leafnode.NewRecordID(15, 16)),
 		newLeafEntry(
-			key.Key("8"),
+			value.Key("8"),
 			leafnode.NewRecordID(17, 18)),
 	}
 }

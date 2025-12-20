@@ -1,4 +1,4 @@
-package key
+package value
 
 type CompositeKey struct {
 	A Key
