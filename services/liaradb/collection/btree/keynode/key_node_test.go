@@ -120,8 +120,8 @@ func TestKeyNode(t *testing.T) {
 }
 
 // Insert in mixed order
-func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []KeyEntry {
-	data := []KeyEntry{
+func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []keyEntry {
+	data := []keyEntry{
 		{"b", 1},
 		{"c", 2},
 		{"d", 3},
@@ -139,10 +139,10 @@ func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []KeyEntry {
 }
 
 // Verify items are in order
-func testKeyNodeChildren(t *testing.T, kn *KeyNode, data []KeyEntry) {
-	result := make([]KeyEntry, 0, len(data))
-	for c := range kn.Children() {
-		result = append(result, c)
+func testKeyNodeChildren(t *testing.T, kn *KeyNode, data []keyEntry) {
+	result := make([]keyEntry, 0, len(data))
+	for key, block := range kn.Children() {
+		result = append(result, newKeyEntry(key, block))
 	}
 
 	if !slices.Equal(result, data) {
@@ -151,7 +151,7 @@ func testKeyNodeChildren(t *testing.T, kn *KeyNode, data []KeyEntry) {
 }
 
 // Verify items are all searchable
-func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []KeyEntry) {
+func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []keyEntry) {
 	for _, e := range data {
 		if block := kn.Search(e.key); block != e.block {
 			t.Errorf("incorrect record id: %v, expected: %v", block, e.block)
