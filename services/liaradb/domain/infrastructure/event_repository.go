@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
@@ -17,6 +18,7 @@ import (
 
 type EventRepository struct {
 	txManager *transaction.Manager
+	kv        *keyvalue.KeyValue
 	eventLog  *eventlog.EventLog
 	btree     *btree.Cursor
 	fileName  string // TODO: Remove this
@@ -24,12 +26,14 @@ type EventRepository struct {
 
 func NewEventRepository(
 	txManager *transaction.Manager,
+	kv *keyvalue.KeyValue,
 	eventLog *eventlog.EventLog,
 	btree *btree.Cursor,
 	fileName string,
 ) *EventRepository {
 	return &EventRepository{
 		txManager: txManager,
+		kv:        kv,
 		eventLog:  eventLog,
 		btree:     btree,
 		fileName:  fileName,

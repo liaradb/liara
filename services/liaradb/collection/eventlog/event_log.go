@@ -20,9 +20,7 @@ type EventLog struct {
 	reader  *bufio.Reader
 }
 
-func New(
-	storage *storage.Storage,
-) *EventLog {
+func New(storage *storage.Storage) *EventLog {
 	buffer := bytes.NewBuffer(nil)
 	reader := bufio.NewReader(buffer)
 	return &EventLog{

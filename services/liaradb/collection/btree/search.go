@@ -176,7 +176,11 @@ func (s *search) isLimit(limit int, returned int) bool {
 	return limit > 0 && returned >= limit
 }
 
-func (s *search) searchRangeFirst(ctx context.Context, fn string, k Key) (BlockPosition, iter.Seq[RecordID], error) {
+func (s *search) searchRangeFirst(
+	ctx context.Context,
+	fn string,
+	k Key,
+) (BlockPosition, iter.Seq[RecordID], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
@@ -190,8 +194,13 @@ func (s *search) searchRangeFirst(ctx context.Context, fn string, k Key) (BlockP
 	return ln.RightID(), ln.SearchRange(k), nil
 }
 
-func (s *search) searchRangeNext(ctx context.Context, fn string, block BlockPosition) (BlockPosition, iter.Seq[RecordID], error) {
-	ln, err := s.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(block)))
+func (s *search) searchRangeNext(
+	ctx context.Context,
+	fn string,
+	block BlockPosition,
+) (BlockPosition, iter.Seq[RecordID], error) {
+	ln, err := s.ns.getLeafNode(ctx,
+		storage.NewBlockID(fn, storage.Offset(block)))
 	if err != nil {
 		return 0, nil, err
 	}

@@ -178,6 +178,7 @@ func (a *Application) createRepositories() (*repositories, error) {
 		// TODO: Change the file name
 		eventRepository: infrastructure.NewEventRepository(
 			a.txManager,
+			nil,
 			a.eventLog,
 			nil,
 			"testfile"),
