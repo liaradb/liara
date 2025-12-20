@@ -20,7 +20,7 @@ func TestLeafNode_Child(t *testing.T) {
 	p := page.New(b)
 	ln := New(p)
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("abcde"),
 			NewRecordID(1, 2)),
@@ -41,7 +41,7 @@ func TestLeafNode_Child(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	result := make([]LeafEntry, 0, len(data))
+	result := make([]leafEntry, 0, len(data))
 	for i := range len(data) {
 		c, ok := ln.Child(int16(i))
 		if !ok {
@@ -65,7 +65,7 @@ func TestLeafNode_Children(t *testing.T) {
 	p := page.New(b)
 	ln := New(p)
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("abcde"),
 			NewRecordID(1, 2)),
@@ -86,9 +86,9 @@ func TestLeafNode_Children(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	result := make([]LeafEntry, 0, len(data))
-	for c := range ln.Children() {
-		result = append(result, c)
+	result := make([]leafEntry, 0, len(data))
+	for key, rid := range ln.Children() {
+		result = append(result, newLeafEntry(key, rid))
 	}
 
 	if !slices.Equal(result, data) {
@@ -105,7 +105,7 @@ func TestLeafNode_Insert(t *testing.T) {
 	bp := page.New(b)
 	ln := New(bp)
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("a"),
 			NewRecordID(1, 2)),
@@ -127,9 +127,9 @@ func TestLeafNode_Insert(t *testing.T) {
 	}
 
 	// Verify items are in order
-	result := make([]LeafEntry, 0, len(data))
-	for c := range ln.Children() {
-		result = append(result, c)
+	result := make([]leafEntry, 0, len(data))
+	for key, rid := range ln.Children() {
+		result = append(result, newLeafEntry(key, rid))
 	}
 
 	if !slices.Equal(result, data) {
@@ -189,7 +189,7 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	bp := page.New(b)
 	ln := New(bp)
 
-	data := []LeafEntry{
+	data := []leafEntry{
 		newLeafEntry(
 			key.Key("a"),
 			NewRecordID(1, 2)),
@@ -207,12 +207,12 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 		e := data[i]
 		if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
 			fmt.Println("a...")
-			for e := range a {
-				fmt.Println(e.key, e.recordID)
+			for key, rid := range a {
+				fmt.Println(key, rid)
 			}
 			fmt.Println("b...")
-			for e := range b {
-				fmt.Println(e.key, e.recordID)
+			for key, rid := range b {
+				fmt.Println(key, rid)
 			}
 		}
 	}

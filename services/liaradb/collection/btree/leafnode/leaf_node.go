@@ -12,6 +12,8 @@ type LeafNode struct {
 	page page.Page
 }
 
+type Iterator = iter.Seq2[key.Key, RecordID]
+
 func New(page page.Page) *LeafNode {
 	return &LeafNode{
 		page: page,
@@ -51,7 +53,7 @@ func (ln *LeafNode) Append(key key.Key, recordID RecordID) (int16, bool) {
 	return i, true
 }
 
-func (ln *LeafNode) Insert(key key.Key, recordID RecordID) (iter.Seq[LeafEntry], iter.Seq[LeafEntry], bool) {
+func (ln *LeafNode) Insert(key key.Key, recordID RecordID) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
@@ -71,17 +73,17 @@ func (ln *LeafNode) Insert(key key.Key, recordID RecordID) (iter.Seq[LeafEntry],
 func (ln *LeafNode) Fill(
 	leftID keynode.BlockPosition,
 	rightID keynode.BlockPosition,
-	entries iter.Seq[LeafEntry],
+	entries Iterator,
 ) key.Key {
 	var k key.Key
 	first := true
-	for e := range entries {
+	for key, rid := range entries {
 		if first {
-			k = e.key
+			k = key
 		}
 		first = false
 		// This will definitely fit
-		_, _ = ln.Append(e.key, e.recordID)
+		_, _ = ln.Append(key, rid)
 	}
 
 	// TODO: We are duplicating set dirty calls
@@ -93,10 +95,10 @@ func (ln *LeafNode) Fill(
 
 // TODO: Test this
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(rightID keynode.BlockPosition, entries iter.Seq[LeafEntry]) {
-	cache := make([]LeafEntry, 0, ln.mid())
-	for e := range entries {
-		cache = append(cache, e)
+func (ln *LeafNode) Replace(rightID keynode.BlockPosition, entries Iterator) {
+	cache := make([]leafEntry, 0, ln.mid())
+	for key, rid := range entries {
+		cache = append(cache, newLeafEntry(key, rid))
 	}
 
 	leftID := ln.LeftID()
@@ -114,7 +116,7 @@ func (ln *LeafNode) Replace(rightID keynode.BlockPosition, entries iter.Seq[Leaf
 	ln.page.SetDirty()
 }
 
-func (ln *LeafNode) split(i int16, le LeafEntry) (iter.Seq[LeafEntry], iter.Seq[LeafEntry]) {
+func (ln *LeafNode) split(i int16, le leafEntry) (Iterator, Iterator) {
 	mid := ln.mid()
 	return ln.first(i, mid, le), ln.second(i, mid, le)
 }
@@ -123,29 +125,29 @@ func (ln *LeafNode) mid() int16 {
 	return ln.page.Count() / 2
 }
 
-func (ln *LeafNode) first(i int16, mid int16, le LeafEntry) func(yield func(LeafEntry) bool) {
+func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 	if i >= mid {
 		return ln.childrenRange(0, mid)
 	}
 
 	// TODO: Simplify this
-	return func(yield func(LeafEntry) bool) {
+	return func(yield func(key.Key, RecordID) bool) {
 		if i == 0 {
-			if !yield(le) {
+			if !yield(le.Key(), le.RecordID()) {
 				return
 			}
 		}
 
 		var j int16
-		for e := range ln.childrenRange(0, mid) {
-			if !yield(e) {
+		for key, rid := range ln.childrenRange(0, mid) {
+			if !yield(key, rid) {
 				return
 			}
 
 			j++
 
 			if i == j {
-				if !yield(le) {
+				if !yield(le.Key(), le.RecordID()) {
 					return
 				}
 			}
@@ -153,30 +155,30 @@ func (ln *LeafNode) first(i int16, mid int16, le LeafEntry) func(yield func(Leaf
 	}
 }
 
-func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(LeafEntry) bool) {
+func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 	if i < mid {
 		return ln.childrenRange(mid, -1)
 	}
 
 	// TODO: Simplify this
-	return func(yield func(LeafEntry) bool) {
+	return func(yield func(key.Key, RecordID) bool) {
 		k := i - mid
 		if k == 0 {
-			if !yield(le) {
+			if !yield(le.Key(), le.RecordID()) {
 				return
 			}
 		}
 
 		var j int16
-		for e := range ln.childrenRange(mid, -1) {
-			if !yield(e) {
+		for key, rid := range ln.childrenRange(mid, -1) {
+			if !yield(key, rid) {
 				return
 			}
 
 			j++
 
 			if k == j {
-				if !yield(le) {
+				if !yield(le.Key(), le.RecordID()) {
 					return
 				}
 			}
@@ -184,36 +186,36 @@ func (ln *LeafNode) second(i int16, mid int16, le LeafEntry) func(yield func(Lea
 	}
 }
 
-func (ln *LeafNode) Child(index int16) (LeafEntry, bool) {
+func (ln *LeafNode) Child(index int16) (leafEntry, bool) {
 	b, ok := ln.page.Child(index)
 	if !ok {
-		return LeafEntry{}, false
+		return leafEntry{}, false
 	}
 
-	le := LeafEntry{}
+	le := leafEntry{}
 	le.Read(b)
 
 	return le, true
 }
 
-func (ln *LeafNode) Children() iter.Seq[LeafEntry] {
-	return func(yield func(LeafEntry) bool) {
+func (ln *LeafNode) Children() Iterator {
+	return func(yield func(key.Key, RecordID) bool) {
 		for b := range ln.page.Children() {
-			le := LeafEntry{}
+			le := leafEntry{}
 			le.Read(b)
-			if !yield(le) {
+			if !yield(le.Key(), le.RecordID()) {
 				return
 			}
 		}
 	}
 }
 
-func (ln *LeafNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
-	return func(yield func(LeafEntry) bool) {
+func (ln *LeafNode) childrenRange(start, end int16) Iterator {
+	return func(yield func(key.Key, RecordID) bool) {
 		for b := range ln.page.ChildrenRange(start, end) {
-			le := LeafEntry{}
+			le := leafEntry{}
 			le.Read(b)
-			if !yield(le) {
+			if !yield(le.Key(), le.RecordID()) {
 				return
 			}
 		}
@@ -222,8 +224,8 @@ func (ln *LeafNode) childrenRange(start, end int16) iter.Seq[LeafEntry] {
 
 func (ln *LeafNode) RecordIDs() iter.Seq[RecordID] {
 	return func(yield func(RecordID) bool) {
-		for le := range ln.Children() {
-			if !yield(le.RecordID()) {
+		for _, rid := range ln.Children() {
+			if !yield(rid) {
 				return
 			}
 		}
@@ -246,11 +248,11 @@ func (ln *LeafNode) Search(k key.Key) (RecordID, bool) {
 
 func (ln *LeafNode) searchIndex(k key.Key) (int16, bool) {
 	var i int16 = 0
-	for ke := range ln.Children() {
-		if k == ke.key {
+	for key := range ln.Children() {
+		if k == key {
 			return i, true
 		}
-		if k <= ke.key {
+		if k <= key {
 			return 0, false
 		}
 
@@ -261,8 +263,8 @@ func (ln *LeafNode) searchIndex(k key.Key) (int16, bool) {
 
 func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
 	var i int16 = 0
-	for ke := range ln.Children() {
-		if k <= ke.key {
+	for key := range ln.Children() {
+		if k <= key {
 			break
 		}
 
@@ -285,8 +287,8 @@ func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[RecordID] {
 			return
 		}
 
-		for le := range ln.childrenRange(i, -1) {
-			if !yield(le.RecordID()) {
+		for _, rid := range ln.childrenRange(i, -1) {
+			if !yield(rid) {
 				return
 			}
 		}
