@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-// TODO: Create latching support
 // TODO: What happens if two goroutines append simultaneously?
 type insert struct {
 	ns *nodeStorage

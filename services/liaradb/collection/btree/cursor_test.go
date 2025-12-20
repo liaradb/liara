@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
+// TODO: Test latching
 // TODO: Test this
 // {message: "should insert",
 // 	items: newItemsAscending(2), fanout: 3, height: 1, skip: false},

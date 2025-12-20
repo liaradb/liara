@@ -6,7 +6,6 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-// TODO: Create latching support
 type level struct {
 	ns *nodeStorage
 }

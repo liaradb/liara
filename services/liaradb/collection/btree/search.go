@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-// TODO: Create latching support
 type search struct {
 	ns *nodeStorage
 }
