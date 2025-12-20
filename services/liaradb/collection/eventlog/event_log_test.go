@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 func TestEventLog_Append(t *testing.T) {
@@ -20,7 +21,7 @@ func TestEventLog_Append(t *testing.T) {
 
 func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
+	el := New(storagetesting.CreateStorage(t, 2, 1024))
 	fn := path.Join(t.TempDir(), "testfile")
 
 	records := []*entity.Event{{
@@ -75,7 +76,7 @@ func TestEventLog_Find(t *testing.T) {
 
 func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
+	el := New(storagetesting.CreateStorage(t, 2, 1024))
 	fn := path.Join(t.TempDir(), "testfile")
 
 	records := []*entity.Event{{
@@ -123,7 +124,7 @@ func TestEventLog_GetAggregate(t *testing.T) {
 
 func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
+	el := New(storagetesting.CreateStorage(t, 2, 1024))
 	fn := path.Join(t.TempDir(), "testfile")
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
@@ -184,7 +185,7 @@ func TestEventLog_AppendEvent(t *testing.T) {
 
 func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 1, 48))
+	el := New(storagetesting.CreateStorage(t, 1, 48))
 	fn := path.Join(t.TempDir(), "testfile")
 
 	records := [][]byte{

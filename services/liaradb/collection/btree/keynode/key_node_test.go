@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/collection/btree/page"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 func TestKeyNode(t *testing.T) {
@@ -15,7 +15,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should insert", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -28,7 +28,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should iterate in order", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -41,7 +41,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search items", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -55,7 +55,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search indexes", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -87,7 +87,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search before items", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -104,7 +104,7 @@ func TestKeyNode(t *testing.T) {
 	t.Run("should search after items", func(t *testing.T) {
 		t.Parallel()
 
-		s := createStorage(t, 2, 256)
+		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
 		bp := page.New(b)
@@ -157,16 +157,6 @@ func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []keyEntry) {
 			t.Errorf("incorrect record id: %v, expected: %v", block, e.block)
 		}
 	}
-}
-
-func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
-	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := storage.New(fsys, max, bs, t.TempDir())
-	if err := s.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	return s
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 const (
@@ -23,7 +23,7 @@ func TestBTreePage_Append(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -101,7 +101,7 @@ func TestBTreePage_Insert(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -172,7 +172,7 @@ func TestBTreePage_Insert(t *testing.T) {
 func TestBTreePage_Space(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t, 2, 16+itemSize+headerSize)
+	s := storagetesting.CreateStorage(t, 2, 16+itemSize+headerSize)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -197,7 +197,7 @@ func TestBTreePage_Space(t *testing.T) {
 func TestBTreePage_Child(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -245,7 +245,7 @@ func TestBTreePage_Child(t *testing.T) {
 func TestBTreePage_Children(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -285,7 +285,7 @@ func TestBTreePage_Children(t *testing.T) {
 func TestBTreePage_ChildrenRange(t *testing.T) {
 	t.Parallel()
 
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -325,16 +325,6 @@ func TestBTreePage_ChildrenRange(t *testing.T) {
 	if !slices.EqualFunc(result, want, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
-}
-
-func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
-	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := storage.New(fsys, max, bs, t.TempDir())
-	if err := s.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	return s
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {

@@ -6,8 +6,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/value"
-	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 // TODO: Test latching
@@ -29,7 +28,7 @@ func TestCursor_GetRoot_Default(t *testing.T) {
 }
 
 func testCursor(t *testing.T) {
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -64,7 +63,7 @@ func newLeafEntry(key value.Key, recordID value.RecordID) leafEntry {
 }
 
 func testCursor_Insert__Root(t *testing.T) {
-	s := createStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -115,7 +114,7 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	//     ....   ......   ....          ...   ..
 	// [1   2]   [3   4]   [5   6]   [7   8]   [9]
 
-	s := createStorage(t, 8, 62)
+	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -149,7 +148,7 @@ func TestCursor_Insert__Reverse(t *testing.T) {
 }
 
 func testCursor_Insert__Reverse(t *testing.T) {
-	s := createStorage(t, 8, 62)
+	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -183,7 +182,7 @@ func TestCursor_Insert__Random(t *testing.T) {
 }
 
 func testCursor_Insert__Random(t *testing.T) {
-	s := createStorage(t, 8, 62)
+	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -231,7 +230,7 @@ func TestCursor_SearchRange(t *testing.T) {
 }
 
 func testCursor_SearchRange(t *testing.T) {
-	s := createStorage(t, 8, 62)
+	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
 	n := "testfile"
 
@@ -289,16 +288,6 @@ func testCursor_SearchRange(t *testing.T) {
 	if p := s.CountPinned(); p != 0 {
 		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
-}
-
-func createStorage(t *testing.T, max int, bs int64) *storage.Storage {
-	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := storage.New(fsys, max, bs, t.TempDir())
-	if err := s.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	return s
 }
 
 func reverseData(data []leafEntry) []leafEntry {
