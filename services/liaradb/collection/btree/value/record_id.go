@@ -1,8 +1,6 @@
 package value
 
-import (
-	"github.com/liaradb/liaradb/encoder/wrap"
-)
+import "github.com/liaradb/liaradb/encoder/wrap"
 
 const RecordIDSize = 8 + 1
 

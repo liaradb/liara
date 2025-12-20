@@ -6,7 +6,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/page"
-	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -25,8 +24,8 @@ func newInsert(s *storage.Storage) insert {
 func (c *insert) Insert(
 	ctx context.Context,
 	fn string,
-	k value.Key,
-	rid value.RecordID,
+	k Key,
+	rid RecordID,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
@@ -56,7 +55,7 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, value.BlockPosition(bid.Position))
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, BlockPosition(bid.Position))
 			level++
 		}
 		if err != nil {
@@ -72,7 +71,7 @@ func (c *insert) Insert(
 func (c *insert) getChain(
 	ctx context.Context,
 	fn string,
-	k value.Key,
+	k Key,
 ) (*chain, error) {
 	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
@@ -109,9 +108,9 @@ func (c *insert) insertChainLeaf(
 	fn string,
 	bid storage.BlockID,
 	ln *leafnode.LeafNode,
-	k value.Key,
-	rid value.RecordID,
-) (storage.BlockID, value.Key, bool, error) {
+	k Key,
+	rid RecordID,
+) (storage.BlockID, Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
 		return storage.BlockID{}, "", false, nil
@@ -138,9 +137,9 @@ func (c *insert) insertChainLeaf(
 	// ln3.Latch()
 	// defer ln3.Unlatch()
 
-	ln3.SetLeftID(value.BlockPosition(bid2.Position))
-	key := ln2.Fill(value.BlockPosition(bid.Position), ln.RightID(), second)
-	ln.Replace(value.BlockPosition(bid2.Position), first)
+	ln3.SetLeftID(BlockPosition(bid2.Position))
+	key := ln2.Fill(BlockPosition(bid.Position), ln.RightID(), second)
+	ln.Replace(BlockPosition(bid2.Position), first)
 
 	return bid2, key, true, nil
 }
@@ -151,9 +150,9 @@ func (c *insert) insertChainKey(
 	ctx context.Context,
 	fn string,
 	kn *keynode.KeyNode,
-	k value.Key,
-	block value.BlockPosition,
-) (storage.BlockID, value.Key, bool, error) {
+	k Key,
+	block BlockPosition,
+) (storage.BlockID, Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
 		return storage.BlockID{}, "", false, nil
@@ -181,7 +180,7 @@ func (c *insert) insertRoot(
 	ctx context.Context,
 	fn string,
 	level byte,
-	key value.Key,
+	key Key,
 	bid storage.BlockID,
 ) error {
 	b0, err := c.ns.getBuffer(ctx, storage.NewBlockID(fn, 0))
@@ -211,9 +210,9 @@ func (c *insert) insertRoot(
 	// This should always return true
 	_ = keynode.New(page.New(b0)).ReplaceRoot(
 		level+1,
-		value.BlockPosition(b2.BlockID().Position),
+		BlockPosition(b2.BlockID().Position),
 		key,
-		value.BlockPosition(bid.Position))
+		BlockPosition(bid.Position))
 
 	return nil
 }

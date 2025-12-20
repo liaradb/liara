@@ -6,7 +6,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
-	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -23,11 +22,11 @@ func newSearch(s *storage.Storage) search {
 func (c *search) Search(
 	ctx context.Context,
 	fn string,
-	k value.Key,
-) (value.RecordID, error) {
+	k Key,
+) (RecordID, error) {
 	level, block, rid, err := c.searchRoot(ctx, fn, k)
 	if err != nil {
-		return value.RecordID{}, err
+		return RecordID{}, err
 	}
 
 	if level == 0 {
@@ -38,7 +37,7 @@ func (c *search) Search(
 		_, block, err = c.searchKey(ctx,
 			storage.NewBlockID(fn, storage.Offset(block)), k)
 		if err != nil {
-			return value.RecordID{}, err
+			return RecordID{}, err
 		}
 	}
 
@@ -49,11 +48,11 @@ func (c *search) Search(
 func (c *search) searchRoot(
 	ctx context.Context,
 	fn string,
-	k value.Key,
-) (byte, value.BlockPosition, value.RecordID, error) {
+	k Key,
+) (byte, BlockPosition, RecordID, error) {
 	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
-		return 0, 0, value.RecordID{}, err
+		return 0, 0, RecordID{}, err
 	}
 
 	if l := p.Level(); l == 0 {
@@ -65,7 +64,7 @@ func (c *search) searchRoot(
 
 		rid, ok := ln.Search(k)
 		if !ok {
-			return l, 0, value.RecordID{}, ErrNotFound
+			return l, 0, RecordID{}, ErrNotFound
 		}
 
 		return l, 0, rid, nil
@@ -76,15 +75,15 @@ func (c *search) searchRoot(
 		kn.RLatch()
 		defer kn.RUnlatch()
 
-		return l, kn.Search(k), value.RecordID{}, nil
+		return l, kn.Search(k), RecordID{}, nil
 	}
 }
 
 func (c *search) searchKey(
 	ctx context.Context,
 	bid storage.BlockID,
-	k value.Key,
-) (byte, value.BlockPosition, error) {
+	k Key,
+) (byte, BlockPosition, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {
 		return 0, 0, err
@@ -101,11 +100,11 @@ func (c *search) searchKey(
 func (c *search) searchLeaf(
 	ctx context.Context,
 	bid storage.BlockID,
-	k value.Key,
-) (value.RecordID, error) {
+	k Key,
+) (RecordID, error) {
 	ln, err := c.ns.getLeafNode(ctx, bid)
 	if err != nil {
-		return value.RecordID{}, err
+		return RecordID{}, err
 	}
 
 	defer ln.Release()
@@ -115,7 +114,7 @@ func (c *search) searchLeaf(
 
 	rid, ok := ln.Search(k)
 	if !ok {
-		return value.RecordID{}, ErrNotFound
+		return RecordID{}, ErrNotFound
 	}
 
 	return rid, nil
@@ -124,16 +123,16 @@ func (c *search) searchLeaf(
 func (s *search) SearchRange(
 	ctx context.Context,
 	fn string,
-	k value.Key,
+	k Key,
 	skip int,
 	limit int,
-) iter.Seq2[value.RecordID, error] {
+) iter.Seq2[RecordID, error] {
 	skipped := 0
 	returned := 0
-	return func(yield func(value.RecordID, error) bool) {
+	return func(yield func(RecordID, error) bool) {
 		block, rids, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
-			yield(value.RecordID{}, err)
+			yield(RecordID{}, err)
 			return
 		}
 
@@ -155,7 +154,7 @@ func (s *search) SearchRange(
 
 			block, rids, err = s.searchRangeNext(ctx, fn, block)
 			if err != nil {
-				yield(value.RecordID{}, err)
+				yield(RecordID{}, err)
 				return
 			}
 
@@ -177,7 +176,7 @@ func (s *search) isLimit(limit int, returned int) bool {
 	return limit > 0 && returned >= limit
 }
 
-func (s *search) searchRangeFirst(ctx context.Context, fn string, k value.Key) (value.BlockPosition, iter.Seq[value.RecordID], error) {
+func (s *search) searchRangeFirst(ctx context.Context, fn string, k Key) (BlockPosition, iter.Seq[RecordID], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
@@ -191,7 +190,7 @@ func (s *search) searchRangeFirst(ctx context.Context, fn string, k value.Key) (
 	return ln.RightID(), ln.SearchRange(k), nil
 }
 
-func (s *search) searchRangeNext(ctx context.Context, fn string, block value.BlockPosition) (value.BlockPosition, iter.Seq[value.RecordID], error) {
+func (s *search) searchRangeNext(ctx context.Context, fn string, block BlockPosition) (BlockPosition, iter.Seq[RecordID], error) {
 	ln, err := s.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(block)))
 	if err != nil {
 		return 0, nil, err
@@ -208,7 +207,7 @@ func (s *search) searchRangeNext(ctx context.Context, fn string, block value.Blo
 func (c *search) searchRange(
 	ctx context.Context,
 	fn string,
-	k value.Key,
+	k Key,
 ) (*leafnode.LeafNode, error) {
 	level, block, ln, err := c.searchRangeRoot(ctx, fn, k)
 	if err != nil {
@@ -234,8 +233,8 @@ func (c *search) searchRange(
 func (c *search) searchRangeRoot(
 	ctx context.Context,
 	fn string,
-	k value.Key,
-) (byte, value.BlockPosition, *leafnode.LeafNode, error) {
+	k Key,
+) (byte, BlockPosition, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
 	if err != nil {
 		return 0, 0, nil, err
@@ -257,8 +256,8 @@ func (c *search) searchRangeRoot(
 func (c *search) searchRangeKey(
 	ctx context.Context,
 	bid storage.BlockID,
-	k value.Key,
-) (byte, value.BlockPosition, error) {
+	k Key,
+) (byte, BlockPosition, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {
 		return 0, 0, err
