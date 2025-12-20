@@ -4,19 +4,19 @@ import "github.com/liaradb/liaradb/collection/btree/value"
 
 type leafEntry struct {
 	key      value.Key
-	recordID RecordID
+	recordID value.RecordID
 }
 
-func newLeafEntry(key value.Key, recordID RecordID) leafEntry {
+func newLeafEntry(key value.Key, recordID value.RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
 	}
 }
 
-func (le leafEntry) Key() value.Key     { return le.key }
-func (le leafEntry) RecordID() RecordID { return le.recordID }
-func (le leafEntry) Size() int          { return le.key.Size() + RecordIDSize }
+func (le leafEntry) Key() value.Key           { return le.key }
+func (le leafEntry) RecordID() value.RecordID { return le.recordID }
+func (le leafEntry) Size() int                { return le.key.Size() + value.RecordIDSize }
 
 func (le leafEntry) Write(data []byte) {
 	data0 := le.recordID.Write(data)

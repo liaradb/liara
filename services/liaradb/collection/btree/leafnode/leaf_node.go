@@ -3,7 +3,6 @@ package leafnode
 import (
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/page"
 	"github.com/liaradb/liaradb/collection/btree/value"
 )
@@ -12,7 +11,7 @@ type LeafNode struct {
 	page page.Page
 }
 
-type Iterator = iter.Seq2[value.Key, RecordID]
+type Iterator = iter.Seq2[value.Key, value.RecordID]
 
 func New(page page.Page) *LeafNode {
 	return &LeafNode{
@@ -20,27 +19,27 @@ func New(page page.Page) *LeafNode {
 	}
 }
 
-func (ln *LeafNode) LeftID() keynode.BlockPosition {
-	return keynode.BlockPosition(ln.page.LowID())
+func (ln *LeafNode) LeftID() value.BlockPosition {
+	return value.BlockPosition(ln.page.LowID())
 }
 
-func (ln *LeafNode) RightID() keynode.BlockPosition {
-	return keynode.BlockPosition(ln.page.HighID())
+func (ln *LeafNode) RightID() value.BlockPosition {
+	return value.BlockPosition(ln.page.HighID())
 }
 
 // TODO: Test this
-func (ln *LeafNode) SetLeftID(block keynode.BlockPosition) {
+func (ln *LeafNode) SetLeftID(block value.BlockPosition) {
 	ln.page.SetLowID(block.Value())
 	ln.page.SetDirty()
 }
 
 // TODO: Test this
-func (ln *LeafNode) SetRightID(block keynode.BlockPosition) {
+func (ln *LeafNode) SetRightID(block value.BlockPosition) {
 	ln.page.SetHighID(block.Value())
 	ln.page.SetDirty()
 }
 
-func (ln *LeafNode) Append(key value.Key, recordID RecordID) (int16, bool) {
+func (ln *LeafNode) Append(key value.Key, recordID value.RecordID) (int16, bool) {
 	le := newLeafEntry(key, recordID)
 	i, b, ok := ln.page.Append(int16(le.Size()))
 	if !ok {
@@ -53,7 +52,7 @@ func (ln *LeafNode) Append(key value.Key, recordID RecordID) (int16, bool) {
 	return i, true
 }
 
-func (ln *LeafNode) Insert(key value.Key, recordID RecordID) (Iterator, Iterator, bool) {
+func (ln *LeafNode) Insert(key value.Key, recordID value.RecordID) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
@@ -71,8 +70,8 @@ func (ln *LeafNode) Insert(key value.Key, recordID RecordID) (Iterator, Iterator
 
 // TODO: Test this
 func (ln *LeafNode) Fill(
-	leftID keynode.BlockPosition,
-	rightID keynode.BlockPosition,
+	leftID value.BlockPosition,
+	rightID value.BlockPosition,
 	entries Iterator,
 ) value.Key {
 	var k value.Key
@@ -95,7 +94,7 @@ func (ln *LeafNode) Fill(
 
 // TODO: Test this
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(rightID keynode.BlockPosition, entries Iterator) {
+func (ln *LeafNode) Replace(rightID value.BlockPosition, entries Iterator) {
 	cache := make([]leafEntry, 0, ln.mid())
 	for key, rid := range entries {
 		cache = append(cache, newLeafEntry(key, rid))
@@ -131,7 +130,7 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 	}
 
 	// TODO: Simplify this
-	return func(yield func(value.Key, RecordID) bool) {
+	return func(yield func(value.Key, value.RecordID) bool) {
 		if i == 0 {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -161,7 +160,7 @@ func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 	}
 
 	// TODO: Simplify this
-	return func(yield func(value.Key, RecordID) bool) {
+	return func(yield func(value.Key, value.RecordID) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(le.Key(), le.RecordID()) {
@@ -199,7 +198,7 @@ func (ln *LeafNode) Child(index int16) (leafEntry, bool) {
 }
 
 func (ln *LeafNode) Children() Iterator {
-	return func(yield func(value.Key, RecordID) bool) {
+	return func(yield func(value.Key, value.RecordID) bool) {
 		for b := range ln.page.Children() {
 			le := leafEntry{}
 			le.Read(b)
@@ -211,7 +210,7 @@ func (ln *LeafNode) Children() Iterator {
 }
 
 func (ln *LeafNode) childrenRange(start, end int16) Iterator {
-	return func(yield func(value.Key, RecordID) bool) {
+	return func(yield func(value.Key, value.RecordID) bool) {
 		for b := range ln.page.ChildrenRange(start, end) {
 			le := leafEntry{}
 			le.Read(b)
@@ -222,8 +221,8 @@ func (ln *LeafNode) childrenRange(start, end int16) Iterator {
 	}
 }
 
-func (ln *LeafNode) RecordIDs() iter.Seq[RecordID] {
-	return func(yield func(RecordID) bool) {
+func (ln *LeafNode) RecordIDs() iter.Seq[value.RecordID] {
+	return func(yield func(value.RecordID) bool) {
 		for _, rid := range ln.Children() {
 			if !yield(rid) {
 				return
@@ -232,15 +231,15 @@ func (ln *LeafNode) RecordIDs() iter.Seq[RecordID] {
 	}
 }
 
-func (ln *LeafNode) Search(k value.Key) (RecordID, bool) {
+func (ln *LeafNode) Search(k value.Key) (value.RecordID, bool) {
 	i, ok := ln.searchIndex(k)
 	if !ok {
-		return RecordID{}, false
+		return value.RecordID{}, false
 	}
 
 	le, ok := ln.Child(i)
 	if !ok {
-		return RecordID{}, false
+		return value.RecordID{}, false
 	}
 
 	return le.recordID, true
@@ -280,8 +279,8 @@ func (ln *LeafNode) Unlatch()  { ln.page.Unlatch() }
 func (ln *LeafNode) RLatch()   { ln.page.RLatch() }
 func (ln *LeafNode) RUnlatch() { ln.page.RUnlatch() }
 
-func (ln *LeafNode) SearchRange(k value.Key) iter.Seq[RecordID] {
-	return func(yield func(RecordID) bool) {
+func (ln *LeafNode) SearchRange(k value.Key) iter.Seq[value.RecordID] {
+	return func(yield func(value.RecordID) bool) {
 		i, ok := ln.searchIndex(k)
 		if !ok {
 			return

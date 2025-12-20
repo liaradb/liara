@@ -5,7 +5,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
@@ -54,10 +53,10 @@ func TestCursor_Insert__Root(t *testing.T) {
 
 type leafEntry struct {
 	key      value.Key
-	recordID leafnode.RecordID
+	recordID value.RecordID
 }
 
-func newLeafEntry(key value.Key, recordID leafnode.RecordID) leafEntry {
+func newLeafEntry(key value.Key, recordID value.RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -72,13 +71,13 @@ func testCursor_Insert__Root(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			leafnode.NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			leafnode.NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			leafnode.NewRecordID(5, 6)),
+			value.NewRecordID(5, 6)),
 	}
 
 	for _, e := range data {
@@ -245,14 +244,14 @@ func testCursor_SearchRange(t *testing.T) {
 		// TODO: Need to flush to disk
 	}
 
-	wantAll := make([]leafnode.RecordID, 0, len(data))
+	wantAll := make([]value.RecordID, 0, len(data))
 	for _, e := range data {
 		wantAll = append(wantAll, e.recordID)
 	}
 
 	for i, e := range data {
 		c := NewCursor(s)
-		result := make([]leafnode.RecordID, 0, len(data))
+		result := make([]value.RecordID, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
@@ -270,7 +269,7 @@ func testCursor_SearchRange(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]leafnode.RecordID, 0, len(data))
+		result := make([]value.RecordID, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, "1", 1, 3) {
 			if err != nil {
 				t.Fatal(err)
@@ -342,30 +341,30 @@ func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
 			value.Key("0"),
-			leafnode.NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("1"),
-			leafnode.NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 		newLeafEntry(
 			value.Key("2"),
-			leafnode.NewRecordID(5, 6)),
+			value.NewRecordID(5, 6)),
 		newLeafEntry(
 			value.Key("3"),
-			leafnode.NewRecordID(7, 8)),
+			value.NewRecordID(7, 8)),
 		newLeafEntry(
 			value.Key("4"),
-			leafnode.NewRecordID(9, 10)),
+			value.NewRecordID(9, 10)),
 		newLeafEntry(
 			value.Key("5"),
-			leafnode.NewRecordID(11, 12)),
+			value.NewRecordID(11, 12)),
 		newLeafEntry(
 			value.Key("6"),
-			leafnode.NewRecordID(13, 14)),
+			value.NewRecordID(13, 14)),
 		newLeafEntry(
 			value.Key("7"),
-			leafnode.NewRecordID(15, 16)),
+			value.NewRecordID(15, 16)),
 		newLeafEntry(
 			value.Key("8"),
-			leafnode.NewRecordID(17, 18)),
+			value.NewRecordID(17, 18)),
 	}
 }

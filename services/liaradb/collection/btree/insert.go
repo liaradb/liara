@@ -26,7 +26,7 @@ func (c *insert) Insert(
 	ctx context.Context,
 	fn string,
 	k value.Key,
-	rid leafnode.RecordID,
+	rid value.RecordID,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
@@ -56,7 +56,7 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, keynode.BlockPosition(bid.Position))
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, value.BlockPosition(bid.Position))
 			level++
 		}
 		if err != nil {
@@ -110,7 +110,7 @@ func (c *insert) insertChainLeaf(
 	bid storage.BlockID,
 	ln *leafnode.LeafNode,
 	k value.Key,
-	rid leafnode.RecordID,
+	rid value.RecordID,
 ) (storage.BlockID, value.Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
@@ -138,9 +138,9 @@ func (c *insert) insertChainLeaf(
 	// ln3.Latch()
 	// defer ln3.Unlatch()
 
-	ln3.SetLeftID(keynode.BlockPosition(bid2.Position))
-	key := ln2.Fill(keynode.BlockPosition(bid.Position), ln.RightID(), second)
-	ln.Replace(keynode.BlockPosition(bid2.Position), first)
+	ln3.SetLeftID(value.BlockPosition(bid2.Position))
+	key := ln2.Fill(value.BlockPosition(bid.Position), ln.RightID(), second)
+	ln.Replace(value.BlockPosition(bid2.Position), first)
 
 	return bid2, key, true, nil
 }
@@ -152,7 +152,7 @@ func (c *insert) insertChainKey(
 	fn string,
 	kn *keynode.KeyNode,
 	k value.Key,
-	block keynode.BlockPosition,
+	block value.BlockPosition,
 ) (storage.BlockID, value.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
@@ -211,9 +211,9 @@ func (c *insert) insertRoot(
 	// This should always return true
 	_ = keynode.New(page.New(b0)).ReplaceRoot(
 		level+1,
-		keynode.BlockPosition(b2.BlockID().Position),
+		value.BlockPosition(b2.BlockID().Position),
 		key,
-		keynode.BlockPosition(bid.Position))
+		value.BlockPosition(bid.Position))
 
 	return nil
 }

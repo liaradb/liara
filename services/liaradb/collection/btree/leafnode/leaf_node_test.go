@@ -23,10 +23,10 @@ func TestLeafNode_Child(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("abcde"),
-			NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("fghij"),
-			NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 	}
 
 	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -68,10 +68,10 @@ func TestLeafNode_Children(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("abcde"),
-			NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("fghij"),
-			NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 	}
 
 	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -108,13 +108,13 @@ func TestLeafNode_Insert(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			NewRecordID(5, 6)),
+			value.NewRecordID(5, 6)),
 	}
 
 	// Insert in mixed order
@@ -138,12 +138,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify record ids
 	{
-		want := make([]RecordID, 0, len(data))
+		want := make([]value.RecordID, 0, len(data))
 		for _, e := range data {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]RecordID, 0, len(want))
+		result := make([]value.RecordID, 0, len(want))
 		for c := range ln.RecordIDs() {
 			result = append(result, c)
 		}
@@ -164,12 +164,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify search range
 	for i, e := range data {
-		want := make([]RecordID, 0, len(data[i:]))
+		want := make([]value.RecordID, 0, len(data[i:]))
 		for _, e := range data[i:] {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]RecordID, 0, len(want))
+		result := make([]value.RecordID, 0, len(want))
 		for c := range ln.SearchRange(e.Key()) {
 			result = append(result, c)
 		}
@@ -192,13 +192,13 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			NewRecordID(1, 2)),
+			value.NewRecordID(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			NewRecordID(3, 4)),
+			value.NewRecordID(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			NewRecordID(5, 6)),
+			value.NewRecordID(5, 6)),
 	}
 
 	// Insert in mixed order

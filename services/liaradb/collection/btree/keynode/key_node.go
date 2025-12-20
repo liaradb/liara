@@ -11,7 +11,7 @@ type KeyNode struct {
 	page page.Page
 }
 
-type Iterator = iter.Seq2[value.Key, BlockPosition]
+type Iterator = iter.Seq2[value.Key, value.BlockPosition]
 
 func New(page page.Page) *KeyNode {
 	return &KeyNode{
@@ -20,7 +20,7 @@ func New(page page.Page) *KeyNode {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Append(key value.Key, block BlockPosition) (int16, bool) {
+func (kn *KeyNode) Append(key value.Key, block value.BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
 	i, b, ok := kn.page.Append(int16(ke.Size()))
 	if !ok {
@@ -33,7 +33,7 @@ func (kn *KeyNode) Append(key value.Key, block BlockPosition) (int16, bool) {
 	return i, true
 }
 
-func (kn *KeyNode) Insert(key value.Key, block BlockPosition) (Iterator, Iterator, bool) {
+func (kn *KeyNode) Insert(key value.Key, block value.BlockPosition) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
@@ -65,7 +65,7 @@ func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(0, mid)
 	}
 
-	return func(yield func(value.Key, BlockPosition) bool) {
+	return func(yield func(value.Key, value.BlockPosition) bool) {
 		if i == 0 {
 			if !yield(ke.Key(), ke.Block()) {
 				return
@@ -94,7 +94,7 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(mid, -1)
 	}
 
-	return func(yield func(value.Key, BlockPosition) bool) {
+	return func(yield func(value.Key, value.BlockPosition) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(ke.Key(), ke.Block()) {
@@ -157,7 +157,7 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 }
 
 // TODO: Test this
-func (kn *KeyNode) ReplaceRoot(l byte, block0 BlockPosition, key1 value.Key, block1 BlockPosition) bool {
+func (kn *KeyNode) ReplaceRoot(l byte, block0 value.BlockPosition, key1 value.Key, block1 value.BlockPosition) bool {
 	// This should always have a child
 	// TODO: Will this always be the lower key?
 	key0, _, _ := kn.Child(0)
@@ -175,7 +175,7 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 BlockPosition, key1 value.Key, blo
 }
 
 func (kn *KeyNode) Children() Iterator {
-	return func(yield func(value.Key, BlockPosition) bool) {
+	return func(yield func(value.Key, value.BlockPosition) bool) {
 		for b := range kn.page.Children() {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -187,7 +187,7 @@ func (kn *KeyNode) Children() Iterator {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Child(i int16) (value.Key, BlockPosition, bool) {
+func (kn *KeyNode) Child(i int16) (value.Key, value.BlockPosition, bool) {
 	b, ok := kn.page.Child(i)
 	if !ok {
 		return "", 0, false
@@ -199,7 +199,7 @@ func (kn *KeyNode) Child(i int16) (value.Key, BlockPosition, bool) {
 }
 
 func (kn *KeyNode) childrenRange(start, end int16) Iterator {
-	return func(yield func(value.Key, BlockPosition) bool) {
+	return func(yield func(value.Key, value.BlockPosition) bool) {
 		for b := range kn.page.ChildrenRange(start, end) {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -210,8 +210,8 @@ func (kn *KeyNode) childrenRange(start, end int16) Iterator {
 	}
 }
 
-func (kn *KeyNode) Search(k value.Key) BlockPosition {
-	var p BlockPosition
+func (kn *KeyNode) Search(k value.Key) value.BlockPosition {
+	var p value.BlockPosition
 	first := true
 	for key, block := range kn.Children() {
 		if first {
