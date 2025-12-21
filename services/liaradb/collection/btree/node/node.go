@@ -1,4 +1,4 @@
-package page
+package node
 
 import (
 	"iter"
@@ -12,7 +12,7 @@ const (
 	itemSize = 4
 )
 
-type Page struct {
+type Node struct {
 	header
 	buffer   *storage.Buffer
 	data     []byte
@@ -20,11 +20,11 @@ type Page struct {
 	byteList bytelist.ByteList
 }
 
-func New(buffer *storage.Buffer) Page {
+func New(buffer *storage.Buffer) Node {
 	data := buffer.Raw()
 	header, data0 := newHeader(data)
 
-	return Page{
+	return Node{
 		header:   header,
 		buffer:   buffer,
 		data:     data,
@@ -34,29 +34,29 @@ func New(buffer *storage.Buffer) Page {
 }
 
 // TODO: Test this
-func (p *Page) Clear() {
+func (p *Node) Clear() {
 	p.buffer.Clear()
 	p.list.Clear()
 }
 
 // TODO: Test this
-func (p *Page) Release()  { p.buffer.Release() }
-func (p *Page) Latch()    { p.buffer.Latch() }
-func (p *Page) Unlatch()  { p.buffer.Unlatch() }
-func (p *Page) RLatch()   { p.buffer.RLatch() }
-func (p *Page) RUnlatch() { p.buffer.RUnlatch() }
+func (p *Node) Release()  { p.buffer.Release() }
+func (p *Node) Latch()    { p.buffer.Latch() }
+func (p *Node) Unlatch()  { p.buffer.Unlatch() }
+func (p *Node) RLatch()   { p.buffer.RLatch() }
+func (p *Node) RUnlatch() { p.buffer.RUnlatch() }
 
 // TODO: Test this
-func (p *Page) SetDirty() {
+func (p *Node) SetDirty() {
 	p.buffer.SetDirty()
 }
 
 // TODO: Test this
-func (p *Page) SetLevel(l byte) {
+func (p *Node) SetLevel(l byte) {
 	p.header.setLevel(l)
 }
 
-func (p *Page) Append(size int16) (int16, []byte, bool) {
+func (p *Node) Append(size int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -77,7 +77,7 @@ func (p *Page) Append(size int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p *Page) Insert(size int16, index int16) (int16, []byte, bool) {
+func (p *Node) Insert(size int16, index int16) (int16, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -98,16 +98,16 @@ func (p *Page) Insert(size int16, index int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p Page) Length() int16 {
+func (p Node) Length() int16 {
 	return int16(len(p.data))
 }
 
 // TODO: Test this
-func (p Page) Count() int16 {
+func (p Node) Count() int16 {
 	return p.list.Count()
 }
 
-func (p *Page) next() int16 {
+func (p *Node) next() int16 {
 	size := p.list.Count()
 	if size == 0 {
 		return int16(p.list.Length())
@@ -116,18 +116,18 @@ func (p *Page) next() int16 {
 	}
 }
 
-func (p Page) Space() int16 {
+func (p Node) Space() int16 {
 	next := p.next()
 	size := p.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
-func (p Page) hasSpace(size int16) bool {
+func (p Node) hasSpace(size int16) bool {
 	s := p.Space()
 	return size <= s
 }
 
-func (p Page) Child(index int16) ([]byte, bool) {
+func (p Node) Child(index int16) ([]byte, bool) {
 	offset, size, ok := p.list.Item(index)
 	if !ok {
 		return nil, false
@@ -136,7 +136,7 @@ func (p Page) Child(index int16) ([]byte, bool) {
 	return p.byteList.Slice(int64(offset), int64(size))
 }
 
-func (p Page) Children() iter.Seq[[]byte] {
+func (p Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range p.list.Items() {
 			b, ok := p.byteList.Slice(int64(offset), int64(size))
@@ -147,7 +147,7 @@ func (p Page) Children() iter.Seq[[]byte] {
 	}
 }
 
-func (p Page) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range p.list.ItemsRange(start, end) {
 			b, ok := p.byteList.Slice(int64(offset), int64(size))

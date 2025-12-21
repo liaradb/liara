@@ -3,32 +3,32 @@ package keynode
 import (
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
 )
 
 type KeyNode struct {
-	page page.Page
+	node node.Node
 }
 
 type Iterator = iter.Seq2[value.Key, value.BlockPosition]
 
-func New(page page.Page) *KeyNode {
+func New(page node.Node) *KeyNode {
 	return &KeyNode{
-		page: page,
+		node: page,
 	}
 }
 
 // TODO: Test this
 func (kn *KeyNode) Append(key value.Key, block value.BlockPosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
-	i, b, ok := kn.page.Append(int16(ke.Size()))
+	i, b, ok := kn.node.Append(int16(ke.Size()))
 	if !ok {
 		return 0, false
 	}
 
 	ke.Write(b)
-	kn.page.SetDirty()
+	kn.node.SetDirty()
 
 	return i, true
 }
@@ -37,7 +37,7 @@ func (kn *KeyNode) Insert(key value.Key, block value.BlockPosition) (Iterator, I
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
-	_, b, ok := kn.page.Insert(int16(ke.Size()), i)
+	_, b, ok := kn.node.Insert(int16(ke.Size()), i)
 	if !ok {
 		// Split
 		a, b := kn.split(i, ke)
@@ -45,7 +45,7 @@ func (kn *KeyNode) Insert(key value.Key, block value.BlockPosition) (Iterator, I
 	}
 
 	ke.Write(b)
-	kn.page.SetDirty()
+	kn.node.SetDirty()
 
 	return nil, nil, true
 }
@@ -57,7 +57,7 @@ func (kn *KeyNode) split(i int16, ke keyEntry) (Iterator, Iterator) {
 }
 
 func (kn *KeyNode) mid() int16 {
-	return kn.page.Count() / 2
+	return kn.node.Count() / 2
 }
 
 func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
@@ -132,8 +132,8 @@ func (kn *KeyNode) Fill(l byte, entries Iterator) value.Key {
 		_, _ = kn.Append(key, block)
 	}
 
-	kn.page.SetLevel(l)
-	kn.page.SetDirty()
+	kn.node.SetLevel(l)
+	kn.node.SetDirty()
 	return k
 }
 
@@ -145,15 +145,15 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 		cache = append(cache, newKeyEntry(key, block))
 	}
 
-	kn.page.Clear()
+	kn.node.Clear()
 
 	for _, e := range cache {
 		// This will definitely fit
 		_, _ = kn.Append(e.key, e.block)
 	}
 
-	kn.page.SetLevel(l)
-	kn.page.SetDirty()
+	kn.node.SetLevel(l)
+	kn.node.SetDirty()
 }
 
 // TODO: Test this
@@ -162,21 +162,21 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 value.BlockPosition, key1 value.Ke
 	// TODO: Will this always be the lower key?
 	key0, _, _ := kn.Child(0)
 
-	kn.page.Clear()
+	kn.node.Clear()
 
 	if _, ok := kn.Append(key0, block0); !ok {
 		return false
 	}
 
 	_, ok := kn.Append(key1, block1)
-	kn.page.SetLevel(l)
-	kn.page.SetDirty()
+	kn.node.SetLevel(l)
+	kn.node.SetDirty()
 	return ok
 }
 
 func (kn *KeyNode) Children() Iterator {
 	return func(yield func(value.Key, value.BlockPosition) bool) {
-		for b := range kn.page.Children() {
+		for b := range kn.node.Children() {
 			ke := keyEntry{}
 			ke.Read(b)
 			if !yield(ke.Key(), ke.Block()) {
@@ -188,7 +188,7 @@ func (kn *KeyNode) Children() Iterator {
 
 // TODO: Test this
 func (kn *KeyNode) Child(i int16) (value.Key, value.BlockPosition, bool) {
-	b, ok := kn.page.Child(i)
+	b, ok := kn.node.Child(i)
 	if !ok {
 		return "", 0, false
 	}
@@ -200,7 +200,7 @@ func (kn *KeyNode) Child(i int16) (value.Key, value.BlockPosition, bool) {
 
 func (kn *KeyNode) childrenRange(start, end int16) Iterator {
 	return func(yield func(value.Key, value.BlockPosition) bool) {
-		for b := range kn.page.ChildrenRange(start, end) {
+		for b := range kn.node.ChildrenRange(start, end) {
 			ke := keyEntry{}
 			ke.Read(b)
 			if !yield(ke.Key(), ke.Block()) {
@@ -241,12 +241,12 @@ func (kn *KeyNode) searchIndex(k value.Key) int16 {
 }
 
 func (kn *KeyNode) Level() byte {
-	return kn.page.Level()
+	return kn.node.Level()
 }
 
 // TODO: Test this
-func (kn *KeyNode) Release()  { kn.page.Release() }
-func (kn *KeyNode) Latch()    { kn.page.Latch() }
-func (kn *KeyNode) Unlatch()  { kn.page.Unlatch() }
-func (kn *KeyNode) RLatch()   { kn.page.RLatch() }
-func (kn *KeyNode) RUnlatch() { kn.page.RUnlatch() }
+func (kn *KeyNode) Release()  { kn.node.Release() }
+func (kn *KeyNode) Latch()    { kn.node.Latch() }
+func (kn *KeyNode) Unlatch()  { kn.node.Unlatch() }
+func (kn *KeyNode) RLatch()   { kn.node.RLatch() }
+func (kn *KeyNode) RUnlatch() { kn.node.RUnlatch() }

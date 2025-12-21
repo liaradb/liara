@@ -1,4 +1,4 @@
-package page
+package node
 
 import (
 	"github.com/liaradb/liaradb/encoder/wrap"
@@ -10,7 +10,7 @@ const (
 	lowIDSize  = 8
 	nextSize   = 2
 
-	btreePageHeaderSize = levelSize +
+	headerSize = levelSize +
 		highIDSize +
 		lowIDSize +
 		nextSize

@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
@@ -18,7 +18,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -31,7 +31,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -44,7 +44,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -58,7 +58,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -90,7 +90,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)
@@ -107,7 +107,7 @@ func TestKeyNode(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
 
-		bp := page.New(b)
+		bp := node.New(b)
 		kn := New(bp)
 
 		data := testKeyNodeInsertData(t, kn)

@@ -5,7 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
-	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -27,7 +27,7 @@ func (ns *nodeStorage) getKeyNode(ctx context.Context, bid storage.BlockID) (*ke
 		return nil, err
 	}
 
-	return keynode.New(page.New(b)), nil
+	return keynode.New(node.New(b)), nil
 }
 
 func (ns *nodeStorage) getLeafNode(ctx context.Context, bid storage.BlockID) (*leafnode.LeafNode, error) {
@@ -36,7 +36,7 @@ func (ns *nodeStorage) getLeafNode(ctx context.Context, bid storage.BlockID) (*l
 		return nil, err
 	}
 
-	return leafnode.New(page.New(b)), nil
+	return leafnode.New(node.New(b)), nil
 }
 
 func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn string) (*storage.Buffer, error) {
@@ -49,7 +49,7 @@ func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn string) (*keynode.
 		return nil, storage.BlockID{}, err
 	}
 
-	return keynode.New(page.New(b)), b.BlockID(), nil
+	return keynode.New(node.New(b)), b.BlockID(), nil
 }
 
 func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, storage.BlockID, error) {
@@ -58,14 +58,14 @@ func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnod
 		return nil, storage.BlockID{}, err
 	}
 
-	return leafnode.New(page.New(b)), b.BlockID(), nil
+	return leafnode.New(node.New(b)), b.BlockID(), nil
 }
 
-func (ns *nodeStorage) getPage(ctx context.Context, bid storage.BlockID) (page.Page, error) {
+func (ns *nodeStorage) getPage(ctx context.Context, bid storage.BlockID) (node.Node, error) {
 	b, err := ns.getBuffer(ctx, bid)
 	if err != nil {
-		return page.Page{}, err
+		return node.Node{}, err
 	}
 
-	return page.New(b), nil
+	return node.New(b), nil
 }

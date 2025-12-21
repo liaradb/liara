@@ -5,7 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
-	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -208,7 +208,7 @@ func (c *insert) insertRoot(
 	b2.Clone(b0)
 
 	// This should always return true
-	_ = keynode.New(page.New(b0)).ReplaceRoot(
+	_ = keynode.New(node.New(b0)).ReplaceRoot(
 		level+1,
 		BlockPosition(b2.BlockID().Position),
 		key,

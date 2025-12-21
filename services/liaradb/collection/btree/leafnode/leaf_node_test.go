@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/liaradb/liaradb/collection/btree/page"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/storagetesting"
@@ -17,7 +17,7 @@ func TestLeafNode_Child(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	p := page.New(b)
+	p := node.New(b)
 	ln := New(p)
 
 	data := []leafEntry{
@@ -62,7 +62,7 @@ func TestLeafNode_Children(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	p := page.New(b)
+	p := node.New(b)
 	ln := New(p)
 
 	data := []leafEntry{
@@ -102,7 +102,7 @@ func TestLeafNode_Insert(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	bp := page.New(b)
+	bp := node.New(b)
 	ln := New(bp)
 
 	data := []leafEntry{
@@ -186,7 +186,7 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	bp := page.New(b)
+	bp := node.New(b)
 	ln := New(bp)
 
 	data := []leafEntry{

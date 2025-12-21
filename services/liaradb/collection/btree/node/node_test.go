@@ -1,4 +1,4 @@
-package page
+package node
 
 import (
 	"slices"
@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	headerSize = 2 + btreePageHeaderSize
+	testHeaderSize = 2 + headerSize
 )
 
-func TestBTreePage_Append(t *testing.T) {
+func TestNode_Append(t *testing.T) {
 	t.Parallel()
 
 	const (
 		size int16 = 256
-		s0         = size - itemSize - headerSize
+		s0         = size - itemSize - testHeaderSize
 		s1         = s0 - itemSize - 16
 		s2         = s1 - itemSize - 16
 	)
@@ -91,12 +91,12 @@ func TestBTreePage_Append(t *testing.T) {
 	}
 }
 
-func TestBTreePage_Insert(t *testing.T) {
+func TestNode_Insert(t *testing.T) {
 	t.Parallel()
 
 	const (
 		size int16 = 256
-		s0         = size - itemSize - headerSize
+		s0         = size - itemSize - testHeaderSize
 		s1         = s0 - itemSize - 16
 		s2         = s1 - itemSize - 16
 	)
@@ -169,10 +169,10 @@ func TestBTreePage_Insert(t *testing.T) {
 	}
 }
 
-func TestBTreePage_Space(t *testing.T) {
+func TestNode_Space(t *testing.T) {
 	t.Parallel()
 
-	s := storagetesting.CreateStorage(t, 2, 16+itemSize+headerSize)
+	s := storagetesting.CreateStorage(t, 2, 16+itemSize+testHeaderSize)
 	b := createBuffer(t, s)
 
 	p := New(b)
@@ -194,7 +194,7 @@ func TestBTreePage_Space(t *testing.T) {
 	}
 }
 
-func TestBTreePage_Child(t *testing.T) {
+func TestNode_Child(t *testing.T) {
 	t.Parallel()
 
 	s := storagetesting.CreateStorage(t, 2, 256)
@@ -242,7 +242,7 @@ func TestBTreePage_Child(t *testing.T) {
 	}
 }
 
-func TestBTreePage_Children(t *testing.T) {
+func TestNode_Children(t *testing.T) {
 	t.Parallel()
 
 	s := storagetesting.CreateStorage(t, 2, 256)
@@ -282,7 +282,7 @@ func TestBTreePage_Children(t *testing.T) {
 	}
 }
 
-func TestBTreePage_ChildrenRange(t *testing.T) {
+func TestNode_ChildrenRange(t *testing.T) {
 	t.Parallel()
 
 	s := storagetesting.CreateStorage(t, 2, 256)
