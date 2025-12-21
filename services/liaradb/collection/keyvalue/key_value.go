@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -32,12 +32,13 @@ func New(s *storage.Storage) *KeyValue {
 }
 
 func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, error) {
-	rid, err := kv.c.Search(ctx, fmt.Sprintf("%v_index", fn), key)
+	tn := tablename.New(fn)
+	rid, err := kv.c.Search(ctx, tn.Index(0), key)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx, storage.NewBlockID(fn, storage.Offset(rid.Block())))
+	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(), storage.Offset(rid.Block())))
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +67,15 @@ func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, 
 }
 
 func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte) error {
+	tn := tablename.New(fn)
 	// TODO: Don't use io.Reader
-	rid, err := kv.append(ctx, fn, v)
+	rid, err := kv.append(ctx, tn.KeyValue(), v)
 	if err != nil {
 		return err
 	}
 
 	return kv.c.Insert(ctx,
-		fmt.Sprintf("%v_index", fn),
+		tn.Index(0),
 		key,
 		value.NewRecordID(
 			value.BlockPosition(rid.BlockID.Position),
