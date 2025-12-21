@@ -1,6 +1,10 @@
 package tablename
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/liaradb/liaradb/domain/value"
+)
 
 func TestTableName(t *testing.T) {
 	t.Parallel()
@@ -8,23 +12,23 @@ func TestTableName(t *testing.T) {
 	n := "testfile"
 	tn := New(n)
 
-	wantKV := "testfile.kv"
-	if kv := tn.KeyValue(); kv != wantKV {
+	wantKV := "testfile--1.kv"
+	if kv := tn.KeyValue(value.NewPartitionID(1)); kv != wantKV {
 		t.Errorf("incorrect key value file: %v, expected: %v", kv, wantKV)
 	}
 
-	wantEL := "testfile.el"
-	if el := tn.EventLog(); el != wantEL {
+	wantEL := "testfile--1.el"
+	if el := tn.EventLog(value.NewPartitionID(1)); el != wantEL {
 		t.Errorf("incorrect event log file: %v, expected: %v", el, wantEL)
 	}
 
-	wantIdx0 := "testfile--0.idx"
-	if idx := tn.Index(0); idx != wantIdx0 {
+	wantIdx0 := "testfile--0--2.idx"
+	if idx := tn.Index(0, value.NewPartitionID(2)); idx != wantIdx0 {
 		t.Errorf("incorrect index file: %v, expected: %v", idx, wantIdx0)
 	}
 
-	wantIdx1 := "testfile--1.idx"
-	if idx := tn.Index(1); idx != wantIdx1 {
+	wantIdx1 := "testfile--1--2.idx"
+	if idx := tn.Index(1, value.NewPartitionID(2)); idx != wantIdx1 {
 		t.Errorf("incorrect index file: %v, expected: %v", idx, wantIdx1)
 	}
 }

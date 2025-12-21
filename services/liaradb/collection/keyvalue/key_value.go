@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
+	domain "github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -33,12 +34,12 @@ func New(s *storage.Storage) *KeyValue {
 
 func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, error) {
 	tn := tablename.New(fn)
-	rid, err := kv.c.Search(ctx, tn.Index(0), key)
+	rid, err := kv.c.Search(ctx, tn.Index(0, domain.NewPartitionID(0)), key)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(), storage.Offset(rid.Block())))
+	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), storage.Offset(rid.Block())))
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +70,13 @@ func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, 
 func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte) error {
 	tn := tablename.New(fn)
 	// TODO: Don't use io.Reader
-	rid, err := kv.append(ctx, tn.KeyValue(), v)
+	rid, err := kv.append(ctx, tn.KeyValue(domain.NewPartitionID(0)), v)
 	if err != nil {
 		return err
 	}
 
 	return kv.c.Insert(ctx,
-		tn.Index(0),
+		tn.Index(0, domain.NewPartitionID(0)),
 		key,
 		value.NewRecordID(
 			value.BlockPosition(rid.BlockID.Position),
