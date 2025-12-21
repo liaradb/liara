@@ -13,4 +13,15 @@ func TestKeyValue(t *testing.T) {
 	if err := kv.Set(t.Context(), "testfile", "1", []byte("a")); err != nil {
 		t.Error(err)
 	}
+
+	value, err := kv.Get(t.Context(), "testfile", "1")
+	if err != nil {
+		t.Error(err)
+	}
+
+	want := "a"
+	result := string(value)
+	if result != want {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
 }

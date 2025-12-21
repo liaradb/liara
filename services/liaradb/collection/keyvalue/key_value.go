@@ -31,6 +31,40 @@ func New(s *storage.Storage) *KeyValue {
 	}
 }
 
+func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, error) {
+	rid, err := kv.c.Search(ctx, fmt.Sprintf("%v_index", fn), key)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := kv.s.Request(ctx, storage.NewBlockID(fn, storage.Offset(rid.Block())))
+	if err != nil {
+		return nil, err
+	}
+
+	defer b.Release()
+
+	p := NewBufferPage(b)
+	// TODO: Find a simpler way
+	i := 0
+	for data, err := range p.Items() {
+		if err != nil {
+			return nil, err
+		}
+
+		if i == int(rid.Position()) {
+			buf := raw.NewBufferFromSlice(data)
+			var result []byte
+			err := raw.Read(buf, &result)
+			return result, err
+		}
+
+		i++
+	}
+
+	return nil, btree.ErrNotFound
+}
+
 func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte) error {
 	// TODO: Don't use io.Reader
 	rid, err := kv.append(ctx, fn, v)
