@@ -3,25 +3,44 @@ package keyvalue
 import (
 	"testing"
 
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 func TestKeyValue(t *testing.T) {
+	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s)
+	fn := "testfile"
 
-	if err := kv.Set(t.Context(), "testfile", "1", []byte("a")); err != nil {
-		t.Error(err)
+	data := map[value.Key][]byte{
+		"1": []byte("a"),
+		"2": []byte("b"),
+		"3": []byte("c"),
+		"4": []byte("d"),
+		"5": []byte("e"),
+		"6": []byte("f"),
+		"7": []byte("g"),
+		"8": []byte("h"),
+		"9": []byte("i"),
 	}
 
-	value, err := kv.Get(t.Context(), "testfile", "1")
-	if err != nil {
-		t.Error(err)
+	for k, v := range data {
+		if err := kv.Set(ctx, fn, k, v); err != nil {
+			t.Fatal(err)
+		}
 	}
 
-	want := "a"
-	result := string(value)
-	if result != want {
-		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	for k, v := range data {
+		value, err := kv.Get(ctx, fn, k)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		want := string(v)
+		result := string(value)
+		if result != want {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
 	}
 }
