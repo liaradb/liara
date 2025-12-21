@@ -8,6 +8,8 @@ import (
 )
 
 func TestKeyValue(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s)

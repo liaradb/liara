@@ -6,6 +6,8 @@ import (
 )
 
 func TestSet_Add(t *testing.T) {
+	t.Parallel()
+
 	s := Set[int]{}
 	s.Add(1, 2, 3)
 	result := s.Slice()
@@ -20,6 +22,8 @@ func TestSet_Add(t *testing.T) {
 }
 
 func TestSet_Remove(t *testing.T) {
+	t.Parallel()
+
 	s := New(1)
 	s.Remove(1)
 	slice := s.Slice()
@@ -29,6 +33,8 @@ func TestSet_Remove(t *testing.T) {
 }
 
 func TestSet_Clear(t *testing.T) {
+	t.Parallel()
+
 	s := New(1)
 	s.Clear()
 	slice := s.Slice()
@@ -38,6 +44,8 @@ func TestSet_Clear(t *testing.T) {
 }
 
 func TestSet_Includes(t *testing.T) {
+	t.Parallel()
+
 	s := New(1)
 	if s.Includes(0) {
 		t.Error("should only include 1")
@@ -48,6 +56,8 @@ func TestSet_Includes(t *testing.T) {
 }
 
 func TestSet_Merge(t *testing.T) {
+	t.Parallel()
+
 	a := New(0)
 	b := New(1)
 	a.Merge(b)
@@ -60,6 +70,8 @@ func TestSet_Merge(t *testing.T) {
 }
 
 func TestSet_Union(t *testing.T) {
+	t.Parallel()
+
 	a := New(0)
 	b := New(1)
 	c := a.Union(b)
@@ -72,6 +84,8 @@ func TestSet_Union(t *testing.T) {
 }
 
 func TestSet_Intersection(t *testing.T) {
+	t.Parallel()
+
 	a := New(0, 1)
 	b := New(1, 2)
 	c := a.Intersection(b)

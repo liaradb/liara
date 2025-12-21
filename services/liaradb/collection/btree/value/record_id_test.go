@@ -3,6 +3,8 @@ package value
 import "testing"
 
 func TestRecordID_Defaults(t *testing.T) {
+	t.Parallel()
+
 	id := RecordID{}
 
 	if b := id.Block(); b != 0 {
@@ -15,6 +17,8 @@ func TestRecordID_Defaults(t *testing.T) {
 }
 
 func TestRecordID_New(t *testing.T) {
+	t.Parallel()
+
 	id := NewRecordID(1, 2)
 
 	if b := id.Block(); b != 1 {

@@ -13,6 +13,8 @@ import (
 )
 
 func TestManager(t *testing.T) {
+	t.Parallel()
+
 	m, _ := createManager(t)
 
 	tx0 := m.Next()

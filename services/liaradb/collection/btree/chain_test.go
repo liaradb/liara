@@ -6,6 +6,8 @@ import (
 )
 
 func TestChain(t *testing.T) {
+	t.Parallel()
+
 	c := newChain()
 
 	values := []int{1, 2, 3, 4, 5}
@@ -25,6 +27,8 @@ func TestChain(t *testing.T) {
 }
 
 func TestChain__Crabbing(t *testing.T) {
+	t.Parallel()
+
 	c := newChain()
 
 	values := []int{1, 2, 3, 4, 5}

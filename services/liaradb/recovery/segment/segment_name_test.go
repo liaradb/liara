@@ -42,6 +42,8 @@ func TestSegmentName(t *testing.T) {
 }
 
 func TestSegmentName_Next(t *testing.T) {
+	t.Parallel()
+
 	sn := NewSegmentName(1, record.NewLogSequenceNumber(10))
 	n := sn.Next(record.NewLogSequenceNumber(15))
 	if i := n.ID(); i != 2 {

@@ -3,11 +3,15 @@ package wrap
 import "testing"
 
 func TestBool_Defaults(t *testing.T) {
+	t.Parallel()
+
 	var b Bool
 	testBool(t, b, [8]bool{})
 }
 
 func TestBool(t *testing.T) {
+	t.Parallel()
+
 	var b Bool
 
 	b.Set(0, true)
