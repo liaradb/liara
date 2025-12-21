@@ -1,23 +1,25 @@
 package storage
 
+import "github.com/liaradb/liaradb/encoder/page"
+
 type BlockID struct {
 	FileName string
-	Position Offset
+	Position page.Offset
 }
 
-func NewBlockID(fileName string, position Offset) BlockID {
+func NewBlockID(fileName string, position page.Offset) BlockID {
 	return BlockID{
 		FileName: fileName,
 		Position: position,
 	}
 }
 
-func (b BlockID) Offset(bufferSize int64) Offset {
-	return b.Position * Offset(bufferSize)
+func (b BlockID) Offset(bufferSize int64) page.Offset {
+	return b.Position * page.Offset(bufferSize)
 }
 
 // TODO: Test this
-func (b BlockID) RecordID(position Offset) RecordID {
+func (b BlockID) RecordID(position page.Offset) RecordID {
 	return RecordID{
 		BlockID:  b,
 		Position: position,

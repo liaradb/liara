@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -89,7 +90,7 @@ func (c *insert) getChain(
 		kn := keynode.New(p)
 		chain.append(kn)
 
-		bid := storage.NewBlockID(fn, storage.Offset(kn.Search(k)))
+		bid := storage.NewBlockID(fn, page.Offset(kn.Search(k)))
 		if p, err = c.ns.getPage(ctx, bid); err != nil {
 			chain.release()
 			return nil, err
@@ -126,7 +127,7 @@ func (c *insert) insertChainLeaf(
 	ln2.Latch()
 	defer ln2.Unlatch()
 
-	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, storage.Offset(ln.RightID())))
+	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, page.Offset(ln.RightID())))
 	if err != nil {
 		return storage.BlockID{}, "", false, err
 	}

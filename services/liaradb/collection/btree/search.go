@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -35,14 +36,14 @@ func (c *search) Search(
 
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchKey(ctx,
-			storage.NewBlockID(fn, storage.Offset(block)), k)
+			storage.NewBlockID(fn, page.Offset(block)), k)
 		if err != nil {
 			return RecordID{}, err
 		}
 	}
 
 	return c.searchLeaf(ctx,
-		storage.NewBlockID(fn, storage.Offset(block)), k)
+		storage.NewBlockID(fn, page.Offset(block)), k)
 }
 
 func (c *search) searchRoot(
@@ -200,7 +201,7 @@ func (s *search) searchRangeNext(
 	block BlockPosition,
 ) (BlockPosition, iter.Seq[RecordID], error) {
 	ln, err := s.ns.getLeafNode(ctx,
-		storage.NewBlockID(fn, storage.Offset(block)))
+		storage.NewBlockID(fn, page.Offset(block)))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -229,14 +230,14 @@ func (c *search) searchRange(
 
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchRangeKey(ctx,
-			storage.NewBlockID(fn, storage.Offset(block)), k)
+			storage.NewBlockID(fn, page.Offset(block)), k)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return c.ns.getLeafNode(ctx,
-		storage.NewBlockID(fn, storage.Offset(block)))
+		storage.NewBlockID(fn, page.Offset(block)))
 }
 
 func (c *search) searchRangeRoot(

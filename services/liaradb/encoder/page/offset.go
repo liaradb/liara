@@ -11,7 +11,7 @@ type Offset int64
 
 const OffsetSize = 8
 
-func (o Offset) Value() int { return int(o) }
+func (o Offset) Value() int64 { return int64(o) }
 
 func (Offset) Size() int { return OffsetSize }
 

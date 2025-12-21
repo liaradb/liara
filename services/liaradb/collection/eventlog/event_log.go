@@ -76,7 +76,7 @@ func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []by
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.Offset(offset)), nil
+	return b.BlockID().RecordID(page.Offset(offset)), nil
 }
 
 func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (storage.RecordID, error) {
@@ -94,7 +94,7 @@ func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.Offset(offset)), nil
+	return b.BlockID().RecordID(page.Offset(offset)), nil
 }
 
 func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*entity.Event, error) {
@@ -194,7 +194,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*BufferPage, error) bool) (storage.Offset, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*BufferPage, error) bool) (page.Offset, bool) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)

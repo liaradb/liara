@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/liaradb/liaradb/async"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage/queue"
 )
@@ -20,7 +21,7 @@ type Storage struct {
 	highWReqs  async.Handler[string, BlockID]
 	returns    chan *Buffer
 	max        int
-	highWater  map[string]Offset
+	highWater  map[string]page.Offset
 }
 
 func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
@@ -33,7 +34,7 @@ func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[BlockID]*Buffer, max),
 		max:        max,
-		highWater:  make(map[string]Offset),
+		highWater:  make(map[string]page.Offset),
 	}
 }
 
@@ -347,7 +348,7 @@ func (s *Storage) initHighwater(fileName string, f file.File) error {
 	}
 
 	size := stat.Size()
-	s.highWater[fileName] = Offset(size / s.bufferSize)
+	s.highWater[fileName] = page.Offset(size / s.bufferSize)
 
 	return nil
 }

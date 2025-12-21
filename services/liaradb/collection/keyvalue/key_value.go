@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	domain "github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -39,7 +40,7 @@ func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, 
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), storage.Offset(rid.Block())))
+	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), page.Offset(rid.Block())))
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,7 @@ func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.Offset(offset)), nil
+	return b.BlockID().RecordID(page.Offset(offset)), nil
 }
 
 func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (storage.RecordID, error) {
@@ -147,5 +148,5 @@ func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (sto
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.Offset(offset)), nil
+	return b.BlockID().RecordID(page.Offset(offset)), nil
 }
