@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type LeafNode struct {
@@ -19,22 +20,22 @@ func New(page node.Node) *LeafNode {
 	}
 }
 
-func (ln *LeafNode) LeftID() value.BlockPosition {
-	return value.BlockPosition(ln.node.LowID())
+func (ln *LeafNode) LeftID() page.Offset {
+	return page.Offset(ln.node.LowID())
 }
 
-func (ln *LeafNode) RightID() value.BlockPosition {
-	return value.BlockPosition(ln.node.HighID())
+func (ln *LeafNode) RightID() page.Offset {
+	return page.Offset(ln.node.HighID())
 }
 
 // TODO: Test this
-func (ln *LeafNode) SetLeftID(block value.BlockPosition) {
+func (ln *LeafNode) SetLeftID(block page.Offset) {
 	ln.node.SetLowID(block.Value())
 	ln.node.SetDirty()
 }
 
 // TODO: Test this
-func (ln *LeafNode) SetRightID(block value.BlockPosition) {
+func (ln *LeafNode) SetRightID(block page.Offset) {
 	ln.node.SetHighID(block.Value())
 	ln.node.SetDirty()
 }
@@ -70,8 +71,8 @@ func (ln *LeafNode) Insert(key value.Key, recordID value.RecordID) (Iterator, It
 
 // TODO: Test this
 func (ln *LeafNode) Fill(
-	leftID value.BlockPosition,
-	rightID value.BlockPosition,
+	leftID page.Offset,
+	rightID page.Offset,
 	entries Iterator,
 ) value.Key {
 	var k value.Key
@@ -94,7 +95,7 @@ func (ln *LeafNode) Fill(
 
 // TODO: Test this
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(rightID value.BlockPosition, entries Iterator) {
+func (ln *LeafNode) Replace(rightID page.Offset, entries Iterator) {
 	cache := make([]leafEntry, 0, ln.mid())
 	for key, rid := range entries {
 		cache = append(cache, newLeafEntry(key, rid))

@@ -5,13 +5,14 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type KeyNode struct {
 	node node.Node
 }
 
-type Iterator = iter.Seq2[value.Key, value.BlockPosition]
+type Iterator = iter.Seq2[value.Key, page.Offset]
 
 func New(page node.Node) *KeyNode {
 	return &KeyNode{
@@ -20,7 +21,7 @@ func New(page node.Node) *KeyNode {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Append(key value.Key, block value.BlockPosition) (int16, bool) {
+func (kn *KeyNode) Append(key value.Key, block page.Offset) (int16, bool) {
 	ke := newKeyEntry(key, block)
 	i, b, ok := kn.node.Append(int16(ke.Size()))
 	if !ok {
@@ -33,7 +34,7 @@ func (kn *KeyNode) Append(key value.Key, block value.BlockPosition) (int16, bool
 	return i, true
 }
 
-func (kn *KeyNode) Insert(key value.Key, block value.BlockPosition) (Iterator, Iterator, bool) {
+func (kn *KeyNode) Insert(key value.Key, block page.Offset) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
@@ -65,7 +66,7 @@ func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(0, mid)
 	}
 
-	return func(yield func(value.Key, value.BlockPosition) bool) {
+	return func(yield func(value.Key, page.Offset) bool) {
 		if i == 0 {
 			if !yield(ke.Key(), ke.Block()) {
 				return
@@ -94,7 +95,7 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(mid, -1)
 	}
 
-	return func(yield func(value.Key, value.BlockPosition) bool) {
+	return func(yield func(value.Key, page.Offset) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(ke.Key(), ke.Block()) {
@@ -157,7 +158,7 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 }
 
 // TODO: Test this
-func (kn *KeyNode) ReplaceRoot(l byte, block0 value.BlockPosition, key1 value.Key, block1 value.BlockPosition) bool {
+func (kn *KeyNode) ReplaceRoot(l byte, block0 page.Offset, key1 value.Key, block1 page.Offset) bool {
 	// This should always have a child
 	// TODO: Will this always be the lower key?
 	key0, _, _ := kn.Child(0)
@@ -175,7 +176,7 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 value.BlockPosition, key1 value.Ke
 }
 
 func (kn *KeyNode) Children() Iterator {
-	return func(yield func(value.Key, value.BlockPosition) bool) {
+	return func(yield func(value.Key, page.Offset) bool) {
 		for b := range kn.node.Children() {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -187,7 +188,7 @@ func (kn *KeyNode) Children() Iterator {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Child(i int16) (value.Key, value.BlockPosition, bool) {
+func (kn *KeyNode) Child(i int16) (value.Key, page.Offset, bool) {
 	b, ok := kn.node.Child(i)
 	if !ok {
 		return "", 0, false
@@ -199,7 +200,7 @@ func (kn *KeyNode) Child(i int16) (value.Key, value.BlockPosition, bool) {
 }
 
 func (kn *KeyNode) childrenRange(start, end int16) Iterator {
-	return func(yield func(value.Key, value.BlockPosition) bool) {
+	return func(yield func(value.Key, page.Offset) bool) {
 		for b := range kn.node.ChildrenRange(start, end) {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -210,8 +211,8 @@ func (kn *KeyNode) childrenRange(start, end int16) Iterator {
 	}
 }
 
-func (kn *KeyNode) Search(k value.Key) value.BlockPosition {
-	var p value.BlockPosition
+func (kn *KeyNode) Search(k value.Key) page.Offset {
+	var p page.Offset
 	first := true
 	for key, block := range kn.Children() {
 		if first {

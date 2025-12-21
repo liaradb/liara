@@ -80,7 +80,7 @@ func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte)
 		tn.Index(0, domain.NewPartitionID(0)),
 		key,
 		value.NewRecordID(
-			value.BlockPosition(rid.BlockID.Position),
+			rid.BlockID.Position,
 			value.RecordPosition(rid.Position)))
 }
 
