@@ -27,7 +27,7 @@ func (l List) reset() {
 	l.entries = l.entries[:0]
 }
 
-func (l *List) Add(offset Offset, length Offset) (Offset, error) {
+func (l *List) Add(offset Offset, length ListLength) (Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, raw.ErrInsufficientSpace

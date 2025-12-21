@@ -9,13 +9,13 @@ import (
 type FlatListEntry struct {
 	ID     Offset
 	Offset Offset
-	Length Offset
+	Length ListLength
 	CRC    CRC
 }
 
 const FlatListEntrySize = OffsetSize + OffsetSize + ListLengthSize + CrcSize
 
-func newFlatListEntry(id Offset, offset Offset, length Offset) ListEntry {
+func newFlatListEntry(id Offset, offset Offset, length ListLength) ListEntry {
 	return ListEntry{
 		ID:     id,
 		Offset: offset,

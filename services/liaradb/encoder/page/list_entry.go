@@ -9,13 +9,13 @@ import (
 type ListEntry struct {
 	ID     Offset
 	Offset Offset
-	Length Offset
+	Length ListLength
 	CRC    CRC
 }
 
 const ListEntrySize = OffsetSize + OffsetSize + ListLengthSize + CrcSize
 
-func newListEntry(id Offset, offset Offset, length Offset) ListEntry {
+func newListEntry(id Offset, offset Offset, length ListLength) ListEntry {
 	return ListEntry{
 		ID:     id,
 		Offset: offset,

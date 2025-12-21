@@ -14,7 +14,7 @@ func NewItem(data []byte) *Item {
 	return &Item{data}
 }
 
-func NewItemByLength(l Offset) *Item {
+func NewItemByLength(l ListLength) *Item {
 	return &Item{make([]byte, l)}
 }
 

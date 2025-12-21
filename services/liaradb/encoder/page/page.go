@@ -23,7 +23,7 @@ type Page[H Serializer, I ItemSerializer] struct {
 	header H
 	list   List
 	items  []I // TODO: Change back to []byte
-	newI   func(Offset) I
+	newI   func(ListLength) I
 }
 
 type BytePage = Page[ZeroHeader, *Item]
@@ -45,7 +45,7 @@ func New(size Offset) *Page[ZeroHeader, *Item] {
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI func(Offset) I) *Page[H, I] {
+func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI func(ListLength) I) *Page[H, I] {
 	return &Page[H, I]{
 		size:   size,
 		header: header,
@@ -65,7 +65,7 @@ func (p *Page[H, I]) Reset(h H) {
 // TODO: Test offset return
 func (p *Page[H, I]) Add(i I) (Offset, error) {
 	l := i.Size()
-	offset, err := p.list.Add(p.nextCursor(l), Offset(l))
+	offset, err := p.list.Add(p.nextCursor(l), ListLength(l))
 	if err != nil {
 		// TODO: Test this
 		return 0, err
