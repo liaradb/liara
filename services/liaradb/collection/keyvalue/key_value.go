@@ -34,8 +34,7 @@ func New(s *storage.Storage) *KeyValue {
 	}
 }
 
-func (kv *KeyValue) Get(ctx context.Context, n string, key value.Key) ([]byte, error) {
-	tn := tablename.New(n)
+func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.Key) ([]byte, error) {
 	rid, err := kv.c.Search(ctx, tn.Index(0, domain.NewPartitionID(0)), key)
 	if err != nil {
 		return nil, err
@@ -69,8 +68,7 @@ func (kv *KeyValue) Get(ctx context.Context, n string, key value.Key) ([]byte, e
 	return nil, btree.ErrNotFound
 }
 
-func (kv *KeyValue) Set(ctx context.Context, n string, key value.Key, v []byte) error {
-	tn := tablename.New(n)
+func (kv *KeyValue) Set(ctx context.Context, tn tablename.TableName, key value.Key, v []byte) error {
 	// TODO: Don't use io.Reader
 	rid, err := kv.append(ctx, tn.KeyValue(domain.NewPartitionID(0)), v)
 	if err != nil {

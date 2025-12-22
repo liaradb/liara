@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -13,7 +14,7 @@ func TestKeyValue(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s)
-	n := "testfile"
+	n := tablename.New("testfile")
 
 	data := map[value.Key][]byte{
 		"1": []byte("a"),
