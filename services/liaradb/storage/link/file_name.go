@@ -1,7 +1,5 @@
 package link
 
-import "github.com/liaradb/liaradb/encoder/page"
-
 type FileName string
 
 func NewFileName(value string) FileName {
@@ -10,6 +8,6 @@ func NewFileName(value string) FileName {
 
 func (fn FileName) String() string { return string(fn) }
 
-func (fn FileName) BlockID(position page.Offset) BlockID {
+func (fn FileName) BlockID(position FilePosition) BlockID {
 	return NewBlockID(fn, position)
 }

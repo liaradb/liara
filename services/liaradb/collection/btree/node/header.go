@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 const (
@@ -42,12 +43,12 @@ func (p *header) Level() byte {
 	return p.level.GetUnsigned()
 }
 
-func (p *header) HighID() int64 {
-	return p.highID.Get()
+func (p *header) HighID() link.FilePosition {
+	return link.FilePosition(p.highID.Get())
 }
 
-func (p *header) LowID() int64 {
-	return p.lowID.Get()
+func (p *header) LowID() link.FilePosition {
+	return link.FilePosition(p.lowID.Get())
 }
 
 func (p *header) Next() int16 {
@@ -58,12 +59,12 @@ func (p *header) setLevel(l byte) {
 	p.level.SetUnsigned(l)
 }
 
-func (p *header) SetHighID(o int64) {
-	p.highID.Set(o)
+func (p *header) SetHighID(o link.FilePosition) {
+	p.highID.Set(o.Value())
 }
 
-func (p *header) SetLowID(o int64) {
-	p.lowID.Set(o)
+func (p *header) SetLowID(o link.FilePosition) {
+	p.lowID.Set(o.Value())
 }
 
 func (p *header) setNext(o int16) {

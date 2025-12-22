@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/value"
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -50,7 +49,7 @@ func (c *search) searchRoot(
 	ctx context.Context,
 	fn link.FileName,
 	k value.Key,
-) (byte, page.Offset, link.RecordLocator, error) {
+) (byte, link.FilePosition, link.RecordLocator, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
 		return 0, 0, link.RecordLocator{}, err
@@ -84,7 +83,7 @@ func (c *search) searchKey(
 	ctx context.Context,
 	bid link.BlockID,
 	k value.Key,
-) (byte, page.Offset, error) {
+) (byte, link.FilePosition, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {
 		return 0, 0, err
@@ -181,7 +180,7 @@ func (s *search) searchRangeFirst(
 	ctx context.Context,
 	fn link.FileName,
 	k value.Key,
-) (page.Offset, iter.Seq[link.RecordLocator], error) {
+) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
@@ -198,8 +197,8 @@ func (s *search) searchRangeFirst(
 func (s *search) searchRangeNext(
 	ctx context.Context,
 	fn link.FileName,
-	block page.Offset,
-) (page.Offset, iter.Seq[link.RecordLocator], error) {
+	block link.FilePosition,
+) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
 	if err != nil {
 		return 0, nil, err
@@ -241,7 +240,7 @@ func (c *search) searchRangeRoot(
 	ctx context.Context,
 	fn link.FileName,
 	k value.Key,
-) (byte, page.Offset, *leafnode.LeafNode, error) {
+) (byte, link.FilePosition, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
 		return 0, 0, nil, err
@@ -264,7 +263,7 @@ func (c *search) searchRangeKey(
 	ctx context.Context,
 	bid link.BlockID,
 	k value.Key,
-) (byte, page.Offset, error) {
+) (byte, link.FilePosition, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {
 		return 0, 0, err

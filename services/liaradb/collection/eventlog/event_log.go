@@ -195,7 +195,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[*Buf
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID, yield func(*BufferPage, error) bool) (page.Offset, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID, yield func(*BufferPage, error) bool) (link.FilePosition, bool) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)

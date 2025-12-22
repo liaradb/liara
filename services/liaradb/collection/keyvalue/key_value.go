@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	domain "github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -41,8 +40,7 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.K
 	}
 
 	b, err := kv.s.Request(ctx,
-		tn.KeyValue(domain.NewPartitionID(0)).
-			BlockID(page.Offset(rid.Block())))
+		tn.KeyValue(domain.NewPartitionID(0)).BlockID(rid.Block()))
 	if err != nil {
 		return nil, err
 	}

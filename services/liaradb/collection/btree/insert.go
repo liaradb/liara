@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -154,7 +153,7 @@ func (c *insert) insertChainKey(
 	fn link.FileName,
 	kn *keynode.KeyNode,
 	k value.Key,
-	block page.Offset,
+	block link.FilePosition,
 ) (link.BlockID, value.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
