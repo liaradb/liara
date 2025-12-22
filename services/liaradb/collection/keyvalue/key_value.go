@@ -80,8 +80,8 @@ func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte)
 		tn.Index(0, domain.NewPartitionID(0)),
 		key,
 		value.NewRecordID(
-			rid.BlockID.Position,
-			storage.RecordPosition(rid.Position)))
+			rid.BlockID().Position,
+			storage.RecordPosition(rid.Position())))
 }
 
 func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (storage.RecordID, error) {

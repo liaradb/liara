@@ -3,10 +3,13 @@ package storage
 import "github.com/liaradb/liaradb/encoder/page"
 
 type RecordID struct {
-	BlockID  BlockID
-	Position RecordPosition
+	blockID  BlockID
+	position RecordPosition
 }
 
+func (i RecordID) BlockID() BlockID         { return i.blockID }
+func (i RecordID) Position() RecordPosition { return i.position }
+
 func (i RecordID) Offset(bufferSize int64) page.Offset {
-	return i.BlockID.Offset(bufferSize) + page.Offset(i.Position)
+	return i.blockID.Offset(bufferSize) + page.Offset(i.position)
 }
