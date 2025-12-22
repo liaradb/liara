@@ -80,7 +80,7 @@ func (s *Storage) incrementHighWater(fn link.FileName) {
 }
 
 func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
-	return link.NewBlockID(fn, s.highWater[fn])
+	return fn.BlockID(s.highWater[fn])
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
@@ -244,7 +244,7 @@ func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID
 
 // TODO: Is this still needed?
 func (s *Storage) RequestLatest(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	return s.Request(ctx, link.NewBlockID(fn, -1))
+	return s.Request(ctx, fn.BlockID(-1))
 }
 
 // External thread

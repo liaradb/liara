@@ -40,7 +40,9 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.K
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx, link.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), page.Offset(rid.Block())))
+	b, err := kv.s.Request(ctx,
+		tn.KeyValue(domain.NewPartitionID(0)).
+			BlockID(page.Offset(rid.Block())))
 	if err != nil {
 		return nil, err
 	}
