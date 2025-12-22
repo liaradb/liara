@@ -11,5 +11,5 @@ func NewFileName(value string) FileName {
 func (fn FileName) String() string { return string(fn) }
 
 func (fn FileName) BlockID(position page.Offset) BlockID {
-	return NewBlockID(fn.String(), position)
+	return NewBlockID(fn, position)
 }

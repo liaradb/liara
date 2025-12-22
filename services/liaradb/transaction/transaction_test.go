@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestTransaction_Insert(t *testing.T) {
@@ -60,13 +61,13 @@ func testTransaction_Commit(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	fileName := "filename"
+	fn := link.NewFileName("filename")
 
 	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.Commit(ctx, fileName, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.Commit(ctx, fn, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -96,7 +97,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for b, err := range eventlog.New(m.storage).Iterate(ctx, fileName) {
+	for b, err := range eventlog.New(m.storage).Iterate(ctx, fn) {
 		if err != nil {
 			t.Fatal(err)
 		}

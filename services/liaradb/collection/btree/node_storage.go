@@ -40,11 +40,11 @@ func (ns *nodeStorage) getLeafNode(ctx context.Context, bid link.BlockID) (*leaf
 	return leafnode.New(node.New(b)), nil
 }
 
-func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn string) (*storage.Buffer, error) {
+func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
 	return ns.s.RequestNext(ctx, fn)
 }
 
-func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn string) (*keynode.KeyNode, link.BlockID, error) {
+func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn link.FileName) (*keynode.KeyNode, link.BlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
 		return nil, link.BlockID{}, err
@@ -53,7 +53,7 @@ func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn string) (*keynode.
 	return keynode.New(node.New(b)), b.BlockID(), nil
 }
 
-func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, link.BlockID, error) {
+func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn link.FileName) (*leafnode.LeafNode, link.BlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
 		return nil, link.BlockID{}, err

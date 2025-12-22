@@ -19,10 +19,10 @@ type Storage struct {
 	pinned     map[link.BlockID]*Buffer
 	unpinned   queue.MapQueue[link.BlockID, *Buffer]
 	bufferReqs async.Handler[bufferQuery, *Buffer]
-	highWReqs  async.Handler[string, link.BlockID]
+	highWReqs  async.Handler[link.FileName, link.BlockID]
 	returns    chan *Buffer
 	max        int
-	highWater  map[string]page.Offset
+	highWater  map[link.FileName]page.Offset
 }
 
 func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
@@ -31,11 +31,11 @@ func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 		fs:         fs,
 		dir:        dir,
 		bufferReqs: make(chan *bufferRequest),
-		highWReqs:  make(async.Handler[string, link.BlockID]),
+		highWReqs:  make(async.Handler[link.FileName, link.BlockID]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[link.BlockID]*Buffer, max),
 		max:        max,
-		highWater:  make(map[string]page.Offset),
+		highWater:  make(map[link.FileName]page.Offset),
 	}
 }
 
@@ -75,12 +75,12 @@ func (s *Storage) run(ctx context.Context) {
 	}
 }
 
-func (s *Storage) incrementHighWater(fileName string) {
-	s.highWater[fileName]++
+func (s *Storage) incrementHighWater(fn link.FileName) {
+	s.highWater[fn]++
 }
 
-func (s *Storage) highBlockID(fileName string) link.BlockID {
-	return link.NewBlockID(fileName, s.highWater[fileName])
+func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
+	return link.NewBlockID(fn, s.highWater[fn])
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
@@ -212,7 +212,7 @@ func (s *Storage) unpinAfterRelease(b *Buffer) bool {
 	return false
 }
 
-func (s *Storage) getHighWater(r *async.Request[string, link.BlockID]) {
+func (s *Storage) getHighWater(r *async.Request[link.FileName, link.BlockID]) {
 	fn := r.Value()
 	if _, err := s.openHighwater(fn); err != nil {
 		r.Reply(link.BlockID{}, err)
@@ -234,17 +234,17 @@ func (s *Storage) moveToUnpinned(b *Buffer) {
 	s.unpinned.Push(b.blockID, b)
 }
 
-func (s *Storage) Highwater(ctx context.Context, fileName string) (link.BlockID, error) {
+func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID, error) {
 	if s.highWReqs == nil {
 		return link.BlockID{}, ErrNotInitialized
 	}
 
-	return s.highWReqs.Send(ctx, fileName)
+	return s.highWReqs.Send(ctx, fn)
 }
 
 // TODO: Is this still needed?
-func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
-	return s.Request(ctx, link.NewBlockID(fileName, -1))
+func (s *Storage) RequestLatest(ctx context.Context, fn link.FileName) (*Buffer, error) {
+	return s.Request(ctx, link.NewBlockID(fn, -1))
 }
 
 // External thread
@@ -258,22 +258,22 @@ func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error
 
 // External thread
 // TODO: Test this
-func (s *Storage) RequestCurrent(ctx context.Context, fileName string) (*Buffer, error) {
+func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, newCurrentBufferQuery(fileName))
+	return s.bufferReqs.Send(ctx, newCurrentBufferQuery(fn))
 }
 
 // External thread
 // TODO: Test this
-func (s *Storage) RequestNext(ctx context.Context, fileName string) (*Buffer, error) {
+func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, newNextBufferQuery(fileName))
+	return s.bufferReqs.Send(ctx, newNextBufferQuery(fn))
 }
 
 // External thread
@@ -307,7 +307,7 @@ func (s *Storage) flush(b *Buffer) error {
 func (s *Storage) openFile(b *Buffer) (file.File, error) {
 	// TODO: Test this
 	fn := b.blockID.FileName()
-	f, err := s.fs.OpenFile(path.Join(s.dir, fn))
+	f, err := s.fs.OpenFile(path.Join(s.dir, fn.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -319,22 +319,22 @@ func (s *Storage) openFile(b *Buffer) (file.File, error) {
 	return f, nil
 }
 
-func (s *Storage) openHighwater(fileName string) (file.File, error) {
+func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
 	// TODO: Test this
-	f, err := s.fs.OpenFile(path.Join(s.dir, fileName))
+	f, err := s.fs.OpenFile(path.Join(s.dir, fn.String()))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.initHighwater(fileName, f); err != nil {
+	if err := s.initHighwater(fn, f); err != nil {
 		return nil, err
 	}
 
 	return f, nil
 }
 
-func (s *Storage) initHighwater(fileName string, f file.File) error {
-	if _, ok := s.highWater[fileName]; ok {
+func (s *Storage) initHighwater(fn link.FileName, f file.File) error {
+	if _, ok := s.highWater[fn]; ok {
 		return nil
 	}
 
@@ -344,7 +344,7 @@ func (s *Storage) initHighwater(fileName string, f file.File) error {
 	}
 
 	size := stat.Size()
-	s.highWater[fileName] = page.Offset(size / s.bufferSize)
+	s.highWater[fn] = page.Offset(size / s.bufferSize)
 
 	return nil
 }

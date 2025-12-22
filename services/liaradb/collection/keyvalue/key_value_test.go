@@ -13,7 +13,7 @@ func TestKeyValue(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s)
-	fn := "testfile"
+	n := "testfile"
 
 	data := map[value.Key][]byte{
 		"1": []byte("a"),
@@ -28,13 +28,13 @@ func TestKeyValue(t *testing.T) {
 	}
 
 	for k, v := range data {
-		if err := kv.Set(ctx, fn, k, v); err != nil {
+		if err := kv.Set(ctx, n, k, v); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	for k, v := range data {
-		value, err := kv.Get(ctx, fn, k)
+		value, err := kv.Get(ctx, n, k)
 		if err != nil {
 			t.Fatal(err)
 		}

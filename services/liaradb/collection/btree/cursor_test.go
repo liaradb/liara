@@ -31,9 +31,9 @@ func TestCursor_GetRoot_Default(t *testing.T) {
 func testCursor(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
-	if l, err := NewCursor(s).Level(ctx, n); err != nil {
+	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
 		t.Error(err)
 	} else if l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
@@ -66,7 +66,7 @@ func newLeafEntry(key value.Key, recordID link.RecordLocator) leafEntry {
 func testCursor_Insert__Root(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	data := []leafEntry{
 		newLeafEntry(
@@ -81,14 +81,14 @@ func testCursor_Insert__Root(t *testing.T) {
 	}
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Error(err)
 		}
 		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, n, e.key); err != nil {
+		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
 			t.Fatal(err)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -117,19 +117,19 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 
 	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, n, e.key); err != nil {
+		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -151,19 +151,19 @@ func TestCursor_Insert__Reverse(t *testing.T) {
 func testCursor_Insert__Reverse(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	data := createData()
 
 	for _, e := range reverseData(data) {
-		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, n, e.key); err != nil {
+		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -185,7 +185,7 @@ func TestCursor_Insert__Random(t *testing.T) {
 func testCursor_Insert__Random(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	data := createData()
 
@@ -203,7 +203,7 @@ func testCursor_Insert__Random(t *testing.T) {
 	}
 
 	for i, e := range reorderData(order, data) {
-		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(i, e.key, err)
 		}
 		// TODO: Need to flush to disk
@@ -211,7 +211,7 @@ func testCursor_Insert__Random(t *testing.T) {
 
 	for _, i := range order {
 		e := data[i]
-		if rid, err := NewCursor(s).Search(ctx, n, e.key); err != nil {
+		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -233,12 +233,12 @@ func TestCursor_SearchRange(t *testing.T) {
 func testCursor_SearchRange(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 62)
 	ctx := t.Context()
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, n, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 		// TODO: Need to flush to disk
@@ -252,7 +252,7 @@ func testCursor_SearchRange(t *testing.T) {
 	for i, e := range data {
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, n, e.key, 0, 0) {
+		for rid, err := range c.SearchRange(ctx, fn, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -270,7 +270,7 @@ func testCursor_SearchRange(t *testing.T) {
 	{
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, n, "1", 1, 3) {
+		for rid, err := range c.SearchRange(ctx, fn, "1", 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}

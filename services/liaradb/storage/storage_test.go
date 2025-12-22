@@ -19,15 +19,15 @@ func testStorage(t *testing.T) {
 	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
-	if b, err := s.Request(ctx, link.NewBlockID(n, 1)); err != nil {
+	if b, err := s.Request(ctx, fn.BlockID(1)); err != nil {
 		t.Error(err)
 	} else if p := b.blockID.Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
-	if b, err := s.Request(ctx, link.NewBlockID(n, 2)); err != nil {
+	if b, err := s.Request(ctx, fn.BlockID(2)); err != nil {
 		t.Error(err)
 	} else if p := b.blockID.Position(); p != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
@@ -64,8 +64,8 @@ func testStorage_CancelRun(t *testing.T) {
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
 	defer cancel2()
 
-	n := "testfile"
-	if b, err := s.Request(ctx2, link.NewBlockID(n, 1)); err != nil {
+	fn := link.NewFileName("testfile")
+	if b, err := s.Request(ctx2, fn.BlockID(1)); err != nil {
 		t.Error(err)
 	} else if p := b.blockID.Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
@@ -84,8 +84,8 @@ func TestStorage_Pinned(t *testing.T) {
 	s := createStorage(t, 2, 32)
 	ctx := t.Context()
 
-	n := "testfile"
-	bid := link.NewBlockID(n, 0)
+	fn := link.NewFileName("testfile")
+	bid := fn.BlockID(0)
 
 	b, err := s.Request(ctx, bid)
 	if err != nil {
@@ -123,10 +123,10 @@ func testStorage_Flush(t *testing.T) {
 	s := createStorage(t, 2, 32)
 	ctx := t.Context()
 
-	n := "testfile"
-	bid0 := link.NewBlockID(n, 0)
-	bid1 := link.NewBlockID(n, 1)
-	bid2 := link.NewBlockID(n, 2)
+	fn := link.NewFileName("testfile")
+	bid0 := fn.BlockID(0)
+	bid1 := fn.BlockID(1)
+	bid2 := fn.BlockID(2)
 
 	// Request Buffer 0
 	b0, err := s.Request(ctx, bid0)
@@ -195,10 +195,10 @@ func testStorage_Wait(t *testing.T) {
 	s := createStorage(t, 1, 16)
 	ctx := t.Context()
 
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
 	go func() {
-		b, err := s.Request(ctx, link.NewBlockID(n, 0))
+		b, err := s.Request(ctx, fn.BlockID(0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -210,7 +210,7 @@ func testStorage_Wait(t *testing.T) {
 	}()
 
 	go func() {
-		b, err := s.Request(ctx, link.NewBlockID(n, 1))
+		b, err := s.Request(ctx, fn.BlockID(1))
 		if err != nil {
 			t.Error(err)
 			return
@@ -222,7 +222,7 @@ func testStorage_Wait(t *testing.T) {
 	}()
 
 	go func() {
-		b, err := s.Request(ctx, link.NewBlockID(n, 2))
+		b, err := s.Request(ctx, fn.BlockID(2))
 		if err != nil {
 			t.Error(err)
 			return

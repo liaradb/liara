@@ -9,7 +9,7 @@ type bufferRequest = async.Request[bufferQuery, *Buffer]
 
 type bufferQuery struct {
 	bid       link.BlockID
-	fileName  string
+	fileName  link.FileName
 	queryType bufferQueryType
 }
 
@@ -28,16 +28,16 @@ func newBufferByIDQuery(bid link.BlockID) bufferQuery {
 	}
 }
 
-func newCurrentBufferQuery(fileName string) bufferQuery {
+func newCurrentBufferQuery(fn link.FileName) bufferQuery {
 	return bufferQuery{
-		fileName:  fileName,
+		fileName:  fn,
 		queryType: bufferQueryTypeCurrent,
 	}
 }
 
-func newNextBufferQuery(fileName string) bufferQuery {
+func newNextBufferQuery(fn link.FileName) bufferQuery {
 	return bufferQuery{
-		fileName:  fileName,
+		fileName:  fn,
 		queryType: bufferQueryTypeNext,
 	}
 }

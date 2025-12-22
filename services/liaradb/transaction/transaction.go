@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Transaction struct {
@@ -59,7 +60,7 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 
 func (t *Transaction) Commit(
 	ctx context.Context,
-	fileName string, // TODO: How should this be specified?
+	fn link.FileName, // TODO: How should this be specified?
 	now time.Time,
 ) error {
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, t.items[0], nil)
@@ -73,7 +74,7 @@ func (t *Transaction) Commit(
 		return errTransactionFailed(t.id, err)
 	}
 
-	if _, err := t.eventLog.AppendEvent(ctx, fileName, raw.NewBufferFromSlice(t.items[0])); err != nil {
+	if _, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(t.items[0])); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 

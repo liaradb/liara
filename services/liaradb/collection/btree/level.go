@@ -17,8 +17,8 @@ func newLevel(s *storage.Storage) level {
 	}
 }
 
-func (l *level) Level(ctx context.Context, fn string) (byte, error) {
-	p, err := l.ns.getPage(ctx, link.NewBlockID(fn, 0))
+func (l *level) Level(ctx context.Context, fn link.FileName) (byte, error) {
+	p, err := l.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
 		return 0, err
 	}

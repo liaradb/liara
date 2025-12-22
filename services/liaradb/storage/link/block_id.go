@@ -1,18 +1,20 @@
 package link
 
-import "github.com/liaradb/liaradb/encoder/page"
+import (
+	"github.com/liaradb/liaradb/encoder/page"
+)
 
 type BlockID struct {
-	fileName string
+	fileName FileName
 	position page.Offset
 }
 
-func (b BlockID) FileName() string      { return b.fileName }
+func (b BlockID) FileName() FileName    { return b.fileName }
 func (b BlockID) Position() page.Offset { return b.position }
 
-func NewBlockID(fileName string, position page.Offset) BlockID {
+func NewBlockID(fn FileName, position page.Offset) BlockID {
 	return BlockID{
-		fileName: fileName,
+		fileName: fn,
 		position: position,
 	}
 }

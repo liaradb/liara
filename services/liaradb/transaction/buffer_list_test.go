@@ -24,9 +24,9 @@ func testBufferList(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	n := "testfile"
+	fn := link.NewFileName("testfile")
 
-	b0, err := bl.Pin(ctx, link.NewBlockID(n, 1))
+	b0, err := bl.Pin(ctx, fn.BlockID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func testBufferList(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
-	b1, err := bl.Pin(ctx, link.NewBlockID(n, 2))
+	b1, err := bl.Pin(ctx, fn.BlockID(2))
 	if err != nil {
 		t.Fatal(err)
 	}

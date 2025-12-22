@@ -31,12 +31,12 @@ func New(storage *storage.Storage) *EventLog {
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) (link.RecordID, error) {
+func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event) (link.RecordID, error) {
 	if err := e.Write(l.buffer); err != nil {
 		return link.RecordID{}, err
 	}
 
-	rid, err := l.AppendEvent(ctx, fileName, l.reader)
+	rid, err := l.AppendEvent(ctx, fn, l.reader)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -46,7 +46,7 @@ func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event)
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reader) (link.RecordID, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	n, err := rd.Read(data)
@@ -54,16 +54,16 @@ func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reade
 		return link.RecordID{}, err
 	}
 
-	bid, err := l.appendCurrent(ctx, fileName, data[:n])
+	bid, err := l.appendCurrent(ctx, fn, data[:n])
 	if err == raw.ErrInsufficientSpace {
-		bid, err = l.appendNext(ctx, fileName, data[:n])
+		bid, err = l.appendNext(ctx, fn, data[:n])
 	}
 
 	return bid, err
 }
 
-func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []byte) (link.RecordID, error) {
-	b, err := l.storage.RequestCurrent(ctx, fileName)
+func (l *EventLog) appendCurrent(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
+	b, err := l.storage.RequestCurrent(ctx, fn)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -80,8 +80,8 @@ func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []by
 	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
-func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (link.RecordID, error) {
-	b, err := l.storage.RequestNext(ctx, fileName)
+func (l *EventLog) appendNext(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
+	b, err := l.storage.RequestNext(ctx, fn)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -98,7 +98,7 @@ func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
-func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*entity.Event, error) {
+func (l *EventLog) Find(ctx context.Context, fn link.FileName, id value.EventID) (*entity.Event, error) {
 	for e, err := range l.Events(ctx, fn) {
 		if err != nil {
 			return nil, err
@@ -112,7 +112,7 @@ func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*enti
 	return nil, page.ErrNotFound
 }
 
-func (l *EventLog) GetAggregate(ctx context.Context, fn string, id value.AggregateID) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) GetAggregate(ctx context.Context, fn link.FileName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for e, err := range l.Events(ctx, fn) {
 			if err != nil {
@@ -129,7 +129,7 @@ func (l *EventLog) GetAggregate(ctx context.Context, fn string, id value.Aggrega
 	}
 }
 
-func (l *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) Events(ctx context.Context, fn link.FileName) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for i, err := range l.items(ctx, fn) {
 			if err != nil {
@@ -153,7 +153,7 @@ func (l *EventLog) Events(ctx context.Context, fn string) iter.Seq2[*entity.Even
 	}
 }
 
-func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[[]byte, error] {
+func (l *EventLog) items(ctx context.Context, fn link.FileName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for b, err := range l.Iterate(ctx, fn) {
 			if err != nil {
@@ -175,7 +175,7 @@ func (l *EventLog) items(ctx context.Context, fn string) iter.Seq2[[]byte, error
 	}
 }
 
-func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage, error] {
+func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[*BufferPage, error] {
 	return func(yield func(*BufferPage, error) bool) {
 		highBid, err := l.storage.Highwater(ctx, fn)
 		if err != nil {
@@ -183,7 +183,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage
 			return
 		}
 
-		bid := link.NewBlockID(fn, 0)
+		bid := fn.BlockID(0)
 		for bid.Position() <= highBid.Position() {
 			p, ok := l.handleIteration(ctx, bid, yield)
 			if !ok {

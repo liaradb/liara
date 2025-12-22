@@ -34,8 +34,8 @@ func New(s *storage.Storage) *KeyValue {
 	}
 }
 
-func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, error) {
-	tn := tablename.New(fn)
+func (kv *KeyValue) Get(ctx context.Context, n string, key value.Key) ([]byte, error) {
+	tn := tablename.New(n)
 	rid, err := kv.c.Search(ctx, tn.Index(0, domain.NewPartitionID(0)), key)
 	if err != nil {
 		return nil, err
@@ -69,8 +69,8 @@ func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, 
 	return nil, btree.ErrNotFound
 }
 
-func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte) error {
-	tn := tablename.New(fn)
+func (kv *KeyValue) Set(ctx context.Context, n string, key value.Key, v []byte) error {
+	tn := tablename.New(n)
 	// TODO: Don't use io.Reader
 	rid, err := kv.append(ctx, tn.KeyValue(domain.NewPartitionID(0)), v)
 	if err != nil {
@@ -85,12 +85,12 @@ func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte)
 			link.RecordPosition(rid.Position())))
 }
 
-func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (link.RecordID, error) {
+func (l *KeyValue) append(ctx context.Context, fn link.FileName, value []byte) (link.RecordID, error) {
 	if err := raw.Write(l.buffer, value); err != nil {
 		return link.RecordID{}, err
 	}
 
-	rid, err := l.appendData(ctx, fileName, l.reader)
+	rid, err := l.appendData(ctx, fn, l.reader)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -100,7 +100,7 @@ func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (l
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (kv *KeyValue) appendData(ctx context.Context, fn string, rd io.Reader) (link.RecordID, error) {
+func (kv *KeyValue) appendData(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, kv.s.BufferSize())
 	n, err := rd.Read(data)
@@ -116,7 +116,7 @@ func (kv *KeyValue) appendData(ctx context.Context, fn string, rd io.Reader) (li
 	return bid, err
 }
 
-func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (link.RecordID, error) {
+func (kv *KeyValue) appendCurrent(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
 	b, err := kv.s.RequestCurrent(ctx, fn)
 	if err != nil {
 		return link.RecordID{}, err
@@ -134,7 +134,7 @@ func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (
 	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
-func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (link.RecordID, error) {
+func (kv *KeyValue) appendNext(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
 	b, err := kv.s.RequestNext(ctx, fn)
 	if err != nil {
 		return link.RecordID{}, err

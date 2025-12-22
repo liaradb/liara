@@ -67,8 +67,8 @@ func testBufferPage(t *testing.T) {
 
 func testCreateBufferPage(t *testing.T) *BufferPage {
 	s := storagetesting.CreateStorage(t, 2, 1024)
-	b, err := s.Request(t.Context(),
-		link.NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
+	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
+	b, err := s.Request(t.Context(), fn.BlockID(0))
 	if err != nil {
 		t.Fatal(err)
 	}
