@@ -6,7 +6,7 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -68,7 +68,7 @@ func testBufferPage(t *testing.T) {
 func testCreateBufferPage(t *testing.T) *BufferPage {
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	b, err := s.Request(t.Context(),
-		storage.NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
+		link.NewBlockID(path.Join(t.TempDir(), "testfile"), 0))
 	if err != nil {
 		t.Fatal(err)
 	}

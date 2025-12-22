@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type KeyValue struct {
@@ -40,7 +41,7 @@ func (kv *KeyValue) Get(ctx context.Context, fn string, key value.Key) ([]byte, 
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx, storage.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), page.Offset(rid.Block())))
+	b, err := kv.s.Request(ctx, link.NewBlockID(tn.KeyValue(domain.NewPartitionID(0)), page.Offset(rid.Block())))
 	if err != nil {
 		return nil, err
 	}
@@ -79,19 +80,19 @@ func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte)
 	return kv.c.Insert(ctx,
 		tn.Index(0, domain.NewPartitionID(0)),
 		key,
-		storage.NewRecordLocator(
+		link.NewRecordLocator(
 			rid.BlockID().Position,
-			storage.RecordPosition(rid.Position())))
+			link.RecordPosition(rid.Position())))
 }
 
-func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (storage.RecordID, error) {
+func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (link.RecordID, error) {
 	if err := raw.Write(l.buffer, value); err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	rid, err := l.appendData(ctx, fileName, l.reader)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	l.buffer.Reset()
@@ -99,12 +100,12 @@ func (l *KeyValue) append(ctx context.Context, fileName string, value []byte) (s
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (kv *KeyValue) appendData(ctx context.Context, fn string, rd io.Reader) (storage.RecordID, error) {
+func (kv *KeyValue) appendData(ctx context.Context, fn string, rd io.Reader) (link.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, kv.s.BufferSize())
 	n, err := rd.Read(data)
 	if err != nil && err != io.EOF {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	bid, err := kv.appendCurrent(ctx, fn, data[:n])
@@ -115,10 +116,10 @@ func (kv *KeyValue) appendData(ctx context.Context, fn string, rd io.Reader) (st
 	return bid, err
 }
 
-func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (storage.RecordID, error) {
+func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (link.RecordID, error) {
 	b, err := kv.s.RequestCurrent(ctx, fn)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	defer b.Release()
@@ -126,17 +127,17 @@ func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (
 	bp := NewBufferPage(b)
 	offset, err := bp.Add(data)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
+	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
-func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (storage.RecordID, error) {
+func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (link.RecordID, error) {
 	b, err := kv.s.RequestNext(ctx, fn)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	defer b.Release()
@@ -144,9 +145,9 @@ func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (sto
 	bp := NewBufferPage(b)
 	offset, err := bp.Add(data)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
+	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }

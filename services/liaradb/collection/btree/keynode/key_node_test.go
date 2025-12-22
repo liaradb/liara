@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -160,7 +161,7 @@ func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []keyEntry) {
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), storage.BlockID{})
+	b, err := s.Request(t.Context(), link.BlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

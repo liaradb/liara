@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type nodeStorage struct {
@@ -17,11 +18,11 @@ func newNodeStorage(s *storage.Storage) *nodeStorage {
 	return &nodeStorage{s}
 }
 
-func (ns *nodeStorage) getBuffer(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
+func (ns *nodeStorage) getBuffer(ctx context.Context, bid link.BlockID) (*storage.Buffer, error) {
 	return ns.s.Request(ctx, bid)
 }
 
-func (ns *nodeStorage) getKeyNode(ctx context.Context, bid storage.BlockID) (*keynode.KeyNode, error) {
+func (ns *nodeStorage) getKeyNode(ctx context.Context, bid link.BlockID) (*keynode.KeyNode, error) {
 	b, err := ns.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
@@ -30,7 +31,7 @@ func (ns *nodeStorage) getKeyNode(ctx context.Context, bid storage.BlockID) (*ke
 	return keynode.New(node.New(b)), nil
 }
 
-func (ns *nodeStorage) getLeafNode(ctx context.Context, bid storage.BlockID) (*leafnode.LeafNode, error) {
+func (ns *nodeStorage) getLeafNode(ctx context.Context, bid link.BlockID) (*leafnode.LeafNode, error) {
 	b, err := ns.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
@@ -43,25 +44,25 @@ func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn string) (*storage.B
 	return ns.s.RequestNext(ctx, fn)
 }
 
-func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn string) (*keynode.KeyNode, storage.BlockID, error) {
+func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn string) (*keynode.KeyNode, link.BlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
-		return nil, storage.BlockID{}, err
+		return nil, link.BlockID{}, err
 	}
 
 	return keynode.New(node.New(b)), b.BlockID(), nil
 }
 
-func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, storage.BlockID, error) {
+func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn string) (*leafnode.LeafNode, link.BlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
-		return nil, storage.BlockID{}, err
+		return nil, link.BlockID{}, err
 	}
 
 	return leafnode.New(node.New(b)), b.BlockID(), nil
 }
 
-func (ns *nodeStorage) getPage(ctx context.Context, bid storage.BlockID) (node.Node, error) {
+func (ns *nodeStorage) getPage(ctx context.Context, bid link.BlockID) (node.Node, error) {
 	b, err := ns.getBuffer(ctx, bid)
 	if err != nil {
 		return node.Node{}, err

@@ -1,11 +1,14 @@
 package storage
 
-import "github.com/liaradb/liaradb/async"
+import (
+	"github.com/liaradb/liaradb/async"
+	"github.com/liaradb/liaradb/storage/link"
+)
 
 type bufferRequest = async.Request[bufferQuery, *Buffer]
 
 type bufferQuery struct {
-	bid       BlockID
+	bid       link.BlockID
 	fileName  string
 	queryType bufferQueryType
 }
@@ -18,7 +21,7 @@ const (
 	bufferQueryTypeNext
 )
 
-func newBufferByIDQuery(bid BlockID) bufferQuery {
+func newBufferByIDQuery(bid link.BlockID) bufferQuery {
 	return bufferQuery{
 		bid:       bid,
 		queryType: bufferQueryTypeByID,

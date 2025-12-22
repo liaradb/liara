@@ -1,4 +1,4 @@
-package storage
+package link
 
 import "github.com/liaradb/liaradb/encoder/page"
 

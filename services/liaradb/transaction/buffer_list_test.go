@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestBufferList(t *testing.T) {
@@ -25,7 +26,7 @@ func testBufferList(t *testing.T) {
 
 	n := "testfile"
 
-	b0, err := bl.Pin(ctx, storage.BlockID{FileName: n, Position: 1})
+	b0, err := bl.Pin(ctx, link.BlockID{FileName: n, Position: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +37,7 @@ func testBufferList(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
-	b1, err := bl.Pin(ctx, storage.BlockID{FileName: n, Position: 2})
+	b1, err := bl.Pin(ctx, link.BlockID{FileName: n, Position: 2})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -23,10 +24,10 @@ func TestLeafNode_Child(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("abcde"),
-			storage.NewRecordLocator(1, 2)),
+			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("fghij"),
-			storage.NewRecordLocator(3, 4)),
+			link.NewRecordLocator(3, 4)),
 	}
 
 	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -68,10 +69,10 @@ func TestLeafNode_Children(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("abcde"),
-			storage.NewRecordLocator(1, 2)),
+			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("fghij"),
-			storage.NewRecordLocator(3, 4)),
+			link.NewRecordLocator(3, 4)),
 	}
 
 	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -108,13 +109,13 @@ func TestLeafNode_Insert(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			storage.NewRecordLocator(1, 2)),
+			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			storage.NewRecordLocator(3, 4)),
+			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			storage.NewRecordLocator(5, 6)),
+			link.NewRecordLocator(5, 6)),
 	}
 
 	// Insert in mixed order
@@ -138,12 +139,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify record ids
 	{
-		want := make([]storage.RecordLocator, 0, len(data))
+		want := make([]link.RecordLocator, 0, len(data))
 		for _, e := range data {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]storage.RecordLocator, 0, len(want))
+		result := make([]link.RecordLocator, 0, len(want))
 		for c := range ln.RecordIDs() {
 			result = append(result, c)
 		}
@@ -164,12 +165,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify search range
 	for i, e := range data {
-		want := make([]storage.RecordLocator, 0, len(data[i:]))
+		want := make([]link.RecordLocator, 0, len(data[i:]))
 		for _, e := range data[i:] {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]storage.RecordLocator, 0, len(want))
+		result := make([]link.RecordLocator, 0, len(want))
 		for c := range ln.SearchRange(e.Key()) {
 			result = append(result, c)
 		}
@@ -192,13 +193,13 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			storage.NewRecordLocator(1, 2)),
+			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			storage.NewRecordLocator(3, 4)),
+			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			storage.NewRecordLocator(5, 6)),
+			link.NewRecordLocator(5, 6)),
 	}
 
 	// Insert in mixed order
@@ -238,7 +239,7 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), storage.BlockID{})
+	b, err := s.Request(t.Context(), link.BlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

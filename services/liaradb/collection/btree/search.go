@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type search struct {
@@ -36,14 +37,14 @@ func (c *search) Search(
 
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchKey(ctx,
-			storage.NewBlockID(fn, page.Offset(block)), k)
+			link.NewBlockID(fn, page.Offset(block)), k)
 		if err != nil {
 			return RecordID{}, err
 		}
 	}
 
 	return c.searchLeaf(ctx,
-		storage.NewBlockID(fn, page.Offset(block)), k)
+		link.NewBlockID(fn, page.Offset(block)), k)
 }
 
 func (c *search) searchRoot(
@@ -51,7 +52,7 @@ func (c *search) searchRoot(
 	fn string,
 	k Key,
 ) (byte, page.Offset, RecordID, error) {
-	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
+	p, err := c.ns.getPage(ctx, link.NewBlockID(fn, 0))
 	if err != nil {
 		return 0, 0, RecordID{}, err
 	}
@@ -82,7 +83,7 @@ func (c *search) searchRoot(
 
 func (c *search) searchKey(
 	ctx context.Context,
-	bid storage.BlockID,
+	bid link.BlockID,
 	k Key,
 ) (byte, page.Offset, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
@@ -100,7 +101,7 @@ func (c *search) searchKey(
 
 func (c *search) searchLeaf(
 	ctx context.Context,
-	bid storage.BlockID,
+	bid link.BlockID,
 	k Key,
 ) (RecordID, error) {
 	ln, err := c.ns.getLeafNode(ctx, bid)
@@ -201,7 +202,7 @@ func (s *search) searchRangeNext(
 	block page.Offset,
 ) (page.Offset, iter.Seq[RecordID], error) {
 	ln, err := s.ns.getLeafNode(ctx,
-		storage.NewBlockID(fn, page.Offset(block)))
+		link.NewBlockID(fn, page.Offset(block)))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -230,14 +231,14 @@ func (c *search) searchRange(
 
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchRangeKey(ctx,
-			storage.NewBlockID(fn, page.Offset(block)), k)
+			link.NewBlockID(fn, page.Offset(block)), k)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return c.ns.getLeafNode(ctx,
-		storage.NewBlockID(fn, page.Offset(block)))
+		link.NewBlockID(fn, page.Offset(block)))
 }
 
 func (c *search) searchRangeRoot(
@@ -245,7 +246,7 @@ func (c *search) searchRangeRoot(
 	fn string,
 	k Key,
 ) (byte, page.Offset, *leafnode.LeafNode, error) {
-	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
+	p, err := c.ns.getPage(ctx, link.NewBlockID(fn, 0))
 	if err != nil {
 		return 0, 0, nil, err
 	}
@@ -265,7 +266,7 @@ func (c *search) searchRangeRoot(
 
 func (c *search) searchRangeKey(
 	ctx context.Context,
-	bid storage.BlockID,
+	bid link.BlockID,
 	k Key,
 ) (byte, page.Offset, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestStorage(t *testing.T) {
@@ -20,13 +21,13 @@ func testStorage(t *testing.T) {
 
 	n := "testfile"
 
-	if b, err := s.Request(ctx, BlockID{FileName: n, Position: 1}); err != nil {
+	if b, err := s.Request(ctx, link.BlockID{FileName: n, Position: 1}); err != nil {
 		t.Error(err)
 	} else if b.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
 	}
 
-	if b, err := s.Request(ctx, BlockID{FileName: n, Position: 2}); err != nil {
+	if b, err := s.Request(ctx, link.BlockID{FileName: n, Position: 2}); err != nil {
 		t.Error(err)
 	} else if b.blockID.Position != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, b.blockID.Position)
@@ -41,7 +42,7 @@ func TestStorage_RequestBeforeRun(t *testing.T) {
 func testStorage_RequestBeforeRun(t *testing.T) {
 	s := Storage{}
 
-	if b, err := s.Request(t.Context(), BlockID{}); b != nil || err == nil {
+	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
 	}
 }
@@ -64,7 +65,7 @@ func testStorage_CancelRun(t *testing.T) {
 	defer cancel2()
 
 	n := "testfile"
-	if b, err := s.Request(ctx2, BlockID{FileName: n, Position: 1}); err != nil {
+	if b, err := s.Request(ctx2, link.BlockID{FileName: n, Position: 1}); err != nil {
 		t.Error(err)
 	} else if b.blockID.Position != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
@@ -72,7 +73,7 @@ func testStorage_CancelRun(t *testing.T) {
 
 	cancel()
 
-	if r, err := s.Request(ctx2, BlockID{}); r != nil || err == nil {
+	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position)
 	}
 }
@@ -84,7 +85,7 @@ func TestStorage_Pinned(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	bid := BlockID{FileName: n, Position: 0}
+	bid := link.BlockID{FileName: n, Position: 0}
 
 	b, err := s.Request(ctx, bid)
 	if err != nil {
@@ -123,9 +124,9 @@ func testStorage_Flush(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	bid0 := NewBlockID(n, 0)
-	bid1 := NewBlockID(n, 1)
-	bid2 := NewBlockID(n, 2)
+	bid0 := link.NewBlockID(n, 0)
+	bid1 := link.NewBlockID(n, 1)
+	bid2 := link.NewBlockID(n, 2)
 
 	// Request Buffer 0
 	b0, err := s.Request(ctx, bid0)
@@ -197,7 +198,7 @@ func testStorage_Wait(t *testing.T) {
 	n := "testfile"
 
 	go func() {
-		b, err := s.Request(ctx, NewBlockID(n, 0))
+		b, err := s.Request(ctx, link.NewBlockID(n, 0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -209,7 +210,7 @@ func testStorage_Wait(t *testing.T) {
 	}()
 
 	go func() {
-		b, err := s.Request(ctx, NewBlockID(n, 1))
+		b, err := s.Request(ctx, link.NewBlockID(n, 1))
 		if err != nil {
 			t.Error(err)
 			return
@@ -221,7 +222,7 @@ func testStorage_Wait(t *testing.T) {
 	}()
 
 	go func() {
-		b, err := s.Request(ctx, NewBlockID(n, 2))
+		b, err := s.Request(ctx, link.NewBlockID(n, 2))
 		if err != nil {
 			t.Error(err)
 			return

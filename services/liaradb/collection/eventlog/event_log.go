@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type EventLog struct {
@@ -30,14 +31,14 @@ func New(storage *storage.Storage) *EventLog {
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) (storage.RecordID, error) {
+func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event) (link.RecordID, error) {
 	if err := e.Write(l.buffer); err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	rid, err := l.AppendEvent(ctx, fileName, l.reader)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	l.buffer.Reset()
@@ -45,12 +46,12 @@ func (l *EventLog) Append(ctx context.Context, fileName string, e *entity.Event)
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reader) (storage.RecordID, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reader) (link.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	n, err := rd.Read(data)
 	if err != nil && err != io.EOF {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	bid, err := l.appendCurrent(ctx, fileName, data[:n])
@@ -61,10 +62,10 @@ func (l *EventLog) AppendEvent(ctx context.Context, fileName string, rd io.Reade
 	return bid, err
 }
 
-func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []byte) (storage.RecordID, error) {
+func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []byte) (link.RecordID, error) {
 	b, err := l.storage.RequestCurrent(ctx, fileName)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	defer b.Release()
@@ -72,17 +73,17 @@ func (l *EventLog) appendCurrent(ctx context.Context, fileName string, data []by
 	bp := NewBufferPage(b)
 	offset, err := bp.Add(data)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
+	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
-func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (storage.RecordID, error) {
+func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte) (link.RecordID, error) {
 	b, err := l.storage.RequestNext(ctx, fileName)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	defer b.Release()
@@ -90,11 +91,11 @@ func (l *EventLog) appendNext(ctx context.Context, fileName string, data []byte)
 	bp := NewBufferPage(b)
 	offset, err := bp.Add(data)
 	if err != nil {
-		return storage.RecordID{}, err
+		return link.RecordID{}, err
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
+	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
 }
 
 func (l *EventLog) Find(ctx context.Context, fn string, id value.EventID) (*entity.Event, error) {
@@ -182,7 +183,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage
 			return
 		}
 
-		bid := storage.NewBlockID(fn, 0)
+		bid := link.NewBlockID(fn, 0)
 		for bid.Position <= highBid.Position {
 			p, ok := l.handleIteration(ctx, bid, yield)
 			if !ok {
@@ -194,7 +195,7 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid storage.BlockID, yield func(*BufferPage, error) bool) (page.Offset, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID, yield func(*BufferPage, error) bool) (page.Offset, bool) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)

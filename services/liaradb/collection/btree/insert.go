@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 // TODO: What happens if two goroutines append simultaneously?
@@ -38,7 +39,7 @@ func (c *insert) Insert(
 	chain.latch()
 	defer chain.unlatch()
 
-	var bid storage.BlockID
+	var bid link.BlockID
 	var key = k
 	var level byte
 	for i, n := range chain.items() {
@@ -74,7 +75,7 @@ func (c *insert) getChain(
 	fn string,
 	k Key,
 ) (*chain, error) {
-	p, err := c.ns.getPage(ctx, storage.NewBlockID(fn, 0))
+	p, err := c.ns.getPage(ctx, link.NewBlockID(fn, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (c *insert) getChain(
 		kn := keynode.New(p)
 		chain.append(kn)
 
-		bid := storage.NewBlockID(fn, page.Offset(kn.Search(k)))
+		bid := link.NewBlockID(fn, page.Offset(kn.Search(k)))
 		if p, err = c.ns.getPage(ctx, bid); err != nil {
 			chain.release()
 			return nil, err
@@ -107,19 +108,19 @@ func (c *insert) getChain(
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
 	fn string,
-	bid storage.BlockID,
+	bid link.BlockID,
 	ln *leafnode.LeafNode,
 	k Key,
 	rid RecordID,
-) (storage.BlockID, Key, bool, error) {
+) (link.BlockID, Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
-		return storage.BlockID{}, "", false, nil
+		return link.BlockID{}, "", false, nil
 	}
 
 	ln2, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
-		return storage.BlockID{}, "", false, err
+		return link.BlockID{}, "", false, err
 	}
 
 	defer ln2.Release()
@@ -127,9 +128,9 @@ func (c *insert) insertChainLeaf(
 	ln2.Latch()
 	defer ln2.Unlatch()
 
-	ln3, err := c.ns.getLeafNode(ctx, storage.NewBlockID(fn, page.Offset(ln.RightID())))
+	ln3, err := c.ns.getLeafNode(ctx, link.NewBlockID(fn, page.Offset(ln.RightID())))
 	if err != nil {
-		return storage.BlockID{}, "", false, err
+		return link.BlockID{}, "", false, err
 	}
 
 	defer ln3.Release()
@@ -153,15 +154,15 @@ func (c *insert) insertChainKey(
 	kn *keynode.KeyNode,
 	k Key,
 	block page.Offset,
-) (storage.BlockID, Key, bool, error) {
+) (link.BlockID, Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return storage.BlockID{}, "", false, nil
+		return link.BlockID{}, "", false, nil
 	}
 
 	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
-		return storage.BlockID{}, "", false, err
+		return link.BlockID{}, "", false, err
 	}
 
 	defer kn2.Release()
@@ -182,9 +183,9 @@ func (c *insert) insertRoot(
 	fn string,
 	level byte,
 	key Key,
-	bid storage.BlockID,
+	bid link.BlockID,
 ) error {
-	b0, err := c.ns.getBuffer(ctx, storage.NewBlockID(fn, 0))
+	b0, err := c.ns.getBuffer(ctx, link.NewBlockID(fn, 0))
 	if err != nil {
 		return err
 	}

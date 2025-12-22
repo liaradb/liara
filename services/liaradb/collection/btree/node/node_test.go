@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -328,7 +329,7 @@ func TestNode_ChildrenRange(t *testing.T) {
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), storage.BlockID{})
+	b, err := s.Request(t.Context(), link.BlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

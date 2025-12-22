@@ -3,6 +3,7 @@ package btree
 import (
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Cursor struct {
@@ -13,8 +14,8 @@ type Cursor struct {
 
 type (
 	Key            = value.Key
-	RecordID       = storage.RecordLocator
-	RecordPosition = storage.RecordPosition
+	RecordID       = link.RecordLocator
+	RecordPosition = link.RecordPosition
 )
 
 func NewCursor(s *storage.Storage) *Cursor {

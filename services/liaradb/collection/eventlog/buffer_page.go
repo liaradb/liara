@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type BufferPage struct {
@@ -20,11 +21,11 @@ func NewBufferPage(b *storage.Buffer) *BufferPage {
 	}
 }
 
-func (b *BufferPage) BlockID() storage.BlockID { return b.buffer.BlockID() }
-func (b *BufferPage) Dirty() bool              { return b.buffer.Dirty() }
-func (b *BufferPage) Pins() int                { return b.buffer.Pins() }
-func (b *BufferPage) Flush() error             { return b.buffer.Flush() }
-func (b *BufferPage) Release()                 { b.buffer.Release() }
+func (b *BufferPage) BlockID() link.BlockID { return b.buffer.BlockID() }
+func (b *BufferPage) Dirty() bool           { return b.buffer.Dirty() }
+func (b *BufferPage) Pins() int             { return b.buffer.Pins() }
+func (b *BufferPage) Flush() error          { return b.buffer.Flush() }
+func (b *BufferPage) Release()              { b.buffer.Release() }
 
 func (b *BufferPage) Add(i []byte) (page.Offset, error) {
 	b.buffer.Latch()
