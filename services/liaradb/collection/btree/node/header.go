@@ -5,6 +5,7 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+// TODO: Should this have a magic entry?
 const (
 	levelSize  = 1
 	highIDSize = 8
@@ -39,34 +40,34 @@ func newHeader(data []byte) (header, []byte) {
 	}, data3
 }
 
-func (p *header) Level() byte {
-	return p.level.GetUnsigned()
+func (h *header) Level() byte {
+	return h.level.GetUnsigned()
 }
 
-func (p *header) HighID() link.FilePosition {
-	return link.FilePosition(p.highID.Get())
+func (h *header) HighID() link.FilePosition {
+	return link.FilePosition(h.highID.Get())
 }
 
-func (p *header) LowID() link.FilePosition {
-	return link.FilePosition(p.lowID.Get())
+func (h *header) LowID() link.FilePosition {
+	return link.FilePosition(h.lowID.Get())
 }
 
-func (p *header) Next() int16 {
-	return p.next.Get()
+func (h *header) Next() int16 {
+	return h.next.Get()
 }
 
-func (p *header) setLevel(l byte) {
-	p.level.SetUnsigned(l)
+func (h *header) setLevel(l byte) {
+	h.level.SetUnsigned(l)
 }
 
-func (p *header) SetHighID(o link.FilePosition) {
-	p.highID.Set(o.Value())
+func (h *header) SetHighID(o link.FilePosition) {
+	h.highID.Set(o.Value())
 }
 
-func (p *header) SetLowID(o link.FilePosition) {
-	p.lowID.Set(o.Value())
+func (h *header) SetLowID(o link.FilePosition) {
+	h.lowID.Set(o.Value())
 }
 
-func (p *header) setNext(o int16) {
-	p.next.Set(o)
+func (h *header) setNext(o int16) {
+	h.next.Set(o)
 }
