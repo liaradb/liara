@@ -13,7 +13,7 @@ type Cursor struct {
 
 type (
 	Key            = value.Key
-	RecordID       = value.RecordID
+	RecordID       = value.RecordLocator
 	RecordPosition = storage.RecordPosition
 )
 

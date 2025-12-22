@@ -52,10 +52,10 @@ func TestCursor_Insert__Root(t *testing.T) {
 
 type leafEntry struct {
 	key      value.Key
-	recordID value.RecordID
+	recordID value.RecordLocator
 }
 
-func newLeafEntry(key value.Key, recordID value.RecordID) leafEntry {
+func newLeafEntry(key value.Key, recordID value.RecordLocator) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -243,14 +243,14 @@ func testCursor_SearchRange(t *testing.T) {
 		// TODO: Need to flush to disk
 	}
 
-	wantAll := make([]value.RecordID, 0, len(data))
+	wantAll := make([]value.RecordLocator, 0, len(data))
 	for _, e := range data {
 		wantAll = append(wantAll, e.recordID)
 	}
 
 	for i, e := range data {
 		c := NewCursor(s)
-		result := make([]value.RecordID, 0, len(data))
+		result := make([]value.RecordLocator, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
@@ -268,7 +268,7 @@ func testCursor_SearchRange(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]value.RecordID, 0, len(data))
+		result := make([]value.RecordLocator, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, "1", 1, 3) {
 			if err != nil {
 				t.Fatal(err)

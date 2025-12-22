@@ -138,12 +138,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify record ids
 	{
-		want := make([]value.RecordID, 0, len(data))
+		want := make([]value.RecordLocator, 0, len(data))
 		for _, e := range data {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]value.RecordID, 0, len(want))
+		result := make([]value.RecordLocator, 0, len(want))
 		for c := range ln.RecordIDs() {
 			result = append(result, c)
 		}
@@ -164,12 +164,12 @@ func TestLeafNode_Insert(t *testing.T) {
 
 	// Verify search range
 	for i, e := range data {
-		want := make([]value.RecordID, 0, len(data[i:]))
+		want := make([]value.RecordLocator, 0, len(data[i:]))
 		for _, e := range data[i:] {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]value.RecordID, 0, len(want))
+		result := make([]value.RecordLocator, 0, len(want))
 		for c := range ln.SearchRange(e.Key()) {
 			result = append(result, c)
 		}

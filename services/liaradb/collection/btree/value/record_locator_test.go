@@ -2,10 +2,10 @@ package value
 
 import "testing"
 
-func TestRecordID_Defaults(t *testing.T) {
+func TestRecordLocator_Defaults(t *testing.T) {
 	t.Parallel()
 
-	id := RecordID{}
+	id := RecordLocator{}
 
 	if b := id.Block(); b != 0 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 0)
@@ -16,7 +16,7 @@ func TestRecordID_Defaults(t *testing.T) {
 	}
 }
 
-func TestRecordID_New(t *testing.T) {
+func TestRecordLocator_New(t *testing.T) {
 	t.Parallel()
 
 	id := NewRecordID(1, 2)
