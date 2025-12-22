@@ -3,6 +3,7 @@ package value
 import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/storage"
 )
 
 const RecordIDSize = 8 + 1
@@ -10,10 +11,10 @@ const RecordIDSize = 8 + 1
 // TODO: Test this
 type RecordID struct {
 	block    page.Offset
-	position RecordPosition
+	position storage.RecordPosition
 }
 
-func NewRecordID(block page.Offset, position RecordPosition) RecordID {
+func NewRecordID(block page.Offset, position storage.RecordPosition) RecordID {
 	return RecordID{
 		block:    block,
 		position: position,
@@ -42,7 +43,7 @@ func (le *RecordID) Read(data []byte) []byte {
 	position, data1 := wrap.NewByte(data0)
 
 	le.block = page.Offset(block.Get())
-	le.position = RecordPosition(position.Get())
+	le.position = storage.RecordPosition(position.Get())
 
 	return data1
 }

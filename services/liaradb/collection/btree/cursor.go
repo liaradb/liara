@@ -14,7 +14,7 @@ type Cursor struct {
 type (
 	Key            = value.Key
 	RecordID       = value.RecordID
-	RecordPosition = value.RecordPosition
+	RecordPosition = storage.RecordPosition
 )
 
 func NewCursor(s *storage.Storage) *Cursor {
