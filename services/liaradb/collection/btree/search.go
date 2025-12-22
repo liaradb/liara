@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -24,11 +25,11 @@ func newSearch(s *storage.Storage) search {
 func (c *search) Search(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
-) (RecordID, error) {
+	k value.Key,
+) (link.RecordLocator, error) {
 	level, block, rid, err := c.searchRoot(ctx, fn, k)
 	if err != nil {
-		return RecordID{}, err
+		return link.RecordLocator{}, err
 	}
 
 	if level == 0 {
@@ -38,7 +39,7 @@ func (c *search) Search(
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchKey(ctx, fn.BlockID(block), k)
 		if err != nil {
-			return RecordID{}, err
+			return link.RecordLocator{}, err
 		}
 	}
 
@@ -48,11 +49,11 @@ func (c *search) Search(
 func (c *search) searchRoot(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
-) (byte, page.Offset, RecordID, error) {
+	k value.Key,
+) (byte, page.Offset, link.RecordLocator, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
-		return 0, 0, RecordID{}, err
+		return 0, 0, link.RecordLocator{}, err
 	}
 
 	if l := p.Level(); l == 0 {
@@ -64,7 +65,7 @@ func (c *search) searchRoot(
 
 		rid, ok := ln.Search(k)
 		if !ok {
-			return l, 0, RecordID{}, ErrNotFound
+			return l, 0, link.RecordLocator{}, ErrNotFound
 		}
 
 		return l, 0, rid, nil
@@ -75,14 +76,14 @@ func (c *search) searchRoot(
 		kn.RLatch()
 		defer kn.RUnlatch()
 
-		return l, kn.Search(k), RecordID{}, nil
+		return l, kn.Search(k), link.RecordLocator{}, nil
 	}
 }
 
 func (c *search) searchKey(
 	ctx context.Context,
 	bid link.BlockID,
-	k Key,
+	k value.Key,
 ) (byte, page.Offset, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {
@@ -100,11 +101,11 @@ func (c *search) searchKey(
 func (c *search) searchLeaf(
 	ctx context.Context,
 	bid link.BlockID,
-	k Key,
-) (RecordID, error) {
+	k value.Key,
+) (link.RecordLocator, error) {
 	ln, err := c.ns.getLeafNode(ctx, bid)
 	if err != nil {
-		return RecordID{}, err
+		return link.RecordLocator{}, err
 	}
 
 	defer ln.Release()
@@ -114,7 +115,7 @@ func (c *search) searchLeaf(
 
 	rid, ok := ln.Search(k)
 	if !ok {
-		return RecordID{}, ErrNotFound
+		return link.RecordLocator{}, ErrNotFound
 	}
 
 	return rid, nil
@@ -123,16 +124,16 @@ func (c *search) searchLeaf(
 func (s *search) SearchRange(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
+	k value.Key,
 	skip int,
 	limit int,
-) iter.Seq2[RecordID, error] {
+) iter.Seq2[link.RecordLocator, error] {
 	skipped := 0
 	returned := 0
-	return func(yield func(RecordID, error) bool) {
+	return func(yield func(link.RecordLocator, error) bool) {
 		block, rids, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
-			yield(RecordID{}, err)
+			yield(link.RecordLocator{}, err)
 			return
 		}
 
@@ -154,7 +155,7 @@ func (s *search) SearchRange(
 
 			block, rids, err = s.searchRangeNext(ctx, fn, block)
 			if err != nil {
-				yield(RecordID{}, err)
+				yield(link.RecordLocator{}, err)
 				return
 			}
 
@@ -179,8 +180,8 @@ func (s *search) isLimit(limit int, returned int) bool {
 func (s *search) searchRangeFirst(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
-) (page.Offset, iter.Seq[RecordID], error) {
+	k value.Key,
+) (page.Offset, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
@@ -198,7 +199,7 @@ func (s *search) searchRangeNext(
 	ctx context.Context,
 	fn link.FileName,
 	block page.Offset,
-) (page.Offset, iter.Seq[RecordID], error) {
+) (page.Offset, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
 	if err != nil {
 		return 0, nil, err
@@ -215,7 +216,7 @@ func (s *search) searchRangeNext(
 func (c *search) searchRange(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
+	k value.Key,
 ) (*leafnode.LeafNode, error) {
 	level, block, ln, err := c.searchRangeRoot(ctx, fn, k)
 	if err != nil {
@@ -239,7 +240,7 @@ func (c *search) searchRange(
 func (c *search) searchRangeRoot(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
+	k value.Key,
 ) (byte, page.Offset, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
@@ -262,7 +263,7 @@ func (c *search) searchRangeRoot(
 func (c *search) searchRangeKey(
 	ctx context.Context,
 	bid link.BlockID,
-	k Key,
+	k value.Key,
 ) (byte, page.Offset, error) {
 	kn, err := c.ns.getKeyNode(ctx, bid)
 	if err != nil {

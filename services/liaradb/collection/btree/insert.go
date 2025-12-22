@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -26,8 +27,8 @@ func newInsert(s *storage.Storage) insert {
 func (c *insert) Insert(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
-	rid RecordID,
+	k value.Key,
+	rid link.RecordLocator,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
@@ -73,7 +74,7 @@ func (c *insert) Insert(
 func (c *insert) getChain(
 	ctx context.Context,
 	fn link.FileName,
-	k Key,
+	k value.Key,
 ) (*chain, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
@@ -110,9 +111,9 @@ func (c *insert) insertChainLeaf(
 	fn link.FileName,
 	bid link.BlockID,
 	ln *leafnode.LeafNode,
-	k Key,
-	rid RecordID,
-) (link.BlockID, Key, bool, error) {
+	k value.Key,
+	rid link.RecordLocator,
+) (link.BlockID, value.Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
 		return link.BlockID{}, "", false, nil
@@ -152,9 +153,9 @@ func (c *insert) insertChainKey(
 	ctx context.Context,
 	fn link.FileName,
 	kn *keynode.KeyNode,
-	k Key,
+	k value.Key,
 	block page.Offset,
-) (link.BlockID, Key, bool, error) {
+) (link.BlockID, value.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
 		return link.BlockID{}, "", false, nil
@@ -182,7 +183,7 @@ func (c *insert) insertRoot(
 	ctx context.Context,
 	fn link.FileName,
 	level byte,
-	key Key,
+	key value.Key,
 	bid link.BlockID,
 ) error {
 	b0, err := c.ns.getBuffer(ctx, fn.BlockID(0))
