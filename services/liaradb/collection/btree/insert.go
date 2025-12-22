@@ -57,7 +57,7 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position)
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position())
 			level++
 		}
 		if err != nil {
@@ -139,9 +139,9 @@ func (c *insert) insertChainLeaf(
 	// ln3.Latch()
 	// defer ln3.Unlatch()
 
-	ln3.SetLeftID(bid2.Position)
-	key := ln2.Fill(bid.Position, ln.RightID(), second)
-	ln.Replace(bid2.Position, first)
+	ln3.SetLeftID(bid2.Position())
+	key := ln2.Fill(bid.Position(), ln.RightID(), second)
+	ln.Replace(bid2.Position(), first)
 
 	return bid2, key, true, nil
 }
@@ -212,9 +212,9 @@ func (c *insert) insertRoot(
 	// This should always return true
 	_ = keynode.New(node.New(b0)).ReplaceRoot(
 		level+1,
-		b2.BlockID().Position,
+		b2.BlockID().Position(),
 		key,
-		bid.Position)
+		bid.Position())
 
 	return nil
 }

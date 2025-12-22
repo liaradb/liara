@@ -80,10 +80,7 @@ func (s *Storage) incrementHighWater(fileName string) {
 }
 
 func (s *Storage) highBlockID(fileName string) link.BlockID {
-	return link.BlockID{
-		FileName: fileName,
-		Position: s.highWater[fileName],
-	}
+	return link.NewBlockID(fileName, s.highWater[fileName])
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
@@ -247,10 +244,7 @@ func (s *Storage) Highwater(ctx context.Context, fileName string) (link.BlockID,
 
 // TODO: Is this still needed?
 func (s *Storage) RequestLatest(ctx context.Context, fileName string) (*Buffer, error) {
-	return s.Request(ctx, link.BlockID{
-		FileName: fileName,
-		Position: -1,
-	})
+	return s.Request(ctx, link.NewBlockID(fileName, -1))
 }
 
 // External thread
@@ -312,12 +306,13 @@ func (s *Storage) flush(b *Buffer) error {
 
 func (s *Storage) openFile(b *Buffer) (file.File, error) {
 	// TODO: Test this
-	f, err := s.fs.OpenFile(path.Join(s.dir, b.blockID.FileName))
+	fn := b.blockID.FileName()
+	f, err := s.fs.OpenFile(path.Join(s.dir, fn))
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.initHighwater(b.blockID.FileName, f); err != nil {
+	if err := s.initHighwater(fn, f); err != nil {
 		return nil, err
 	}
 

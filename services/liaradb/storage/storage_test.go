@@ -21,16 +21,16 @@ func testStorage(t *testing.T) {
 
 	n := "testfile"
 
-	if b, err := s.Request(ctx, link.BlockID{FileName: n, Position: 1}); err != nil {
+	if b, err := s.Request(ctx, link.NewBlockID(n, 1)); err != nil {
 		t.Error(err)
-	} else if b.blockID.Position != 1 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
+	} else if p := b.blockID.Position(); p != 1 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
-	if b, err := s.Request(ctx, link.BlockID{FileName: n, Position: 2}); err != nil {
+	if b, err := s.Request(ctx, link.NewBlockID(n, 2)); err != nil {
 		t.Error(err)
-	} else if b.blockID.Position != 2 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 2, b.blockID.Position)
+	} else if p := b.blockID.Position(); p != 2 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 }
 
@@ -43,7 +43,7 @@ func testStorage_RequestBeforeRun(t *testing.T) {
 	s := Storage{}
 
 	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
 	}
 }
 
@@ -65,16 +65,16 @@ func testStorage_CancelRun(t *testing.T) {
 	defer cancel2()
 
 	n := "testfile"
-	if b, err := s.Request(ctx2, link.BlockID{FileName: n, Position: 1}); err != nil {
+	if b, err := s.Request(ctx2, link.NewBlockID(n, 1)); err != nil {
 		t.Error(err)
-	} else if b.blockID.Position != 1 {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position)
+	} else if p := b.blockID.Position(); p != 1 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
 	cancel()
 
 	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position)
+		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position())
 	}
 }
 
@@ -85,7 +85,7 @@ func TestStorage_Pinned(t *testing.T) {
 	ctx := t.Context()
 
 	n := "testfile"
-	bid := link.BlockID{FileName: n, Position: 0}
+	bid := link.NewBlockID(n, 0)
 
 	b, err := s.Request(ctx, bid)
 	if err != nil {

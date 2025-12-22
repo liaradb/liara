@@ -184,13 +184,13 @@ func (l *EventLog) Iterate(ctx context.Context, fn string) iter.Seq2[*BufferPage
 		}
 
 		bid := link.NewBlockID(fn, 0)
-		for bid.Position <= highBid.Position {
+		for bid.Position() <= highBid.Position() {
 			p, ok := l.handleIteration(ctx, bid, yield)
 			if !ok {
 				return
 			}
 
-			bid.Position = p
+			bid.SetPosition(p)
 		}
 	}
 }
@@ -199,13 +199,13 @@ func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID, yield 
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
 		yield(nil, err)
-		return bid.Position, false
+		return bid.Position(), false
 	}
 
 	defer b.Release()
 	if !yield(NewBufferPage(b), err) {
-		return bid.Position, false
+		return bid.Position(), false
 	}
 
-	return bid.Position + 1, true
+	return bid.Position() + 1, true
 }
