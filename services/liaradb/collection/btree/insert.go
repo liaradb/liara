@@ -91,7 +91,7 @@ func (c *insert) getChain(
 		kn := keynode.New(p)
 		chain.append(kn)
 
-		bid := link.NewBlockID(fn, page.Offset(kn.Search(k)))
+		bid := link.NewBlockID(fn, kn.Search(k))
 		if p, err = c.ns.getPage(ctx, bid); err != nil {
 			chain.release()
 			return nil, err
@@ -128,7 +128,7 @@ func (c *insert) insertChainLeaf(
 	ln2.Latch()
 	defer ln2.Unlatch()
 
-	ln3, err := c.ns.getLeafNode(ctx, link.NewBlockID(fn, page.Offset(ln.RightID())))
+	ln3, err := c.ns.getLeafNode(ctx, link.NewBlockID(fn, ln.RightID()))
 	if err != nil {
 		return link.BlockID{}, "", false, err
 	}

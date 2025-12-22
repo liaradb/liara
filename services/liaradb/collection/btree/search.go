@@ -36,15 +36,13 @@ func (c *search) Search(
 	}
 
 	for i := level - 1; i > 0; i-- {
-		_, block, err = c.searchKey(ctx,
-			link.NewBlockID(fn, page.Offset(block)), k)
+		_, block, err = c.searchKey(ctx, link.NewBlockID(fn, block), k)
 		if err != nil {
 			return RecordID{}, err
 		}
 	}
 
-	return c.searchLeaf(ctx,
-		link.NewBlockID(fn, page.Offset(block)), k)
+	return c.searchLeaf(ctx, link.NewBlockID(fn, block), k)
 }
 
 func (c *search) searchRoot(
@@ -201,8 +199,7 @@ func (s *search) searchRangeNext(
 	fn string,
 	block page.Offset,
 ) (page.Offset, iter.Seq[RecordID], error) {
-	ln, err := s.ns.getLeafNode(ctx,
-		link.NewBlockID(fn, page.Offset(block)))
+	ln, err := s.ns.getLeafNode(ctx, link.NewBlockID(fn, block))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -230,15 +227,13 @@ func (c *search) searchRange(
 	}
 
 	for i := level - 1; i > 0; i-- {
-		_, block, err = c.searchRangeKey(ctx,
-			link.NewBlockID(fn, page.Offset(block)), k)
+		_, block, err = c.searchRangeKey(ctx, link.NewBlockID(fn, block), k)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return c.ns.getLeafNode(ctx,
-		link.NewBlockID(fn, page.Offset(block)))
+	return c.ns.getLeafNode(ctx, link.NewBlockID(fn, block))
 }
 
 func (c *search) searchRangeRoot(
