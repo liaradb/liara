@@ -6,13 +6,14 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/storage"
 )
 
 type LeafNode struct {
 	node node.Node
 }
 
-type Iterator = iter.Seq2[value.Key, value.RecordLocator]
+type Iterator = iter.Seq2[value.Key, storage.RecordLocator]
 
 func New(page node.Node) *LeafNode {
 	return &LeafNode{
@@ -40,7 +41,7 @@ func (ln *LeafNode) SetRightID(block page.Offset) {
 	ln.node.SetDirty()
 }
 
-func (ln *LeafNode) Append(key value.Key, recordID value.RecordLocator) (int16, bool) {
+func (ln *LeafNode) Append(key value.Key, recordID storage.RecordLocator) (int16, bool) {
 	le := newLeafEntry(key, recordID)
 	i, b, ok := ln.node.Append(int16(le.Size()))
 	if !ok {
@@ -53,7 +54,7 @@ func (ln *LeafNode) Append(key value.Key, recordID value.RecordLocator) (int16, 
 	return i, true
 }
 
-func (ln *LeafNode) Insert(key value.Key, recordID value.RecordLocator) (Iterator, Iterator, bool) {
+func (ln *LeafNode) Insert(key value.Key, recordID storage.RecordLocator) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
@@ -131,7 +132,7 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 	}
 
 	// TODO: Simplify this
-	return func(yield func(value.Key, value.RecordLocator) bool) {
+	return func(yield func(value.Key, storage.RecordLocator) bool) {
 		if i == 0 {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -161,7 +162,7 @@ func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 	}
 
 	// TODO: Simplify this
-	return func(yield func(value.Key, value.RecordLocator) bool) {
+	return func(yield func(value.Key, storage.RecordLocator) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(le.Key(), le.RecordID()) {
@@ -199,7 +200,7 @@ func (ln *LeafNode) Child(index int16) (leafEntry, bool) {
 }
 
 func (ln *LeafNode) Children() Iterator {
-	return func(yield func(value.Key, value.RecordLocator) bool) {
+	return func(yield func(value.Key, storage.RecordLocator) bool) {
 		for b := range ln.node.Children() {
 			le := leafEntry{}
 			le.Read(b)
@@ -211,7 +212,7 @@ func (ln *LeafNode) Children() Iterator {
 }
 
 func (ln *LeafNode) childrenRange(start, end int16) Iterator {
-	return func(yield func(value.Key, value.RecordLocator) bool) {
+	return func(yield func(value.Key, storage.RecordLocator) bool) {
 		for b := range ln.node.ChildrenRange(start, end) {
 			le := leafEntry{}
 			le.Read(b)
@@ -222,8 +223,8 @@ func (ln *LeafNode) childrenRange(start, end int16) Iterator {
 	}
 }
 
-func (ln *LeafNode) RecordIDs() iter.Seq[value.RecordLocator] {
-	return func(yield func(value.RecordLocator) bool) {
+func (ln *LeafNode) RecordIDs() iter.Seq[storage.RecordLocator] {
+	return func(yield func(storage.RecordLocator) bool) {
 		for _, rid := range ln.Children() {
 			if !yield(rid) {
 				return
@@ -232,15 +233,15 @@ func (ln *LeafNode) RecordIDs() iter.Seq[value.RecordLocator] {
 	}
 }
 
-func (ln *LeafNode) Search(k value.Key) (value.RecordLocator, bool) {
+func (ln *LeafNode) Search(k value.Key) (storage.RecordLocator, bool) {
 	i, ok := ln.searchIndex(k)
 	if !ok {
-		return value.RecordLocator{}, false
+		return storage.RecordLocator{}, false
 	}
 
 	le, ok := ln.Child(i)
 	if !ok {
-		return value.RecordLocator{}, false
+		return storage.RecordLocator{}, false
 	}
 
 	return le.recordID, true
@@ -280,8 +281,8 @@ func (ln *LeafNode) Unlatch()  { ln.node.Unlatch() }
 func (ln *LeafNode) RLatch()   { ln.node.RLatch() }
 func (ln *LeafNode) RUnlatch() { ln.node.RUnlatch() }
 
-func (ln *LeafNode) SearchRange(k value.Key) iter.Seq[value.RecordLocator] {
-	return func(yield func(value.RecordLocator) bool) {
+func (ln *LeafNode) SearchRange(k value.Key) iter.Seq[storage.RecordLocator] {
+	return func(yield func(storage.RecordLocator) bool) {
 		i, ok := ln.searchIndex(k)
 		if !ok {
 			return

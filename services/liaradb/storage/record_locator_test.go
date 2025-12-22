@@ -1,4 +1,4 @@
-package value
+package storage
 
 import "testing"
 
@@ -19,7 +19,7 @@ func TestRecordLocator_Defaults(t *testing.T) {
 func TestRecordLocator_New(t *testing.T) {
 	t.Parallel()
 
-	id := NewRecordID(1, 2)
+	id := NewRecordLocator(1, 2)
 
 	if b := id.Block(); b != 1 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)

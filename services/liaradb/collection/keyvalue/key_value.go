@@ -79,7 +79,7 @@ func (kv *KeyValue) Set(ctx context.Context, fn string, key value.Key, v []byte)
 	return kv.c.Insert(ctx,
 		tn.Index(0, domain.NewPartitionID(0)),
 		key,
-		value.NewRecordID(
+		storage.NewRecordLocator(
 			rid.BlockID().Position,
 			storage.RecordPosition(rid.Position())))
 }

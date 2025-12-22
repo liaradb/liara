@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -52,10 +53,10 @@ func TestCursor_Insert__Root(t *testing.T) {
 
 type leafEntry struct {
 	key      value.Key
-	recordID value.RecordLocator
+	recordID storage.RecordLocator
 }
 
-func newLeafEntry(key value.Key, recordID value.RecordLocator) leafEntry {
+func newLeafEntry(key value.Key, recordID storage.RecordLocator) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -70,13 +71,13 @@ func testCursor_Insert__Root(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			value.Key("a"),
-			value.NewRecordID(1, 2)),
+			storage.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("b"),
-			value.NewRecordID(3, 4)),
+			storage.NewRecordLocator(3, 4)),
 		newLeafEntry(
 			value.Key("c"),
-			value.NewRecordID(5, 6)),
+			storage.NewRecordLocator(5, 6)),
 	}
 
 	for _, e := range data {
@@ -243,14 +244,14 @@ func testCursor_SearchRange(t *testing.T) {
 		// TODO: Need to flush to disk
 	}
 
-	wantAll := make([]value.RecordLocator, 0, len(data))
+	wantAll := make([]storage.RecordLocator, 0, len(data))
 	for _, e := range data {
 		wantAll = append(wantAll, e.recordID)
 	}
 
 	for i, e := range data {
 		c := NewCursor(s)
-		result := make([]value.RecordLocator, 0, len(data))
+		result := make([]storage.RecordLocator, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
@@ -268,7 +269,7 @@ func testCursor_SearchRange(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]value.RecordLocator, 0, len(data))
+		result := make([]storage.RecordLocator, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, n, "1", 1, 3) {
 			if err != nil {
 				t.Fatal(err)
@@ -330,30 +331,30 @@ func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
 			value.Key("0"),
-			value.NewRecordID(1, 2)),
+			storage.NewRecordLocator(1, 2)),
 		newLeafEntry(
 			value.Key("1"),
-			value.NewRecordID(3, 4)),
+			storage.NewRecordLocator(3, 4)),
 		newLeafEntry(
 			value.Key("2"),
-			value.NewRecordID(5, 6)),
+			storage.NewRecordLocator(5, 6)),
 		newLeafEntry(
 			value.Key("3"),
-			value.NewRecordID(7, 8)),
+			storage.NewRecordLocator(7, 8)),
 		newLeafEntry(
 			value.Key("4"),
-			value.NewRecordID(9, 10)),
+			storage.NewRecordLocator(9, 10)),
 		newLeafEntry(
 			value.Key("5"),
-			value.NewRecordID(11, 12)),
+			storage.NewRecordLocator(11, 12)),
 		newLeafEntry(
 			value.Key("6"),
-			value.NewRecordID(13, 14)),
+			storage.NewRecordLocator(13, 14)),
 		newLeafEntry(
 			value.Key("7"),
-			value.NewRecordID(15, 16)),
+			storage.NewRecordLocator(15, 16)),
 		newLeafEntry(
 			value.Key("8"),
-			value.NewRecordID(17, 18)),
+			storage.NewRecordLocator(17, 18)),
 	}
 }
