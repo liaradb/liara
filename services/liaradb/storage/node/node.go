@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/tuplelist"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 const (
@@ -51,7 +52,7 @@ func (p *Node) SetDirty() {
 	p.buffer.SetDirty()
 }
 
-func (p *Node) Append(size int16) (int16, []byte, bool) {
+func (p *Node) Append(size int16) (link.RecordPosition, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -63,16 +64,17 @@ func (p *Node) Append(size int16) (int16, []byte, bool) {
 	}
 
 	p.header.setNext(offset)
+	p.SetDirty()
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
 
-	return i, b, true
+	return link.RecordPosition(i), b, true
 }
 
-func (p *Node) Insert(size int16, index int16) (int16, []byte, bool) {
+func (p *Node) Insert(size int16, index int16) (link.RecordPosition, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -84,13 +86,14 @@ func (p *Node) Insert(size int16, index int16) (int16, []byte, bool) {
 	}
 
 	p.header.setNext(offset)
+	p.SetDirty()
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
 
-	return i, b, true
+	return link.RecordPosition(i), b, true
 }
 
 func (p *Node) next() int16 {

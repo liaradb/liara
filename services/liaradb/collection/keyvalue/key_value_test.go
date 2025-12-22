@@ -37,7 +37,7 @@ func TestKeyValue(t *testing.T) {
 	for k, v := range data {
 		value, err := kv.Get(ctx, n, k)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatal(k, err)
 		}
 
 		want := string(v)

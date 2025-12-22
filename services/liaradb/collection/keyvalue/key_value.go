@@ -1,151 +1,79 @@
 package keyvalue
 
 import (
-	"bufio"
-	"bytes"
 	"context"
-	"io"
+	"slices"
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	domain "github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/node"
 )
 
 type KeyValue struct {
-	s      *storage.Storage
-	c      *btree.Cursor
-	buffer *bytes.Buffer
-	reader *bufio.Reader
+	s *storage.Storage
+	c *btree.Cursor
 }
 
 func New(s *storage.Storage) *KeyValue {
-	buffer := bytes.NewBuffer(nil)
-	reader := bufio.NewReader(buffer)
 	return &KeyValue{
-		s:      s,
-		c:      btree.NewCursor(s),
-		buffer: buffer,
-		reader: reader,
+		s: s,
+		c: btree.NewCursor(s),
 	}
 }
 
+// TODO: Use io.Reader?
 func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.Key) ([]byte, error) {
-	rid, err := kv.c.Search(ctx, tn.Index(0, domain.NewPartitionID(0)), key)
+	fnIdx := tn.Index(0, domain.NewPartitionID(0))
+	rid, err := kv.c.Search(ctx, fnIdx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := kv.s.Request(ctx,
-		tn.KeyValue(domain.NewPartitionID(0)).BlockID(rid.Block()))
+	bid := tn.KeyValue(domain.NewPartitionID(0)).BlockID(rid.Block())
+	b, err := kv.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
 	}
 
 	defer b.Release()
 
-	p := NewBufferPage(b)
-	// TODO: Find a simpler way
-	i := 0
-	for data, err := range p.Items() {
-		if err != nil {
-			return nil, err
-		}
-
-		if i == int(rid.Position()) {
-			buf := raw.NewBufferFromSlice(data)
-			var result []byte
-			err := raw.Read(buf, &result)
-			return result, err
-		}
-
-		i++
+	n := node.New(b)
+	// TODO: Fix this type
+	d, ok := n.Child(int16(rid.Position()))
+	if !ok {
+		return nil, btree.ErrNotFound
 	}
 
-	return nil, btree.ErrNotFound
+	// TODO: Should we clone?
+	return slices.Clone(d), nil
 }
 
+// TODO: Use io.Writer?
 func (kv *KeyValue) Set(ctx context.Context, tn tablename.TableName, key value.Key, v []byte) error {
-	// TODO: Don't use io.Reader
-	rid, err := kv.append(ctx, tn.KeyValue(domain.NewPartitionID(0)), v)
+	fn := tn.KeyValue(domain.NewPartitionID(0))
+	b, err := kv.s.RequestCurrent(ctx, fn)
 	if err != nil {
 		return err
 	}
 
-	return kv.c.Insert(ctx,
-		tn.Index(0, domain.NewPartitionID(0)),
-		key,
-		link.NewRecordLocator(
-			rid.BlockID().Position(),
-			link.RecordPosition(rid.Position())))
-}
-
-func (l *KeyValue) append(ctx context.Context, fn link.FileName, value []byte) (link.RecordID, error) {
-	if err := raw.Write(l.buffer, value); err != nil {
-		return link.RecordID{}, err
+	n := node.New(b)
+	rp, d, ok := n.Append(int16(len(v)))
+	if !ok {
+		b, err = kv.s.RequestNext(ctx, fn)
+		n = node.New(b)
+		rp, d, ok = n.Append(int16(len(v)))
+		if !ok {
+			return btree.ErrNoInsert
+		}
 	}
 
-	rid, err := l.appendData(ctx, fn, l.reader)
-	if err != nil {
-		return link.RecordID{}, err
-	}
+	copy(d, v)
 
-	l.buffer.Reset()
-	return rid, nil
-}
-
-// TODO: Should this be multiple BlockIDs?
-func (kv *KeyValue) appendData(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordID, error) {
-	// TODO: Find a better way to get this
-	data := make([]byte, kv.s.BufferSize())
-	n, err := rd.Read(data)
-	if err != nil && err != io.EOF {
-		return link.RecordID{}, err
-	}
-
-	bid, err := kv.appendCurrent(ctx, fn, data[:n])
-	if err == raw.ErrInsufficientSpace {
-		bid, err = kv.appendNext(ctx, fn, data[:n])
-	}
-
-	return bid, err
-}
-
-func (kv *KeyValue) appendCurrent(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
-	b, err := kv.s.RequestCurrent(ctx, fn)
-	if err != nil {
-		return link.RecordID{}, err
-	}
-
-	defer b.Release()
-
-	bp := NewBufferPage(b)
-	offset, err := bp.Add(data)
-	if err != nil {
-		return link.RecordID{}, err
-	}
-
-	// TODO: Fix this type
-	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
-}
-
-func (kv *KeyValue) appendNext(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
-	b, err := kv.s.RequestNext(ctx, fn)
-	if err != nil {
-		return link.RecordID{}, err
-	}
-
-	defer b.Release()
-
-	bp := NewBufferPage(b)
-	offset, err := bp.Add(data)
-	if err != nil {
-		return link.RecordID{}, err
-	}
-
-	// TODO: Fix this type
-	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
+	rid := link.NewRecordLocator(b.BlockID().Position(), rp)
+	fnIdx := tn.Index(0, domain.NewPartitionID(0))
+	return kv.c.Insert(ctx, fnIdx, key, rid)
 }
