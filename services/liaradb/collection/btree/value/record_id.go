@@ -23,8 +23,7 @@ func NewRecordID(block page.Offset, position storage.RecordPosition) RecordID {
 
 func (i RecordID) Block() int64   { return i.block.Value() }
 func (i RecordID) Position() int8 { return i.position.Value() }
-
-func (i RecordID) Size() int { return RecordIDSize }
+func (i RecordID) Size() int      { return RecordIDSize }
 
 // TODO: Use simpler wrap
 func (le RecordID) Write(data []byte) []byte {

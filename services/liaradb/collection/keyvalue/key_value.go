@@ -130,7 +130,7 @@ func (kv *KeyValue) appendCurrent(ctx context.Context, fn string, data []byte) (
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(page.Offset(offset)), nil
+	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
 }
 
 func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (storage.RecordID, error) {
@@ -148,5 +148,5 @@ func (kv *KeyValue) appendNext(ctx context.Context, fn string, data []byte) (sto
 	}
 
 	// TODO: Fix this type
-	return b.BlockID().RecordID(page.Offset(offset)), nil
+	return b.BlockID().RecordID(storage.RecordPosition(offset)), nil
 }

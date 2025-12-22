@@ -19,7 +19,7 @@ func (b BlockID) Offset(bufferSize int64) page.Offset {
 }
 
 // TODO: Test this
-func (b BlockID) RecordID(position page.Offset) RecordID {
+func (b BlockID) RecordID(position RecordPosition) RecordID {
 	return RecordID{
 		BlockID:  b,
 		Position: position,
