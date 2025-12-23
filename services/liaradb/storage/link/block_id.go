@@ -25,7 +25,6 @@ func (b *BlockID) SetPosition(p FilePosition) {
 	b.position = p
 }
 
-// TODO: Test this
 func (b BlockID) RecordID(position RecordPosition) RecordID {
 	return RecordID{
 		blockID:  b,
