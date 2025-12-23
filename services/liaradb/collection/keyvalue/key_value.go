@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	domain "github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/node"
@@ -55,25 +56,58 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.K
 // TODO: Use io.Writer?
 func (kv *KeyValue) Set(ctx context.Context, tn tablename.TableName, key value.Key, v []byte) error {
 	fn := tn.KeyValue(domain.NewPartitionID(0))
-	b, err := kv.s.RequestCurrent(ctx, fn)
+	crc := page.NewCRC(v)
+
+	rid, ok, err := kv.setCurrent(ctx, fn, v, crc)
 	if err != nil {
 		return err
-	}
-
-	n := node.New(b)
-	rp, d, ok := n.Append(int16(len(v)))
-	if !ok {
-		b, err = kv.s.RequestNext(ctx, fn)
-		n = node.New(b)
-		rp, d, ok = n.Append(int16(len(v)))
-		if !ok {
+	} else if !ok {
+		rid, ok, err = kv.setNext(ctx, fn, v, crc)
+		if err != nil {
+			return err
+		} else if !ok {
 			return btree.ErrNoInsert
 		}
 	}
 
-	copy(d, v)
-
-	rid := link.NewRecordLocator(b.BlockID().Position(), rp)
 	fnIdx := tn.Index(0, domain.NewPartitionID(0))
 	return kv.c.Insert(ctx, fnIdx, key, rid)
+}
+
+func (kv *KeyValue) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
+	b, err := kv.s.RequestCurrent(ctx, fn)
+	if err != nil {
+		return link.RecordLocator{}, false, err
+	}
+
+	defer b.Release()
+
+	n := node.New(b)
+	rp, d, ok := n.Append(int16(len(v)), crc)
+	if !ok {
+		return link.RecordLocator{}, false, nil
+	}
+
+	copy(d, v)
+
+	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+}
+
+func (kv *KeyValue) setNext(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
+	b, err := kv.s.RequestNext(ctx, fn)
+	if err != nil {
+		return link.RecordLocator{}, false, err
+	}
+
+	defer b.Release()
+
+	n := node.New(b)
+	rp, d, ok := n.Append(int16(len(v)), crc)
+	if !ok {
+		return link.RecordLocator{}, false, nil
+	}
+
+	copy(d, v)
+
+	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }

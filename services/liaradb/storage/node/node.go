@@ -4,20 +4,21 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
-	"github.com/liaradb/liaradb/encoder/tuplelist"
+	"github.com/liaradb/liaradb/encoder/crclist"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 const (
-	itemSize = 4
+	itemSize = 8
 )
 
 type Node struct {
 	header
 	buffer   *storage.Buffer
 	data     []byte
-	list     tuplelist.TupleList
+	list     crclist.CRCList
 	byteList bytelist.ByteList
 }
 
@@ -29,7 +30,7 @@ func New(buffer *storage.Buffer) Node {
 		header:   header,
 		buffer:   buffer,
 		data:     data,
-		list:     tuplelist.New(data0),
+		list:     crclist.New(data0),
 		byteList: bytelist.New(data0),
 	}
 }
@@ -52,13 +53,13 @@ func (p *Node) SetDirty() {
 	p.buffer.SetDirty()
 }
 
-func (p *Node) Append(size int16) (link.RecordPosition, []byte, bool) {
+func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Push(offset, size)
+	i, ok := p.list.Push(offset, size, crc)
 	if !ok {
 		return 0, nil, false
 	}
@@ -74,13 +75,13 @@ func (p *Node) Append(size int16) (link.RecordPosition, []byte, bool) {
 	return link.RecordPosition(i), b, true
 }
 
-func (p *Node) Insert(size int16, index int16) (link.RecordPosition, []byte, bool) {
+func (p *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Insert(offset, size, index)
+	i, ok := p.list.Insert(offset, size, crc, index)
 	if !ok {
 		return 0, nil, false
 	}
@@ -117,19 +118,28 @@ func (p Node) hasSpace(size int16) bool {
 }
 
 func (p Node) Child(index int16) ([]byte, bool) {
-	offset, size, ok := p.list.Item(index)
+	i, ok := p.list.Item(index)
 	if !ok {
 		return nil, false
 	}
 
-	return p.byteList.Slice(int64(offset), int64(size))
+	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+	if !ok {
+		return nil, false
+	}
+
+	if !i.CRC.Compare(d) {
+		return nil, false
+	}
+
+	return d, true
 }
 
 func (p Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for offset, size := range p.list.Items() {
-			b, ok := p.byteList.Slice(int64(offset), int64(size))
-			if !ok || !yield(b) {
+		for i := range p.list.Items() {
+			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+			if !ok || !i.CRC.Compare(b) || !yield(b) {
 				return
 			}
 		}
@@ -138,9 +148,9 @@ func (p Node) Children() iter.Seq[[]byte] {
 
 func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for offset, size := range p.list.ItemsRange(start, end) {
-			b, ok := p.byteList.Slice(int64(offset), int64(size))
-			if !ok || !yield(b) {
+		for i := range p.list.ItemsRange(start, end) {
+			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+			if !ok || !i.CRC.Compare(b) || !yield(b) {
 				return
 			}
 		}

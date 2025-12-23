@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -35,7 +36,8 @@ func TestNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	i, b0, ok := p.Append(16)
+	crc := page.NewCRC(v0)
+	i, b0, ok := p.Append(16, crc)
 	if !ok {
 		t.Error("should get a buffer")
 	} else if i != 0 {
@@ -50,7 +52,8 @@ func TestNode_Append(t *testing.T) {
 		t.Error(err)
 	}
 
-	i, b1, ok := p.Append(16)
+	crc = page.NewCRC(v1)
+	i, b1, ok := p.Append(16, crc)
 	if !ok {
 		t.Error("should get a buffer")
 	} else if i != 1 {
@@ -113,7 +116,7 @@ func TestNode_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	i, b0, ok := p.Insert(16, 0)
+	i, b0, ok := p.Insert(16, 0, page.NewCRC(v0))
 	if !ok {
 		t.Fatal("should get a buffer")
 	} else if i != 0 {
@@ -128,7 +131,7 @@ func TestNode_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	i, b1, ok := p.Insert(16, 1)
+	i, b1, ok := p.Insert(16, 1, page.NewCRC(v1))
 	if !ok {
 		t.Fatal("should get a buffer")
 	} else if i != 1 {
@@ -182,7 +185,9 @@ func TestNode_Space(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
 	}
 
-	if _, _, ok := p.Append(16); !ok {
+	crc := page.NewCRC(nil)
+
+	if _, _, ok := p.Append(16, crc); !ok {
 		t.Error("should get a buffer")
 	}
 
@@ -190,7 +195,7 @@ func TestNode_Space(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
 	}
 
-	if _, _, ok := p.Append(16); ok {
+	if _, _, ok := p.Append(16, crc); ok {
 		t.Error("should not get a buffer")
 	}
 }
@@ -205,7 +210,7 @@ func TestNode_Child(t *testing.T) {
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
-	_, b0, ok := p.Append(16)
+	_, b0, ok := p.Append(5, page.NewCRC(values[0]))
 	if !ok {
 		t.Error("should get a buffer")
 	}
@@ -214,7 +219,7 @@ func TestNode_Child(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, b1, ok := p.Append(16)
+	_, b1, ok := p.Append(5, page.NewCRC(values[1]))
 	if !ok {
 		t.Error("should get a buffer")
 	}
@@ -258,7 +263,7 @@ func TestNode_Children(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b, ok := p.Append(itemSize * int16(len(v)))
+		_, b, ok := p.Append(int16(len(v)), page.NewCRC(v))
 		if !ok {
 			t.Error("should get a buffer")
 		}
@@ -298,7 +303,7 @@ func TestNode_ChildrenRange(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b0, ok := p.Append(itemSize * int16(len(v)))
+		_, b0, ok := p.Append(int16(len(v)), page.NewCRC(v))
 		if !ok {
 			t.Error("should get a buffer")
 		}

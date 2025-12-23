@@ -2,6 +2,7 @@ package keyvalue
 
 import (
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -10,9 +11,12 @@ import (
 
 func TestKeyValue(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testKeyValue)
+}
 
+func testKeyValue(t *testing.T) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 4, 64)
 	kv := New(s)
 	n := tablename.New("testfile")
 
@@ -45,5 +49,11 @@ func TestKeyValue(t *testing.T) {
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
