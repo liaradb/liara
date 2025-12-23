@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-// TODO: Test this
 type RecordPosition int8
 
 const RecordPositionSize = 1
