@@ -7,12 +7,13 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/node"
 )
 
 type EventLog struct {
@@ -49,53 +50,65 @@ func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event
 func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordID, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
-	n, err := rd.Read(data)
+	c, err := rd.Read(data)
 	if err != nil && err != io.EOF {
 		return link.RecordID{}, err
 	}
 
-	bid, err := l.appendCurrent(ctx, fn, data[:n])
-	if err == raw.ErrInsufficientSpace {
-		bid, err = l.appendNext(ctx, fn, data[:n])
+	v := data[:c]
+	crc := page.NewCRC(v)
+
+	rid, ok, err := l.setCurrent(ctx, fn, v, crc)
+	if err != nil {
+		return link.RecordID{}, err
+	} else if !ok {
+		rid, ok, err = l.setNext(ctx, fn, v, crc)
+		if err != nil {
+			return link.RecordID{}, err
+		} else if !ok {
+			return link.RecordID{}, btree.ErrNoInsert
+		}
 	}
 
-	return bid, err
+	return link.NewRecordID(link.NewBlockID(fn, rid.Block()), link.RecordPosition(rid.Position())), nil
 }
 
-func (l *EventLog) appendCurrent(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
+func (l *EventLog) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
 	b, err := l.storage.RequestCurrent(ctx, fn)
 	if err != nil {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, false, err
 	}
 
 	defer b.Release()
 
-	bp := NewBufferPage(b)
-	offset, err := bp.Add(data)
-	if err != nil {
-		return link.RecordID{}, err
+	n := node.New(b)
+	rp, d, ok := n.Append(int16(len(v)), crc)
+	if !ok {
+		return link.RecordLocator{}, false, nil
 	}
 
-	// TODO: Fix this type
-	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
+	copy(d, v)
+
+	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }
 
-func (l *EventLog) appendNext(ctx context.Context, fn link.FileName, data []byte) (link.RecordID, error) {
+func (l *EventLog) setNext(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
 	b, err := l.storage.RequestNext(ctx, fn)
 	if err != nil {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, false, err
 	}
 
 	defer b.Release()
 
-	bp := NewBufferPage(b)
-	offset, err := bp.Add(data)
-	if err != nil {
-		return link.RecordID{}, err
+	n := node.New(b)
+	rp, d, ok := n.Append(int16(len(v)), crc)
+	if !ok {
+		return link.RecordLocator{}, false, nil
 	}
 
-	// TODO: Fix this type
-	return b.BlockID().RecordID(link.RecordPosition(offset)), nil
+	copy(d, v)
+
+	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }
 
 func (l *EventLog) Find(ctx context.Context, fn link.FileName, id value.EventID) (*entity.Event, error) {
@@ -155,28 +168,21 @@ func (l *EventLog) Events(ctx context.Context, fn link.FileName) iter.Seq2[*enti
 
 func (l *EventLog) items(ctx context.Context, fn link.FileName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for b, err := range l.Iterate(ctx, fn) {
+		for n, err := range l.Iterate(ctx, fn) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for i, err := range b.Items() {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				if !yield(i, nil) {
-					return
-				}
+			if !yield(n, nil) {
+				return
 			}
 		}
 	}
 }
 
-func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[*BufferPage, error] {
-	return func(yield func(*BufferPage, error) bool) {
+func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
 		highBid, err := l.storage.Highwater(ctx, fn)
 		if err != nil {
 			yield(nil, err)
@@ -185,9 +191,16 @@ func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[*Buf
 
 		bid := fn.BlockID(0)
 		for bid.Position() <= highBid.Position() {
-			p, ok := l.handleIteration(ctx, bid, yield)
-			if !ok {
+			children, p, err := l.handleIteration(ctx, bid)
+			if err != nil {
+				yield(nil, err)
 				return
+			}
+
+			for c := range children {
+				if !yield(c, nil) {
+					return
+				}
 			}
 
 			bid.SetPosition(p)
@@ -195,17 +208,18 @@ func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[*Buf
 	}
 }
 
-func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID, yield func(*BufferPage, error) bool) (link.FilePosition, bool) {
+func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID) (iter.Seq[[]byte], link.FilePosition, error) {
 	b, err := l.storage.Request(ctx, bid)
 	if err != nil {
-		yield(nil, err)
-		return bid.Position(), false
+		return nil, 0, err
 	}
 
-	defer b.Release()
-	if !yield(NewBufferPage(b), err) {
-		return bid.Position(), false
-	}
-
-	return bid.Position() + 1, true
+	return func(yield func([]byte) bool) {
+		defer b.Release()
+		for c := range node.New(b).Children() {
+			if !yield(c) {
+				return
+			}
+		}
+	}, bid.Position() + 1, nil
 }

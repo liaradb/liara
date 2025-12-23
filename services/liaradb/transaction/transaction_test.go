@@ -97,18 +97,12 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for b, err := range eventlog.New(m.storage).Iterate(ctx, fn) {
+	for n, err := range eventlog.New(m.storage).Iterate(ctx, fn) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			result = append(result, i)
-		}
+		result = append(result, n)
 	}
 
 	if !slices.EqualFunc(result, records, slices.Equal) {
@@ -163,18 +157,12 @@ func testTransaction_Rollback(t *testing.T) {
 
 	result := [][]byte{}
 
-	for b, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
+	for n, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			result = append(result, i)
-		}
+		result = append(result, n)
 	}
 
 	if length := len(result); length != 0 {

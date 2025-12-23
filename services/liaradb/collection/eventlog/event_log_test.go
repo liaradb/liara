@@ -22,7 +22,8 @@ func TestEventLog_Append(t *testing.T) {
 
 func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
-	el := New(storagetesting.CreateStorage(t, 2, 1024))
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
 	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := []*entity.Event{{
@@ -68,6 +69,12 @@ func testEventLog_Append(t *testing.T) {
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
 	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
 }
 
 func TestEventLog_Find(t *testing.T) {
@@ -77,7 +84,8 @@ func TestEventLog_Find(t *testing.T) {
 
 func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
-	el := New(storagetesting.CreateStorage(t, 2, 1024))
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
 	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := []*entity.Event{{
@@ -116,6 +124,12 @@ func testEventLog_Find(t *testing.T) {
 	if !reflect.DeepEqual(e, records[2]) {
 		t.Errorf("incorrect event: %v, expected: %v", e, records[2])
 	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
 }
 
 func TestEventLog_GetAggregate(t *testing.T) {
@@ -125,7 +139,8 @@ func TestEventLog_GetAggregate(t *testing.T) {
 
 func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
-	el := New(storagetesting.CreateStorage(t, 2, 1024))
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
 	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
@@ -177,6 +192,12 @@ func testEventLog_GetAggregate(t *testing.T) {
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+	}
 }
 
 func TestEventLog_AppendEvent(t *testing.T) {
@@ -186,7 +207,8 @@ func TestEventLog_AppendEvent(t *testing.T) {
 
 func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
-	el := New(storagetesting.CreateStorage(t, 1, 68))
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
 	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := [][]byte{
@@ -202,30 +224,23 @@ func testEventLog_AppendEvent(t *testing.T) {
 		}
 	}
 
-	pageCount := 0
 	result := make([][]byte, 0)
 
-	for b, err := range el.Iterate(ctx, fn) {
+	for n, err := range el.Iterate(ctx, fn) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		pageCount++
-
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			result = append(result, i)
-		}
-	}
-
-	if pageCount != 3 {
-		t.Errorf("incorrect page count: %v, expected: %v", pageCount, 3)
+		result = append(result, n)
 	}
 
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
+	}
+
+	synctest.Wait()
+
+	if p := s.CountPinned(); p != 0 {
+		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
