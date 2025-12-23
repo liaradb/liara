@@ -255,6 +255,65 @@ func testCursor_SearchRange(t *testing.T) {
 	}
 }
 
+func TestCursor_All(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testCursor_All)
+}
+
+func testCursor_All(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 8, 62)
+	ctx := t.Context()
+	fn := link.NewFileName("testfile")
+
+	data := createData()
+
+	for _, e := range data {
+		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
+			t.Fatal(e.key, err)
+		}
+		// TODO: Need to flush to disk
+	}
+
+	wantAll := make([]link.RecordLocator, 0, len(data))
+	for _, e := range data {
+		wantAll = append(wantAll, e.recordID)
+	}
+
+	for i := range data {
+		c := NewCursor(s)
+		result := make([]link.RecordLocator, 0, len(data))
+		for rid, err := range c.All(ctx, fn, i, 0) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, rid)
+		}
+
+		want := wantAll[i:]
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	}
+
+	// Skip and Limit
+	{
+		c := NewCursor(s)
+		result := make([]link.RecordLocator, 0, len(data))
+		for rid, err := range c.All(ctx, fn, 1, 3) {
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, rid)
+		}
+
+		want := wantAll[1:4]
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	}
+}
 func reverseData(data []leafEntry) []leafEntry {
 	data = slices.Clone(data)
 	slices.Reverse(data)
