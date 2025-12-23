@@ -9,6 +9,7 @@ import (
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
@@ -28,6 +29,7 @@ type Application struct {
 	storage   *storage.Storage
 	txManager *transaction.Manager
 	log       *recovery.Log
+	mgr       *manager.Manager
 	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
@@ -178,6 +180,7 @@ func (a *Application) createRepositories() (*repositories, error) {
 		// TODO: Change the file name
 		eventRepository: infrastructure.NewEventRepository(
 			a.txManager,
+			a.mgr,
 			nil,
 			a.eventLog,
 			nil,

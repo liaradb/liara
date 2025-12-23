@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
@@ -19,6 +20,7 @@ import (
 
 type EventRepository struct {
 	txManager *transaction.Manager
+	mgr       *manager.Manager
 	kv        *keyvalue.KeyValue
 	eventLog  *eventlog.EventLog
 	btree     *btree.Cursor
@@ -27,6 +29,7 @@ type EventRepository struct {
 
 func NewEventRepository(
 	txManager *transaction.Manager,
+	mgr *manager.Manager,
 	kv *keyvalue.KeyValue,
 	eventLog *eventlog.EventLog,
 	btree *btree.Cursor,
@@ -34,6 +37,7 @@ func NewEventRepository(
 ) *EventRepository {
 	return &EventRepository{
 		txManager: txManager,
+		mgr:       mgr,
 		kv:        kv,
 		eventLog:  eventLog,
 		btree:     btree,
