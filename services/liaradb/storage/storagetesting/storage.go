@@ -2,6 +2,7 @@ package storagetesting
 
 import (
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
@@ -22,6 +23,14 @@ func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.File
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
+
+	t.Cleanup(func() {
+		synctest.Wait()
+
+		if p := s.CountPinned(); p != 0 {
+			t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+		}
+	})
 
 	return s
 }

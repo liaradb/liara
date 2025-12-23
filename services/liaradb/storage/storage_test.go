@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -244,11 +245,30 @@ func testStorage_Wait(t *testing.T) {
 	}
 }
 
+// TODO: Test with noPin true
 func createStorage(t *testing.T, max int, bs int64) *Storage {
+	t.Helper()
+
 	fsys := filetesting.NewMockFileSystem(t, nil)
+	return createStorageWithFileSystem(t, max, bs, fsys, false)
+}
+
+func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem, noPin bool) *Storage {
+	t.Helper()
+
 	s := New(fsys, max, bs, t.TempDir())
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
+	}
+
+	if noPin {
+		t.Cleanup(func() {
+			synctest.Wait()
+
+			if p := s.CountPinned(); p != 0 {
+				t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+			}
+		})
 	}
 
 	return s

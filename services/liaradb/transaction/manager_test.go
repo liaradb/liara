@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
@@ -14,7 +15,10 @@ import (
 
 func TestManager(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testManager)
+}
 
+func testManager(t *testing.T) {
 	m, _ := createManager(t)
 
 	tx0 := m.Next()

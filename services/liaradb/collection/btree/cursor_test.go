@@ -38,12 +38,6 @@ func testCursor(t *testing.T) {
 	} else if l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }
 
 func TestCursor_Insert__Root(t *testing.T) {
@@ -94,12 +88,6 @@ func testCursor_Insert__Root(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }
 
 func TestCursor_Insert__RootSplit(t *testing.T) {
@@ -135,12 +123,6 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }
 
 func TestCursor_Insert__Reverse(t *testing.T) {
@@ -168,12 +150,6 @@ func testCursor_Insert__Reverse(t *testing.T) {
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
-	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
@@ -216,12 +192,6 @@ func testCursor_Insert__Random(t *testing.T) {
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
-	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
@@ -282,12 +252,6 @@ func testCursor_SearchRange(t *testing.T) {
 		if !slices.Equal(result, want) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
-	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 

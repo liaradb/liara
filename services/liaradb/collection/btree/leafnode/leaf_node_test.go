@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/btree/value"
@@ -14,9 +15,13 @@ import (
 
 func TestLeafNode_Child(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLeafNode_Child)
+}
 
+func testLeafNode_Child(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := node.New(b)
 	ln := New(p)
@@ -59,9 +64,13 @@ func TestLeafNode_Child(t *testing.T) {
 
 func TestLeafNode_Children(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLeafNode_Children)
+}
 
+func testLeafNode_Children(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := node.New(b)
 	ln := New(p)
@@ -99,9 +108,13 @@ func TestLeafNode_Children(t *testing.T) {
 
 func TestLeafNode_Insert(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLeafNode_Insert)
+}
 
+func testLeafNode_Insert(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	bp := node.New(b)
 	ln := New(bp)
@@ -181,11 +194,15 @@ func TestLeafNode_Insert(t *testing.T) {
 	}
 }
 
-func TestLeafNode_Insert__Split(t *testing.T) {
+func Test(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLeafNode_Insert__Split)
+}
 
+func testLeafNode_Insert__Split(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	bp := node.New(b)
 	ln := New(bp)

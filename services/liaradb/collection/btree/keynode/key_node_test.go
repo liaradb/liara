@@ -8,16 +8,16 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestKeyNode(t *testing.T) {
 	t.Parallel()
 
-	t.Run("should insert", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should insert", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)
@@ -26,11 +26,10 @@ func TestKeyNode(t *testing.T) {
 		testKeyNodeChildren(t, kn, data)
 	})
 
-	t.Run("should iterate in order", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should iterate in order", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)
@@ -39,11 +38,10 @@ func TestKeyNode(t *testing.T) {
 		testKeyNodeChildren(t, kn, data)
 	})
 
-	t.Run("should search items", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should search items", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)
@@ -53,11 +51,10 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	// TODO: This method is private
-	t.Run("should search indexes", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should search indexes", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)
@@ -85,11 +82,10 @@ func TestKeyNode(t *testing.T) {
 		}
 	})
 
-	t.Run("should search before items", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should search before items", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)
@@ -102,11 +98,10 @@ func TestKeyNode(t *testing.T) {
 		}
 	})
 
-	t.Run("should search after items", func(t *testing.T) {
-		t.Parallel()
-
+	testutil.Run(t, "should search after items", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
+		defer b.Release()
 
 		bp := node.New(b)
 		kn := New(bp)

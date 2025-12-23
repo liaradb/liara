@@ -14,6 +14,7 @@ import (
 	"github.com/liaradb/liaradb/storage/node"
 )
 
+// TODO: Create latching
 type KeyValue struct {
 	s *storage.Storage
 	c *btree.Cursor

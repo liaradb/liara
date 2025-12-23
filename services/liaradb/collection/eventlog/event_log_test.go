@@ -69,12 +69,6 @@ func testEventLog_Append(t *testing.T) {
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }
 
 func TestEventLog_Find(t *testing.T) {
@@ -123,12 +117,6 @@ func testEventLog_Find(t *testing.T) {
 
 	if !reflect.DeepEqual(e, records[2]) {
 		t.Errorf("incorrect event: %v, expected: %v", e, records[2])
-	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }
 
@@ -192,12 +180,6 @@ func testEventLog_GetAggregate(t *testing.T) {
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }
 
 func TestEventLog_AppendEvent(t *testing.T) {
@@ -236,11 +218,5 @@ func testEventLog_AppendEvent(t *testing.T) {
 
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
-	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
 	}
 }

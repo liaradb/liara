@@ -50,10 +50,4 @@ func testKeyValue(t *testing.T) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
 	}
-
-	synctest.Wait()
-
-	if p := s.CountPinned(); p != 0 {
-		t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-	}
 }

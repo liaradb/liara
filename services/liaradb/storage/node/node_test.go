@@ -3,6 +3,7 @@ package node
 import (
 	"slices"
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -17,7 +18,10 @@ const (
 
 func TestNode_Append(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_Append)
+}
 
+func testNode_Append(t *testing.T) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -27,6 +31,7 @@ func TestNode_Append(t *testing.T) {
 
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
@@ -97,7 +102,10 @@ func TestNode_Append(t *testing.T) {
 
 func TestNode_Insert(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_Insert)
+}
 
+func testNode_Insert(t *testing.T) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -107,6 +115,7 @@ func TestNode_Insert(t *testing.T) {
 
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
@@ -175,9 +184,13 @@ func TestNode_Insert(t *testing.T) {
 
 func TestNode_Space(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_Space)
+}
 
+func testNode_Space(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 16+itemSize+testHeaderSize)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := New(b)
 
@@ -202,9 +215,13 @@ func TestNode_Space(t *testing.T) {
 
 func TestNode_Child(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_Child)
+}
 
+func testNode_Child(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	b.Release()
 
 	p := New(b)
 	values := [][]byte{
@@ -250,9 +267,13 @@ func TestNode_Child(t *testing.T) {
 
 func TestNode_Children(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_Children)
+}
 
+func testNode_Children(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := New(b)
 	values := [][]byte{
@@ -290,9 +311,13 @@ func TestNode_Children(t *testing.T) {
 
 func TestNode_ChildrenRange(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testNode_ChildrenRange)
+}
 
+func testNode_ChildrenRange(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
+	defer b.Release()
 
 	p := New(b)
 	values := [][]byte{

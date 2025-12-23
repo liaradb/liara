@@ -16,6 +16,7 @@ import (
 	"github.com/liaradb/liaradb/storage/node"
 )
 
+// TODO: Create latching
 type EventLog struct {
 	storage *storage.Storage
 	buffer  *bytes.Buffer
