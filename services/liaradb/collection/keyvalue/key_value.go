@@ -35,6 +35,10 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.K
 		return nil, err
 	}
 
+	return kv.getItem(ctx, tn, rid)
+}
+
+func (kv *KeyValue) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) ([]byte, error) {
 	bid := tn.KeyValue(domain.NewPartitionID(0)).BlockID(rid.Block())
 	b, err := kv.s.Request(ctx, bid)
 	if err != nil {

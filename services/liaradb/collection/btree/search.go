@@ -247,7 +247,7 @@ func (c *search) searchRangeRoot(
 	}
 
 	if l := p.Level(); l == 0 {
-		return l, 0, leafnode.New(p), ErrNotFound
+		return 0, 0, leafnode.New(p), nil
 	} else {
 		kn := keynode.New(p)
 		defer kn.Release()
