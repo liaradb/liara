@@ -22,17 +22,28 @@ func testStorage(t *testing.T) {
 
 	fn := link.NewFileName("testfile")
 
-	if b, err := s.Request(ctx, fn.BlockID(1)); err != nil {
+	b, err := s.Request(ctx, fn.BlockID(1))
+	if err != nil {
 		t.Error(err)
-	} else if p := b.blockID.Position(); p != 1 {
+	}
+
+	if p := b.blockID.Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
-	if b, err := s.Request(ctx, fn.BlockID(2)); err != nil {
+	b0, err := s.Request(ctx, fn.BlockID(2))
+	if err != nil {
 		t.Error(err)
-	} else if p := b.blockID.Position(); p != 2 {
+	}
+
+	if p := b0.blockID.Position(); p != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
 	}
+
+	b.Release()
+	b0.Release()
+
+	synctest.Wait()
 }
 
 func TestStorage_RequestBeforeRun(t *testing.T) {
@@ -66,9 +77,12 @@ func testStorage_CancelRun(t *testing.T) {
 	defer cancel2()
 
 	fn := link.NewFileName("testfile")
-	if b, err := s.Request(ctx2, fn.BlockID(1)); err != nil {
+	b, err := s.Request(ctx2, fn.BlockID(1))
+	if err != nil {
 		t.Error(err)
-	} else if p := b.blockID.Position(); p != 1 {
+	}
+
+	if p := b.blockID.Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
@@ -77,11 +91,18 @@ func testStorage_CancelRun(t *testing.T) {
 	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position())
 	}
+
+	b.Release()
+
+	synctest.Wait()
 }
 
 func TestStorage_Pinned(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testStorage_Pinned)
+}
 
+func testStorage_Pinned(t *testing.T) {
 	s := createStorage(t, 2, 32)
 	ctx := t.Context()
 
@@ -92,6 +113,8 @@ func TestStorage_Pinned(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	defer b.Release()
 
 	if b.Dirty() {
 		t.Error("should not be dirty")
@@ -105,14 +128,18 @@ func TestStorage_Pinned(t *testing.T) {
 		t.Error("should be dirty")
 	}
 
-	b, err = s.Request(ctx, bid)
+	b0, err := s.Request(ctx, bid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !b.Dirty() {
+	if !b0.Dirty() {
 		t.Error("should be dirty")
 	}
+
+	b0.Release()
+
+	synctest.Wait()
 }
 
 func TestStorage_Flush(t *testing.T) {
@@ -171,7 +198,7 @@ func testStorage_Flush(t *testing.T) {
 
 	// Request Buffer 2 again - available
 	// TODO: How do we test that it flushed?
-	_, err = s.Request(ctx2, bid2)
+	b3, err := s.Request(ctx2, bid2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,6 +212,11 @@ func testStorage_Flush(t *testing.T) {
 	if c := s.CountPinned(); c != 2 {
 		t.Errorf("incorrect number of Buffers.  Expected: %v, Recieved: %v", 2, c)
 	}
+
+	b0.Release()
+	b3.Release()
+
+	synctest.Wait()
 }
 
 func TestStorage_Wait(t *testing.T) {
@@ -250,10 +282,10 @@ func createStorage(t *testing.T, max int, bs int64) *Storage {
 	t.Helper()
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	return createStorageWithFileSystem(t, max, bs, fsys, false)
+	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem, noPin bool) *Storage {
+func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem) *Storage {
 	t.Helper()
 
 	s := New(fsys, max, bs, t.TempDir())
@@ -261,15 +293,13 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.File
 		t.Fatal(err)
 	}
 
-	if noPin {
-		t.Cleanup(func() {
-			synctest.Wait()
+	t.Cleanup(func() {
+		synctest.Wait()
 
-			if p := s.CountPinned(); p != 0 {
-				t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-			}
-		})
-	}
+		if p := s.CountPinned(); p != 0 {
+			t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+		}
+	})
 
 	return s
 }
