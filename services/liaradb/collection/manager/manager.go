@@ -38,3 +38,21 @@ func (m *Manager) Insert(ctx context.Context, k value.Key, i int64) error {
 	raw.WriteInt64(b, i)
 	return m.kv.Set(ctx, tablename.New("tables"), k, b.Bytes())
 }
+
+func (m *Manager) List(ctx context.Context) ([]int64, error) {
+	result := make([]int64, 0)
+	for d, err := range m.kv.List(ctx, tablename.New("tables")) {
+		if err != nil {
+			return nil, err
+		}
+
+		b := raw.NewBufferFromSlice(d)
+		var i int64
+		if err := raw.ReadInt64(b, &i); err != nil {
+			return nil, err
+		}
+
+		result = append(result, i)
+	}
+	return result, nil
+}

@@ -2,6 +2,7 @@ package keyvalue
 
 import (
 	"context"
+	"iter"
 	"slices"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -36,6 +37,24 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.K
 	}
 
 	return kv.getItem(ctx, tn, rid)
+}
+
+// TODO: Test this
+func (kv *KeyValue) List(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
+		fnIdx := tn.Index(0, domain.NewPartitionID(0))
+		for rid, err := range kv.c.All(ctx, fnIdx, 0, 0) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			i, err := kv.getItem(ctx, tn, rid)
+			if !yield(i, err) {
+				return
+			}
+		}
+	}
 }
 
 func (kv *KeyValue) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) ([]byte, error) {

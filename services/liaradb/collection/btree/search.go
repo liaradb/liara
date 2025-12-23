@@ -273,3 +273,158 @@ func (c *search) searchRangeKey(
 
 	return kn.Level(), kn.Search(k), nil
 }
+
+func (s *search) All(
+	ctx context.Context,
+	fn link.FileName,
+	skip int,
+	limit int,
+) iter.Seq2[link.RecordLocator, error] {
+	skipped := 0
+	returned := 0
+	return func(yield func(link.RecordLocator, error) bool) {
+		block, rids, err := s.allFirst(ctx, fn)
+		if err != nil {
+			yield(link.RecordLocator{}, err)
+			return
+		}
+
+		for rid := range rids {
+			if skip > skipped {
+				skipped++
+				continue
+			}
+			if s.isLimit(limit, returned) || !yield(rid, nil) {
+				return
+			}
+			returned++
+		}
+
+		for block != 0 {
+			if s.isLimit(limit, returned) {
+				return
+			}
+
+			block, rids, err = s.allNext(ctx, fn, block)
+			if err != nil {
+				yield(link.RecordLocator{}, err)
+				return
+			}
+
+			for rid := range rids {
+				if skip > skipped {
+					skipped++
+					continue
+				}
+				if s.isLimit(limit, returned) || !yield(rid, nil) {
+					return
+				}
+				returned++
+			}
+		}
+	}
+}
+
+func (s *search) allFirst(
+	ctx context.Context,
+	fn link.FileName,
+) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+	ln, err := s.all(ctx, fn)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	defer ln.Release()
+
+	ln.RLatch()
+	defer ln.RUnlatch()
+
+	return ln.RightID(), ln.RecordIDs(), nil
+}
+
+func (s *search) allNext(
+	ctx context.Context,
+	fn link.FileName,
+	block link.FilePosition,
+) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	defer ln.Release()
+
+	ln.RLatch()
+	defer ln.RUnlatch()
+
+	return ln.RightID(), ln.RecordIDs(), nil
+}
+
+func (c *search) all(
+	ctx context.Context,
+	fn link.FileName,
+) (*leafnode.LeafNode, error) {
+	level, block, ln, err := c.allRoot(ctx, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	if level == 0 {
+		return ln, nil
+	}
+
+	for i := level - 1; i > 0; i-- {
+		_, block, err = c.allKey(ctx, fn.BlockID(block))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return c.ns.getLeafNode(ctx, fn.BlockID(block))
+}
+
+func (c *search) allRoot(
+	ctx context.Context,
+	fn link.FileName,
+) (byte, link.FilePosition, *leafnode.LeafNode, error) {
+	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	if err != nil {
+		return 0, 0, nil, err
+	}
+
+	if l := p.Level(); l == 0 {
+		return l, 0, leafnode.New(p), nil
+	} else {
+		kn := keynode.New(p)
+		defer kn.Release()
+
+		kn.RLatch()
+		defer kn.RUnlatch()
+
+		_, fp, ok := kn.Child(0)
+		if !ok {
+			return 0, 0, nil, ErrNotFound
+		}
+
+		return l, fp, nil, nil
+	}
+}
+
+func (c *search) allKey(
+	ctx context.Context,
+	bid link.BlockID,
+) (byte, link.FilePosition, error) {
+	kn, err := c.ns.getKeyNode(ctx, bid)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	defer kn.Release()
+
+	_, fp, ok := kn.Child(0)
+	if !ok {
+		return 0, 0, ErrNotFound
+	}
+
+	return kn.Level(), fp, nil
+}
