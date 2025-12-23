@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestRecord(t *testing.T) {
@@ -21,12 +21,12 @@ func TestRecord(t *testing.T) {
 
 	rc := New(lsn, tid, now, action, data, reverse)
 
-	assert.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
-	assert.Getter(t, rc.TransactionID, tid, "TransactionID")
-	assert.Getter(t, rc.Time, now, "Time")
-	assert.Getter(t, rc.Action, action, "Action")
-	assert.GetterArray(t, rc.Data, data, "Data")
-	assert.GetterArray(t, rc.Reverse, reverse, "Reverse")
+	testutil.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
+	testutil.Getter(t, rc.TransactionID, tid, "TransactionID")
+	testutil.Getter(t, rc.Time, now, "Time")
+	testutil.Getter(t, rc.Action, action, "Action")
+	testutil.GetterArray(t, rc.Data, data, "Data")
+	testutil.GetterArray(t, rc.Reverse, reverse, "Reverse")
 }
 
 func TestRecord_Write(t *testing.T) {
@@ -57,12 +57,12 @@ func TestRecord_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Getter(t, rc2.LogSequenceNumber, lsn, "LogSequenceNumber")
-	assert.Getter(t, rc2.TransactionID, tid, "TransactionID")
-	assert.Getter(t, rc.Time, now, "Time")
-	assert.Getter(t, rc.Action, action, "Action")
-	assert.GetterArray(t, rc2.Data, data, "Data")
-	assert.GetterArray(t, rc2.Reverse, reverse, "Reverse")
+	testutil.Getter(t, rc2.LogSequenceNumber, lsn, "LogSequenceNumber")
+	testutil.Getter(t, rc2.TransactionID, tid, "TransactionID")
+	testutil.Getter(t, rc.Time, now, "Time")
+	testutil.Getter(t, rc.Action, action, "Action")
+	testutil.GetterArray(t, rc2.Data, data, "Data")
+	testutil.GetterArray(t, rc2.Reverse, reverse, "Reverse")
 }
 
 func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {

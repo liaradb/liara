@@ -5,7 +5,6 @@ go 1.25.5
 replace github.com/liaradb/eventsource_go => ../../modules/eventsource_go
 
 require (
-	github.com/cardboardrobots/assert v0.0.2
 	github.com/cardboardrobots/baseerror v0.0.2
 	github.com/cardboardrobots/config v0.0.0
 	github.com/cardboardrobots/errormap v0.0.0

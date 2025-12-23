@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestCRC(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var c CRC = NewCRC([]byte{1, 2, 3, 4, 5})
 	if err := c.Write(w); err != nil {

@@ -1,5 +1,3 @@
-github.com/cardboardrobots/assert v0.0.2 h1:H4eCDUznqnW6fTfXLj4XjHikAcjuqBlzk1T3sQkHOXA=
-github.com/cardboardrobots/assert v0.0.2/go.mod h1:iMZgYTHdtDL75udoVMmiASjWxdqYwtTAYzOQwesg6UA=
 github.com/cardboardrobots/baseerror v0.0.2 h1:yUPtCY0ZuXyuaXRJOwfoOi5HeL871CVEN0KRXeC+Fpc=
 github.com/cardboardrobots/baseerror v0.0.2/go.mod h1:Cj0486tCPpBKJH57bsIHRZenNMERA4MEXZ7BkDvi9ZY=
 github.com/cardboardrobots/config v0.0.0 h1:4/W8u8Wb+VVnV1hUDwVSZEqsWkvkb2TeJGlN9UYQG5k=
