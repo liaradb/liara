@@ -1,6 +1,8 @@
 package keyvalue
 
 import (
+	"slices"
+	"strings"
 	"testing"
 	"testing/synctest"
 
@@ -51,5 +53,37 @@ func testKeyValue(t *testing.T) {
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
+	}
+
+	type tuple struct {
+		key   value.Key
+		value []byte
+	}
+
+	tuples := make([]tuple, 0, len(data))
+	for k, v := range data {
+		tuples = append(tuples, tuple{k, v})
+	}
+	slices.SortFunc(tuples, func(a, b tuple) int {
+		return strings.Compare(a.key.String(), b.key.String())
+	})
+	want := make([]string, 0, len(data))
+	for _, t := range tuples {
+		want = append(want, string(t.value))
+	}
+
+	result := make([]string, 0, len(data))
+	i := 0
+	for value, err := range kv.List(ctx, n) {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, string(value))
+		i++
+	}
+
+	if !slices.Equal(result, want) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 }
