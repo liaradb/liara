@@ -1,8 +1,10 @@
-package page
+package mempage
 
 import (
 	"io"
 	"slices"
+
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type Item struct {
@@ -27,23 +29,23 @@ func (i *Item) Compare(a *Item) bool {
 	return slices.Equal(i.data, a.data)
 }
 
-func (i *Item) Write(w io.Writer) (CRC, error) {
+func (i *Item) Write(w io.Writer) (page.CRC, error) {
 	if n, err := w.Write(i.data); err != nil {
-		return CRC{}, err
+		return page.CRC{}, err
 	} else if n < len(i.data) {
-		return CRC{}, io.ErrShortWrite
+		return page.CRC{}, io.ErrShortWrite
 	}
 
-	return NewCRC(i.data), nil
+	return page.NewCRC(i.data), nil
 }
 
-func (i *Item) Read(r io.Reader, crc CRC) error {
+func (i *Item) Read(r io.Reader, crc page.CRC) error {
 	if _, err := r.Read(i.data); err != nil {
 		return err
 	}
 
 	if !crc.Compare(i.data) {
-		return ErrInvalidCRC
+		return page.ErrInvalidCRC
 	}
 
 	return nil

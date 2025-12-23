@@ -1,14 +1,15 @@
-package page
+package mempage
 
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type List struct {
 	headerSize int
-	highWater  Offset
+	highWater  page.Offset
 	entries    []ListEntry
 }
 
@@ -27,7 +28,7 @@ func (l List) reset() {
 	l.entries = l.entries[:0]
 }
 
-func (l *List) Add(offset Offset, length ListLength) (Offset, error) {
+func (l *List) Add(offset page.Offset, length ListLength) (page.Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, raw.ErrInsufficientSpace
@@ -45,14 +46,14 @@ func (l List) space() int {
 }
 
 func (l List) Size() int {
-	s := Offset(0).Size() + ListLength(0).Size() + l.headerSize
+	s := page.Offset(0).Size() + ListLength(0).Size() + l.headerSize
 	for _, e := range l.entries {
 		s += e.Size()
 	}
 	return s
 }
 
-func (l List) offset(index int) Offset {
+func (l List) offset(index int) page.Offset {
 	if index < 0 || index >= len(l.entries) {
 		return 0
 	}
@@ -60,7 +61,7 @@ func (l List) offset(index int) Offset {
 	return l.entries[index].Offset
 }
 
-func (l *List) setCRC(index int, crc CRC) {
+func (l *List) setCRC(index int, crc page.CRC) {
 	if index < 0 || index >= len(l.entries) {
 		return
 	}

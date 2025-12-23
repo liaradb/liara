@@ -1,4 +1,4 @@
-package page
+package mempage
 
 import (
 	"bufio"
@@ -6,6 +6,8 @@ import (
 	"io"
 	"reflect"
 	"testing"
+
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 // TODO: Should this just test Page?
@@ -15,7 +17,7 @@ func TestList(t *testing.T) {
 	r, w := newReaderWriter()
 
 	l := List{}
-	var position Offset = 96
+	var position page.Offset = 96
 
 	position -= 2
 	if i, err := l.Add(position, 2); err != nil {
@@ -23,7 +25,7 @@ func TestList(t *testing.T) {
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
-	l.setCRC(0, NewCRC([]byte{3}))
+	l.setCRC(0, page.NewCRC([]byte{3}))
 
 	position -= 4
 	if i, err := l.Add(position, 4); err != nil {
@@ -31,7 +33,7 @@ func TestList(t *testing.T) {
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
-	l.setCRC(1, NewCRC([]byte{5}))
+	l.setCRC(1, page.NewCRC([]byte{5}))
 
 	position -= 6
 	if i, err := l.Add(position, 6); err != nil {
@@ -39,7 +41,7 @@ func TestList(t *testing.T) {
 	} else if i != 2 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 2)
 	}
-	l.setCRC(2, NewCRC([]byte{7}))
+	l.setCRC(2, page.NewCRC([]byte{7}))
 
 	if err := l.Write(w); err != nil {
 		t.Fatal(err)

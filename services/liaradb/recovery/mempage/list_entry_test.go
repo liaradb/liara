@@ -1,8 +1,10 @@
-package page
+package mempage
 
 import (
 	"io"
 	"testing"
+
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 func TestListEntry(t *testing.T) {
@@ -10,7 +12,7 @@ func TestListEntry(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	crc := NewCRC([]byte{1, 2, 3, 4, 5})
+	crc := page.NewCRC([]byte{1, 2, 3, 4, 5})
 
 	var le = ListEntry{1, 12345, 67890, crc}
 	if err := le.Write(w); err != nil {

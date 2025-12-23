@@ -1,9 +1,10 @@
-package page
+package mempage
 
 import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
@@ -19,7 +20,7 @@ import (
 
 // TODO: Potentially use io.OffsetWriter
 type Page[H Serializer, I ItemSerializer] struct {
-	size   Offset
+	size   page.Offset
 	header H
 	list   List
 	items  []I // TODO: Change back to []byte
@@ -35,21 +36,21 @@ type Serializer interface {
 }
 
 type ItemSerializer interface {
-	Read(io.Reader, CRC) error
+	Read(io.Reader, page.CRC) error
 	Size() int
-	Write(io.Writer) (CRC, error)
+	Write(io.Writer) (page.CRC, error)
 }
 
-func New(size Offset) *Page[ZeroHeader, *Item] {
+func New(size page.Offset) *Page[ZeroHeader, *Item] {
 	return NewWithHeader(size, ZeroHeader{}, NewItemByLength)
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer, I ItemSerializer](size Offset, header H, newI func(ListLength) I) *Page[H, I] {
+func NewWithHeader[H Serializer, I ItemSerializer](size page.Offset, header H, newI func(ListLength) I) *Page[H, I] {
 	return &Page[H, I]{
 		size:   size,
 		header: header,
-		list:   newList(MagicSize + header.Size()),
+		list:   newList(page.MagicSize + header.Size()),
 		newI:   newI,
 	}
 }
@@ -63,7 +64,7 @@ func (p *Page[H, I]) Reset(h H) {
 }
 
 // TODO: Test offset return
-func (p *Page[H, I]) Add(i I) (Offset, error) {
+func (p *Page[H, I]) Add(i I) (page.Offset, error) {
 	l := i.Size()
 	offset, err := p.list.Add(p.nextCursor(l), ListLength(l))
 	if err != nil {
@@ -75,8 +76,8 @@ func (p *Page[H, I]) Add(i I) (Offset, error) {
 	return offset, nil
 }
 
-func (p *Page[H, I]) nextCursor(l int) Offset {
-	return Offset(p.Size() - p.list.entriesSize() - l)
+func (p *Page[H, I]) nextCursor(l int) page.Offset {
+	return page.Offset(p.Size() - p.list.entriesSize() - l)
 }
 
 func (p *Page[H, I]) Header() H { return p.header }
@@ -134,7 +135,7 @@ func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 }
 
 func (p *Page[H, I]) readHeader(r io.Reader) error {
-	var m Magic
+	var m page.Magic
 	return raw.ReadAll(r,
 		&m,
 		p.header)
@@ -142,7 +143,7 @@ func (p *Page[H, I]) readHeader(r io.Reader) error {
 
 func (p *Page[H, I]) writeHeader(w io.Writer) error {
 	return raw.WriteAll(w,
-		MagicPage,
+		page.MagicPage,
 		p.header)
 }
 

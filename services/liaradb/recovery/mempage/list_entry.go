@@ -1,21 +1,22 @@
-package page
+package mempage
 
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type ListEntry struct {
-	ID     Offset
-	Offset Offset
+	ID     page.Offset
+	Offset page.Offset
 	Length ListLength
-	CRC    CRC
+	CRC    page.CRC
 }
 
-const ListEntrySize = OffsetSize + OffsetSize + ListLengthSize + CrcSize
+const ListEntrySize = page.OffsetSize + page.OffsetSize + ListLengthSize + page.CrcSize
 
-func newListEntry(id Offset, offset Offset, length ListLength) ListEntry {
+func newListEntry(id page.Offset, offset page.Offset, length ListLength) ListEntry {
 	return ListEntry{
 		ID:     id,
 		Offset: offset,
