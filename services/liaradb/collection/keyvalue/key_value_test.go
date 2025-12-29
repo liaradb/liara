@@ -1,6 +1,7 @@
 package keyvalue
 
 import (
+	"context"
 	"slices"
 	"strings"
 	"testing"
@@ -24,7 +25,18 @@ func testKeyValue(t *testing.T) {
 	kv := New(s)
 	n := tablename.New("testfile")
 
-	data := map[value.Key][]byte{
+	data := createData()
+
+	if err := insertData(ctx, kv, n, data); err != nil {
+		t.Fatal(err)
+	}
+
+	testGet(ctx, t, kv, n, data)
+	testList(ctx, t, data, kv, n)
+}
+
+func createData() map[value.Key][]byte {
+	return map[value.Key][]byte{
 		"1": []byte("a"),
 		"2": []byte("b"),
 		"3": []byte("c"),
@@ -35,13 +47,18 @@ func testKeyValue(t *testing.T) {
 		"8": []byte("h"),
 		"9": []byte("i"),
 	}
+}
 
+func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data map[value.Key][]byte) error {
 	for k, v := range data {
 		if err := kv.Set(ctx, n, k, v); err != nil {
-			t.Fatal(err)
+			return err
 		}
 	}
+	return nil
+}
 
+func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableName, data map[value.Key][]byte) {
 	for k, v := range data {
 		value, err := kv.Get(ctx, n, k)
 		if err != nil {
@@ -54,7 +71,35 @@ func testKeyValue(t *testing.T) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
 	}
+}
 
+func testList(ctx context.Context, t *testing.T, data map[value.Key][]byte, kv *KeyValue, n tablename.TableName) {
+	result, err := getListValues(ctx, data, kv, n)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := createSortedValues(data)
+	if !slices.Equal(result, want) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
+}
+
+func getListValues(ctx context.Context, data map[value.Key][]byte, kv *KeyValue, n tablename.TableName) ([]string, error) {
+	result := make([]string, 0, len(data))
+	i := 0
+	for value, err := range kv.List(ctx, n) {
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, string(value))
+		i++
+	}
+	return result, nil
+}
+
+func createSortedValues(data map[value.Key][]byte) []string {
 	type tuple struct {
 		key   value.Key
 		value []byte
@@ -71,19 +116,5 @@ func testKeyValue(t *testing.T) {
 	for _, t := range tuples {
 		want = append(want, string(t.value))
 	}
-
-	result := make([]string, 0, len(data))
-	i := 0
-	for value, err := range kv.List(ctx, n) {
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		result = append(result, string(value))
-		i++
-	}
-
-	if !slices.Equal(result, want) {
-		t.Errorf("incorrect result: %v, expected: %v", result, want)
-	}
+	return want
 }
