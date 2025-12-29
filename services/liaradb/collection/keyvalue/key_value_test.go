@@ -35,6 +35,28 @@ func testKeyValue(t *testing.T) {
 	testList(ctx, t, data, kv, n)
 }
 
+func TestKeyValue__LargeBuffer(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testKeyValue__LargeBuffer)
+}
+
+func testKeyValue__LargeBuffer(t *testing.T) {
+	ctx := t.Context()
+	s := storagetesting.CreateStorage(t, 2, 256)
+	kv := New(s)
+	n := tablename.New("testfile")
+
+	data := createData()
+
+	if err := insertData(ctx, kv, n, data); err != nil {
+		t.Fatal(err)
+	}
+
+	testGet(ctx, t, kv, n, data)
+	testList(ctx, t, data, kv, n)
+}
+
 func createData() map[value.Key][]byte {
 	return map[value.Key][]byte{
 		"1": []byte("a"),
