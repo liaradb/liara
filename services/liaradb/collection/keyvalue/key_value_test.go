@@ -33,11 +33,12 @@ func testKeyValue(t *testing.T) {
 
 	testGet(ctx, t, kv, n, data)
 	testList(ctx, t, data, kv, n)
+
+	synctest.Wait()
 }
 
 func TestKeyValue__LargeBuffer(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testKeyValue__LargeBuffer)
 }
 
@@ -55,6 +56,8 @@ func testKeyValue__LargeBuffer(t *testing.T) {
 
 	testGet(ctx, t, kv, n, data)
 	testList(ctx, t, data, kv, n)
+
+	synctest.Wait()
 }
 
 func createData() map[value.Key][]byte {

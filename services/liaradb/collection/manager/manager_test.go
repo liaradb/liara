@@ -29,8 +29,9 @@ func testManager(t *testing.T) {
 	}
 
 	testGet(t, data, want, m)
-	// TODO: Test List
-	// testList(t, want, m)
+	testList(t, want, m)
+
+	synctest.Wait()
 }
 
 func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {

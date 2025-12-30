@@ -283,7 +283,7 @@ func (s *search) All(
 	skipped := 0
 	returned := 0
 	return func(yield func(link.RecordLocator, error) bool) {
-		block, rids, err := s.allFirst(ctx, fn)
+		nextBID, rids, err := s.allFirst(ctx, fn)
 		if err != nil {
 			yield(link.RecordLocator{}, err)
 			return
@@ -300,12 +300,12 @@ func (s *search) All(
 			returned++
 		}
 
-		for block != 0 {
+		for nextBID != 0 {
 			if s.isLimit(limit, returned) {
 				return
 			}
 
-			block, rids, err = s.allNext(ctx, fn, block)
+			nextBID, rids, err = s.allNext(ctx, fn, nextBID)
 			if err != nil {
 				yield(link.RecordLocator{}, err)
 				return
@@ -334,12 +334,18 @@ func (s *search) allFirst(
 		return 0, nil, err
 	}
 
-	defer ln.Release()
+	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+		defer ln.Release()
 
-	ln.RLatch()
-	defer ln.RUnlatch()
+		ln.RLatch()
+		defer ln.RUnlatch()
 
-	return ln.RightID(), ln.RecordIDs(), nil
+		for rid := range ln.RecordIDs() {
+			if !yield(rid) {
+				return
+			}
+		}
+	}, nil
 }
 
 func (s *search) allNext(
@@ -352,19 +358,25 @@ func (s *search) allNext(
 		return 0, nil, err
 	}
 
-	defer ln.Release()
+	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+		defer ln.Release()
 
-	ln.RLatch()
-	defer ln.RUnlatch()
+		ln.RLatch()
+		defer ln.RUnlatch()
 
-	return ln.RightID(), ln.RecordIDs(), nil
+		for rid := range ln.RecordIDs() {
+			if !yield(rid) {
+				return
+			}
+		}
+	}, nil
 }
 
 func (c *search) all(
 	ctx context.Context,
 	fn link.FileName,
 ) (*leafnode.LeafNode, error) {
-	level, block, ln, err := c.allRoot(ctx, fn)
+	level, fp, ln, err := c.allRoot(ctx, fn)
 	if err != nil {
 		return nil, err
 	}
@@ -373,14 +385,15 @@ func (c *search) all(
 		return ln, nil
 	}
 
+	// Traverse to leaf
 	for i := level - 1; i > 0; i-- {
-		_, block, err = c.allKey(ctx, fn.BlockID(block))
+		_, fp, err = c.allKey(ctx, fn.BlockID(fp))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return c.ns.getLeafNode(ctx, fn.BlockID(block))
+	return c.ns.getLeafNode(ctx, fn.BlockID(fp))
 }
 
 func (c *search) allRoot(
