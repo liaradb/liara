@@ -186,12 +186,18 @@ func (s *search) searchRangeFirst(
 		return 0, nil, err
 	}
 
-	defer ln.Release()
+	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+		defer ln.Release()
 
-	ln.RLatch()
-	defer ln.RUnlatch()
+		ln.RLatch()
+		defer ln.RUnlatch()
 
-	return ln.RightID(), ln.SearchRange(k), nil
+		for rid := range ln.SearchRange(k) {
+			if !yield(rid) {
+				return
+			}
+		}
+	}, nil
 }
 
 func (s *search) searchRangeNext(
@@ -204,12 +210,18 @@ func (s *search) searchRangeNext(
 		return 0, nil, err
 	}
 
-	defer ln.Release()
+	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+		defer ln.Release()
 
-	ln.RLatch()
-	defer ln.RUnlatch()
+		ln.RLatch()
+		defer ln.RUnlatch()
 
-	return ln.RightID(), ln.RecordIDs(), nil
+		for rid := range ln.RecordIDs() {
+			if !yield(rid) {
+				return
+			}
+		}
+	}, nil
 }
 
 func (c *search) searchRange(
