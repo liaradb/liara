@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestTransactionID(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var tid = NewTransactionID(123456)
 	if err := tid.Write(w); err != nil {

@@ -1,6 +1,8 @@
 package page
 
 import (
+	"bufio"
+	"bytes"
 	"io"
 	"testing"
 )
@@ -28,4 +30,9 @@ func TestOffset(t *testing.T) {
 	if o != o2 {
 		t.Errorf("incorrect value: %v, expected: %v", o2, o)
 	}
+}
+
+func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
+	buffer := bytes.NewBuffer(nil)
+	return bufio.NewReader(buffer), buffer
 }

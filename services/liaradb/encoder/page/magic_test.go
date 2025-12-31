@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestMagic(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var m Magic = MagicPage
 	if err := m.Write(w); err != nil {

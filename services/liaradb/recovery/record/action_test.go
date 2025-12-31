@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestAction(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var a Action = ActionCheckpoint
 	if err := a.Write(w); err != nil {

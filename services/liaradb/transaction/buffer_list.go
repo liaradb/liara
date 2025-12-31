@@ -4,21 +4,22 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type BufferList struct {
 	storage *storage.Storage
-	buffers map[storage.BlockID]*storage.Buffer
+	buffers map[link.BlockID]*storage.Buffer
 }
 
 func NewBufferList(s *storage.Storage) *BufferList {
 	return &BufferList{
 		storage: s,
-		buffers: make(map[storage.BlockID]*storage.Buffer),
+		buffers: make(map[link.BlockID]*storage.Buffer),
 	}
 }
 
-func (bl *BufferList) Pin(ctx context.Context, bid storage.BlockID) (*storage.Buffer, error) {
+func (bl *BufferList) Pin(ctx context.Context, bid link.BlockID) (*storage.Buffer, error) {
 	if b, ok := bl.buffers[bid]; ok {
 		return b, nil
 	}

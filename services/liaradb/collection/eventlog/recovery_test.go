@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 // TODO: Where should this test be?
@@ -27,7 +28,7 @@ func testRecovery(t *testing.T) {
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	dir := t.TempDir()
-	fn := path.Join(dir, "testfile")
+	fn := link.NewFileName(path.Join(dir, "testfile"))
 	var max int = 2
 	var bs int64 = 256
 
@@ -64,7 +65,7 @@ func write(
 	max int,
 	bs int64,
 	dir string,
-	fn string,
+	fn link.FileName,
 	records []*entity.Event,
 ) {
 	s := storage.New(fsys, max, bs, dir)
@@ -96,7 +97,7 @@ func recover(
 	max int,
 	bs int64,
 	dir string,
-	fn string,
+	fn link.FileName,
 	records []*entity.Event,
 ) {
 	s := storage.New(fsys, max, bs, dir)

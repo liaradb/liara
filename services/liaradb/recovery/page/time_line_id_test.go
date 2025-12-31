@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestTimeLineID(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var tlid TimeLineID = 123456
 	if err := tlid.Write(w); err != nil {

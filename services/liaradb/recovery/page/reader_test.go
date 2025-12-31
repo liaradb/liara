@@ -64,6 +64,8 @@ func TestReader_Iterate(t *testing.T) {
 }
 
 func TestReader_Reverse(t *testing.T) {
+	t.Parallel()
+
 	f, rd, sw := createReaderWriter(t)
 
 	var count = record.NewLogSequenceNumber(3)

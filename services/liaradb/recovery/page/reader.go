@@ -6,19 +6,20 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Reader struct {
-	page *page.Page[*Header, *page.Item]
+	page *mempage.Page[*Header, *mempage.Item]
 }
 
 func NewReader(pageSize int64) *Reader {
 	return &Reader{
-		page: page.NewWithHeader(
+		page: mempage.NewWithHeader(
 			page.Offset(pageSize),
 			&Header{},
-			page.NewItemByLength),
+			mempage.NewItemByLength),
 	}
 }
 

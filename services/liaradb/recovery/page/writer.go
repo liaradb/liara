@@ -4,35 +4,36 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Writer struct {
 	bodySize int64
-	page     *page.Page[*Header, *page.Item]
+	page     *mempage.Page[*Header, *mempage.Item]
 }
 
 func NewWriter(size int64) *Writer {
 	return &Writer{
 		bodySize: size,
-		page: page.NewWithHeader(
+		page: mempage.NewWithHeader(
 			page.Offset(size),
 			&Header{},
-			page.NewItemByLength),
+			mempage.NewItemByLength),
 	}
 }
 
 func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
 	h := NewHeader(id, tlid, rem)
 	// TODO: Don't replace page
-	wr.page = page.NewWithHeader(
+	wr.page = mempage.NewWithHeader(
 		page.Offset(wr.bodySize),
 		&h,
-		page.NewItemByLength)
+		mempage.NewItemByLength)
 }
 
 func (wr *Writer) Append(data []byte) error {
-	_, err := wr.page.Add(page.NewItem(data))
+	_, err := wr.page.Add(mempage.NewItem(data))
 	return err
 }
 

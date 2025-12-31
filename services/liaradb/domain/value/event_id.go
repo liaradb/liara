@@ -2,20 +2,20 @@ package value
 
 import "github.com/liaradb/liaradb/encoder/raw"
 
-type EventID struct {
+type RowID struct {
 	baseID
 }
 
-func NewEventID() EventID {
-	return EventID{raw.NewBaseID()}
+func NewRowID() RowID {
+	return RowID{raw.NewBaseID()}
 }
 
-func NewEventIDFromString(value string) (EventID, error) {
+func NewRowIDFromString(value string) (RowID, error) {
 	if id, err := raw.NewBaseIDFromString(value); err != nil {
-		return EventID{}, err
+		return RowID{}, err
 	} else {
-		return EventID{id}, nil
+		return RowID{id}, nil
 	}
 }
 
-const EventIDSize = raw.BaseIDSize
+const RowIDSize = raw.BaseIDSize

@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
@@ -9,10 +10,15 @@ import (
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 func TestManager(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testManager)
+}
+
+func testManager(t *testing.T) {
 	m, _ := createManager(t)
 
 	tx0 := m.Next()
@@ -35,7 +41,7 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 
 	fsys, dir := createFiles(t)
 	l := createLog(t, fsys, dir)
-	s := createStorage(t, fsys)
+	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
 	lt := createLockTable(t)
 	return NewManager(l, s, lt), l
 }
@@ -59,15 +65,6 @@ func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {
 	}
 
 	return l
-}
-
-func createStorage(t *testing.T, fsys file.FileSystem) *storage.Storage {
-	s := storage.New(fsys, 2, 1024, t.TempDir())
-	if err := s.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	return s
 }
 
 func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {

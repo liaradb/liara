@@ -1,24 +1,25 @@
 package page
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-// TODO: This must be int32 to prevent overflows
-type Offset int32
+// TODO: This must be int64 to prevent overflows
+type Offset int64
 
-const OffsetSize = 4
+const OffsetSize = 8
 
-func (o Offset) Value() int { return int(o) }
-
-func (Offset) Size() int { return OffsetSize }
+func (o Offset) Value() int64   { return int64(o) }
+func (Offset) Size() int        { return OffsetSize }
+func (b Offset) String() string { return fmt.Sprintf("%v", b.Value()) }
 
 func (o Offset) Write(w io.Writer) error {
-	return raw.WriteInt32(w, o)
+	return raw.WriteInt64(w, o)
 }
 
 func (o *Offset) Read(r io.Reader) error {
-	return raw.ReadInt32(r, o)
+	return raw.ReadInt64(r, o)
 }

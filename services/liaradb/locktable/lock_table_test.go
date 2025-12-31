@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestLockTable(t *testing.T) {
 	t.Parallel()
 
-	assert.RunTest(t, "should XLock", func(t *testing.T) {
+	testutil.Run(t, "should XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -21,7 +21,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should not XLock twice", func(t *testing.T) {
+	testutil.Run(t, "should not XLock twice", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -35,7 +35,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should XLock after release XLock", func(t *testing.T) {
+	testutil.Run(t, "should XLock after release XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -55,7 +55,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should XLock after failed XLock", func(t *testing.T) {
+	testutil.Run(t, "should XLock after failed XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -74,7 +74,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should SLock", func(t *testing.T) {
+	testutil.Run(t, "should SLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -84,7 +84,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should SLock twice", func(t *testing.T) {
+	testutil.Run(t, "should SLock twice", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -98,7 +98,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should not XLock while multiple SLock", func(t *testing.T) {
+	testutil.Run(t, "should not XLock while multiple SLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -125,7 +125,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should not SLock after XLock", func(t *testing.T) {
+	testutil.Run(t, "should not SLock after XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -139,7 +139,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should SLock after release XLock", func(t *testing.T) {
+	testutil.Run(t, "should SLock after release XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()
@@ -159,7 +159,7 @@ func TestLockTable(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should SLock after failed XLock", func(t *testing.T) {
+	testutil.Run(t, "should SLock after failed XLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		ctx := t.Context()

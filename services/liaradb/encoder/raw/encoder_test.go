@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestStringSize(t *testing.T) {
@@ -22,7 +22,7 @@ func TestStringSize(t *testing.T) {
 func TestByteEncoder(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	want := []byte{1, 2, 3, 4, 5}
 	if err := Write(w, want); err != nil {
@@ -46,7 +46,7 @@ func TestByteEncoder(t *testing.T) {
 func TestStringEncoder(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	want := "abcde"
 	if err := WriteString(w, want); err != nil {
@@ -85,7 +85,7 @@ func TestInt8(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := assert.NewReaderWriter()
+			r, w := testutil.NewReaderWriter()
 			var want, result int8 = c.value, 0
 
 			if err := WriteInt8(w, want); err != nil {
@@ -125,7 +125,7 @@ func TestInt16(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := assert.NewReaderWriter()
+			r, w := testutil.NewReaderWriter()
 			var want, result int16 = c.value, 0
 
 			if err := WriteInt16(w, want); err != nil {
@@ -165,7 +165,7 @@ func TestInt32(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := assert.NewReaderWriter()
+			r, w := testutil.NewReaderWriter()
 			var want, result int32 = c.value, 0
 
 			if err := WriteInt32(w, want); err != nil {
@@ -205,7 +205,7 @@ func TestInt64(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := assert.NewReaderWriter()
+			r, w := testutil.NewReaderWriter()
 			var want, result int64 = c.value, 0
 
 			if err := WriteInt64(w, want); err != nil {
