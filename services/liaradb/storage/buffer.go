@@ -5,10 +5,11 @@ import (
 	"sync"
 
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Buffer struct {
-	blockID BlockID
+	blockID link.BlockID
 	buffer  *raw.Buffer
 	status  BufferStatus
 	s       *Storage
@@ -23,10 +24,12 @@ func newBuffer(s *Storage) *Buffer {
 	}
 }
 
-func (b *Buffer) BlockID() BlockID { return b.blockID }
-func (b *Buffer) Dirty() bool      { return b.status == BufferStatusDirty }
-func (b *Buffer) Pins() int        { return b.pins }
-func (b *Buffer) Size() int64      { return b.s.BufferSize() }
+// TODO: Test these
+func (b *Buffer) BlockID() link.BlockID { return b.blockID }
+func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
+func (b *Buffer) Pins() int             { return b.pins }
+func (b *Buffer) Size() int64           { return b.s.BufferSize() }
+func (b *Buffer) Raw() []byte           { return b.buffer.Bytes() }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }
@@ -34,7 +37,9 @@ func (b *Buffer) Unlatch()  { b.mux.Unlock() }
 func (b *Buffer) RLatch()   { b.mux.RLock() }
 func (b *Buffer) RUnlatch() { b.mux.RUnlock() }
 
-func (b *Buffer) setDirty() { b.status = BufferStatusDirty }
+// This is usually managed by the Buffer itself.
+// However, it is useful when using Raw.
+func (b *Buffer) SetDirty() { b.status = BufferStatusDirty }
 
 func (b *Buffer) pin() {
 	b.pins++
@@ -54,7 +59,7 @@ func (b *Buffer) Release() {
 }
 
 // TODO: Only load if BlockID is changing
-func (b *Buffer) load(bid BlockID) error {
+func (b *Buffer) load(bid link.BlockID) error {
 	if b.blockID != bid && b.status == BufferStatusDirty {
 		if err := b.s.flush(b); err != nil {
 			return err
@@ -151,8 +156,14 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 func (b *Buffer) Write(p []byte) (int, error) {
 	n, err := b.buffer.Write(p)
 	if n != 0 {
-		b.setDirty()
+		b.SetDirty()
 	}
 
 	return n, err
+}
+
+// TODO: Test this
+func (b *Buffer) Clone(o *Buffer) {
+	copy(b.Raw(), o.Raw())
+	b.SetDirty()
 }

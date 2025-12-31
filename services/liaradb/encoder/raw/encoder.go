@@ -13,7 +13,7 @@ func StringSize[S ~string](s S) int {
 }
 
 func Write(w io.Writer, value []byte) error {
-	if err := binary.Write(w, binary.BigEndian, uint32(len(value))); err != nil {
+	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
 	}
 
@@ -43,7 +43,7 @@ func Read(r io.Reader, value *[]byte) error {
 }
 
 func WriteString[S ~string](w io.Writer, value S) error {
-	if err := binary.Write(w, binary.BigEndian, uint32(len(value))); err != nil {
+	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
 	}
 
@@ -73,7 +73,7 @@ func ReadString[S ~string](r io.Reader, s *S) error {
 
 func readLength(r io.Reader) (uint32, error) {
 	var l uint32
-	err := binary.Read(r, binary.BigEndian, &l)
+	err := ReadInt32(r, &l)
 	return l, err
 }
 
@@ -85,6 +85,20 @@ func readData(r io.Reader, l uint32) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func WriteInt8[T ~uint8 | ~int8](w io.Writer, v T) error {
+	d := [1]byte{}
+	d[0] = byte(v)
+	_, err := w.Write(d[:])
+	return err
+}
+
+func WriteInt16[T ~uint16 | ~int16](w io.Writer, v T) error {
+	d := [2]byte{}
+	binary.BigEndian.PutUint16(d[:], uint16(v))
+	_, err := w.Write(d[:])
+	return err
 }
 
 func WriteInt32[T ~uint32 | ~int32](w io.Writer, v T) error {
@@ -99,6 +113,26 @@ func WriteInt64[T ~uint64 | ~int64](w io.Writer, v T) error {
 	binary.BigEndian.PutUint64(d[:], uint64(v))
 	_, err := w.Write(d[:])
 	return err
+}
+
+func ReadInt8[T ~uint8 | ~int8](r io.Reader, v *T) error {
+	d := [1]byte{}
+	if err := readToSlice(r, d[:]); err != nil {
+		return err
+	}
+
+	*v = T(d[0])
+	return nil
+}
+
+func ReadInt16[T ~uint16 | ~int16](r io.Reader, v *T) error {
+	d := [2]byte{}
+	if err := readToSlice(r, d[:]); err != nil {
+		return err
+	}
+
+	*v = T(binary.BigEndian.Uint16(d[:]))
+	return nil
 }
 
 func ReadInt32[T ~uint32 | ~int32](r io.Reader, v *T) error {

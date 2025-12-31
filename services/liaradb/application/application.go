@@ -8,7 +8,10 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
@@ -25,9 +28,12 @@ import (
 type Application struct {
 	conf      configuration
 	eventLog  *eventlog.EventLog
+	kv        *keyvalue.KeyValue
+	btree     *btree.Cursor
 	storage   *storage.Storage
 	txManager *transaction.Manager
 	log       *recovery.Log
+	mgr       *manager.Manager
 	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
@@ -44,9 +50,12 @@ func New(conf configuration) *Application {
 	return &Application{
 		conf:      conf,
 		eventLog:  eventlog.New(s),
+		kv:        keyvalue.New(s),
+		btree:     btree.NewCursor(s),
 		storage:   s,
 		txManager: transaction.NewManager(log, s, lt),
 		log:       log,
+		mgr:       manager.New(s),
 		lockTable: lt,
 	}
 }
@@ -178,7 +187,10 @@ func (a *Application) createRepositories() (*repositories, error) {
 		// TODO: Change the file name
 		eventRepository: infrastructure.NewEventRepository(
 			a.txManager,
+			a.mgr,
+			a.kv,
 			a.eventLog,
+			a.btree,
 			"testfile"),
 	}, nil
 }

@@ -1,0 +1,46 @@
+{
+	"folders": [
+		{
+			"path": "services/liaradb"
+		},
+		{
+			"path": "modules/eventsource_go"
+		},
+		{
+			"path": "modules/protos"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.git": true,
+			"**/.svn": true,
+			"**/.hg": true,
+			"**/CVS": true,
+			"**/.DS_Store": true,
+			"**/Thumbs.db": true,
+			"modules": true,
+			"services": true,
+		},
+		"editor.formatOnPaste": true,
+		"editor.formatOnSave": true,
+		"clang-format.style": "google",
+		"clang-format.executable": "clang-format",
+		"sqltools.connections": [
+			{
+				"previewLimit": 50,
+				"driver": "SQLite",
+				"name": "local",
+				"database": "${workspaceFolder:liarasql}/test.db"
+			},
+			{
+				"previewLimit": 50,
+				"server": "localhost",
+				"port": 5432,
+				"driver": "PostgreSQL",
+				"name": "postgres",
+				"username": "postgres",
+				"database": "liara"
+			}
+		],
+	}
+}

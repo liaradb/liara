@@ -1,18 +1,16 @@
 package page
 
 import (
-	"bufio"
-	"bytes"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestHeader(t *testing.T) {
 	t.Parallel()
 
-	r, w := newReaderWriter()
+	r, w := testutil.NewReaderBuffer()
 	pid := PageID(1)
 	tlid := TimeLineID(2)
 	rem := record.NewLength(3)
@@ -44,12 +42,7 @@ func testHeader(
 	rem record.Length,
 ) {
 	t.Helper()
-	assert.Getter(t, h.ID, pid, "ID")
-	assert.Getter(t, h.TimeLineID, tlid, "TimeLineID")
-	assert.Getter(t, h.LengthRemaining, rem, "LengthRemaining")
-}
-
-func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
-	buffer := bytes.NewBuffer(nil)
-	return bufio.NewReader(buffer), buffer
+	testutil.Getter(t, h.ID, pid, "ID")
+	testutil.Getter(t, h.TimeLineID, tlid, "TimeLineID")
+	testutil.Getter(t, h.LengthRemaining, rem, "LengthRemaining")
 }

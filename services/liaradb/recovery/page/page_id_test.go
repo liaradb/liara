@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestPageID_NewPageIDFromSize(t *testing.T) {
@@ -138,7 +138,7 @@ func TestPageID_Size(t *testing.T) {
 func TestPageID_Write(t *testing.T) {
 	t.Parallel()
 
-	r, w := assert.NewReaderWriter()
+	r, w := testutil.NewReaderWriter()
 
 	var pid PageID = 123456
 	if err := pid.Write(w); err != nil {

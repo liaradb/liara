@@ -1,6 +1,7 @@
 package list
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -13,8 +14,8 @@ func TestList_Default(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 0)
 	}
 
-	if s := l.Size(); s != 8 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
 	}
 
 	if c := l.Count(); c != 0 {
@@ -37,8 +38,8 @@ func TestList_Push(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if s := l.Size(); s != 12 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 4 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 
 	if c := l.Count(); c != 1 {
@@ -51,8 +52,8 @@ func TestList_Push(t *testing.T) {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if s := l.Size(); s != 16 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 6 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 6)
 	}
 
 	if c := l.Count(); c != 2 {
@@ -91,8 +92,8 @@ func TestList_Pop(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 
-	if s := l.Size(); s != 12 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 4 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 
 	if c := l.Count(); c != 1 {
@@ -105,8 +106,8 @@ func TestList_Pop(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", v, 1)
 	}
 
-	if s := l.Size(); s != 8 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
 	}
 
 	if c := l.Count(); c != 0 {
@@ -118,18 +119,25 @@ func TestList_Pop(t *testing.T) {
 	}
 }
 
-func TestList_Next(t *testing.T) {
+func TestList_Items(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 16))
 
-	if n := l.Next(); n != 16 {
-		t.Errorf("incorrect next: %v, expected: %v", n, 0)
+	items := []int16{10, 20, 30, 40, 50}
+
+	for _, item := range items {
+		if _, ok := l.Push(item); !ok {
+			t.Error("should push")
+		}
 	}
 
-	l.SetNext(10)
+	result := make([]int16, 0, len(items))
+	for _, item := range l.Items() {
+		result = append(result, item)
+	}
 
-	if n := l.Next(); n != 10 {
-		t.Errorf("incorrect next: %v, expected: %v", n, 10)
+	if !slices.Equal(result, items) {
+		t.Errorf("incorrect result: %v, expected: %v", result, items)
 	}
 }

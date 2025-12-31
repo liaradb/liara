@@ -11,6 +11,8 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
 func TestEventLog_Append(t *testing.T) {
@@ -20,8 +22,9 @@ func TestEventLog_Append(t *testing.T) {
 
 func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
-	fn := path.Join(t.TempDir(), "testfile")
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
+	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -75,8 +78,9 @@ func TestEventLog_Find(t *testing.T) {
 
 func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
-	fn := path.Join(t.TempDir(), "testfile")
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
+	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -123,8 +127,9 @@ func TestEventLog_GetAggregate(t *testing.T) {
 
 func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 2, 1024))
-	fn := path.Join(t.TempDir(), "testfile")
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
+	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
 
@@ -184,8 +189,9 @@ func TestEventLog_AppendEvent(t *testing.T) {
 
 func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
-	el := New(createStorage(t, 1, 48))
-	fn := path.Join(t.TempDir(), "testfile")
+	s := storagetesting.CreateStorage(t, 2, 1024)
+	el := New(s)
+	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
 
 	records := [][]byte{
 		{1, 2},
@@ -200,27 +206,14 @@ func testEventLog_AppendEvent(t *testing.T) {
 		}
 	}
 
-	pageCount := 0
 	result := make([][]byte, 0)
 
-	for b, err := range el.Iterate(ctx, fn) {
+	for n, err := range el.Iterate(ctx, fn) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		pageCount++
-
-		for i, err := range b.Items() {
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			result = append(result, i)
-		}
-	}
-
-	if pageCount != 3 {
-		t.Errorf("incorrect page count: %v, expected: %v", pageCount, 3)
+		result = append(result, n)
 	}
 
 	if !slices.EqualFunc(result, records, slices.Equal) {

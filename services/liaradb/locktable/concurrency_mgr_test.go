@@ -6,7 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/cardboardrobots/assert"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestConcurrencyMgr_SLock(t *testing.T) {
@@ -40,7 +40,7 @@ func testConcurrencyMgr_SLock(t *testing.T) {
 func TestConcurrencyMgr_XLock(t *testing.T) {
 	t.Parallel()
 
-	assert.RunTest(t, "should lock once", func(t *testing.T) {
+	testutil.Run(t, "should lock once", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		cm := NewConcurrencyMgr(lt)
@@ -51,7 +51,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should not lock twice", func(t *testing.T) {
+	testutil.Run(t, "should not lock twice", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
@@ -69,7 +69,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should not XLock after other SLock", func(t *testing.T) {
+	testutil.Run(t, "should not XLock after other SLock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
@@ -87,7 +87,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should upgrade lock", func(t *testing.T) {
+	testutil.Run(t, "should upgrade lock", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
@@ -102,7 +102,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 		}
 	})
 
-	assert.RunTest(t, "should lock after release", func(t *testing.T) {
+	testutil.Run(t, "should lock after release", func(t *testing.T) {
 		lt := NewLockTable[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)

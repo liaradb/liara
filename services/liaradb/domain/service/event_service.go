@@ -38,8 +38,8 @@ type AppendOptions struct {
 	Time          time.Time           // The Time this Event was created
 }
 
-func (ao *AppendOptions) toEventMetadata() entity.EventMetadata {
-	return entity.EventMetadata{
+func (ao *AppendOptions) toMetadata() entity.Metadata {
+	return entity.Metadata{
 		UserID:        ao.UserID,
 		CorrelationID: ao.CorrelationID,
 		Time:          value.NewTime(ao.Time),
@@ -86,7 +86,7 @@ func (ae *AppendEvent) toEvent(options AppendOptions) (entity.Event, error) {
 		PartitionID:   ae.PartitionID,
 		Name:          ae.Name,
 		Schema:        ae.Schema,
-		Metadata:      options.toEventMetadata(),
+		Metadata:      options.toMetadata(),
 		Data:          value.NewData(ae.Data),
 	}, nil
 }
