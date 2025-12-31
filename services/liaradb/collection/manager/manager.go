@@ -10,20 +10,24 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
+const Table = "tables"
+
 type Manager struct {
 	s  *storage.Storage
 	kv *keyvalue.KeyValue
+	tn tablename.TableName
 }
 
 func New(s *storage.Storage) *Manager {
 	return &Manager{
 		s:  s,
 		kv: keyvalue.New(s),
+		tn: tablename.New(Table),
 	}
 }
 
 func (m *Manager) Get(ctx context.Context, k value.Key) (int64, error) {
-	d, err := m.kv.Get(ctx, tablename.New("tables"), k)
+	d, err := m.kv.Get(ctx, m.tn, k)
 	if err != nil {
 		return 0, err
 	}
@@ -36,12 +40,12 @@ func (m *Manager) Get(ctx context.Context, k value.Key) (int64, error) {
 func (m *Manager) Insert(ctx context.Context, k value.Key, i int64) error {
 	b := raw.NewBuffer(8)
 	raw.WriteInt64(b, i)
-	return m.kv.Set(ctx, tablename.New("tables"), k, b.Bytes())
+	return m.kv.Set(ctx, m.tn, k, b.Bytes())
 }
 
 func (m *Manager) List(ctx context.Context) ([]int64, error) {
 	result := make([]int64, 0)
-	for d, err := range m.kv.List(ctx, tablename.New("tables")) {
+	for d, err := range m.kv.List(ctx, m.tn) {
 		if err != nil {
 			return nil, err
 		}
