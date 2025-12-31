@@ -13,10 +13,10 @@ func TestRow(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	var lsn = Row{
-		Data: value.NewData([]byte{}),
-	}
-	if err := lsn.Write(w); err != nil {
+	var row = Row{}
+	row.SetData(value.NewData([]byte{}))
+
+	if err := row.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -25,14 +25,14 @@ func TestRow(t *testing.T) {
 	// 	t.Errorf("incorrect size: %v, expected: %v", s, size)
 	// }
 
-	var lsn2 Row
-	if err := lsn2.Read(r); err != nil && err != io.EOF {
+	var row2 Row
+	if err := row2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 
 	// TODO: Create another comparison
 	// Data comparison doesn't allow nil slice
-	if !reflect.DeepEqual(lsn, lsn2) {
-		t.Errorf("incorrect value: %v, expected: %v", lsn2, lsn)
+	if !reflect.DeepEqual(row, row2) {
+		t.Errorf("incorrect value: %v, expected: %v", row2, row)
 	}
 }
