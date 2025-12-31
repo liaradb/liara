@@ -49,7 +49,7 @@ func dtoToAppendOptions(dto *pb.AppendOptions) service.AppendOptions {
 	}
 }
 
-func metadataToDto(m entity.EventMetadata) *pb.EventMetadata {
+func metadataToDto(m entity.Metadata) *pb.EventMetadata {
 	return &pb.EventMetadata{
 		CorrelationId: m.CorrelationID.String(),
 		UserId:        m.UserID.String(),
