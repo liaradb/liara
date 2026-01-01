@@ -28,5 +28,5 @@ func (le leafEntry) Write(data []byte) {
 
 func (le *leafEntry) Read(data []byte) {
 	data0 := le.recordID.Read(data)
-	le.key = value.Key(data0)
+	le.key = value.NewKey(data0)
 }

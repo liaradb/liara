@@ -8,6 +8,10 @@ import (
 
 type Key string
 
+func NewKey(v []byte) Key {
+	return Key(v)
+}
+
 // TODO: Test this
 func (i Key) String() string {
 	return string(i)

@@ -28,10 +28,10 @@ func testLeafNode_Child(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.Key("abcde"),
+			value.NewKey([]byte("abcde")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("fghij"),
+			value.NewKey([]byte("fghij")),
 			link.NewRecordLocator(3, 4)),
 	}
 
@@ -77,10 +77,10 @@ func testLeafNode_Children(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.Key("abcde"),
+			value.NewKey([]byte("abcde")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("fghij"),
+			value.NewKey([]byte("fghij")),
 			link.NewRecordLocator(3, 4)),
 	}
 
@@ -121,13 +121,13 @@ func testLeafNode_Insert(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.Key("a"),
+			value.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("b"),
+			value.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.Key("c"),
+			value.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 
@@ -209,13 +209,13 @@ func testLeafNode_Insert__Split(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.Key("a"),
+			value.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("b"),
+			value.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.Key("c"),
+			value.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 

@@ -64,13 +64,13 @@ func testCursor_Insert__Root(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.Key("a"),
+			value.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("b"),
+			value.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.Key("c"),
+			value.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 
@@ -353,31 +353,31 @@ func reorderData(order []int, data []leafEntry) []leafEntry {
 func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
-			value.Key("0"),
+			value.NewKey([]byte("0")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.Key("1"),
+			value.NewKey([]byte("1")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.Key("2"),
+			value.NewKey([]byte("2")),
 			link.NewRecordLocator(5, 6)),
 		newLeafEntry(
-			value.Key("3"),
+			value.NewKey([]byte("3")),
 			link.NewRecordLocator(7, 8)),
 		newLeafEntry(
-			value.Key("4"),
+			value.NewKey([]byte("4")),
 			link.NewRecordLocator(9, 10)),
 		newLeafEntry(
-			value.Key("5"),
+			value.NewKey([]byte("5")),
 			link.NewRecordLocator(11, 12)),
 		newLeafEntry(
-			value.Key("6"),
+			value.NewKey([]byte("6")),
 			link.NewRecordLocator(13, 14)),
 		newLeafEntry(
-			value.Key("7"),
+			value.NewKey([]byte("7")),
 			link.NewRecordLocator(15, 16)),
 		newLeafEntry(
-			value.Key("8"),
+			value.NewKey([]byte("8")),
 			link.NewRecordLocator(17, 18)),
 	}
 }

@@ -32,5 +32,5 @@ func (ke keyEntry) Write(data []byte) {
 func (ke *keyEntry) Read(data []byte) {
 	block, data0 := wrap.NewInt64(data)
 	ke.block = link.FilePosition(block.Get())
-	ke.key = value.Key(data0)
+	ke.key = value.NewKey(data0)
 }
