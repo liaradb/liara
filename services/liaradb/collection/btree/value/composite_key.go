@@ -5,8 +5,12 @@ type Key struct {
 	B key
 }
 
-func NewKey(v []byte) Key {
-	return Key{A: key(v)}
+func NewKey(a []byte) Key {
+	return Key{A: key(a)}
+}
+
+func NewKey2(a []byte, b []byte) Key {
+	return Key{A: key(a), B: key(b)}
 }
 
 // TODO: Test this
@@ -41,7 +45,7 @@ func (k Key) Greater(o any) bool {
 		return false
 	}
 
-	return k.A.Greater(b.A) // && k.B.Greater(b.B)
+	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.Greater(b.B))
 }
 
 func (k Key) GreaterEqual(o any) bool {
@@ -50,7 +54,7 @@ func (k Key) GreaterEqual(o any) bool {
 		return false
 	}
 
-	return k.A.GreaterEqual(b.A) // && k.B.GreaterEqual(b.B)
+	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.GreaterEqual(b.B))
 }
 
 func (k Key) Less(o any) bool {
@@ -59,7 +63,7 @@ func (k Key) Less(o any) bool {
 		return false
 	}
 
-	return k.A.Less(b.A) // && k.B.Less(b.B)
+	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.Less(b.B))
 }
 
 func (k Key) LessEqual(o any) bool {
@@ -68,5 +72,5 @@ func (k Key) LessEqual(o any) bool {
 		return false
 	}
 
-	return k.A.LessEqual(b.A) // && k.B.LessEqual(b.B)
+	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.LessEqual(b.B))
 }
