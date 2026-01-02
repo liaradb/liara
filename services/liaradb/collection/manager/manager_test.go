@@ -23,7 +23,7 @@ func testManager(t *testing.T) {
 	want := createValues(data)
 
 	for _, d := range data {
-		if err := m.Insert(t.Context(), d.key, d.value); err != nil {
+		if err := m.Insert(t.Context(), value.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -37,7 +37,7 @@ func testManager(t *testing.T) {
 func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), d.key)
+		v, err := m.Get(t.Context(), value.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +62,7 @@ func testList(t *testing.T, want []int64, m *Manager) {
 }
 
 type tuple struct {
-	key   value.Key
+	key   string
 	value int64
 }
 
@@ -78,7 +78,7 @@ func createData() []tuple {
 func createValues(data []tuple) []int64 {
 	d := slices.Clone(data)
 	slices.SortFunc(d, func(a, b tuple) int {
-		return strings.Compare(a.key.String(), b.key.String())
+		return strings.Compare(a.key, b.key)
 	})
 	values := make([]int64, 0, len(d))
 	for _, d := range data {

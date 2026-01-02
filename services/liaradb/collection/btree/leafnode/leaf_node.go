@@ -249,10 +249,10 @@ func (ln *LeafNode) Search(k value.Key) (link.RecordLocator, bool) {
 func (ln *LeafNode) searchIndex(k value.Key) (int16, bool) {
 	var i int16 = 0
 	for key := range ln.Children() {
-		if k == key {
+		if k.Equal(key) {
 			return i, true
 		}
-		if k <= key {
+		if k.LessEqual(key) {
 			return 0, false
 		}
 
@@ -264,7 +264,7 @@ func (ln *LeafNode) searchIndex(k value.Key) (int16, bool) {
 func (ln *LeafNode) searchIndexRange(k value.Key) int16 {
 	var i int16 = 0
 	for key := range ln.Children() {
-		if k <= key {
+		if k.LessEqual(key) {
 			break
 		}
 

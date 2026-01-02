@@ -115,12 +115,12 @@ func (c *insert) insertChainLeaf(
 ) (link.BlockID, value.Key, bool, error) {
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
-		return link.BlockID{}, "", false, nil
+		return link.BlockID{}, value.Key{}, false, nil
 	}
 
 	ln2, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, "", false, err
+		return link.BlockID{}, value.Key{}, false, err
 	}
 
 	defer ln2.Release()
@@ -130,7 +130,7 @@ func (c *insert) insertChainLeaf(
 
 	ln3, err := c.ns.getLeafNode(ctx, fn.BlockID(ln.RightID()))
 	if err != nil {
-		return link.BlockID{}, "", false, err
+		return link.BlockID{}, value.Key{}, false, err
 	}
 
 	defer ln3.Release()
@@ -157,12 +157,12 @@ func (c *insert) insertChainKey(
 ) (link.BlockID, value.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return link.BlockID{}, "", false, nil
+		return link.BlockID{}, value.Key{}, false, nil
 	}
 
 	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, "", false, err
+		return link.BlockID{}, value.Key{}, false, err
 	}
 
 	defer kn2.Release()

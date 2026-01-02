@@ -26,7 +26,7 @@ func (ke keyEntry) Size() int { return ke.key.Size() + link.FilePositionSize }
 func (ke keyEntry) Write(data []byte) {
 	block, data0 := wrap.NewInt64(data)
 	block.Set(ke.block.Value())
-	copy(data0, []byte(ke.key))
+	copy(data0, ke.key.Value())
 }
 
 func (ke *keyEntry) Read(data []byte) {

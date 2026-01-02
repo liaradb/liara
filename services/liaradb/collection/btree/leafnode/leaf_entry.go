@@ -23,7 +23,7 @@ func (le leafEntry) Size() int                    { return le.key.Size() + link.
 
 func (le leafEntry) Write(data []byte) {
 	data0 := le.recordID.Write(data)
-	copy(data0, []byte(le.key))
+	copy(data0, le.key.Value())
 }
 
 func (le *leafEntry) Read(data []byte) {

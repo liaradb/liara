@@ -191,7 +191,7 @@ func (kn *KeyNode) Children() Iterator {
 func (kn *KeyNode) Child(i int16) (value.Key, link.FilePosition, bool) {
 	b, ok := kn.node.Child(i)
 	if !ok {
-		return "", 0, false
+		return value.Key{}, 0, false
 	}
 
 	ke := keyEntry{}
@@ -220,7 +220,7 @@ func (kn *KeyNode) Search(k value.Key) link.FilePosition {
 			first = false
 			continue
 		}
-		if k < key {
+		if k.Less(key) {
 			break
 		}
 
@@ -232,7 +232,7 @@ func (kn *KeyNode) Search(k value.Key) link.FilePosition {
 func (kn *KeyNode) searchIndex(k value.Key) int16 {
 	var i int16 = 0
 	for key := range kn.Children() {
-		if k <= key {
+		if k.LessEqual(key) {
 			break
 		}
 

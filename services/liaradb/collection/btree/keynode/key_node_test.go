@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
@@ -68,14 +69,14 @@ func TestKeyNode(t *testing.T) {
 		}
 		{
 			before := int16(0)
-			result := kn.searchIndex("a")
+			result := kn.searchIndex(value.NewKey([]byte("a")))
 			if result != before {
 				t.Errorf("incorrect before: %v, expected: %v", result, before)
 			}
 		}
 		{
 			after := int16(len(data))
-			result := kn.searchIndex("e")
+			result := kn.searchIndex(value.NewKey([]byte("e")))
 			if result != after {
 				t.Errorf("incorrect after: %v, expected: %v", result, after)
 			}
@@ -92,7 +93,7 @@ func TestKeyNode(t *testing.T) {
 
 		data := testKeyNodeInsertData(t, kn)
 		want := data[0].block
-		result := kn.Search("a")
+		result := kn.Search(value.NewKey([]byte("a")))
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
@@ -108,7 +109,7 @@ func TestKeyNode(t *testing.T) {
 
 		data := testKeyNodeInsertData(t, kn)
 		want := data[2].block
-		result := kn.Search("e")
+		result := kn.Search(value.NewKey([]byte("e")))
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
@@ -118,9 +119,9 @@ func TestKeyNode(t *testing.T) {
 // Insert in mixed order
 func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []keyEntry {
 	data := []keyEntry{
-		{"b", 1},
-		{"c", 2},
-		{"d", 3},
+		{value.NewKey([]byte("b")), 1},
+		{value.NewKey([]byte("c")), 2},
+		{value.NewKey([]byte("d")), 3},
 	}
 
 	order := []int{0, 2, 1}

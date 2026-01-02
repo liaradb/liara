@@ -240,7 +240,7 @@ func testCursor_SearchRange(t *testing.T) {
 	{
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, fn, "1", 1, 3) {
+		for rid, err := range c.SearchRange(ctx, fn, value.NewKey([]byte("1")), 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}

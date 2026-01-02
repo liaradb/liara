@@ -6,23 +6,23 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-type Key string
-
-func NewKey(v []byte) Key {
-	return Key(v)
-}
+type key string
 
 // TODO: Test this
-func (i Key) String() string {
+func (i key) String() string {
 	return string(i)
 }
 
-func (k Key) Length() int16 {
+func (k key) Value() []byte {
+	return []byte(k)
+}
+
+func (k key) Length() int16 {
 	return int16(len(k))
 }
 
-func (k Key) Equal(o any) bool {
-	b, ok := o.(Key)
+func (k key) Equal(o any) bool {
+	b, ok := o.(key)
 	if !ok {
 		return false
 	}
@@ -30,8 +30,8 @@ func (k Key) Equal(o any) bool {
 	return k == b
 }
 
-func (k Key) Greater(o any) bool {
-	b, ok := o.(Key)
+func (k key) Greater(o any) bool {
+	b, ok := o.(key)
 	if !ok {
 		return false
 	}
@@ -39,8 +39,8 @@ func (k Key) Greater(o any) bool {
 	return k > b
 }
 
-func (k Key) GreaterEqual(o any) bool {
-	b, ok := o.(Key)
+func (k key) GreaterEqual(o any) bool {
+	b, ok := o.(key)
 	if !ok {
 		return false
 	}
@@ -48,8 +48,8 @@ func (k Key) GreaterEqual(o any) bool {
 	return k >= b
 }
 
-func (k Key) Less(o any) bool {
-	b, ok := o.(Key)
+func (k key) Less(o any) bool {
+	b, ok := o.(key)
 	if !ok {
 		return false
 	}
@@ -57,8 +57,8 @@ func (k Key) Less(o any) bool {
 	return k < b
 }
 
-func (k Key) LessEqual(o any) bool {
-	b, ok := o.(Key)
+func (k key) LessEqual(o any) bool {
+	b, ok := o.(key)
 	if !ok {
 		return false
 	}
@@ -67,6 +67,6 @@ func (k Key) LessEqual(o any) bool {
 }
 
 // TODO: Test this
-func (i Key) Size() int               { return len(i) }
-func (i Key) Write(w io.Writer) error { return raw.WriteString(w, i) }
-func (i *Key) Read(r io.Reader) error { return raw.ReadString(r, i) }
+func (i key) Size() int               { return len(i) }
+func (i key) Write(w io.Writer) error { return raw.WriteString(w, i) }
+func (i *key) Read(r io.Reader) error { return raw.ReadString(r, i) }
