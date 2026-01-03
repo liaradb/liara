@@ -5,8 +5,10 @@ import "testing"
 func TestKey(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip         bool
-		a            []string
-		b            []string
+		aString      string
+		aInt         int64
+		bString      string
+		bInt         int64
 		equal        bool
 		greater      bool
 		greaterEqual bool
@@ -14,33 +16,43 @@ func TestKey(t *testing.T) {
 		lessEqual    bool
 	}{
 		"should equal": {
-			a:            []string{"a", "1"},
-			b:            []string{"a", "1"},
+			aString:      "a",
+			aInt:         1,
+			bString:      "a",
+			bInt:         1,
 			equal:        true,
 			greaterEqual: true,
 			lessEqual:    true,
 		},
 		"should be less for first": {
-			a:         []string{"a", "1"},
-			b:         []string{"b", "1"},
+			aString:   "a",
+			aInt:      1,
+			bString:   "b",
+			bInt:      1,
 			less:      true,
 			lessEqual: true,
 		},
 		"should be less for second": {
-			a:         []string{"a", "1"},
-			b:         []string{"a", "2"},
+			aString:   "a",
+			aInt:      1,
+			bString:   "a",
+			bInt:      2,
 			less:      true,
 			lessEqual: true,
 		},
 		"should be greater for first": {
-			a:            []string{"b", "1"},
-			b:            []string{"a", "1"},
+			aString:      "b",
+			aInt:         1,
+			bString:      "a",
+			bInt:         1,
 			greater:      true,
 			greaterEqual: true,
 		},
 		"should be greater for second": {
-			a:            []string{"a", "2"},
-			b:            []string{"a", "1"},
+			aString:      "a",
+			aInt:         2,
+			bString:      "a",
+			bInt:         1,
 			greater:      true,
 			greaterEqual: true,
 		},
@@ -51,8 +63,8 @@ func TestKey(t *testing.T) {
 				t.Skip()
 			}
 
-			a := NewKey2([]byte(c.a[0]), []byte(c.a[1]))
-			b := NewKey2([]byte(c.b[0]), []byte(c.b[1]))
+			a := NewKey2([]byte(c.aString), c.aInt)
+			b := NewKey2([]byte(c.bString), c.bInt)
 
 			if c.equal {
 				if !a.Equal(b) {

@@ -2,15 +2,15 @@ package value
 
 type Key struct {
 	A stringKey
-	B stringKey
+	B intKey
 }
 
 func NewKey(a []byte) Key {
 	return Key{A: stringKey(a)}
 }
 
-func NewKey2(a []byte, b []byte) Key {
-	return Key{A: stringKey(a), B: stringKey(b)}
+func NewKey2(a []byte, b int64) Key {
+	return Key{A: stringKey(a), B: intKey(b)}
 }
 
 // TODO: Test this
