@@ -1,72 +1,76 @@
 package value
 
-import (
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/raw"
-)
-
-type key string
-
-// TODO: Test this
-func (i key) String() string {
-	return string(i)
+type Key struct {
+	A stringKey
+	B stringKey
 }
 
-func (k key) Value() []byte {
-	return []byte(k)
+func NewKey(a []byte) Key {
+	return Key{A: stringKey(a)}
 }
 
-func (k key) Length() int16 {
-	return int16(len(k))
-}
-
-func (k key) Equal(o any) bool {
-	b, ok := o.(key)
-	if !ok {
-		return false
-	}
-
-	return k == b
-}
-
-func (k key) Greater(o any) bool {
-	b, ok := o.(key)
-	if !ok {
-		return false
-	}
-
-	return k > b
-}
-
-func (k key) GreaterEqual(o any) bool {
-	b, ok := o.(key)
-	if !ok {
-		return false
-	}
-
-	return k >= b
-}
-
-func (k key) Less(o any) bool {
-	b, ok := o.(key)
-	if !ok {
-		return false
-	}
-
-	return k < b
-}
-
-func (k key) LessEqual(o any) bool {
-	b, ok := o.(key)
-	if !ok {
-		return false
-	}
-
-	return k <= b
+func NewKey2(a []byte, b []byte) Key {
+	return Key{A: stringKey(a), B: stringKey(b)}
 }
 
 // TODO: Test this
-func (i key) Size() int               { return len(i) }
-func (i key) Write(w io.Writer) error { return raw.WriteString(w, i) }
-func (i *key) Read(r io.Reader) error { return raw.ReadString(r, i) }
+func (k Key) String() string {
+	return k.A.String() + k.B.String()
+}
+
+func (k Key) Length() int16 {
+	return k.A.Length() + k.B.Length()
+}
+
+func (k Key) Size() int {
+	return k.A.Size() + k.B.Size()
+}
+
+func (k Key) Value() []byte {
+	return k.A.Value()
+}
+
+func (k Key) Equal(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k.A.Equal(b.A) && k.B.Equal(b.B)
+}
+
+func (k Key) Greater(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.Greater(b.B))
+}
+
+func (k Key) GreaterEqual(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.GreaterEqual(b.B))
+}
+
+func (k Key) Less(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.Less(b.B))
+}
+
+func (k Key) LessEqual(o any) bool {
+	b, ok := o.(Key)
+	if !ok {
+		return false
+	}
+
+	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.LessEqual(b.B))
+}
