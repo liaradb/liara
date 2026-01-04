@@ -4,7 +4,7 @@ package liara;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "https://github.com/cardboardrobots/liara";
+option go_package = "https://github.com/liaradb/liara";
 
 service EventSourceService {
   rpc Append(AppendRequest) returns (AppendResponse) {}
