@@ -54,6 +54,9 @@ func (p *Node) SetDirty() {
 }
 
 func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
+	p.Latch()
+	defer p.Unlatch()
+
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
@@ -76,6 +79,9 @@ func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bo
 }
 
 func (p *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
+	p.Latch()
+	defer p.Unlatch()
+
 	if !p.hasSpace(size) {
 		return 0, nil, false
 	}
