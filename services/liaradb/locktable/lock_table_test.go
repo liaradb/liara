@@ -42,7 +42,6 @@ func TestLockTable(t *testing.T) {
 
 		lt.xLock(ctx, 0)
 		go func() {
-			// TODO: Remove this
 			time.Sleep(1 * time.Second)
 
 			lt.release(0)
@@ -146,7 +145,6 @@ func TestLockTable(t *testing.T) {
 
 		lt.xLock(ctx, 0)
 		go func() {
-			// TODO: Remove this
 			time.Sleep(1 * time.Second)
 
 			lt.release(0)
