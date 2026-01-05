@@ -54,12 +54,12 @@ func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.ls
 
 func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time.Time, data []byte) error {
 	if err := t.concurrencyMgr.XLock(ctx, itemID); err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
 	t.items = append(t.items, data)
@@ -69,6 +69,19 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 }
 
 func (t *Transaction) Run(
+	ctx context.Context,
+	fn link.FileName, // TODO: How should this be specified?
+	now time.Time, // TODO: How should this be specified?
+	f func() error,
+) error {
+	if err := t.run(ctx, fn, now, f); err != nil {
+		return errTransactionFailed(t.id, err)
+	}
+
+	return nil
+}
+
+func (t *Transaction) run(
 	ctx context.Context,
 	fn link.FileName, // TODO: How should this be specified?
 	now time.Time, // TODO: How should this be specified?
@@ -97,17 +110,27 @@ func (t *Transaction) commit(
 	fn link.FileName, // TODO: How should this be specified?
 	now time.Time,
 ) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, t.items[0], nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
 	if err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
 	if err := t.flush(ctx, lsn); err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
-	if _, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(t.items[0])); err != nil {
-		return errTransactionFailed(t.id, err)
+	if err := t.appendToEventLog(ctx, fn); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t *Transaction) appendToEventLog(ctx context.Context, fn link.FileName) error {
+	for _, item := range t.items {
+		if _, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -116,11 +139,11 @@ func (t *Transaction) commit(
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0], nil)
 	if err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
 	if err := t.flush(ctx, lsn); err != nil {
-		return errTransactionFailed(t.id, err)
+		return err
 	}
 
 	return nil
