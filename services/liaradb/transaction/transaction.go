@@ -49,7 +49,7 @@ func newTransaction(
 	}
 }
 
-func (t Transaction) ID() record.TransactionID                     { return t.id }
+func (t *Transaction) ID() record.TransactionID                    { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
 
 func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time.Time, data []byte) error {
@@ -74,7 +74,7 @@ func (t *Transaction) Run(
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
-	defer t.Release()
+	defer t.release()
 
 	if err := f(); err != nil {
 		return errors.Join(err, t.rollback(ctx, now))
@@ -87,7 +87,7 @@ func (t *Transaction) Run(
 	return t.commit(ctx, fn, now)
 }
 
-func (t *Transaction) Release() {
+func (t *Transaction) release() {
 	t.concurrencyMgr.Release()
 	t.bufferList.Release()
 }
@@ -102,9 +102,7 @@ func (t *Transaction) commit(
 		return errTransactionFailed(t.id, err)
 	}
 
-	t.lsn = lsn
-	// TODO: Is this correct?
-	if err := t.log.Flush(ctx, lsn); err != nil {
+	if err := t.flush(ctx, lsn); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 
@@ -121,11 +119,15 @@ func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
 		return errTransactionFailed(t.id, err)
 	}
 
-	t.lsn = lsn
-	// TODO: Is this correct?
-	if err := t.log.Flush(ctx, lsn); err != nil {
+	if err := t.flush(ctx, lsn); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 
 	return nil
+}
+
+func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) error {
+	t.lsn = lsn
+	// TODO: Is this correct?
+	return t.log.Flush(ctx, lsn)
 }
