@@ -67,7 +67,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.Commit(ctx, fn, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, fn, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -127,7 +127,7 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.Rollback(ctx, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.rollback(ctx, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 

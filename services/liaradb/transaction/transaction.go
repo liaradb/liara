@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
@@ -25,6 +26,7 @@ type Transaction struct {
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	items          [][]byte
+	forceRollback  bool
 }
 
 func newTransaction(
@@ -66,7 +68,31 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 	return nil
 }
 
-func (t *Transaction) Commit(
+func (t *Transaction) Run(
+	ctx context.Context,
+	fn link.FileName, // TODO: How should this be specified?
+	now time.Time, // TODO: How should this be specified?
+	f func() error,
+) error {
+	defer t.Release()
+
+	if err := f(); err != nil {
+		return errors.Join(err, t.rollback(ctx, now))
+	}
+
+	if t.forceRollback {
+		return t.rollback(ctx, now)
+	}
+
+	return t.commit(ctx, fn, now)
+}
+
+func (t *Transaction) Release() {
+	t.concurrencyMgr.Release()
+	t.bufferList.Release()
+}
+
+func (t *Transaction) commit(
 	ctx context.Context,
 	fn link.FileName, // TODO: How should this be specified?
 	now time.Time,
@@ -86,13 +112,10 @@ func (t *Transaction) Commit(
 		return errTransactionFailed(t.id, err)
 	}
 
-	t.concurrencyMgr.Release()
-	t.bufferList.Release()
-
 	return nil
 }
 
-func (t *Transaction) Rollback(ctx context.Context, now time.Time) error {
+func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0], nil)
 	if err != nil {
 		return errTransactionFailed(t.id, err)
@@ -103,9 +126,6 @@ func (t *Transaction) Rollback(ctx context.Context, now time.Time) error {
 	if err := t.log.Flush(ctx, lsn); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
-
-	t.concurrencyMgr.Release()
-	t.bufferList.Release()
 
 	return nil
 }

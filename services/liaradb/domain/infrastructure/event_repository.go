@@ -53,21 +53,18 @@ func (r *EventRepository) Append(
 	e entity.Event, // TODO: Should this be a pointer?
 ) error {
 	tx := r.txManager.Next()
+	return tx.Run(ctx, r.fileName, time.Now(), func() error {
+		buf := bytes.NewBuffer(nil)
+		if err := e.Write(buf); err != nil {
+			return err
+		}
 
-	buf := bytes.NewBuffer(nil)
-	if err := e.Write(buf); err != nil {
-		return err
-	}
-
-	if err := tx.Insert(ctx,
-		action.ItemID(e.ID.String()),
-		time.Now(),
-		buf.Bytes(),
-	); err != nil {
-		return err
-	}
-
-	return tx.Commit(ctx, r.fileName, time.Now())
+		return tx.Insert(ctx,
+			action.ItemID(e.ID.String()),
+			time.Now(),
+			buf.Bytes(),
+		)
+	})
 }
 
 func (r *EventRepository) CreateIndex(context.Context, value.TenantID) error {
