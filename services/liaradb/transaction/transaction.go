@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
@@ -19,7 +21,9 @@ type Transaction struct {
 	log            *recovery.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
+	manager        *manager.Manager
 	eventLog       *eventlog.EventLog
+	keyValue       *keyvalue.KeyValue
 	items          [][]byte
 }
 
@@ -28,14 +32,18 @@ func newTransaction(
 	log *recovery.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
+	manager *manager.Manager,
 	eventLog *eventlog.EventLog,
+	keyValue *keyvalue.KeyValue,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
 		log:            log,
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
+		manager:        manager,
 		eventLog:       eventLog,
+		keyValue:       keyValue,
 	}
 }
 

@@ -2,6 +2,8 @@ package transaction
 
 import (
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -12,6 +14,9 @@ import (
 type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
+	manager       *manager.Manager
+	eventLog      *eventlog.EventLog
+	keyValue      *keyvalue.KeyValue
 	lockTable     *locktable.LockTable[action.ItemID]
 	transactionID record.TransactionID
 }
@@ -24,6 +29,9 @@ func NewManager(
 	return &Manager{
 		log:       log,
 		storage:   storage,
+		manager:   manager.New(storage),
+		eventLog:  eventlog.New(storage),
+		keyValue:  keyvalue.New(storage),
 		lockTable: lockTable,
 	}
 }
@@ -35,5 +43,8 @@ func (m *Manager) Next() *Transaction {
 		m.log,
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
-		eventlog.New(m.storage))
+		m.manager,
+		m.eventLog,
+		m.keyValue,
+	)
 }
