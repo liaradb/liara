@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/controller"
-	"github.com/liaradb/liaradb/domain/infrastructure"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
@@ -176,7 +175,7 @@ func (a *Application) initService() *grpc.Server {
 
 type repositories struct {
 	transactionContainer service.TransactionContainer
-	eventRepository      service.EventRepository
+	eventRepository      *service.EventRepository
 	outboxRepository     service.OutboxRepository
 	requestRepository    service.RequestRepository
 	tenantRepository     service.TenantRepository
@@ -185,7 +184,7 @@ type repositories struct {
 func (a *Application) createRepositories() (*repositories, error) {
 	return &repositories{
 		// TODO: Change the file name
-		eventRepository: infrastructure.NewEventRepository(
+		eventRepository: service.NewEventRepository(
 			a.txManager,
 			a.mgr,
 			a.kv,

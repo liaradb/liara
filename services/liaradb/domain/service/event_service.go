@@ -12,14 +12,14 @@ import (
 
 type EventService struct {
 	transactionContainer TransactionContainer
-	eventRepository      EventRepository
+	eventRepository      *EventRepository
 	outboxRepository     OutboxRepository
 	requestRepository    RequestRepository
 }
 
 func NewEventService(
 	transactionRepository TransactionContainer,
-	eventRepository EventRepository,
+	eventRepository *EventRepository,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 ) *EventService {
