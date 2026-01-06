@@ -228,15 +228,6 @@ func (es *EventService) Get(
 	tenantID value.TenantID,
 	id value.AggregateID,
 	partitionID value.PartitionID,
-) iter.Seq2[entity.Event, error] {
-	return es.get(ctx, tenantID, id, partitionID)
-}
-
-func (es *EventService) get(
-	ctx context.Context,
-	tenantID value.TenantID,
-	id value.AggregateID,
-	partitionID value.PartitionID,
 ) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
 	return func(yield func(entity.Event, error) bool) {
 		tn := tablename.New(tenantID)
@@ -246,7 +237,6 @@ func (es *EventService) get(
 				yield(entity.Event{}, err)
 				return
 			}
-
 			if !yield(*e, nil) {
 				return
 			}
