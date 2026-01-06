@@ -8,21 +8,23 @@ import (
 )
 
 type TableName struct {
-	n string
+	tenantID value.TenantID
 }
 
-func New(n string) TableName {
-	return TableName{n}
+func New(tenantID value.TenantID) TableName {
+	return TableName{
+		tenantID: tenantID,
+	}
 }
 
 func (tn *TableName) KeyValue(pid value.PartitionID) link.FileName {
-	return link.NewFileName(fmt.Sprintf("%v--%v.kv", tn.n, pid))
+	return link.NewFileName(fmt.Sprintf("%v--%v.kv", tn.tenantID, pid))
 }
 
 func (tn *TableName) EventLog(pid value.PartitionID) link.FileName {
-	return link.NewFileName(fmt.Sprintf("%v--%v.el", tn.n, pid))
+	return link.NewFileName(fmt.Sprintf("%v--%v.el", tn.tenantID, pid))
 }
 
 func (tn *TableName) Index(i int, pid value.PartitionID) link.FileName {
-	return link.NewFileName(fmt.Sprintf("%v--%v--%v.idx", tn.n, i, pid))
+	return link.NewFileName(fmt.Sprintf("%v--%v--%v.idx", tn.tenantID, i, pid))
 }

@@ -162,7 +162,6 @@ func (a *Application) initService() *grpc.Server {
 			r.outboxRepository,
 			r.requestRepository,
 			a.txManager, a.mgr, a.kv, a.eventLog, a.btree,
-			"testfile", // TODO: Change the file name
 		),
 		service.NewTenantService(
 			r.transactionContainer,

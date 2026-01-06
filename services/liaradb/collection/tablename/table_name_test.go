@@ -10,7 +10,7 @@ import (
 func TestTableName(t *testing.T) {
 	t.Parallel()
 
-	n := "testfile"
+	n := value.TenantID("testfile")
 	tn := New(n)
 
 	wantKV := link.NewFileName("testfile--1.kv")
