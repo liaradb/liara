@@ -64,18 +64,6 @@ func (r *EventRepository) Append(
 	})
 }
 
-func (r *EventRepository) CreateIndex(context.Context, value.TenantID) error {
-	panic("unimplemented")
-}
-
-func (r *EventRepository) CreateTable(context.Context, value.TenantID) error {
-	panic("unimplemented")
-}
-
-func (r *EventRepository) DropTable(context.Context, value.TenantID) error {
-	panic("unimplemented")
-}
-
 func (r *EventRepository) Get(
 	ctx context.Context,
 	tenantID value.TenantID,
@@ -93,12 +81,4 @@ func (r *EventRepository) Get(
 			}
 		}
 	}
-}
-
-func (r *EventRepository) GetAfterGlobalVersion(context.Context, value.TenantID, value.GlobalVersion, value.PartitionRange, value.Limit) iter.Seq2[entity.Event, error] {
-	panic("unimplemented")
-}
-
-func (r *EventRepository) GetByAggregateIDAndName(context.Context, value.TenantID, value.AggregateID, value.AggregateName) iter.Seq2[entity.Event, error] {
-	panic("unimplemented")
 }

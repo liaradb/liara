@@ -196,7 +196,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventRepository.GetByAggregateIDAndName(ctx, tenantID, id, name)
+	panic("unimplemented")
 }
 
 func (es *EventService) GetAfterGlobalVersion(
@@ -206,7 +206,7 @@ func (es *EventService) GetAfterGlobalVersion(
 	partitionRange value.PartitionRange,
 	limit value.Limit,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventRepository.GetAfterGlobalVersion(ctx, tenantID, version, partitionRange, limit)
+	panic("unimplemented")
 }
 
 func (es *EventService) GetByOutbox(
@@ -215,12 +215,13 @@ func (es *EventService) GetByOutbox(
 	outboxID value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[entity.Event, error] {
-	outbox, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
+	_, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
 	if err != nil {
 		return iterator.Error[entity.Event](err)
 	}
 
-	return es.eventRepository.GetAfterGlobalVersion(ctx, tenantID, outbox.GlobalVersion(), outbox.PartitionRange(), limit)
+	// return es.eventRepository.GetAfterGlobalVersion(ctx, tenantID, outbox.GlobalVersion(), outbox.PartitionRange(), limit)
+	panic("unimplemented")
 }
 
 func (es *EventService) CreateOutbox(

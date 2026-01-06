@@ -50,13 +50,13 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 	tenant := entity.NewTenant(id, cmd.TenantName)
 
 	if err := ts.transactionContainer.Run(ctx, func() error {
-		if err := ts.eventRepository.CreateTable(ctx, id); err != nil {
-			return err
-		}
+		// if err := ts.eventRepository.CreateTable(ctx, id); err != nil {
+		// 	return err
+		// }
 
-		if err := ts.eventRepository.CreateIndex(ctx, id); err != nil {
-			return err
-		}
+		// if err := ts.eventRepository.CreateIndex(ctx, id); err != nil {
+		// 	return err
+		// }
 
 		if err := ts.outboxRepository.CreateTable(ctx, id); err != nil {
 			return err
@@ -80,9 +80,9 @@ type DeleteTenantCommand struct {
 
 func (ts *TenantService) Delete(ctx context.Context, cmd DeleteTenantCommand) error {
 	return ts.transactionContainer.Run(ctx, func() error {
-		if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
-			return nil
-		}
+		// if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
+		// 	return nil
+		// }
 
 		if err := ts.outboxRepository.DropTable(ctx, cmd.TenantID); err != nil {
 			return nil
