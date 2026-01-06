@@ -1,33 +1,57 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type EventService struct {
 	transactionContainer TransactionContainer
-	eventRepository      *EventRepository
 	outboxRepository     OutboxRepository
 	requestRepository    RequestRepository
+	txManager            *transaction.Manager
+	mgr                  *manager.Manager
+	kv                   *keyvalue.KeyValue
+	eventLog             *eventlog.EventLog
+	btree                *btree.Cursor
+	fileName             link.FileName // TODO: Remove this
+
 }
 
 func NewEventService(
 	transactionRepository TransactionContainer,
-	eventRepository *EventRepository,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
+	txManager *transaction.Manager,
+	mgr *manager.Manager,
+	kv *keyvalue.KeyValue,
+	eventLog *eventlog.EventLog,
+	btree *btree.Cursor,
+	fn link.FileName,
 ) *EventService {
 	return &EventService{
 		transactionContainer: transactionRepository,
-		eventRepository:      eventRepository,
 		outboxRepository:     outboxRepository,
 		requestRepository:    requestRepository,
+		txManager:            txManager,
+		mgr:                  mgr,
+		kv:                   kv,
+		eventLog:             eventLog,
+		btree:                btree,
+		fileName:             fn,
 	}
 }
 
@@ -166,12 +190,32 @@ func (es *EventService) appendEvents(
 			return err
 		}
 
-		err = es.eventRepository.Append(ctx, tenantID, event)
+		err = es.append(ctx, tenantID, event)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (es *EventService) append(
+	ctx context.Context,
+	tenantID value.TenantID,
+	e entity.Event, // TODO: Should this be a pointer?
+) error {
+	tx := es.txManager.Next()
+	return tx.Run(ctx, es.fileName, time.Now(), func() error {
+		buf := bytes.NewBuffer(nil)
+		if err := e.Write(buf); err != nil {
+			return err
+		}
+
+		return tx.Insert(ctx,
+			action.ItemID(e.ID.String()),
+			time.Now(),
+			buf.Bytes(),
+		)
+	})
 }
 
 func (es *EventService) TestIdempotency(
@@ -187,7 +231,26 @@ func (es *EventService) Get(
 	tenantID value.TenantID,
 	id value.AggregateID,
 ) iter.Seq2[entity.Event, error] {
-	return es.eventRepository.Get(ctx, tenantID, id)
+	return es.get(ctx, tenantID, id)
+}
+
+func (es *EventService) get(
+	ctx context.Context,
+	tenantID value.TenantID,
+	id value.AggregateID,
+) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
+	return func(yield func(entity.Event, error) bool) {
+		for e, err := range es.eventLog.GetAggregate(ctx, es.fileName, id) {
+			if err != nil {
+				yield(entity.Event{}, err)
+				return
+			}
+
+			if !yield(*e, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (es *EventService) GetByAggregateIDAndName(

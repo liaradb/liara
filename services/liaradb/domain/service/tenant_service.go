@@ -10,7 +10,6 @@ import (
 
 type TenantService struct {
 	transactionContainer TransactionContainer
-	eventRepository      *EventRepository
 	outboxRepository     OutboxRepository
 	requestRepository    RequestRepository
 	tenantRepository     TenantRepository
@@ -26,14 +25,12 @@ type TenantRepository interface {
 
 func NewTenantService(
 	transactionRepository TransactionContainer,
-	eventRepository *EventRepository,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	tenantRepository TenantRepository,
 ) *TenantService {
 	return &TenantService{
 		transactionContainer: transactionRepository,
-		eventRepository:      eventRepository,
 		outboxRepository:     outboxRepository,
 		requestRepository:    requestRepository,
 		tenantRepository:     tenantRepository,

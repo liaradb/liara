@@ -159,12 +159,13 @@ func (a *Application) initService() *grpc.Server {
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
 		service.NewEventService(
 			r.transactionContainer,
-			r.eventRepository,
 			r.outboxRepository,
-			r.requestRepository),
+			r.requestRepository,
+			a.txManager, a.mgr, a.kv, a.eventLog, a.btree,
+			"testfile", // TODO: Change the file name
+		),
 		service.NewTenantService(
 			r.transactionContainer,
-			r.eventRepository,
 			r.outboxRepository,
 			r.requestRepository,
 			r.tenantRepository),
@@ -175,21 +176,11 @@ func (a *Application) initService() *grpc.Server {
 
 type repositories struct {
 	transactionContainer service.TransactionContainer
-	eventRepository      *service.EventRepository
 	outboxRepository     service.OutboxRepository
 	requestRepository    service.RequestRepository
 	tenantRepository     service.TenantRepository
 }
 
 func (a *Application) createRepositories() (*repositories, error) {
-	return &repositories{
-		// TODO: Change the file name
-		eventRepository: service.NewEventRepository(
-			a.txManager,
-			a.mgr,
-			a.kv,
-			a.eventLog,
-			a.btree,
-			"testfile"),
-	}, nil
+	return &repositories{}, nil
 }
