@@ -1,3 +1,3 @@
 package segment
 
-type SegmentID uint32
+type SegmentID uint64

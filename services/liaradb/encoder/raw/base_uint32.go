@@ -15,7 +15,7 @@ func NewBaseUint32(value uint32) BaseUint32 {
 
 func (b BaseUint32) Value() uint32  { return uint32(b) }
 func (b BaseUint32) Size() int      { return BaseUint32Size }
-func (b BaseUint32) String() string { return fmt.Sprintf("%v", b.Value()) }
+func (b BaseUint32) String() string { return fmt.Sprintf("%08x", b.Value()) }
 
 func (b BaseUint32) Write(w io.Writer) error {
 	return WriteInt32(w, b)
