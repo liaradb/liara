@@ -211,6 +211,7 @@ func (es *EventService) append(
 		return tx.Insert(ctx,
 			action.ItemID(e.ID.String()),
 			time.Now(),
+			&e,
 			buf.Bytes(),
 		)
 	})

@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/locktable"
@@ -29,8 +30,13 @@ type Transaction struct {
 	cursor         *btree.Cursor
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
-	items          [][]byte
+	items          []eventItem
 	forceRollback  bool
+}
+
+type eventItem struct {
+	e    *entity.Event
+	data []byte
 }
 
 func newTransaction(
@@ -58,7 +64,7 @@ func newTransaction(
 func (t *Transaction) ID() record.TransactionID                    { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
 
-func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time.Time, data []byte) error {
+func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time.Time, e *entity.Event, data []byte) error {
 	if err := t.concurrencyMgr.XLock(ctx, itemID); err != nil {
 		return err
 	}
@@ -68,7 +74,10 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 		return err
 	}
 
-	t.items = append(t.items, data)
+	t.items = append(t.items, eventItem{
+		e:    e,
+		data: data,
+	})
 
 	t.lsn = lsn
 	return nil
@@ -144,13 +153,14 @@ func (t *Transaction) appendToEventLog(
 	idxFn := tn.Index(0, pid)
 
 	for _, item := range t.items {
-		rid, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item))
+		rid, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item.data))
 		if err != nil {
 			return err
 		}
 
-		// TODO: This needs an AggregateID
-		if err := t.cursor.Insert(ctx, idxFn, key.NewKey(nil), rid); err != nil {
+		// TODO: Fix unsigned int
+		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
+		if err := t.cursor.Insert(ctx, idxFn, k, rid); err != nil {
 			return err
 		}
 	}
@@ -159,7 +169,7 @@ func (t *Transaction) appendToEventLog(
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0], nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0].data, nil)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -23,7 +24,7 @@ func testTransaction_Insert(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil); err != nil {
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -60,13 +61,32 @@ func testTransaction_Commit(t *testing.T) {
 
 	tx := m.Next()
 
-	records := [][]byte{{1, 2, 3, 4, 5}}
+	type item struct {
+		e    *entity.Event
+		data []byte
+	}
+	items := []item{{
+		e:    &entity.Event{},
+		data: []byte{1},
+	}, {
+		e:    &entity.Event{},
+		data: []byte{2},
+	}, {
+		e:    &entity.Event{},
+		data: []byte{3},
+	}, {
+		e:    &entity.Event{},
+		data: []byte{4},
+	}, {
+		e:    &entity.Event{},
+		data: []byte{5},
+	}}
 
 	tn := tablename.New("filename")
 	pid := value.NewPartitionID(0)
 	fn := tn.EventLog(pid)
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,6 +128,7 @@ func testTransaction_Commit(t *testing.T) {
 		result = append(result, n)
 	}
 
+	records := [][]byte{items[0].data}
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
@@ -126,7 +147,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
+	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil, records[0]); err != nil {
 		t.Fatal(err)
 	}
 

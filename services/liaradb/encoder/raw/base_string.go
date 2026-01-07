@@ -7,6 +7,7 @@ import (
 type BaseString string
 
 func (i BaseString) String() string          { return string(i) }
+func (i BaseString) Bytes() []byte           { return []byte(i) }
 func (i BaseString) Length() int             { return len(i) }
 func (i BaseString) Size() int               { return StringSize(i) }
 func (i BaseString) Write(w io.Writer) error { return WriteString(w, i) }
