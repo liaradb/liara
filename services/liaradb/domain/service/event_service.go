@@ -201,7 +201,8 @@ func (es *EventService) append(
 ) error {
 	tx := es.txManager.Next()
 	tn := tablename.New(tenantID)
-	return tx.Run(ctx, tn.EventLog(e.PartitionID), time.Now(), func() error {
+	// TODO: PartitionID should be on the transaction, not just the Event
+	return tx.Run(ctx, tn, e.PartitionID, time.Now(), func() error {
 		buf := bytes.NewBuffer(nil)
 		if err := e.Write(buf); err != nil {
 			return err

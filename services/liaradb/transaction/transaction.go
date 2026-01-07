@@ -5,15 +5,18 @@ import (
 	"errors"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/btree"
+	key "github.com/liaradb/liaradb/collection/btree/value" // TODO: Fix this name
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
+	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Transaction struct {
@@ -23,6 +26,7 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
 	manager        *manager.Manager
+	cursor         *btree.Cursor
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	items          [][]byte
@@ -35,6 +39,7 @@ func newTransaction(
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
 	manager *manager.Manager,
+	cursor *btree.Cursor,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 ) *Transaction {
@@ -44,6 +49,7 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		manager:        manager,
+		cursor:         cursor,
 		eventLog:       eventLog,
 		keyValue:       keyValue,
 	}
@@ -70,11 +76,12 @@ func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time
 
 func (t *Transaction) Run(
 	ctx context.Context,
-	fn link.FileName, // TODO: How should this be specified?
+	tn tablename.TableName, // TODO: How should this be specified?
+	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
-	if err := t.run(ctx, fn, now, f); err != nil {
+	if err := t.run(ctx, tn, pid, now, f); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 
@@ -83,7 +90,8 @@ func (t *Transaction) Run(
 
 func (t *Transaction) run(
 	ctx context.Context,
-	fn link.FileName, // TODO: How should this be specified?
+	tn tablename.TableName, // TODO: How should this be specified?
+	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
@@ -97,7 +105,7 @@ func (t *Transaction) run(
 		return t.rollback(ctx, now)
 	}
 
-	return t.commit(ctx, fn, now)
+	return t.commit(ctx, tn, pid, now)
 }
 
 func (t *Transaction) release() {
@@ -107,7 +115,8 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
-	fn link.FileName, // TODO: How should this be specified?
+	tn tablename.TableName, // TODO: How should this be specified?
+	pid value.PartitionID,
 	now time.Time,
 ) error {
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
@@ -119,16 +128,29 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.appendToEventLog(ctx, fn); err != nil {
+	if err := t.appendToEventLog(ctx, tn, pid); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (t *Transaction) appendToEventLog(ctx context.Context, fn link.FileName) error {
+func (t *Transaction) appendToEventLog(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+) error {
+	fn := tn.EventLog(pid)
+	idxFn := tn.Index(0, pid)
+
 	for _, item := range t.items {
-		if _, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item)); err != nil {
+		rid, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item))
+		if err != nil {
+			return err
+		}
+
+		// TODO: This needs an AggregateID
+		if err := t.cursor.Insert(ctx, idxFn, key.NewKey(nil), rid); err != nil {
 			return err
 		}
 	}

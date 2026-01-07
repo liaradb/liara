@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestTransaction_Insert(t *testing.T) {
@@ -61,13 +62,15 @@ func testTransaction_Commit(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	fn := link.NewFileName("filename")
+	tn := tablename.New("filename")
+	pid := value.NewPartitionID(0)
+	fn := tn.EventLog(pid)
 
 	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), records[0]); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, fn, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, tn, pid, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 

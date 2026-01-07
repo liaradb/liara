@@ -33,14 +33,14 @@ func New(storage *storage.Storage) *EventLog {
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event) (link.RecordID, error) {
+func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event) (link.RecordLocator, error) {
 	if err := e.Write(l.buffer); err != nil {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, err
 	}
 
 	rid, err := l.AppendEvent(ctx, fn, l.reader)
 	if err != nil {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, err
 	}
 
 	l.buffer.Reset()
@@ -48,12 +48,12 @@ func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordID, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordLocator, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	c, err := rd.Read(data)
 	if err != nil && err != io.EOF {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, err
 	}
 
 	v := data[:c]
@@ -61,17 +61,17 @@ func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Read
 
 	rid, ok, err := l.setCurrent(ctx, fn, v, crc)
 	if err != nil {
-		return link.RecordID{}, err
+		return link.RecordLocator{}, err
 	} else if !ok {
 		rid, ok, err = l.setNext(ctx, fn, v, crc)
 		if err != nil {
-			return link.RecordID{}, err
+			return link.RecordLocator{}, err
 		} else if !ok {
-			return link.RecordID{}, btree.ErrNoInsert
+			return link.RecordLocator{}, btree.ErrNoInsert
 		}
 	}
 
-	return link.NewRecordID(link.NewBlockID(fn, rid.Block()), link.RecordPosition(rid.Position())), nil
+	return rid, nil
 }
 
 func (l *EventLog) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {

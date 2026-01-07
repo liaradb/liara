@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
@@ -15,6 +16,7 @@ type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
 	manager       *manager.Manager
+	cursor        *btree.Cursor
 	eventLog      *eventlog.EventLog
 	keyValue      *keyvalue.KeyValue
 	lockTable     *locktable.LockTable[action.ItemID]
@@ -30,6 +32,7 @@ func NewManager(
 		log:       log,
 		storage:   storage,
 		manager:   manager.New(storage),
+		cursor:    btree.NewCursor(storage),
 		eventLog:  eventlog.New(storage),
 		keyValue:  keyvalue.New(storage),
 		lockTable: lockTable,
@@ -44,6 +47,7 @@ func (m *Manager) Next() *Transaction {
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
 		m.manager,
+		m.cursor,
 		m.eventLog,
 		m.keyValue,
 	)
