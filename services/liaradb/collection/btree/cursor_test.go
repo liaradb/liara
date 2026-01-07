@@ -195,6 +195,42 @@ func testCursor_Insert__Random(t *testing.T) {
 	}
 }
 
+func TestCursor_Insert__Existing(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testCursor_Insert__Existing)
+}
+
+func testCursor_Insert__Existing(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 8, 62)
+	ctx := t.Context()
+	fn := link.NewFileName("testfile")
+
+	le := newLeafEntry(
+		value.NewKey([]byte("0")),
+		link.NewRecordLocator(1, 2))
+
+	if err := NewCursor(s).Insert(ctx, fn, le.key, le.recordID); err != nil {
+		t.Fatal(le.key, err)
+	}
+
+	if err := NewCursor(s).Insert(ctx, fn, le.key, le.recordID); err == nil {
+		t.Error("should not insert the same key")
+	}
+
+	c := 0
+	for _, err := range NewCursor(s).All(ctx, fn, 0, 0) {
+		if err != nil {
+			t.Error(err)
+		}
+
+		c++
+	}
+
+	if c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+}
+
 func TestCursor_SearchRange(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testCursor_SearchRange)

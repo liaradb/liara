@@ -160,6 +160,7 @@ func (t *Transaction) appendToEventLog(
 
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
+		// TODO: Verify key is available before now
 		if err := t.cursor.Insert(ctx, idxFn, k, rid); err != nil {
 			return err
 		}

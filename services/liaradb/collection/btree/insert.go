@@ -113,6 +113,11 @@ func (c *insert) insertChainLeaf(
 	k value.Key,
 	rid link.RecordLocator,
 ) (link.BlockID, value.Key, bool, error) {
+	// Does it exist already?
+	if _, ok := ln.Search(k); ok {
+		return link.BlockID{}, value.Key{}, false, ErrExists
+	}
+
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
 		return link.BlockID{}, value.Key{}, false, nil
