@@ -24,3 +24,18 @@ func TestByteList(t *testing.T) {
 		t.Error("should not get a buffer ending beyond length")
 	}
 }
+
+func TestByteList_Empty(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 16))
+
+	b, ok := l.Slice(2, 0)
+	if !ok {
+		t.Error("should get a buffer")
+	}
+
+	if l := len(b); l != 0 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 16)
+	}
+}

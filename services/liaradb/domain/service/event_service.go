@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
 )
@@ -209,7 +208,7 @@ func (es *EventService) append(
 		}
 
 		return tx.Insert(ctx,
-			action.ItemID(e.ID.String()),
+			tn,
 			time.Now(),
 			&e,
 			buf.Bytes(),

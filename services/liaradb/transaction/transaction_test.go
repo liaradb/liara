@@ -1,11 +1,13 @@
 package transaction
 
 import (
+	"errors"
 	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -24,7 +26,7 @@ func testTransaction_Insert(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil, nil); err != nil {
+	if err := tx.Insert(ctx, tablename.New("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -47,6 +49,72 @@ func testTransaction_Insert(t *testing.T) {
 
 	if c != 1 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 1)
+	}
+}
+
+func TestTransaction_Insert__Unique(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testTransaction_Insert__Unique)
+}
+
+func testTransaction_Insert__Unique(t *testing.T) {
+	m, _ := createManager(t)
+	ctx := t.Context()
+
+	tx := m.Next()
+
+	tn := tablename.New("a")
+	id := value.NewAggregateID("b")
+	version := value.NewVersion(1)
+	tm := time.UnixMicro(1234567890)
+
+	if err := tx.Run(ctx, tn, value.NewPartitionID(0), tm, func() error {
+		return tx.Insert(ctx, tn, tm, &entity.Event{
+			AggregateID: id,
+			Version:     version,
+		}, nil)
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := tx.Run(ctx, tn, value.NewPartitionID(0), tm, func() error {
+		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
+			AggregateID: id,
+			Version:     version,
+		}, nil)
+	}); !errors.Is(err, btree.ErrExists) {
+		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
+	}
+}
+
+func TestTransaction_Insert__UniqueCurrent(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testTransaction_Insert__UniqueCurrent)
+}
+
+func testTransaction_Insert__UniqueCurrent(t *testing.T) {
+	m, _ := createManager(t)
+	ctx := t.Context()
+
+	tx := m.Next()
+
+	tn := tablename.New("a")
+	id := value.NewAggregateID("b")
+	version := value.NewVersion(1)
+	tm := time.UnixMicro(1234567890)
+
+	if err := tx.Insert(ctx, tn, tm, &entity.Event{
+		AggregateID: id,
+		Version:     version,
+	}, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
+		AggregateID: id,
+		Version:     version,
+	}, nil); !errors.Is(err, btree.ErrExists) {
+		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
 }
 
@@ -86,7 +154,7 @@ func testTransaction_Commit(t *testing.T) {
 	pid := value.NewPartitionID(0)
 	fn := tn.EventLog(pid)
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
+	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -147,7 +215,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	if err := tx.Insert(ctx, "a", time.UnixMicro(1234567890), nil, records[0]); err != nil {
+	if err := tx.Insert(ctx, tablename.New("a"), time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
 		t.Fatal(err)
 	}
 

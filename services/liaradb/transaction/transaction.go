@@ -18,6 +18,7 @@ import (
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/set"
 )
 
 type Transaction struct {
@@ -32,6 +33,7 @@ type Transaction struct {
 	keyValue       *keyvalue.KeyValue
 	items          []eventItem
 	forceRollback  bool
+	keys           set.Set[key.Key]
 }
 
 type eventItem struct {
@@ -58,15 +60,38 @@ func newTransaction(
 		cursor:         cursor,
 		eventLog:       eventLog,
 		keyValue:       keyValue,
+		keys:           set.Set[key.Key]{},
 	}
 }
 
 func (t *Transaction) ID() record.TransactionID                    { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
 
-func (t *Transaction) Insert(ctx context.Context, itemID action.ItemID, now time.Time, e *entity.Event, data []byte) error {
-	if err := t.concurrencyMgr.XLock(ctx, itemID); err != nil {
+func (t *Transaction) Insert(
+	ctx context.Context,
+	tn tablename.TableName,
+	now time.Time,
+	e *entity.Event,
+	data []byte,
+) error {
+	// TODO: What happens if we already have the lock?
+	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(e.AggregateID.String())); err != nil {
 		return err
+	}
+
+	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
+	// Verify this AggregateID and Version is unique in this transaction
+	if t.keys.Includes(k) {
+		return btree.ErrExists
+	}
+
+	t.keys.Add(k)
+
+	// Verify this AggregateID and Version is unique in Index
+	idxFn := tn.Index(0, e.PartitionID)
+	_, err := t.cursor.Search(ctx, idxFn, k)
+	if !errors.Is(err, btree.ErrNotFound) {
+		return errors.Join(err, btree.ErrExists)
 	}
 
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
