@@ -18,10 +18,9 @@ type Manager struct {
 	tn tablename.TableName
 }
 
-func New(s *storage.Storage) *Manager {
+func New(kv *keyvalue.KeyValue) *Manager {
 	return &Manager{
-		s:  s,
-		kv: keyvalue.New(s),
+		kv: kv,
 		tn: tablename.New(Table),
 	}
 }

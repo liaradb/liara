@@ -8,10 +8,6 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
-	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/eventlog"
-	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
@@ -26,13 +22,9 @@ import (
 
 type Application struct {
 	conf      configuration
-	eventLog  *eventlog.EventLog
-	kv        *keyvalue.KeyValue
-	btree     *btree.Cursor
 	storage   *storage.Storage
 	txManager *transaction.Manager
 	log       *recovery.Log
-	mgr       *manager.Manager
 	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
@@ -46,16 +38,11 @@ func New(conf configuration) *Application {
 	log := recovery.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
-	cursor := btree.NewCursor(s)
 	return &Application{
 		conf:      conf,
-		eventLog:  eventlog.New(s, cursor),
-		kv:        keyvalue.New(s),
-		btree:     cursor,
 		storage:   s,
 		txManager: transaction.NewManager(log, s, lt),
 		log:       log,
-		mgr:       manager.New(s),
 		lockTable: lt,
 	}
 }
@@ -162,7 +149,7 @@ func (a *Application) initService() *grpc.Server {
 			r.transactionContainer,
 			r.outboxRepository,
 			r.requestRepository,
-			a.txManager, a.mgr, a.kv, a.eventLog, a.btree,
+			a.txManager,
 		),
 		service.NewTenantService(
 			r.transactionContainer,

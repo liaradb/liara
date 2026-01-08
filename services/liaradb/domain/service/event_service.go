@@ -6,10 +6,6 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/eventlog"
-	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -22,10 +18,6 @@ type EventService struct {
 	outboxRepository     OutboxRepository
 	requestRepository    RequestRepository
 	txManager            *transaction.Manager
-	mgr                  *manager.Manager
-	kv                   *keyvalue.KeyValue
-	eventLog             *eventlog.EventLog
-	btree                *btree.Cursor
 }
 
 func NewEventService(
@@ -33,20 +25,12 @@ func NewEventService(
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	txManager *transaction.Manager,
-	mgr *manager.Manager,
-	kv *keyvalue.KeyValue,
-	eventLog *eventlog.EventLog,
-	btree *btree.Cursor,
 ) *EventService {
 	return &EventService{
 		transactionContainer: transactionRepository,
 		outboxRepository:     outboxRepository,
 		requestRepository:    requestRepository,
 		txManager:            txManager,
-		mgr:                  mgr,
-		kv:                   kv,
-		eventLog:             eventLog,
-		btree:                btree,
 	}
 }
 
@@ -232,7 +216,8 @@ func (es *EventService) Get(
 ) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
 	return func(yield func(entity.Event, error) bool) {
 		tn := tablename.New(tenantID)
-		for e, err := range es.eventLog.GetAggregate(ctx, tn, partitionID, id) {
+		tx := es.txManager.Next()
+		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
 			if err != nil {
 				yield(entity.Event{}, err)
 				return

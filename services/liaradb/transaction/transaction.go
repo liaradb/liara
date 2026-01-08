@@ -3,6 +3,7 @@ package transaction
 import (
 	"context"
 	"errors"
+	"iter"
 	"time"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -63,6 +64,29 @@ func newTransaction(
 
 func (t *Transaction) ID() record.TransactionID                    { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
+
+func (t *Transaction) GetAggregate(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+	id value.AggregateID,
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		// TODO: What happens if we already have the lock?
+		if err := t.concurrencyMgr.SLock(ctx, action.ItemID(id.String())); err != nil {
+			yield(nil, err)
+			return
+		}
+
+		defer t.release()
+
+		for e, err := range t.eventLog.GetAggregate(ctx, tn, pid, id) {
+			if !yield(e, err) {
+				return
+			}
+		}
+	}
+}
 
 func (t *Transaction) Insert(
 	ctx context.Context,

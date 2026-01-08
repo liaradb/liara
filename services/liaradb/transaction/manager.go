@@ -28,12 +28,13 @@ func NewManager(
 	lockTable *locktable.LockTable[action.ItemID],
 ) *Manager {
 	cursor := btree.NewCursor(storage)
+	kv := keyvalue.New(storage, cursor)
 	return &Manager{
 		log:       log,
 		storage:   storage,
-		manager:   manager.New(storage),
+		manager:   manager.New(kv),
 		eventLog:  eventlog.New(storage, cursor),
-		keyValue:  keyvalue.New(storage),
+		keyValue:  kv,
 		lockTable: lockTable,
 	}
 }

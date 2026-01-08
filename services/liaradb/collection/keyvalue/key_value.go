@@ -21,10 +21,10 @@ type KeyValue struct {
 	c *btree.Cursor
 }
 
-func New(s *storage.Storage) *KeyValue {
+func New(s *storage.Storage, c *btree.Cursor) *KeyValue {
 	return &KeyValue{
 		s: s,
-		c: btree.NewCursor(s),
+		c: c,
 	}
 }
 

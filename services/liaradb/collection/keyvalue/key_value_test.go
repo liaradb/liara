@@ -7,6 +7,7 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/storage/storagetesting"
@@ -22,7 +23,7 @@ func testKeyValue(t *testing.T) {
 	// TODO: This is flaky on insert when buffer count is 5
 	// s := storagetesting.CreateStorage(t, 5, 84)
 	s := storagetesting.CreateStorage(t, 6, 84)
-	kv := New(s)
+	kv := New(s, btree.NewCursor(s))
 	n := tablename.New("testfile")
 
 	data := createData()
@@ -45,7 +46,7 @@ func TestKeyValue__LargeBuffer(t *testing.T) {
 func testKeyValue__LargeBuffer(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
-	kv := New(s)
+	kv := New(s, btree.NewCursor(s))
 	n := tablename.New("testfile")
 
 	data := createData()
