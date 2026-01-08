@@ -17,10 +17,6 @@ func (k stringKey) Value() []byte {
 	return []byte(k)
 }
 
-func (k stringKey) Length() int16 {
-	return int16(len(k))
-}
-
 func (k stringKey) Equal(o any) bool {
 	b, ok := o.(stringKey)
 	if !ok {

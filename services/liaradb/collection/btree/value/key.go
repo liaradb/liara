@@ -1,5 +1,7 @@
 package value
 
+import "github.com/liaradb/liaradb/encoder/scan"
+
 type Key struct {
 	A stringKey
 	B intKey
@@ -16,10 +18,6 @@ func NewKey2(a []byte, b int64) Key {
 // TODO: Test this
 func (k Key) String() string {
 	return k.A.String() + k.B.String()
-}
-
-func (k Key) Length() int16 {
-	return k.A.Length() + k.B.Length()
 }
 
 func (k Key) Size() int {
@@ -73,4 +71,15 @@ func (k Key) LessEqual(o any) bool {
 	}
 
 	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.LessEqual(b.B))
+}
+
+func (k Key) Write(data []byte) {
+	data0 := scan.SetInt64(data, k.B.Value())
+	copy(data0, k.A.Value())
+}
+
+func (k *Key) Read(data []byte) {
+	b, data0 := scan.Int64(data)
+	k.B = intKey(b)
+	k.A = stringKey(data0)
 }

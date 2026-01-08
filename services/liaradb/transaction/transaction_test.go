@@ -61,14 +61,14 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tx := m.Next()
-
 	tn := tablename.New("a")
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
 	tm := time.UnixMicro(1234567890)
+	pid := value.NewPartitionID(2)
 
-	if err := tx.Run(ctx, tn, value.NewPartitionID(0), tm, func() error {
+	tx := m.Next()
+	if err := tx.Run(ctx, tn, pid, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -77,7 +77,8 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.Run(ctx, tn, value.NewPartitionID(0), tm, func() error {
+	tx = m.Next()
+	if err := tx.Run(ctx, tn, pid, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,

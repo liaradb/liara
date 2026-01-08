@@ -195,7 +195,7 @@ func (t *Transaction) appendToEventLog(
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, t.items[0].data, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, nil, nil)
 	if err != nil {
 		return err
 	}
