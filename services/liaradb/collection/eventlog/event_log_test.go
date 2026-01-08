@@ -8,6 +8,8 @@ import (
 	"testing/synctest"
 
 	"github.com/google/uuid"
+	"github.com/liaradb/liaradb/collection/btree"
+	key "github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -23,29 +25,34 @@ func TestEventLog_Append(t *testing.T) {
 func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
 	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(0),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(3),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(4),
 		Data:          value.NewData([]byte{}),
 	}}
 
@@ -80,29 +87,34 @@ func TestEventLog_Find(t *testing.T) {
 func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
 	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(0),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(3),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(4),
 		Data:          value.NewData([]byte{}),
 	}}
 
@@ -130,7 +142,7 @@ func TestEventLog_GetAggregate(t *testing.T) {
 func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
@@ -138,24 +150,29 @@ func testEventLog_GetAggregate(t *testing.T) {
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(0),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
 		AggregateID:   aggregateID,
+		Version:       value.NewVersion(0),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
 		AggregateID:   aggregateID,
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}}
 
@@ -192,7 +209,7 @@ func TestEventLog_AppendEvent(t *testing.T) {
 func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
 	pid := value.NewPartitionID(0)
 
@@ -203,8 +220,9 @@ func testEventLog_AppendEvent(t *testing.T) {
 		{7, 8},
 		{9, 10}}
 
-	for _, r := range records {
-		if _, err := el.AppendEvent(ctx, tn, pid, raw.NewBufferFromSlice(r)); err != nil {
+	for i, r := range records {
+		k := key.NewKey2([]byte(""), int64(i))
+		if _, err := el.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(r)); err != nil {
 			t.Fatal(err)
 		}
 	}

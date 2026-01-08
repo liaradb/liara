@@ -8,6 +8,7 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -37,22 +38,27 @@ func testRecovery(t *testing.T) {
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(0),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(3),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
+		Version:       value.NewVersion(4),
 		Data:          value.NewData([]byte{}),
 	}}
 
@@ -69,10 +75,10 @@ func write(
 	dir string,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	records []*entity.Event,
+	events []*entity.Event,
 ) {
 	s := storage.New(fsys, max, bs, dir)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(baseCtx)
 
@@ -80,7 +86,7 @@ func write(
 		t.Fatal(err)
 	}
 
-	for _, r := range records {
+	for _, r := range events {
 		if _, err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
@@ -102,10 +108,10 @@ func recover(
 	dir string,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	records []*entity.Event,
+	events []*entity.Event,
 ) {
 	s := storage.New(fsys, max, bs, dir)
-	el := New(s)
+	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -124,9 +130,9 @@ func recover(
 		result = append(result, e)
 	}
 
-	if !slices.EqualFunc(result, records, func(a, b *entity.Event) bool {
+	if !slices.EqualFunc(result, events, func(a, b *entity.Event) bool {
 		return reflect.DeepEqual(a, b)
 	}) {
-		t.Errorf("incorrect result:\n%v\nexpected:\n%v", result, records)
+		t.Errorf("incorrect result:\n%v\nexpected:\n%v", result, events)
 	}
 }

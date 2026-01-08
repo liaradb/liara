@@ -174,18 +174,12 @@ func (t *Transaction) appendToEventLog(
 	tn tablename.TableName,
 	pid value.PartitionID,
 ) error {
-	idxFn := tn.Index(0, pid)
-
 	for _, item := range t.items {
-		rid, err := t.eventLog.AppendEvent(ctx, tn, pid, raw.NewBufferFromSlice(item.data))
-		if err != nil {
-			return err
-		}
-
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
-		// TODO: Verify key is available before now
-		if err := t.cursor.Insert(ctx, idxFn, k, rid); err != nil {
+
+		_, err := t.eventLog.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(item.data))
+		if err != nil {
 			return err
 		}
 	}

@@ -188,7 +188,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage).Iterate(ctx, tn, pid) {
+	for n, err := range eventlog.New(m.storage, m.cursor).Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -252,7 +252,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage).Iterate(ctx, tn, pid) {
+	for n, err := range eventlog.New(m.storage, m.cursor).Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}

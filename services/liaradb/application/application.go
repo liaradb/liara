@@ -46,11 +46,12 @@ func New(conf configuration) *Application {
 	log := recovery.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
+	cursor := btree.NewCursor(s)
 	return &Application{
 		conf:      conf,
-		eventLog:  eventlog.New(s),
+		eventLog:  eventlog.New(s, cursor),
 		kv:        keyvalue.New(s),
-		btree:     btree.NewCursor(s),
+		btree:     cursor,
 		storage:   s,
 		txManager: transaction.NewManager(log, s, lt),
 		log:       log,

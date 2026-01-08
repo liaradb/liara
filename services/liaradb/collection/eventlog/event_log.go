@@ -8,6 +8,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
+	key "github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -22,15 +23,17 @@ type EventLog struct {
 	storage *storage.Storage
 	buffer  *bytes.Buffer
 	reader  *bufio.Reader
+	cursor  *btree.Cursor
 }
 
-func New(storage *storage.Storage) *EventLog {
+func New(storage *storage.Storage, cursor *btree.Cursor) *EventLog {
 	buffer := bytes.NewBuffer(nil)
 	reader := bufio.NewReader(buffer)
 	return &EventLog{
 		storage: storage,
 		buffer:  buffer,
 		reader:  reader,
+		cursor:  cursor,
 	}
 }
 
@@ -39,7 +42,8 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 		return link.RecordLocator{}, err
 	}
 
-	rid, err := l.AppendEvent(ctx, tn, pid, l.reader)
+	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
+	rid, err := l.AppendEvent(ctx, tn, pid, k, l.reader)
 	if err != nil {
 		return link.RecordLocator{}, err
 	}
@@ -49,7 +53,7 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, rd io.Reader) (link.RecordLocator, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, rd io.Reader) (link.RecordLocator, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	c, err := rd.Read(data)
@@ -73,7 +77,7 @@ func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid 
 		}
 	}
 
-	return rid, nil
+	return rid, l.cursor.Insert(ctx, tn.Index(0, pid), k, rid)
 }
 
 func (l *EventLog) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
