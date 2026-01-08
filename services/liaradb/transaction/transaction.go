@@ -28,7 +28,6 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
 	manager        *manager.Manager
-	cursor         *btree.Cursor
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	items          []eventItem
@@ -47,7 +46,6 @@ func newTransaction(
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
 	manager *manager.Manager,
-	cursor *btree.Cursor,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 ) *Transaction {
@@ -57,7 +55,6 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		manager:        manager,
-		cursor:         cursor,
 		eventLog:       eventLog,
 		keyValue:       keyValue,
 		keys:           set.Set[key.Key]{},
@@ -88,10 +85,8 @@ func (t *Transaction) Insert(
 	t.keys.Add(k)
 
 	// Verify this AggregateID and Version is unique in Index
-	idxFn := tn.Index(0, e.PartitionID)
-	_, err := t.cursor.Search(ctx, idxFn, k)
-	if !errors.Is(err, btree.ErrNotFound) {
-		return errors.Join(err, btree.ErrExists)
+	if err := t.eventLog.CanAppend(ctx, tn, e.PartitionID, k); err != nil {
+		return err
 	}
 
 	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)

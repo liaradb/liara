@@ -16,7 +16,6 @@ type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
 	manager       *manager.Manager
-	cursor        *btree.Cursor
 	eventLog      *eventlog.EventLog
 	keyValue      *keyvalue.KeyValue
 	lockTable     *locktable.LockTable[action.ItemID]
@@ -33,7 +32,6 @@ func NewManager(
 		log:       log,
 		storage:   storage,
 		manager:   manager.New(storage),
-		cursor:    cursor,
 		eventLog:  eventlog.New(storage, cursor),
 		keyValue:  keyvalue.New(storage),
 		lockTable: lockTable,
@@ -48,7 +46,6 @@ func (m *Manager) Next() *Transaction {
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
 		m.manager,
-		m.cursor,
 		m.eventLog,
 		m.keyValue,
 	)

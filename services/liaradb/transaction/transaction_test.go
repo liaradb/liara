@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -188,7 +187,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage, m.cursor).Iterate(ctx, tn, pid) {
+	for n, err := range m.eventLog.Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -252,7 +251,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage, m.cursor).Iterate(ctx, tn, pid) {
+	for n, err := range m.eventLog.Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}

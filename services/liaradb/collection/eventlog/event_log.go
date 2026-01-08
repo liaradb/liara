@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"iter"
 
@@ -116,6 +117,20 @@ func (l *EventLog) setNext(ctx context.Context, fn link.FileName, v []byte, crc 
 	copy(d, v)
 
 	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+}
+
+func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {
+	fn := tn.Index(0, pid)
+	_, err := l.cursor.Search(ctx, fn, k)
+	if err == nil {
+		return btree.ErrExists
+	}
+
+	if errors.Is(err, btree.ErrNotFound) {
+		return nil
+	}
+
+	return err
 }
 
 func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.EventID) (*entity.Event, error) {
