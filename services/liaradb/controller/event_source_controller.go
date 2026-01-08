@@ -61,8 +61,8 @@ func (esc *EventSourceController) Get(
 ) error {
 	for row, err := range esc.eventService.Get(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.NewAggregateID(request.AggregateId),
 		value.NewPartitionID(0), // TODO: Change this to parameter
+		value.NewAggregateID(request.AggregateId),
 	) {
 		if err != nil {
 			return err

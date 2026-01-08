@@ -174,11 +174,10 @@ func (t *Transaction) appendToEventLog(
 	tn tablename.TableName,
 	pid value.PartitionID,
 ) error {
-	fn := tn.EventLog(pid)
 	idxFn := tn.Index(0, pid)
 
 	for _, item := range t.items {
-		rid, err := t.eventLog.AppendEvent(ctx, fn, raw.NewBufferFromSlice(item.data))
+		rid, err := t.eventLog.AppendEvent(ctx, tn, pid, raw.NewBufferFromSlice(item.data))
 		if err != nil {
 			return err
 		}

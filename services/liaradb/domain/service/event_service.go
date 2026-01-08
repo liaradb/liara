@@ -227,13 +227,12 @@ func (es *EventService) TestIdempotency(
 func (es *EventService) Get(
 	ctx context.Context,
 	tenantID value.TenantID,
-	id value.AggregateID,
 	partitionID value.PartitionID,
+	id value.AggregateID,
 ) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
 	return func(yield func(entity.Event, error) bool) {
 		tn := tablename.New(tenantID)
-		fn := tn.EventLog(partitionID)
-		for e, err := range es.eventLog.GetAggregate(ctx, fn, id) {
+		for e, err := range es.eventLog.GetAggregate(ctx, tn, partitionID, id) {
 			if err != nil {
 				yield(entity.Event{}, err)
 				return

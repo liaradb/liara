@@ -8,10 +8,10 @@ import (
 	"testing/synctest"
 
 	"github.com/google/uuid"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -24,7 +24,8 @@ func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s)
-	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
+	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -49,14 +50,14 @@ func testEventLog_Append(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if _, err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.Events(ctx, fn) {
+	for e, err := range el.Events(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,7 +81,8 @@ func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s)
-	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
+	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -105,12 +107,12 @@ func testEventLog_Find(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if _, err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	e, err := el.Find(ctx, fn, records[2].ID)
+	e, err := el.Find(ctx, tn, pid, records[2].ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +131,7 @@ func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s)
-	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
+	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
 
@@ -157,8 +159,9 @@ func testEventLog_GetAggregate(t *testing.T) {
 		Data:          value.NewData([]byte{}),
 	}}
 
+	pid := value.NewPartitionID(0)
 	for _, r := range records {
-		if _, err := el.Append(ctx, fn, r); err != nil {
+		if _, err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -166,8 +169,7 @@ func testEventLog_GetAggregate(t *testing.T) {
 	want := []*entity.Event{records[1], records[3]}
 
 	result := make([]*entity.Event, 0)
-
-	for e, err := range el.GetAggregate(ctx, fn, aggregateID) {
+	for e, err := range el.GetAggregate(ctx, tn, pid, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -191,7 +193,8 @@ func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s)
-	fn := link.NewFileName(path.Join(t.TempDir(), "testfile"))
+	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	pid := value.NewPartitionID(0)
 
 	records := [][]byte{
 		{1, 2},
@@ -201,14 +204,14 @@ func testEventLog_AppendEvent(t *testing.T) {
 		{9, 10}}
 
 	for _, r := range records {
-		if _, err := el.AppendEvent(ctx, fn, raw.NewBufferFromSlice(r)); err != nil {
+		if _, err := el.AppendEvent(ctx, tn, pid, raw.NewBufferFromSlice(r)); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	result := make([][]byte, 0)
 
-	for n, err := range el.Iterate(ctx, fn) {
+	for n, err := range el.Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}

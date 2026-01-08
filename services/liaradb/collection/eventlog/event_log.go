@@ -8,6 +8,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -33,12 +34,12 @@ func New(storage *storage.Storage) *EventLog {
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event) (link.RecordLocator, error) {
+func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value.PartitionID, e *entity.Event) (link.RecordLocator, error) {
 	if err := e.Write(l.buffer); err != nil {
 		return link.RecordLocator{}, err
 	}
 
-	rid, err := l.AppendEvent(ctx, fn, l.reader)
+	rid, err := l.AppendEvent(ctx, tn, pid, l.reader)
 	if err != nil {
 		return link.RecordLocator{}, err
 	}
@@ -48,7 +49,7 @@ func (l *EventLog) Append(ctx context.Context, fn link.FileName, e *entity.Event
 }
 
 // TODO: Should this be multiple BlockIDs?
-func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Reader) (link.RecordLocator, error) {
+func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, rd io.Reader) (link.RecordLocator, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())
 	c, err := rd.Read(data)
@@ -58,6 +59,7 @@ func (l *EventLog) AppendEvent(ctx context.Context, fn link.FileName, rd io.Read
 
 	v := data[:c]
 	crc := page.NewCRC(v)
+	fn := tn.EventLog(pid)
 
 	rid, ok, err := l.setCurrent(ctx, fn, v, crc)
 	if err != nil {
@@ -112,8 +114,8 @@ func (l *EventLog) setNext(ctx context.Context, fn link.FileName, v []byte, crc 
 	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }
 
-func (l *EventLog) Find(ctx context.Context, fn link.FileName, id value.EventID) (*entity.Event, error) {
-	for e, err := range l.Events(ctx, fn) {
+func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.EventID) (*entity.Event, error) {
+	for e, err := range l.Events(ctx, tn, pid) {
 		if err != nil {
 			return nil, err
 		}
@@ -126,9 +128,9 @@ func (l *EventLog) Find(ctx context.Context, fn link.FileName, id value.EventID)
 	return nil, page.ErrNotFound
 }
 
-func (l *EventLog) GetAggregate(ctx context.Context, fn link.FileName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range l.Events(ctx, fn) {
+		for e, err := range l.Events(ctx, tn, pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -143,9 +145,9 @@ func (l *EventLog) GetAggregate(ctx context.Context, fn link.FileName, id value.
 	}
 }
 
-func (l *EventLog) Events(ctx context.Context, fn link.FileName) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for i, err := range l.items(ctx, fn) {
+		for i, err := range l.items(ctx, tn, pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -167,9 +169,9 @@ func (l *EventLog) Events(ctx context.Context, fn link.FileName) iter.Seq2[*enti
 	}
 }
 
-func (l *EventLog) items(ctx context.Context, fn link.FileName) iter.Seq2[[]byte, error] {
+func (l *EventLog) items(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for n, err := range l.Iterate(ctx, fn) {
+		for n, err := range l.Iterate(ctx, tn, pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -182,8 +184,9 @@ func (l *EventLog) items(ctx context.Context, fn link.FileName) iter.Seq2[[]byte
 	}
 }
 
-func (l *EventLog) Iterate(ctx context.Context, fn link.FileName) iter.Seq2[[]byte, error] {
+func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
+		fn := tn.EventLog(pid)
 		highBid, err := l.storage.Highwater(ctx, fn)
 		if err != nil {
 			yield(nil, err)

@@ -153,7 +153,6 @@ func testTransaction_Commit(t *testing.T) {
 
 	tn := tablename.New("filename")
 	pid := value.NewPartitionID(0)
-	fn := tn.EventLog(pid)
 
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
@@ -189,7 +188,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage).Iterate(ctx, fn) {
+	for n, err := range eventlog.New(m.storage).Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -216,7 +215,10 @@ func testTransaction_Rollback(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	if err := tx.Insert(ctx, tablename.New("a"), time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
+	tn := tablename.New("a")
+	pid := value.NewPartitionID(0)
+
+	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
 		t.Fatal(err)
 	}
 
@@ -250,7 +252,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range eventlog.New(m.storage).Iterate(ctx, "filename") {
+	for n, err := range eventlog.New(m.storage).Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
