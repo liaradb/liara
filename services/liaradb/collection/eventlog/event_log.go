@@ -149,19 +149,50 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.P
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range l.Events(ctx, tn, pid) {
+		fn := tn.EventLog(pid)
+		for rl, err := range l.cursor.SearchRange(ctx, tn.Index(0, pid), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if e.AggregateID == id {
-				if !yield(e, nil) {
-					return
-				}
+			e, err := l.getEventByRecordLocator(ctx, fn, rl)
+			if err != nil {
+				yield(nil, err)
+				return
 			}
+
+			if e.AggregateID != id || !yield(e, err) {
+				return
+			}
+
 		}
 	}
+}
+
+func (l *EventLog) getEventByRecordLocator(ctx context.Context, fn link.FileName, rl link.RecordLocator) (*entity.Event, error) {
+	b, err := l.storage.Request(ctx, link.NewBlockID(fn, rl.Block()))
+	if err != nil {
+		return nil, err
+	}
+
+	defer b.Release()
+
+	n := node.New(b)
+	data, ok := n.Child(int16(rl.Position()))
+	if !ok {
+		return nil, btree.ErrNotFound
+	}
+
+	// TODO: Optimize this
+	buf := bytes.NewBuffer(data)
+
+	var e entity.Event
+	if err := e.Read(buf); err != nil {
+		return nil, err
+	}
+
+	return &e, nil
 }
 
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {

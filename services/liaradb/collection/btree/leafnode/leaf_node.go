@@ -282,11 +282,7 @@ func (ln *LeafNode) RUnlatch() { ln.node.RUnlatch() }
 
 func (ln *LeafNode) SearchRange(k value.Key) iter.Seq[link.RecordLocator] {
 	return func(yield func(link.RecordLocator) bool) {
-		i, ok := ln.searchIndex(k)
-		if !ok {
-			return
-		}
-
+		i := ln.searchIndexRange(k)
 		for _, rid := range ln.childrenRange(i, -1) {
 			if !yield(rid) {
 				return

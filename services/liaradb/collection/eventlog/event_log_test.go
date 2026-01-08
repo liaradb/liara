@@ -150,29 +150,29 @@ func testEventLog_GetAggregate(t *testing.T) {
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
 		ID:            value.NewEventID(),
-		Version:       value.NewVersion(0),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(1),
 		ID:            value.NewEventID(),
 		AggregateID:   aggregateID,
-		Version:       value.NewVersion(0),
+		Version:       value.NewVersion(1),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(2),
 		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(3),
 		ID:            value.NewEventID(),
 		AggregateID:   aggregateID,
-		Version:       value.NewVersion(1),
+		Version:       value.NewVersion(2),
 		Data:          value.NewData([]byte{}),
 	}, {
 		GlobalVersion: value.NewGlobalVersion(4),
 		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
+		Version:       value.NewVersion(3),
 		Data:          value.NewData([]byte{}),
 	}}
 
@@ -183,18 +183,18 @@ func testEventLog_GetAggregate(t *testing.T) {
 		}
 	}
 
-	want := []*entity.Event{records[1], records[3]}
+	want := []entity.Event{*records[1], *records[3]}
 
-	result := make([]*entity.Event, 0)
+	result := make([]entity.Event, 0)
 	for e, err := range el.GetAggregate(ctx, tn, pid, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		result = append(result, e)
+		result = append(result, *e)
 	}
 
-	if !slices.EqualFunc(result, want, func(a, b *entity.Event) bool {
+	if !slices.EqualFunc(result, want, func(a, b entity.Event) bool {
 		return reflect.DeepEqual(a, b)
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
