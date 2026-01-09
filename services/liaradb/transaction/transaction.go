@@ -31,13 +31,19 @@ type Transaction struct {
 	manager        *manager.Manager
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
-	items          []eventItem
-	forceRollback  bool
+	events         []eventItem
+	values         []valueItem
 	keys           set.Set[key.Key]
+	forceRollback  bool
 }
 
 type eventItem struct {
 	e    *entity.Event
+	data []byte
+}
+
+type valueItem struct {
+	r    *entity.Row
 	data []byte
 }
 
@@ -118,8 +124,47 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	t.items = append(t.items, eventItem{
+	t.events = append(t.events, eventItem{
 		e:    e,
+		data: data,
+	})
+
+	t.lsn = lsn
+	return nil
+}
+
+func (t *Transaction) SetValue(
+	ctx context.Context,
+	tn tablename.TableName,
+	now time.Time,
+	r *entity.Row,
+	data []byte,
+) error {
+	// TODO: What happens if we already have the lock?
+	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(r.ID().String())); err != nil {
+		return err
+	}
+
+	// k := key.NewKey2(r.ID().Bytes(), int64(r.Version().Value()))
+	// // Verify this AggregateID and Version is unique in this transaction
+	// if t.keys.Includes(k) {
+	// 	return btree.ErrExists
+	// }
+
+	// t.keys.Add(k)
+
+	// // Verify this AggregateID and Version is unique in Index
+	// if err := t.keyValue.CanAppend(ctx, tn, r.PartitionID(), k); err != nil {
+	// 	return err
+	// }
+
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
+	if err != nil {
+		return err
+	}
+
+	t.values = append(t.values, valueItem{
+		r:    r,
 		data: data,
 	})
 
@@ -193,7 +238,7 @@ func (t *Transaction) appendToEventLog(
 	tn tablename.TableName,
 	pid value.PartitionID,
 ) error {
-	for _, item := range t.items {
+	for _, item := range t.events {
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
 

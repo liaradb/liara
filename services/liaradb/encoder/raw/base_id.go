@@ -25,6 +25,7 @@ func NewBaseIDFromString(value string) (BaseID, error) {
 }
 
 func (i BaseID) String() string { return i.baseUUID.String() }
+func (i BaseID) Bytes() []byte  { return i.baseUUID[:] }
 
 const BaseIDSize = 16
 
