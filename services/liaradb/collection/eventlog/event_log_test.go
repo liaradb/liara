@@ -199,6 +199,8 @@ func testEventLog_GetAggregate(t *testing.T) {
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	synctest.Wait()
 }
 
 func TestEventLog_AppendEvent(t *testing.T) {
