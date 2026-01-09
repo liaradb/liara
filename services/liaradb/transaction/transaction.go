@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
+	"github.com/liaradb/liaradb/collection/schema"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -29,6 +30,7 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
 	manager        *manager.Manager
+	schemaMgr      *schema.Manager
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	events         []eventItem
