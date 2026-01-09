@@ -14,23 +14,20 @@ import (
 )
 
 type EventService struct {
-	transactionContainer TransactionContainer
-	outboxRepository     OutboxRepository
-	requestRepository    RequestRepository
-	txManager            *transaction.Manager
+	outboxRepository  OutboxRepository
+	requestRepository RequestRepository
+	txManager         *transaction.Manager
 }
 
 func NewEventService(
-	transactionRepository TransactionContainer,
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	txManager *transaction.Manager,
 ) *EventService {
 	return &EventService{
-		transactionContainer: transactionRepository,
-		outboxRepository:     outboxRepository,
-		requestRepository:    requestRepository,
-		txManager:            txManager,
+		outboxRepository:  outboxRepository,
+		requestRepository: requestRepository,
+		txManager:         txManager,
 	}
 }
 
@@ -138,19 +135,20 @@ func (es *EventService) appendRequestID(
 	options AppendOptions,
 	e ...AppendEvent,
 ) error {
-	t := time.Now()
-	return es.transactionContainer.Run(ctx, func() error {
-		// TODO: What should this return if requestID is present?
-		if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
-			return err
-		}
+	panic("unimplemented")
+	// t := time.Now()
+	// return es.transactionContainer.Run(ctx, func() error {
+	// 	// TODO: What should this return if requestID is present?
+	// 	if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
+	// 		return err
+	// 	}
 
-		if err := es.appendEvents(ctx, tenantID, options, e...); err != nil {
-			return err
-		}
+	// 	if err := es.appendEvents(ctx, tenantID, options, e...); err != nil {
+	// 		return err
+	// 	}
 
-		return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
-	})
+	// 	return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
+	// })
 }
 
 func (es *EventService) appendEvents(
