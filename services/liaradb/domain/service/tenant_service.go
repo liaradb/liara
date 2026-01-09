@@ -2,8 +2,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"iter"
 
+	key "github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 )
@@ -11,26 +15,18 @@ import (
 type TenantService struct {
 	outboxRepository  OutboxRepository
 	requestRepository RequestRepository
-	tenantRepository  TenantRepository
-}
-
-type TenantRepository interface {
-	Insert(context.Context, *entity.Tenant) error
-	Replace(context.Context, *entity.Tenant) error
-	Delete(context.Context, value.TenantID) error
-	Get(context.Context, value.TenantID) (*entity.Tenant, error)
-	List(context.Context, int, int) iter.Seq2[*entity.Tenant, error]
+	kv                *keyvalue.KeyValue
 }
 
 func NewTenantService(
 	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
-	tenantRepository TenantRepository,
+	kv *keyvalue.KeyValue,
 ) *TenantService {
 	return &TenantService{
 		outboxRepository:  outboxRepository,
 		requestRepository: requestRepository,
-		tenantRepository:  tenantRepository,
+		kv:                kv,
 	}
 }
 
@@ -39,8 +35,27 @@ type CreateTenantCommand struct {
 	TenantName value.TenantName
 }
 
+type TenantModel struct {
+	ID      string `json:"id"`
+	Version int64  `json:"version"`
+	Name    string `json:"name"`
+}
+
+// TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
-	panic("unimplemented")
+	tn := tablename.New("tenants")
+
+	tnt := entity.NewTenant(cmd.TenantID, cmd.TenantName)
+	data, err := json.Marshal(TenantModel{
+		ID:      tnt.ID().String(),
+		Version: int64(tnt.Version().Value()),
+		Name:    tnt.Name().String(),
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return cmd.TenantID, ts.kv.Set(ctx, tn, key.NewKey([]byte(cmd.TenantID)), data)
 	// id := cmd.TenantID.NewIfEmpty()
 	// tenant := entity.NewTenant(id, cmd.TenantName)
 
@@ -98,22 +113,65 @@ type RenameTenantCommand struct {
 }
 
 func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) error {
-	t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
-	if err != nil {
-		return err
-	}
+	panic("unimplemented")
+	// t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err := t.Rename(cmd.TenantName); err != nil {
-		return err
-	}
+	// if err := t.Rename(cmd.TenantName); err != nil {
+	// 	return err
+	// }
 
-	return ts.tenantRepository.Replace(ctx, t)
+	// return ts.tenantRepository.Replace(ctx, t)
 }
 
+// TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	return ts.tenantRepository.Get(ctx, tenantID)
+	tn := tablename.New("tenants")
+
+	k := key.NewKey([]byte(tenantID))
+	data, err := ts.kv.Get(ctx, tn, k)
+	if err != nil {
+		return nil, err
+	}
+
+	m := TenantModel{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		return nil, err
+	}
+
+	return entity.RestoreTenant(
+		value.TenantID(m.ID),
+		value.NewVersion(uint64(m.Version)),
+		value.TenantName(m.Name),
+	), nil
 }
 
+// TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	return ts.tenantRepository.List(ctx, limit, offset)
+	return func(yield func(*entity.Tenant, error) bool) {
+		tn := tablename.New("tenants")
+
+		for data, err := range ts.kv.List(ctx, tn) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			m := TenantModel{}
+			if err := json.Unmarshal(data, &m); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(entity.RestoreTenant(
+				value.TenantID(m.ID),
+				value.NewVersion(uint64(m.Version)),
+				value.TenantName(m.Name),
+			), nil) {
+				return
+			}
+		}
+	}
 }
