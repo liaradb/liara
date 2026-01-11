@@ -19,6 +19,16 @@ const (
 	ActionRemove     Action = 6
 )
 
+const (
+	actionNameCheckpoint = "Checkpoint"
+	actionNameCommit     = "Commit"
+	actionNameRollback   = "Rollback"
+	actionNameInsert     = "Insert"
+	actionNameRemove     = "Remove"
+	actionNameUpdate     = "Update"
+	actionNameUnknown    = "Unknown"
+)
+
 func (Action) Size() int { return ActionSize }
 
 func (a Action) Write(w io.Writer) error {
@@ -32,18 +42,18 @@ func (a *Action) Read(r io.Reader) error {
 func (a Action) String() string {
 	switch a {
 	case ActionCheckpoint:
-		return "Checkpoint"
+		return actionNameCheckpoint
 	case ActionCommit:
-		return "Commit"
+		return actionNameCommit
 	case ActionRollback:
-		return "Rollback"
+		return actionNameRollback
 	case ActionInsert:
-		return "Insert"
+		return actionNameInsert
 	case ActionRemove:
-		return "Remove"
+		return actionNameRemove
 	case ActionUpdate:
-		return "Update"
+		return actionNameUpdate
 	default:
-		return "Unknown"
+		return actionNameUnknown
 	}
 }
