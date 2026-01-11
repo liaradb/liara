@@ -15,3 +15,8 @@ func NewStringColumn(name string, size int) StringColumn {
 func (sc StringColumn) Name() string     { return sc.name }
 func (sc StringColumn) Size() int        { return sc.size }
 func (sc StringColumn) Type() ColumnType { return ColumnTypeString }
+
+// TODO: How do we read this value?
+func (sc StringColumn) Value() string {
+	return ""
+}
