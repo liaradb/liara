@@ -3,10 +3,10 @@ package btree
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -26,7 +26,7 @@ func newInsert(s *storage.Storage) insert {
 func (c *insert) Insert(
 	ctx context.Context,
 	fn link.FileName,
-	k value.Key,
+	k key.Key,
 	rid link.RecordLocator,
 ) error {
 	chain, err := c.getChain(ctx, fn, k)
@@ -73,7 +73,7 @@ func (c *insert) Insert(
 func (c *insert) getChain(
 	ctx context.Context,
 	fn link.FileName,
-	k value.Key,
+	k key.Key,
 ) (*chain, error) {
 	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
@@ -110,22 +110,22 @@ func (c *insert) insertChainLeaf(
 	fn link.FileName,
 	bid link.BlockID,
 	ln *leafnode.LeafNode,
-	k value.Key,
+	k key.Key,
 	rid link.RecordLocator,
-) (link.BlockID, value.Key, bool, error) {
+) (link.BlockID, key.Key, bool, error) {
 	// Does it exist already?
 	if _, ok := ln.Search(k); ok {
-		return link.BlockID{}, value.Key{}, false, ErrExists
+		return link.BlockID{}, key.Key{}, false, ErrExists
 	}
 
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
-		return link.BlockID{}, value.Key{}, false, nil
+		return link.BlockID{}, key.Key{}, false, nil
 	}
 
 	ln2, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, value.Key{}, false, err
+		return link.BlockID{}, key.Key{}, false, err
 	}
 
 	defer ln2.Release()
@@ -135,7 +135,7 @@ func (c *insert) insertChainLeaf(
 
 	ln3, err := c.ns.getLeafNode(ctx, fn.BlockID(ln.RightID()))
 	if err != nil {
-		return link.BlockID{}, value.Key{}, false, err
+		return link.BlockID{}, key.Key{}, false, err
 	}
 
 	defer ln3.Release()
@@ -157,17 +157,17 @@ func (c *insert) insertChainKey(
 	ctx context.Context,
 	fn link.FileName,
 	kn *keynode.KeyNode,
-	k value.Key,
+	k key.Key,
 	block link.FilePosition,
-) (link.BlockID, value.Key, bool, error) {
+) (link.BlockID, key.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return link.BlockID{}, value.Key{}, false, nil
+		return link.BlockID{}, key.Key{}, false, nil
 	}
 
 	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, value.Key{}, false, err
+		return link.BlockID{}, key.Key{}, false, err
 	}
 
 	defer kn2.Release()
@@ -187,7 +187,7 @@ func (c *insert) insertRoot(
 	ctx context.Context,
 	fn link.FileName,
 	level byte,
-	key value.Key,
+	key key.Key,
 	bid link.BlockID,
 ) error {
 	b0, err := c.ns.getBuffer(ctx, fn.BlockID(0))

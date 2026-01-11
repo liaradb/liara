@@ -5,7 +5,7 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
@@ -46,11 +46,11 @@ func TestCursor_Insert__Root(t *testing.T) {
 }
 
 type leafEntry struct {
-	key      value.Key
+	key      key.Key
 	recordID link.RecordLocator
 }
 
-func newLeafEntry(key value.Key, recordID link.RecordLocator) leafEntry {
+func newLeafEntry(key key.Key, recordID link.RecordLocator) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -64,13 +64,13 @@ func testCursor_Insert__Root(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("a")),
+			key.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("b")),
+			key.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.NewKey([]byte("c")),
+			key.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 
@@ -206,7 +206,7 @@ func testCursor_Insert__Existing(t *testing.T) {
 	fn := link.NewFileName("testfile")
 
 	le := newLeafEntry(
-		value.NewKey([]byte("0")),
+		key.NewKey([]byte("0")),
 		link.NewRecordLocator(1, 2))
 
 	if err := NewCursor(s).Insert(ctx, fn, le.key, le.recordID); err != nil {
@@ -276,7 +276,7 @@ func testCursor_SearchRange(t *testing.T) {
 	{
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, fn, value.NewKey([]byte("1")), 1, 3) {
+		for rid, err := range c.SearchRange(ctx, fn, key.NewKey([]byte("1")), 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -359,7 +359,7 @@ func reverseData(data []leafEntry) []leafEntry {
 func reorderData(order []int, data []leafEntry) []leafEntry {
 	data = slices.Clone(data)
 
-	hash := make(map[value.Key]int)
+	hash := make(map[key.Key]int)
 	for i, le := range data {
 		if i >= len(order) {
 			break
@@ -389,31 +389,31 @@ func reorderData(order []int, data []leafEntry) []leafEntry {
 func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("0")),
+			key.NewKey([]byte("0")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("1")),
+			key.NewKey([]byte("1")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.NewKey([]byte("2")),
+			key.NewKey([]byte("2")),
 			link.NewRecordLocator(5, 6)),
 		newLeafEntry(
-			value.NewKey([]byte("3")),
+			key.NewKey([]byte("3")),
 			link.NewRecordLocator(7, 8)),
 		newLeafEntry(
-			value.NewKey([]byte("4")),
+			key.NewKey([]byte("4")),
 			link.NewRecordLocator(9, 10)),
 		newLeafEntry(
-			value.NewKey([]byte("5")),
+			key.NewKey([]byte("5")),
 			link.NewRecordLocator(11, 12)),
 		newLeafEntry(
-			value.NewKey([]byte("6")),
+			key.NewKey([]byte("6")),
 			link.NewRecordLocator(13, 14)),
 		newLeafEntry(
-			value.NewKey([]byte("7")),
+			key.NewKey([]byte("7")),
 			link.NewRecordLocator(15, 16)),
 		newLeafEntry(
-			value.NewKey([]byte("8")),
+			key.NewKey([]byte("8")),
 			link.NewRecordLocator(17, 18)),
 	}
 }

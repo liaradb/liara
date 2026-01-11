@@ -9,7 +9,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	key "github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"

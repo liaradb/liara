@@ -8,7 +8,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
@@ -77,7 +77,7 @@ func createData() map[string][]byte {
 
 func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data map[string][]byte) error {
 	for k, v := range data {
-		if err := kv.Set(ctx, n, value.NewKey([]byte(k)), v); err != nil {
+		if err := kv.Set(ctx, n, key.NewKey([]byte(k)), v); err != nil {
 			return err
 		}
 	}
@@ -86,7 +86,7 @@ func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data m
 
 func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableName, data map[string][]byte) {
 	for k, v := range data {
-		value, err := kv.Get(ctx, n, value.NewKey([]byte(k)))
+		value, err := kv.Get(ctx, n, key.NewKey([]byte(k)))
 		if err != nil {
 			t.Fatal(k, err)
 		}
@@ -127,13 +127,13 @@ func getListValues(ctx context.Context, data map[string][]byte, kv *KeyValue, n 
 
 func createSortedValues(data map[string][]byte) []string {
 	type tuple struct {
-		key   value.Key
+		key   key.Key
 		value []byte
 	}
 
 	tuples := make([]tuple, 0, len(data))
 	for k, v := range data {
-		tuples = append(tuples, tuple{value.NewKey([]byte(k)), v})
+		tuples = append(tuples, tuple{key.NewKey([]byte(k)), v})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())

@@ -7,7 +7,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
@@ -25,7 +25,7 @@ func testManager(t *testing.T) {
 	want := createValues(data)
 
 	for _, d := range data {
-		if err := m.Insert(t.Context(), value.NewKey([]byte(d.key)), d.value); err != nil {
+		if err := m.Insert(t.Context(), key.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -39,7 +39,7 @@ func testManager(t *testing.T) {
 func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), value.NewKey([]byte(d.key)))
+		v, err := m.Get(t.Context(), key.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
@@ -28,10 +28,10 @@ func testLeafNode_Child(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("abcde")),
+			key.NewKey([]byte("abcde")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("fghij")),
+			key.NewKey([]byte("fghij")),
 			link.NewRecordLocator(3, 4)),
 	}
 
@@ -77,10 +77,10 @@ func testLeafNode_Children(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("abcde")),
+			key.NewKey([]byte("abcde")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("fghij")),
+			key.NewKey([]byte("fghij")),
 			link.NewRecordLocator(3, 4)),
 	}
 
@@ -121,13 +121,13 @@ func testLeafNode_Insert(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("a")),
+			key.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("b")),
+			key.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.NewKey([]byte("c")),
+			key.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 
@@ -209,13 +209,13 @@ func testLeafNode_Insert__Split(t *testing.T) {
 
 	data := []leafEntry{
 		newLeafEntry(
-			value.NewKey([]byte("a")),
+			key.NewKey([]byte("a")),
 			link.NewRecordLocator(1, 2)),
 		newLeafEntry(
-			value.NewKey([]byte("b")),
+			key.NewKey([]byte("b")),
 			link.NewRecordLocator(3, 4)),
 		newLeafEntry(
-			value.NewKey([]byte("c")),
+			key.NewKey([]byte("c")),
 			link.NewRecordLocator(5, 6)),
 	}
 

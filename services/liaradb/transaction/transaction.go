@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	key "github.com/liaradb/liaradb/collection/btree/value" // TODO: Fix this name
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"

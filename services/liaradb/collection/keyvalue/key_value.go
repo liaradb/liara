@@ -6,7 +6,7 @@ import (
 	"slices"
 
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/btree/value"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	domain "github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -29,7 +29,7 @@ func New(s *storage.Storage, c *btree.Cursor) *KeyValue {
 }
 
 // TODO: Use io.Reader?
-func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key value.Key) ([]byte, error) {
+func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key key.Key) ([]byte, error) {
 	fnIdx := tn.Index(0, domain.NewPartitionID(0))
 	rid, err := kv.c.Search(ctx, fnIdx, key)
 	if err != nil {
@@ -78,7 +78,7 @@ func (kv *KeyValue) getItem(ctx context.Context, tn tablename.TableName, rid lin
 }
 
 // TODO: Use io.Writer?
-func (kv *KeyValue) Set(ctx context.Context, tn tablename.TableName, key value.Key, v []byte) error {
+func (kv *KeyValue) Set(ctx context.Context, tn tablename.TableName, key key.Key, v []byte) error {
 	fn := tn.KeyValue(domain.NewPartitionID(0))
 	crc := page.NewCRC(v)
 

@@ -1,4 +1,4 @@
-package value
+package key
 
 import "github.com/liaradb/liaradb/encoder/scan"
 

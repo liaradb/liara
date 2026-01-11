@@ -3,8 +3,8 @@ package keynode
 import (
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/btree/value"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -12,7 +12,7 @@ type KeyNode struct {
 	node node.Node
 }
 
-type Iterator = iter.Seq2[value.Key, link.FilePosition]
+type Iterator = iter.Seq2[key.Key, link.FilePosition]
 
 func New(page node.Node) *KeyNode {
 	return &KeyNode{
@@ -21,7 +21,7 @@ func New(page node.Node) *KeyNode {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Append(key value.Key, block link.FilePosition) (int16, bool) {
+func (kn *KeyNode) Append(key key.Key, block link.FilePosition) (int16, bool) {
 	ke := newKeyEntry(key, block)
 	i, b, ok := kn.node.Append(int16(ke.Size()))
 	if !ok {
@@ -34,7 +34,7 @@ func (kn *KeyNode) Append(key value.Key, block link.FilePosition) (int16, bool) 
 	return i, true
 }
 
-func (kn *KeyNode) Insert(key value.Key, block link.FilePosition) (Iterator, Iterator, bool) {
+func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
@@ -66,7 +66,7 @@ func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(0, mid)
 	}
 
-	return func(yield func(value.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.FilePosition) bool) {
 		if i == 0 {
 			if !yield(ke.Key(), ke.Block()) {
 				return
@@ -95,7 +95,7 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 		return kn.childrenRange(mid, -1)
 	}
 
-	return func(yield func(value.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.FilePosition) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(ke.Key(), ke.Block()) {
@@ -121,8 +121,8 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Fill(l byte, entries Iterator) value.Key {
-	var k value.Key
+func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
+	var k key.Key
 	first := true
 	for key, block := range entries {
 		if first {
@@ -158,7 +158,7 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 }
 
 // TODO: Test this
-func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 value.Key, block1 link.FilePosition) bool {
+func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
 	// This should always have a child
 	// TODO: Will this always be the lower key?
 	key0, _, _ := kn.Child(0)
@@ -176,7 +176,7 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 value.Key,
 }
 
 func (kn *KeyNode) Children() Iterator {
-	return func(yield func(value.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.FilePosition) bool) {
 		for b := range kn.node.Children() {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -188,10 +188,10 @@ func (kn *KeyNode) Children() Iterator {
 }
 
 // TODO: Test this
-func (kn *KeyNode) Child(i int16) (value.Key, link.FilePosition, bool) {
+func (kn *KeyNode) Child(i int16) (key.Key, link.FilePosition, bool) {
 	b, ok := kn.node.Child(i)
 	if !ok {
-		return value.Key{}, 0, false
+		return key.Key{}, 0, false
 	}
 
 	ke := keyEntry{}
@@ -200,7 +200,7 @@ func (kn *KeyNode) Child(i int16) (value.Key, link.FilePosition, bool) {
 }
 
 func (kn *KeyNode) childrenRange(start, end int16) Iterator {
-	return func(yield func(value.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.FilePosition) bool) {
 		for b := range kn.node.ChildrenRange(start, end) {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -211,7 +211,7 @@ func (kn *KeyNode) childrenRange(start, end int16) Iterator {
 	}
 }
 
-func (kn *KeyNode) Search(k value.Key) link.FilePosition {
+func (kn *KeyNode) Search(k key.Key) link.FilePosition {
 	var p link.FilePosition
 	first := true
 	for key, block := range kn.Children() {
@@ -229,7 +229,7 @@ func (kn *KeyNode) Search(k value.Key) link.FilePosition {
 	return p
 }
 
-func (kn *KeyNode) searchIndex(k value.Key) int16 {
+func (kn *KeyNode) searchIndex(k key.Key) int16 {
 	var i int16 = 0
 	for key := range kn.Children() {
 		if k.LessEqual(key) {
