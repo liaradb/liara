@@ -118,9 +118,14 @@ func (esc *EventSourceController) GetByOutbox(
 	request *pb.GetByOutboxRequest,
 	stream pb.EventSourceService_GetByOutboxServer,
 ) error {
+	oid, err := value.NewOutboxIDFromString(request.OutboxId)
+	if err != nil {
+		return err
+	}
+
 	for row, err := range esc.eventService.GetByOutbox(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.OutboxID(request.OutboxId),
+		oid,
 		value.Limit(request.Limit)) {
 		if err != nil {
 			return err
@@ -137,16 +142,21 @@ func (esc *EventSourceController) CreateOutbox(
 	ctx context.Context,
 	request *pb.CreateOutboxRequest,
 ) (*pb.CreateOutboxResponse, error) {
+	oid, err := value.NewOutboxIDFromString(request.OutboxId)
+	if err != nil {
+		return nil, err
+	}
+
 	outboxID, err := esc.eventService.CreateOutbox(ctx,
 		value.TenantID(request.TenantId),
-		value.OutboxID(request.OutboxId),
+		oid,
 		dtoToPartitionRange(request.PartitionId))
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.CreateOutboxResponse{
-		OutboxId: string(outboxID),
+		OutboxId: outboxID.String(),
 	}, nil
 }
 
@@ -154,9 +164,14 @@ func (esc *EventSourceController) GetOutbox(
 	ctx context.Context,
 	request *pb.GetOutboxRequest,
 ) (*pb.GetOutboxResponse, error) {
+	oid, err := value.NewOutboxIDFromString(request.OutboxId)
+	if err != nil {
+		return nil, err
+	}
+
 	result, err := esc.eventService.GetOutbox(ctx,
 		value.TenantID(request.TenantId),
-		value.OutboxID(request.OutboxId))
+		oid)
 	if err != nil {
 		return nil, err
 	}
@@ -172,11 +187,15 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	ctx context.Context,
 	request *pb.UpdateOutboxPositionRequest,
 ) (*pb.UpdateOutboxPositionResponse, error) {
-	err := esc.eventService.UpdateOutboxPosition(ctx,
-		value.TenantID(request.TenantId),
-		value.OutboxID(request.OutboxId),
-		value.NewGlobalVersion(uint64(request.GlobalVersion)))
+	oid, err := value.NewOutboxIDFromString(request.OutboxId)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := esc.eventService.UpdateOutboxPosition(ctx,
+		value.TenantID(request.TenantId),
+		oid,
+		value.NewGlobalVersion(uint64(request.GlobalVersion))); err != nil {
 		return nil, err
 	}
 

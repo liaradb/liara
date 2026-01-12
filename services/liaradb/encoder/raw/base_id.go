@@ -50,3 +50,13 @@ func (i *BaseID) Read(r io.Reader) error {
 
 	return nil
 }
+
+func (b BaseID) WriteData(data []byte) []byte {
+	copy(data[:16], b.baseUUID[:])
+	return data[16:]
+}
+
+func (b *BaseID) ReadData(data []byte) []byte {
+	copy(b.baseUUID[:], data[:16])
+	return data[16:]
+}

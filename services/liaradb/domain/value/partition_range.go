@@ -1,5 +1,7 @@
 package value
 
+const PartitionRangeSize = PartitionIDSize + PartitionIDSize
+
 type PartitionRange struct {
 	low  PartitionID
 	high PartitionID
