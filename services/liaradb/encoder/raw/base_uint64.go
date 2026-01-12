@@ -3,6 +3,8 @@ package raw
 import (
 	"fmt"
 	"io"
+
+	"github.com/liaradb/liaradb/encoder/scan"
 )
 
 type BaseUint64 uint64
@@ -23,4 +25,14 @@ func (b BaseUint64) Write(w io.Writer) error {
 
 func (b *BaseUint64) Read(r io.Reader) error {
 	return ReadInt64(r, b)
+}
+
+func (b BaseUint64) WriteData(data []byte) []byte {
+	return scan.SetUint64(data, b.Value())
+}
+
+func (b *BaseUint64) ReadData(data []byte) []byte {
+	v, data0 := scan.Uint64(data)
+	*b = BaseUint64(v)
+	return data0
 }

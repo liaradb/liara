@@ -3,6 +3,8 @@ package raw
 import (
 	"fmt"
 	"io"
+
+	"github.com/liaradb/liaradb/encoder/scan"
 )
 
 type BaseUint32 uint32
@@ -23,4 +25,14 @@ func (b BaseUint32) Write(w io.Writer) error {
 
 func (b *BaseUint32) Read(r io.Reader) error {
 	return ReadInt32(r, b)
+}
+
+func (b BaseUint32) WriteData(data []byte) []byte {
+	return scan.SetUint32(data, b.Value())
+}
+
+func (b *BaseUint32) ReadData(data []byte) []byte {
+	v, data0 := scan.Uint32(data)
+	*b = BaseUint32(v)
+	return data0
 }

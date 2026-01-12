@@ -35,3 +35,27 @@ func TestBaseUint32_String(t *testing.T) {
 		})
 	}
 }
+
+func TestBaseUIn32__Remainder(t *testing.T) {
+	t.Parallel()
+
+	b := NewBaseUint32(2)
+
+	data := make([]byte, 8)
+	data0 := b.WriteData(data)
+
+	if l := len(data0); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	b0 := BaseUint32(0)
+	data1 := b0.ReadData(data)
+
+	if l := len(data1); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	if v := b0.Value(); v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
+	}
+}
