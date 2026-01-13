@@ -279,16 +279,21 @@ func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) e
 func (t *Transaction) GetOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
-	key key.Key,
+	oid value.OutboxID,
 ) (*entity.Outbox, error) {
-	return t.outbox.Get(ctx, tn, key)
+	return t.outbox.Get(ctx, tn, oid)
 }
 
 func (t *Transaction) SetOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
-	key key.Key,
+	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	return t.outbox.Set(ctx, tn, key, e)
+	// TODO: What happens if we already have the lock?
+	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(oid.String())); err != nil {
+		return err
+	}
+
+	return t.outbox.Set(ctx, tn, oid, e)
 }

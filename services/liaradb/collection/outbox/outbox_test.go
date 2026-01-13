@@ -24,7 +24,7 @@ func testOutbox(t *testing.T) {
 	ctx := t.Context()
 	// TODO: This is flaky on insert when buffer count is 5
 	// s := storagetesting.CreateStorage(t, 5, 84)
-	s := storagetesting.CreateStorage(t, 6, 84)
+	s := storagetesting.CreateStorage(t, 7, 110)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.New("testfile")
 
@@ -78,8 +78,8 @@ func createData() map[string]*entity.Outbox {
 }
 
 func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[string]*entity.Outbox) error {
-	for k, v := range data {
-		if err := o.Set(ctx, n, key.NewKey([]byte(k)), v); err != nil {
+	for _, v := range data {
+		if err := o.Set(ctx, n, v.ID(), v); err != nil {
 			return err
 		}
 	}
@@ -88,7 +88,7 @@ func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[
 
 func testGet(ctx context.Context, t *testing.T, kv *Outbox, n tablename.TableName, data map[string]*entity.Outbox) {
 	for k, v := range data {
-		value, err := kv.Get(ctx, n, key.NewKey([]byte(k)))
+		value, err := kv.Get(ctx, n, v.ID())
 		if err != nil {
 			t.Fatal(k, err)
 		}
@@ -132,8 +132,8 @@ func createSortedValues(data map[string]*entity.Outbox) []entity.Outbox {
 	}
 
 	tuples := make([]tuple, 0, len(data))
-	for k, v := range data {
-		tuples = append(tuples, tuple{key.NewKey([]byte(k)), v})
+	for _, v := range data {
+		tuples = append(tuples, tuple{key.NewKey(v.ID().Bytes()), v})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())

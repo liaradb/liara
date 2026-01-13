@@ -6,7 +6,6 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -272,7 +271,7 @@ func (es *EventService) CreateOutbox(
 	tx := es.txManager.Next()
 	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
 		outbox := entity.NewOutbox(outboxID, partitionRange)
-		return tx.SetOutbox(ctx, tn, key.NewKey(outboxID.Bytes()), outbox)
+		return tx.SetOutbox(ctx, tn, outboxID, outbox)
 	})
 	return outboxID, err
 }
@@ -287,7 +286,7 @@ func (es *EventService) GetOutbox(
 	var e *entity.Outbox
 	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
 		var err error
-		e, err = tx.GetOutbox(ctx, tn, key.NewKey(outboxID.Bytes()))
+		e, err = tx.GetOutbox(ctx, tn, outboxID)
 		return err
 	})
 	return e, err

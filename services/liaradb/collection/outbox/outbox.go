@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/value"
 	domain "github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
@@ -28,9 +29,14 @@ func New(storage *storage.Storage, cursor *btree.Cursor) *Outbox {
 }
 
 // TODO: Use io.Reader?
-func (o *Outbox) Get(ctx context.Context, tn tablename.TableName, key key.Key) (*entity.Outbox, error) {
+func (o *Outbox) Get(
+	ctx context.Context,
+	tn tablename.TableName,
+	oid value.OutboxID,
+) (*entity.Outbox, error) {
+	k := key.NewKey(oid.Bytes())
 	fnIdx := tn.Index(0, domain.NewPartitionID(0))
-	rid, err := o.c.Search(ctx, fnIdx, key)
+	rid, err := o.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
 	}
@@ -79,8 +85,14 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 }
 
 // TODO: Use io.Writer?
-func (o *Outbox) Set(ctx context.Context, tn tablename.TableName, key key.Key, e *entity.Outbox) error {
+func (o *Outbox) Set(
+	ctx context.Context,
+	tn tablename.TableName,
+	oid value.OutboxID,
+	e *entity.Outbox,
+) error {
 	fn := tn.Outbox(domain.NewPartitionID(0))
+	k := key.NewKey(oid.Bytes())
 
 	v := make([]byte, entity.OutboxSize)
 	_ = e.Write(v)
@@ -99,7 +111,7 @@ func (o *Outbox) Set(ctx context.Context, tn tablename.TableName, key key.Key, e
 	}
 
 	fnIdx := tn.Index(0, domain.NewPartitionID(0))
-	return o.c.Insert(ctx, fnIdx, key, rid)
+	return o.c.Insert(ctx, fnIdx, k, rid)
 }
 
 func (o *Outbox) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
