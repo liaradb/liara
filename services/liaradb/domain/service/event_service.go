@@ -6,6 +6,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -267,9 +268,13 @@ func (es *EventService) CreateOutbox(
 	outboxID value.OutboxID,
 	partitionRange value.PartitionRange,
 ) (value.OutboxID, error) {
-	outbox := entity.NewOutbox(outboxID, partitionRange)
-	err := es.outboxRepository.CreateOutbox(ctx, tenantID, outbox)
-	return outbox.ID(), err
+	tn := tablename.New(tenantID)
+	tx := es.txManager.Next()
+	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
+		outbox := entity.NewOutbox(outboxID, partitionRange)
+		return tx.SetOutbox(ctx, tn, key.NewKey(outboxID.Bytes()), outbox)
+	})
+	return outboxID, err
 }
 
 func (es *EventService) GetOutbox(
@@ -277,7 +282,15 @@ func (es *EventService) GetOutbox(
 	tenantID value.TenantID,
 	outboxID value.OutboxID,
 ) (*entity.Outbox, error) {
-	return es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
+	tn := tablename.New(tenantID)
+	tx := es.txManager.Next()
+	var e *entity.Outbox
+	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
+		var err error
+		e, err = tx.GetOutbox(ctx, tn, key.NewKey(outboxID.Bytes()))
+		return err
+	})
+	return e, err
 }
 
 func (es *EventService) UpdateOutboxPosition(

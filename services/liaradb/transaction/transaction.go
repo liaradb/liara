@@ -275,3 +275,20 @@ func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) e
 	// TODO: Is this correct?
 	return t.log.Flush(ctx, lsn)
 }
+
+func (t *Transaction) GetOutbox(
+	ctx context.Context,
+	tn tablename.TableName,
+	key key.Key,
+) (*entity.Outbox, error) {
+	return t.outbox.Get(ctx, tn, key)
+}
+
+func (t *Transaction) SetOutbox(
+	ctx context.Context,
+	tn tablename.TableName,
+	key key.Key,
+	e *entity.Outbox,
+) error {
+	return t.outbox.Set(ctx, tn, key, e)
+}
