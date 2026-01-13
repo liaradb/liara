@@ -10,6 +10,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -61,21 +63,21 @@ func testOutbox__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string][]byte {
-	return map[string][]byte{
-		"1": []byte("a"),
-		"2": []byte("b"),
-		"3": []byte("c"),
-		"4": []byte("d"),
-		"5": []byte("e"),
-		"6": []byte("f"),
-		"7": []byte("g"),
-		"8": []byte("h"),
-		"9": []byte("i"),
+func createData() map[string]*entity.Outbox {
+	return map[string]*entity.Outbox{
+		"1": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"2": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"3": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"4": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"5": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"6": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"7": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"8": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"9": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
 	}
 }
 
-func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[string][]byte) error {
+func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[string]*entity.Outbox) error {
 	for k, v := range data {
 		if err := o.Set(ctx, n, key.NewKey([]byte(k)), v); err != nil {
 			return err
@@ -84,22 +86,20 @@ func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *Outbox, n tablename.TableName, data map[string][]byte) {
+func testGet(ctx context.Context, t *testing.T, kv *Outbox, n tablename.TableName, data map[string]*entity.Outbox) {
 	for k, v := range data {
 		value, err := kv.Get(ctx, n, key.NewKey([]byte(k)))
 		if err != nil {
 			t.Fatal(k, err)
 		}
 
-		want := string(v)
-		result := string(value)
-		if result != want {
-			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		if *value != *v {
+			t.Errorf("incorrect result: %v, expected: %v", *value, *v)
 		}
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data map[string][]byte, o *Outbox, n tablename.TableName) {
+func testList(ctx context.Context, t *testing.T, data map[string]*entity.Outbox, o *Outbox, n tablename.TableName) {
 	result, err := getListValues(ctx, data, o, n)
 	if err != nil {
 		t.Fatal(err)
@@ -111,24 +111,24 @@ func testList(ctx context.Context, t *testing.T, data map[string][]byte, o *Outb
 	}
 }
 
-func getListValues(ctx context.Context, data map[string][]byte, o *Outbox, n tablename.TableName) ([]string, error) {
-	result := make([]string, 0, len(data))
+func getListValues(ctx context.Context, data map[string]*entity.Outbox, o *Outbox, n tablename.TableName) ([]entity.Outbox, error) {
+	result := make([]entity.Outbox, 0, len(data))
 	i := 0
 	for value, err := range o.List(ctx, n) {
 		if err != nil {
 			return nil, err
 		}
 
-		result = append(result, string(value))
+		result = append(result, *value)
 		i++
 	}
 	return result, nil
 }
 
-func createSortedValues(data map[string][]byte) []string {
+func createSortedValues(data map[string]*entity.Outbox) []entity.Outbox {
 	type tuple struct {
 		key   key.Key
-		value []byte
+		value *entity.Outbox
 	}
 
 	tuples := make([]tuple, 0, len(data))
@@ -138,9 +138,9 @@ func createSortedValues(data map[string][]byte) []string {
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())
 	})
-	want := make([]string, 0, len(data))
+	want := make([]entity.Outbox, 0, len(data))
 	for _, t := range tuples {
-		want = append(want, string(t.value))
+		want = append(want, *t.value)
 	}
 	return want
 }

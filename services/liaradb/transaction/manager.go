@@ -5,6 +5,7 @@ import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
+	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -18,6 +19,7 @@ type Manager struct {
 	manager       *manager.Manager
 	eventLog      *eventlog.EventLog
 	keyValue      *keyvalue.KeyValue
+	outbox        *outbox.Outbox
 	lockTable     *locktable.LockTable[action.ItemID]
 	transactionID record.TransactionID
 }
@@ -35,6 +37,7 @@ func NewManager(
 		manager:   manager.New(kv),
 		eventLog:  eventlog.New(storage, cursor),
 		keyValue:  kv,
+		outbox:    outbox.New(storage, cursor),
 		lockTable: lockTable,
 	}
 }
@@ -49,5 +52,6 @@ func (m *Manager) Next() *Transaction {
 		m.manager,
 		m.eventLog,
 		m.keyValue,
+		m.outbox,
 	)
 }

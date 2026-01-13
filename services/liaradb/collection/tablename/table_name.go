@@ -36,6 +36,10 @@ func (tn *TableName) EventLog(pid value.PartitionID) link.FileName {
 	return link.NewFileName(fmt.Sprintf("%v--%v.el", tn, pid))
 }
 
+func (tn *TableName) Outbox(pid value.PartitionID) link.FileName {
+	return link.NewFileName(fmt.Sprintf("%v--%v.out", tn, pid))
+}
+
 func (tn *TableName) Index(i raw.BaseUint32, pid value.PartitionID) link.FileName {
 	return link.NewFileName(fmt.Sprintf("%v--%v--%v.idx", tn, i, pid))
 }

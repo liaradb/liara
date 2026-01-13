@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
+	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/schema"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -33,6 +34,7 @@ type Transaction struct {
 	schemaMgr      *schema.Manager
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
+	outbox         *outbox.Outbox
 	events         []eventItem
 	values         []valueItem
 	keys           set.Set[key.Key]
@@ -57,6 +59,7 @@ func newTransaction(
 	manager *manager.Manager,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
+	outbox *outbox.Outbox,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
@@ -66,6 +69,7 @@ func newTransaction(
 		manager:        manager,
 		eventLog:       eventLog,
 		keyValue:       keyValue,
+		outbox:         outbox,
 		keys:           set.Set[key.Key]{},
 	}
 }

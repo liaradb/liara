@@ -3,11 +3,11 @@ package outbox
 import (
 	"context"
 	"iter"
-	"slices"
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/entity"
 	domain "github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
@@ -28,7 +28,7 @@ func New(storage *storage.Storage, cursor *btree.Cursor) *Outbox {
 }
 
 // TODO: Use io.Reader?
-func (o *Outbox) Get(ctx context.Context, tn tablename.TableName, key key.Key) ([]byte, error) {
+func (o *Outbox) Get(ctx context.Context, tn tablename.TableName, key key.Key) (*entity.Outbox, error) {
 	fnIdx := tn.Index(0, domain.NewPartitionID(0))
 	rid, err := o.c.Search(ctx, fnIdx, key)
 	if err != nil {
@@ -39,8 +39,8 @@ func (o *Outbox) Get(ctx context.Context, tn tablename.TableName, key key.Key) (
 }
 
 // TODO: Test this
-func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
+func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Outbox, error] {
+	return func(yield func(*entity.Outbox, error) bool) {
 		fnIdx := tn.Index(0, domain.NewPartitionID(0))
 		for rid, err := range o.c.All(ctx, fnIdx, 0, 0) {
 			if err != nil {
@@ -56,8 +56,8 @@ func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[[]b
 	}
 }
 
-func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) ([]byte, error) {
-	bid := tn.KeyValue(domain.NewPartitionID(0)).BlockID(rid.Block())
+func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) (*entity.Outbox, error) {
+	bid := tn.Outbox(domain.NewPartitionID(0)).BlockID(rid.Block())
 	b, err := o.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
@@ -73,12 +73,17 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 	}
 
 	// TODO: Should we clone?
-	return slices.Clone(d), nil
+	e := &entity.Outbox{}
+	_ = e.Read(d)
+	return e, nil
 }
 
 // TODO: Use io.Writer?
-func (o *Outbox) Set(ctx context.Context, tn tablename.TableName, key key.Key, v []byte) error {
-	fn := tn.KeyValue(domain.NewPartitionID(0))
+func (o *Outbox) Set(ctx context.Context, tn tablename.TableName, key key.Key, e *entity.Outbox) error {
+	fn := tn.Outbox(domain.NewPartitionID(0))
+
+	v := make([]byte, entity.OutboxSize)
+	_ = e.Write(v)
 	crc := page.NewCRC(v)
 
 	rid, ok, err := o.setCurrent(ctx, fn, v, crc)
