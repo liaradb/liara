@@ -81,6 +81,7 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 ) error {
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
 		value.TenantID(request.TenantId),
+		value.NewPartitionID(0), // TODO: Change this to parameter
 		value.NewAggregateID(request.AggregateId),
 		value.NewAggregateName(request.Name)) {
 		if err != nil {

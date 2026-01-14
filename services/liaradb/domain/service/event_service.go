@@ -230,10 +230,25 @@ func (es *EventService) Get(
 func (es *EventService) GetByAggregateIDAndName(
 	ctx context.Context,
 	tenantID value.TenantID,
+	partitionID value.PartitionID,
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[entity.Event, error] {
-	panic("unimplemented")
+	return func(yield func(entity.Event, error) bool) {
+		tn := tablename.New(tenantID)
+		tx := es.txManager.Next()
+		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
+			if err != nil {
+				yield(entity.Event{}, err)
+				return
+			}
+
+			// TODO: Move this to another layer
+			if e.AggregateName == name && !yield(*e, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (es *EventService) GetAfterGlobalVersion(
