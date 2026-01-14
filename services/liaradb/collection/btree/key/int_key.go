@@ -1,21 +1,12 @@
 package key
 
-import (
-	"fmt"
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/raw"
-)
+import "fmt"
 
 type intKey int64
 
-func (k intKey) String() string {
-	return fmt.Sprintf("%v", rune(k))
-}
-
-func (k intKey) Value() int64 {
-	return int64(k)
-}
+func (k intKey) Size() int      { return 8 }
+func (k intKey) String() string { return fmt.Sprintf("%v", rune(k)) }
+func (k intKey) Value() int64   { return int64(k) }
 
 func (k intKey) Equal(o any) bool {
 	b, ok := o.(intKey)
@@ -61,8 +52,3 @@ func (k intKey) LessEqual(o any) bool {
 
 	return k <= b
 }
-
-// TODO: Test this
-func (k intKey) Size() int               { return 8 }
-func (k intKey) Write(w io.Writer) error { return raw.WriteInt64(w, k) }
-func (k *intKey) Read(r io.Reader) error { return raw.ReadInt64(r, k) }

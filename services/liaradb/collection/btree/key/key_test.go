@@ -119,6 +119,34 @@ func TestKey(t *testing.T) {
 	}
 }
 
+func TestKey_Size(t *testing.T) {
+	for message, c := range map[string]struct {
+		skip bool
+		k    Key
+		size int
+	}{
+		"should handle default": {
+			k:    NewKey2(nil, 0),
+			size: 8,
+		},
+		"should handle values": {
+			k:    NewKey([]byte("abcdef")),
+			size: 14,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			if s := c.k.Size(); s != c.size {
+				t.Errorf("%v: incorrect size: %v, expected: %v", message, s, c.size)
+			}
+		})
+	}
+}
+
 func TestKey_String(t *testing.T) {
 	a := "a"
 	b := 2

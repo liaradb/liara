@@ -19,17 +19,8 @@ func NewKey2(a []byte, b int64) Key {
 	return Key{A: stringKey(a), B: intKey(b)}
 }
 
-func (k Key) String() string {
-	return fmt.Sprintf("%v%v", k.A, k.B)
-}
-
-func (k Key) Size() int {
-	return k.A.Size() + k.B.Size()
-}
-
-func (k Key) Value() []byte {
-	return k.A.Value()
-}
+func (k Key) Size() int      { return k.A.Size() + k.B.Size() }
+func (k Key) String() string { return fmt.Sprintf("%v%v", k.A, k.B) }
 
 func (k Key) Equal(o any) bool {
 	b, ok := o.(Key)
