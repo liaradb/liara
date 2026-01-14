@@ -108,52 +108,10 @@ func (es *EventService) Append(
 		}
 	}
 
-	if options.RequestID == "" {
-		return es.appendNoRequestID(ctx, tenantID, options, pid, e...)
-	}
-
-	return es.appendRequestID(ctx, tenantID, options, e...)
+	return es.append(ctx, tenantID, options, pid, e...)
 }
 
-func (es *EventService) appendNoRequestID(
-	ctx context.Context,
-	tenantID value.TenantID,
-	options AppendOptions,
-	pid value.PartitionID,
-	e ...AppendEvent,
-) error {
-	// if len(e) == 1 {
-	return es.appendEvents(ctx, tenantID, options, pid, e...)
-	// }
-
-	// return es.transactionContainer.Run(ctx, func() error {
-	// 	return es.appendEvents(ctx, tenantID, options, e...)
-	// })
-}
-
-func (es *EventService) appendRequestID(
-	ctx context.Context,
-	tenantID value.TenantID,
-	options AppendOptions,
-	e ...AppendEvent,
-) error {
-	panic("unimplemented")
-	// t := time.Now()
-	// return es.transactionContainer.Run(ctx, func() error {
-	// 	// TODO: What should this return if requestID is present?
-	// 	if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
-	// 		return err
-	// 	}
-
-	// 	if err := es.appendEvents(ctx, tenantID, options, e...); err != nil {
-	// 		return err
-	// 	}
-
-	// 	return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
-	// })
-}
-
-func (es *EventService) appendEvents(
+func (es *EventService) append(
 	ctx context.Context,
 	tenantID value.TenantID,
 	options AppendOptions,
@@ -169,6 +127,14 @@ func (es *EventService) appendEvents(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, tn, pid, now, func() error {
+		if options.RequestID != "" {
+			// Verify idempotency
+			// 	// TODO: What should this return if requestID is present?
+			// 	if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
+			// 		return err
+			// 	}
+		}
+
 		buf := bytes.NewBuffer(nil)
 
 		for _, em := range evs {
@@ -184,6 +150,11 @@ func (es *EventService) appendEvents(
 			if err := tx.Insert(ctx, tn, now, &e, buf.Bytes()); err != nil {
 				return err
 			}
+		}
+
+		if options.RequestID != "" {
+			// TODO: Do we want to store this if the transaction doesn't complete?
+			// 	return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
 		}
 
 		return nil
