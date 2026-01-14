@@ -8,7 +8,6 @@ import (
 
 type stringKey string
 
-// TODO: Test this
 func (k stringKey) String() string {
 	return string(k)
 }

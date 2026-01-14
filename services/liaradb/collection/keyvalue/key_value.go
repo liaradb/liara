@@ -39,7 +39,6 @@ func (kv *KeyValue) Get(ctx context.Context, tn tablename.TableName, key key.Key
 	return kv.getItem(ctx, tn, rid)
 }
 
-// TODO: Test this
 func (kv *KeyValue) List(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		fnIdx := tn.Index(0, value.NewPartitionID(0))

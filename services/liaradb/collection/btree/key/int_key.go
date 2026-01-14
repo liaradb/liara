@@ -1,6 +1,7 @@
 package key
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -8,9 +9,8 @@ import (
 
 type intKey int64
 
-// TODO: Test this
 func (k intKey) String() string {
-	return string(rune(k))
+	return fmt.Sprintf("%v", rune(k))
 }
 
 func (k intKey) Value() int64 {

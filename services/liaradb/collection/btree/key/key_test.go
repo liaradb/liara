@@ -118,3 +118,15 @@ func TestKey(t *testing.T) {
 		})
 	}
 }
+
+func TestKey_String(t *testing.T) {
+	a := "a"
+	b := 2
+	k := NewKey2([]byte(a), int64(b))
+
+	want := "a2"
+
+	if s := k.String(); s != want {
+		t.Errorf("incorrect string: %v, expected: %v", s, want)
+	}
+}

@@ -1,6 +1,10 @@
 package key
 
-import "github.com/liaradb/liaradb/encoder/scan"
+import (
+	"fmt"
+
+	"github.com/liaradb/liaradb/encoder/scan"
+)
 
 type Key struct {
 	A stringKey
@@ -15,9 +19,8 @@ func NewKey2(a []byte, b int64) Key {
 	return Key{A: stringKey(a), B: intKey(b)}
 }
 
-// TODO: Test this
 func (k Key) String() string {
-	return k.A.String() + k.B.String()
+	return fmt.Sprintf("%v%v", k.A, k.B)
 }
 
 func (k Key) Size() int {

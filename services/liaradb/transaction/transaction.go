@@ -84,7 +84,6 @@ func (t *Transaction) GetAggregate(
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		// TODO: What happens if we already have the lock?
 		if err := t.concurrencyMgr.SLock(ctx, action.ItemID(id.String())); err != nil {
 			yield(nil, err)
 			return
@@ -107,7 +106,6 @@ func (t *Transaction) Events(
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		// Should we lock?
-		// // TODO: What happens if we already have the lock?
 		// if err := t.concurrencyMgr.SLock(ctx, action.ItemID(id.String())); err != nil {
 		// 	yield(nil, err)
 		// 	return
@@ -130,7 +128,6 @@ func (t *Transaction) Insert(
 	e *entity.Event,
 	data []byte,
 ) error {
-	// TODO: What happens if we already have the lock?
 	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(e.AggregateID.String())); err != nil {
 		return err
 	}
@@ -169,7 +166,6 @@ func (t *Transaction) SetValue(
 	r *entity.Row,
 	data []byte,
 ) error {
-	// TODO: What happens if we already have the lock?
 	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(r.ID().String())); err != nil {
 		return err
 	}
@@ -304,7 +300,6 @@ func (t *Transaction) GetOutbox(
 	tn tablename.TableName,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
-	// TODO: What happens if we already have the lock?
 	if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
 		return nil, err
 	}
@@ -319,7 +314,6 @@ func (t *Transaction) SetOutbox(
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	// TODO: What happens if we already have the lock?
 	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(oid.String())); err != nil {
 		return err
 	}
