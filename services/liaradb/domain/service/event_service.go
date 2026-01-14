@@ -14,18 +14,15 @@ import (
 )
 
 type EventService struct {
-	outboxRepository  OutboxRepository
 	requestRepository RequestRepository
 	txManager         *transaction.Manager
 }
 
 func NewEventService(
-	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	txManager *transaction.Manager,
 ) *EventService {
 	return &EventService{
-		outboxRepository:  outboxRepository,
 		requestRepository: requestRepository,
 		txManager:         txManager,
 	}
@@ -263,7 +260,9 @@ func (es *EventService) GetByOutbox(
 	outboxID value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
-	o, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
+	tn := tablename.New(tenantID)
+	tx := es.txManager.Next()
+	o, err := tx.GetOutbox(ctx, tn, outboxID)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -309,5 +308,15 @@ func (es *EventService) UpdateOutboxPosition(
 	outboxID value.OutboxID,
 	globalVersion value.GlobalVersion,
 ) error {
-	return es.outboxRepository.UpdateOutboxPosition(ctx, tenantID, outboxID, globalVersion)
+	tn := tablename.New(tenantID)
+	tx := es.txManager.Next()
+	now := time.Now()
+	return tx.Run(ctx, tn, value.NewPartitionID(0), now, func() error {
+		o, err := tx.GetOutbox(ctx, tn, outboxID)
+		if err != nil {
+			return err
+		}
+		o.UpdateGlobalVersion(globalVersion)
+		return tx.SetOutbox(ctx, tn, now, outboxID, o)
+	})
 }

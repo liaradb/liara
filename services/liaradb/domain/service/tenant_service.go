@@ -13,18 +13,15 @@ import (
 )
 
 type TenantService struct {
-	outboxRepository  OutboxRepository
 	requestRepository RequestRepository
 	kv                *keyvalue.KeyValue
 }
 
 func NewTenantService(
-	outboxRepository OutboxRepository,
 	requestRepository RequestRepository,
 	kv *keyvalue.KeyValue,
 ) *TenantService {
 	return &TenantService{
-		outboxRepository:  outboxRepository,
 		requestRepository: requestRepository,
 		kv:                kv,
 	}
