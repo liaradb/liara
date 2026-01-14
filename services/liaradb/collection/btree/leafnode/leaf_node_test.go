@@ -194,7 +194,7 @@ func testLeafNode_Insert(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
+func TestLeafNode_Insert__Split(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testLeafNode_Insert__Split)
 }
@@ -253,6 +253,68 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 	// 	}
 	// }
+}
+
+func TestLeafNode_SetLeftID(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLeafNode_SetLeftID)
+}
+
+func testLeafNode_SetLeftID(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 256)
+	b := createBuffer(t, s)
+	defer b.Release()
+
+	bp := node.New(b)
+	ln := New(bp)
+
+	if fp := ln.LeftID(); fp != 0 {
+		t.Errorf("incorrect left id: %v, expected: %v", fp, 0)
+	}
+
+	if b.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	ln.SetLeftID(link.FilePosition(1))
+	if fp := ln.LeftID(); fp != 1 {
+		t.Errorf("incorrect left id: %v, expected: %v", fp, 1)
+	}
+
+	if !b.Dirty() {
+		t.Error("should be dirty")
+	}
+}
+
+func TestLeafNode_SetRightID(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLeafNode_SetRightID)
+}
+
+func testLeafNode_SetRightID(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 256)
+	b := createBuffer(t, s)
+	defer b.Release()
+
+	bp := node.New(b)
+	ln := New(bp)
+
+	if fp := ln.RightID(); fp != 0 {
+		t.Errorf("incorrect right id: %v, expected: %v", fp, 0)
+	}
+
+	if b.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	ln.SetRightID(link.FilePosition(1))
+	if fp := ln.RightID(); fp != 1 {
+		t.Errorf("incorrect right id: %v, expected: %v", fp, 1)
+	}
+
+	if !b.Dirty() {
+		t.Error("should be dirty")
+	}
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {

@@ -28,13 +28,11 @@ func (ln *LeafNode) RightID() link.FilePosition {
 	return ln.node.HighID()
 }
 
-// TODO: Test this
 func (ln *LeafNode) SetLeftID(block link.FilePosition) {
 	ln.node.SetLowID(block)
 	ln.node.SetDirty()
 }
 
-// TODO: Test this
 func (ln *LeafNode) SetRightID(block link.FilePosition) {
 	ln.node.SetHighID(block)
 	ln.node.SetDirty()
