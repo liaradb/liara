@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	domain "github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -35,7 +34,7 @@ func (o *Outbox) Get(
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	fnIdx := tn.Index(0, domain.NewPartitionID(0))
+	fnIdx := tn.Index(0, value.NewPartitionID(0))
 	rid, err := o.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
@@ -47,7 +46,7 @@ func (o *Outbox) Get(
 // TODO: Test this
 func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		fnIdx := tn.Index(0, domain.NewPartitionID(0))
+		fnIdx := tn.Index(0, value.NewPartitionID(0))
 		for rid, err := range o.c.All(ctx, fnIdx, 0, 0) {
 			if err != nil {
 				yield(nil, err)
@@ -63,7 +62,7 @@ func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[*en
 }
 
 func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) (*entity.Outbox, error) {
-	bid := tn.Outbox(domain.NewPartitionID(0)).BlockID(rid.Block())
+	bid := tn.Outbox(value.NewPartitionID(0)).BlockID(rid.Block())
 	b, err := o.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
@@ -91,7 +90,7 @@ func (o *Outbox) Set(
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	fn := tn.Outbox(domain.NewPartitionID(0))
+	fn := tn.Outbox(value.NewPartitionID(0))
 	k := key.NewKey(oid.Bytes())
 
 	v := make([]byte, entity.OutboxSize)
@@ -110,7 +109,7 @@ func (o *Outbox) Set(
 		}
 	}
 
-	fnIdx := tn.Index(0, domain.NewPartitionID(0))
+	fnIdx := tn.Index(0, value.NewPartitionID(0))
 	return o.c.Insert(ctx, fnIdx, k, rid)
 }
 
