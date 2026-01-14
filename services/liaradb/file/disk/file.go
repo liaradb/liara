@@ -8,7 +8,6 @@ type File struct {
 	fsys *FileSystem
 }
 
-// TODO: Test this
 func (f *File) Close() error {
 	return f.fsys.CloseFile(f.name)
 }

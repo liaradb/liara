@@ -63,6 +63,24 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		}
 	})
 
+	t.Run("should close individual files", func(t *testing.T) {
+		t.Parallel()
+
+		p := path.Join(t.TempDir(), "file")
+		fs := &FileSystem{}
+
+		f, err := fs.OpenFile(p)
+		if err != nil {
+			t.Fatal(err)
+		} else if f == nil {
+			t.Fatal("file should not be nil")
+		}
+
+		if err := f.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+
 	t.Run("Should noop if file not opened", func(t *testing.T) {
 		t.Parallel()
 
