@@ -100,6 +100,29 @@ func (t *Transaction) GetAggregate(
 	}
 }
 
+func (t *Transaction) Events(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		// Should we lock?
+		// // TODO: What happens if we already have the lock?
+		// if err := t.concurrencyMgr.SLock(ctx, action.ItemID(id.String())); err != nil {
+		// 	yield(nil, err)
+		// 	return
+		// }
+
+		// defer t.release()
+
+		for e, err := range t.eventLog.Events(ctx, tn, pid) {
+			if !yield(e, err) {
+				return
+			}
+		}
+	}
+}
+
 func (t *Transaction) Insert(
 	ctx context.Context,
 	tn tablename.TableName,

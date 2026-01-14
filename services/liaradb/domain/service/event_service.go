@@ -174,16 +174,16 @@ func (es *EventService) Get(
 	tenantID value.TenantID,
 	partitionID value.PartitionID,
 	id value.AggregateID,
-) iter.Seq2[entity.Event, error] { // TODO: Should this be a pointer?
-	return func(yield func(entity.Event, error) bool) {
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
 		tn := tablename.New(tenantID)
 		tx := es.txManager.Next()
 		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
 			if err != nil {
-				yield(entity.Event{}, err)
+				yield(nil, err)
 				return
 			}
-			if !yield(*e, nil) {
+			if !yield(e, nil) {
 				return
 			}
 		}
@@ -196,18 +196,18 @@ func (es *EventService) GetByAggregateIDAndName(
 	partitionID value.PartitionID,
 	id value.AggregateID,
 	name value.AggregateName,
-) iter.Seq2[entity.Event, error] {
-	return func(yield func(entity.Event, error) bool) {
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
 		tn := tablename.New(tenantID)
 		tx := es.txManager.Next()
 		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
 			if err != nil {
-				yield(entity.Event{}, err)
+				yield(nil, err)
 				return
 			}
 
 			// TODO: Move this to another layer
-			if e.AggregateName == name && !yield(*e, nil) {
+			if e.AggregateName == name && !yield(e, nil) {
 				return
 			}
 		}
@@ -220,8 +220,41 @@ func (es *EventService) GetAfterGlobalVersion(
 	version value.GlobalVersion,
 	partitionRange value.PartitionRange,
 	limit value.Limit,
-) iter.Seq2[entity.Event, error] {
-	panic("unimplemented")
+) iter.Seq2[*entity.Event, error] {
+	if limit == 0 {
+		return func(yield func(*entity.Event, error) bool) {}
+	}
+
+	return func(yield func(*entity.Event, error) bool) {
+		tn := tablename.New(tenantID)
+		tx := es.txManager.Next()
+		now := time.Now()
+		// TODO: How do we handle a range?
+		count := 0
+		err := tx.Run(ctx, tn, partitionRange.Low(), now, func() error {
+			for e, err := range tx.Events(ctx, tn, partitionRange.Low()) {
+				if err != nil {
+					yield(nil, err)
+					return err
+				}
+
+				// TODO: Use Index to skip
+				if e.GlobalVersion.Value() < version.Value() {
+					continue
+				}
+
+				count++
+				if !yield(e, nil) || count >= limit.Value() {
+					return nil
+				}
+			}
+
+			return nil
+		})
+		if err != nil {
+			yield(nil, err)
+		}
+	}
 }
 
 func (es *EventService) GetByOutbox(
@@ -229,14 +262,13 @@ func (es *EventService) GetByOutbox(
 	tenantID value.TenantID,
 	outboxID value.OutboxID,
 	limit value.Limit,
-) iter.Seq2[entity.Event, error] {
-	_, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
+) iter.Seq2[*entity.Event, error] {
+	o, err := es.outboxRepository.GetOutbox(ctx, tenantID, outboxID)
 	if err != nil {
-		return iterator.Error[entity.Event](err)
+		return iterator.Error[*entity.Event](err)
 	}
 
-	// return es.eventRepository.GetAfterGlobalVersion(ctx, tenantID, outbox.GlobalVersion(), outbox.PartitionRange(), limit)
-	panic("unimplemented")
+	return es.GetAfterGlobalVersion(ctx, tenantID, o.GlobalVersion(), o.PartitionRange(), limit)
 }
 
 func (es *EventService) CreateOutbox(

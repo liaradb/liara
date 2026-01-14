@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func eventToDto(e entity.Event) *pb.Event {
+func eventToDto(e *entity.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: int64(e.GlobalVersion.Value()),
 		Id:            e.ID.String(),
