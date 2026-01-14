@@ -95,6 +95,7 @@ func (es *EventService) Append(
 	ctx context.Context,
 	tenantID value.TenantID,
 	options AppendOptions,
+	pid value.PartitionID,
 	e ...AppendEvent,
 ) error {
 	if len(e) == 0 {
@@ -108,7 +109,7 @@ func (es *EventService) Append(
 	}
 
 	if options.RequestID == "" {
-		return es.appendNoRequestID(ctx, tenantID, options, e...)
+		return es.appendNoRequestID(ctx, tenantID, options, pid, e...)
 	}
 
 	return es.appendRequestID(ctx, tenantID, options, e...)
@@ -118,10 +119,11 @@ func (es *EventService) appendNoRequestID(
 	ctx context.Context,
 	tenantID value.TenantID,
 	options AppendOptions,
+	pid value.PartitionID,
 	e ...AppendEvent,
 ) error {
 	// if len(e) == 1 {
-	return es.appendEvents(ctx, tenantID, options, e...)
+	return es.appendEvents(ctx, tenantID, options, pid, e...)
 	// }
 
 	// return es.transactionContainer.Run(ctx, func() error {
@@ -155,46 +157,36 @@ func (es *EventService) appendEvents(
 	ctx context.Context,
 	tenantID value.TenantID,
 	options AppendOptions,
-	e ...AppendEvent,
+	pid value.PartitionID,
+	evs ...AppendEvent,
 ) error {
 	if options.Time.IsZero() {
 		options.Time = time.Now()
 	}
 
-	for _, em := range e {
-		event, err := em.toEvent(options)
-		if err != nil {
-			return err
-		}
-
-		err = es.append(ctx, tenantID, event)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (es *EventService) append(
-	ctx context.Context,
-	tenantID value.TenantID,
-	e entity.Event, // TODO: Should this be a pointer?
-) error {
 	tx := es.txManager.Next()
 	tn := tablename.New(tenantID)
+	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
-	return tx.Run(ctx, tn, e.PartitionID, time.Now(), func() error {
+	return tx.Run(ctx, tn, pid, now, func() error {
 		buf := bytes.NewBuffer(nil)
-		if err := e.Write(buf); err != nil {
-			return err
+
+		for _, em := range evs {
+			e, err := em.toEvent(options)
+			if err != nil {
+				return err
+			}
+
+			if err := e.Write(buf); err != nil {
+				return err
+			}
+
+			if err := tx.Insert(ctx, tn, now, &e, buf.Bytes()); err != nil {
+				return err
+			}
 		}
 
-		return tx.Insert(ctx,
-			tn,
-			time.Now(),
-			&e,
-			buf.Bytes(),
-		)
+		return nil
 	})
 }
 

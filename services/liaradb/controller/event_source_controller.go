@@ -31,6 +31,7 @@ func (esc *EventSourceController) Append(
 	err := esc.eventService.Append(ctx,
 		value.TenantID(request.TenantId),
 		dtoToAppendOptions(request.Options),
+		value.NewPartitionID(0),
 		mapSlice(request.Events, dtoToAppendEvent)...)
 	if err != nil {
 		return nil, err
