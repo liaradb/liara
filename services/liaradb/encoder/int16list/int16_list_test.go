@@ -8,58 +8,126 @@ import (
 func TestInt16List_Default(t *testing.T) {
 	t.Parallel()
 
-	t.Run("default data", func(t *testing.T) {
-		l := New([]byte{})
+	l := New([]byte{})
 
-		if length := l.Length(); length != 0 {
-			t.Errorf("incorrect length: %v, expected: %v", length, 0)
-		}
+	if length := l.Length(); length != 0 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 0)
+	}
 
-		if s := l.Size(); s != 0 {
-			t.Errorf("incorrect size: %v, expected: %v", s, 0)
-		}
-	})
+	if s := l.Size(); s != 0 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 0)
+	}
 }
 
 func TestList_GetSet(t *testing.T) {
 	t.Parallel()
 
-	t.Run("should set and get", func(t *testing.T) {
-		t.Parallel()
+	l := New(make([]byte, 16))
 
-		l := New(make([]byte, 16))
+	if length := l.Length(); length != 16 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	}
 
-		if length := l.Length(); length != 16 {
-			t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	if s := l.Size(); s != 8 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 1)
+	}
+
+	for i := range int16(8) {
+		if ok := l.Set(i, (i+1)*11); !ok {
+			t.Error("should set value")
 		}
+	}
 
-		if s := l.Size(); s != 8 {
-			t.Errorf("incorrect size: %v, expected: %v", s, 1)
-		}
+	if ok := l.Set(8, 55); ok {
+		t.Error("should not set value beyond size")
+	}
 
-		for i := range int16(8) {
-			if ok := l.Set(i, (i+1)*11); !ok {
-				t.Error("should set value")
-			}
+	for i := range int16(8) {
+		want := (i + 1) * 11
+		if v, ok := l.Get(i); !ok {
+			t.Error("should set value")
+		} else if v != want {
+			t.Errorf("incorrect value: %v, expected: %v", v, want)
 		}
+	}
 
-		if ok := l.Set(8, 55); ok {
-			t.Error("should not set value beyond size")
-		}
+	if _, ok := l.Get(8); ok {
+		t.Error("should not set value beyond size")
+	}
+}
 
-		for i := range int16(8) {
-			want := (i + 1) * 11
-			if v, ok := l.Get(i); !ok {
-				t.Error("should set value")
-			} else if v != want {
-				t.Errorf("incorrect value: %v, expected: %v", v, want)
-			}
-		}
+func TestList_GetInt32SetInt32(t *testing.T) {
+	t.Parallel()
 
-		if _, ok := l.Get(8); ok {
-			t.Error("should not set value beyond size")
+	l := New(make([]byte, 16))
+
+	if length := l.Length(); length != 16 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	}
+
+	if s := l.Size(); s != 8 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 1)
+	}
+
+	for i := range int16(4) {
+		if ok := l.SetInt32(i*2, int32((i+1)*11)); !ok {
+			t.Fatal("should set value")
 		}
-	})
+	}
+
+	if ok := l.SetInt32(8, 55); ok {
+		t.Error("should not set value beyond size")
+	}
+
+	for i := range int16(4) {
+		want := int32((i + 1) * 11)
+		if v, ok := l.GetInt32(i * 2); !ok {
+			t.Error("should set value")
+		} else if v != want {
+			t.Errorf("incorrect value: %v, expected: %v", v, want)
+		}
+	}
+
+	if _, ok := l.GetInt32(8); ok {
+		t.Error("should not set value beyond size")
+	}
+}
+
+func TestList_GetInt64SetInt64(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 16))
+
+	if length := l.Length(); length != 16 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	}
+
+	if s := l.Size(); s != 8 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 1)
+	}
+
+	for i := range int16(2) {
+		if ok := l.SetInt64(i*4, int64((i+1)*11)); !ok {
+			t.Fatal("should set value")
+		}
+	}
+
+	if ok := l.SetInt64(8, 55); ok {
+		t.Error("should not set value beyond size")
+	}
+
+	for i := range int16(2) {
+		want := int64((i + 1) * 11)
+		if v, ok := l.GetInt64(i * 4); !ok {
+			t.Error("should set value")
+		} else if v != want {
+			t.Errorf("incorrect value: %v, expected: %v", v, want)
+		}
+	}
+
+	if _, ok := l.GetInt64(8); ok {
+		t.Error("should not set value beyond size")
+	}
 }
 
 func TestInt16List_Shift(t *testing.T) {

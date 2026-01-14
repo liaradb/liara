@@ -120,7 +120,7 @@ func (l *CRCList) Insert(a int16, b int16, c page.CRC, i int16) (int16, bool) {
 		return 0, false
 	}
 
-	if ok := l.list.Set32(index+2, int32(c.Value())); !ok {
+	if ok := l.list.SetInt32(index+2, int32(c.Value())); !ok {
 		return 0, false
 	}
 
@@ -154,7 +154,7 @@ func (l *CRCList) Push(a int16, b int16, c page.CRC) (int16, bool) {
 		return 0, false
 	}
 
-	if !l.list.Set32((tupleSize*size)+2+headerSize, int32(c.Value())) {
+	if !l.list.SetInt32((tupleSize*size)+2+headerSize, int32(c.Value())) {
 		return 0, false
 	}
 

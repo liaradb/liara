@@ -32,18 +32,16 @@ func (l Int16List) Get(index int16) (int16, bool) {
 	return int16(binary.BigEndian.Uint16(l.data[l.offset(index):])), true
 }
 
-// TODO: Test this
 func (l Int16List) GetInt32(index int16) (int32, bool) {
-	if index >= l.Size()+1 {
+	if index >= l.Size()-1 {
 		return 0, false
 	}
 
 	return int32(binary.BigEndian.Uint32(l.data[l.offset(index):])), true
 }
 
-// TODO: Test this
 func (l Int16List) GetInt64(index int16) (int64, bool) {
-	if index >= l.Size()+3 {
+	if index >= l.Size()-3 {
 		return 0, false
 	}
 
@@ -59,9 +57,8 @@ func (l Int16List) Set(index int16, value int16) bool {
 	return true
 }
 
-// TODO: Test this
-func (l Int16List) Set32(index int16, value int32) bool {
-	if index >= l.Size()+1 {
+func (l Int16List) SetInt32(index int16, value int32) bool {
+	if index >= l.Size()-1 {
 		return false
 	}
 
@@ -69,9 +66,8 @@ func (l Int16List) Set32(index int16, value int32) bool {
 	return true
 }
 
-// TODO: Test this
-func (l Int16List) Set64(index int16, value int64) bool {
-	if index >= l.Size()+3 {
+func (l Int16List) SetInt64(index int16, value int64) bool {
+	if index >= l.Size()-3 {
 		return false
 	}
 
