@@ -269,9 +269,10 @@ func (es *EventService) CreateOutbox(
 ) (value.OutboxID, error) {
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
-	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
+	now := time.Now()
+	err := tx.Run(ctx, tn, value.NewPartitionID(0), now, func() error {
 		outbox := entity.NewOutbox(outboxID, partitionRange)
-		return tx.SetOutbox(ctx, tn, outboxID, outbox)
+		return tx.SetOutbox(ctx, tn, now, outboxID, outbox)
 	})
 	return outboxID, err
 }

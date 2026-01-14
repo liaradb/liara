@@ -281,12 +281,18 @@ func (t *Transaction) GetOutbox(
 	tn tablename.TableName,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
+	// TODO: What happens if we already have the lock?
+	if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
+		return nil, err
+	}
+
 	return t.outbox.Get(ctx, tn, oid)
 }
 
 func (t *Transaction) SetOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
+	now time.Time,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
@@ -295,5 +301,15 @@ func (t *Transaction) SetOutbox(
 		return err
 	}
 
+	// TODO: We are doing this twice
+	data := make([]byte, entity.OutboxSize)
+	_ = e.Write(data)
+
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionOutboxUpdate, data, nil)
+	if err != nil {
+		return err
+	}
+
+	t.lsn = lsn
 	return t.outbox.Set(ctx, tn, oid, e)
 }
