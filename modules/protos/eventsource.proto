@@ -101,23 +101,25 @@ message AppendEvent {
   // The Version of the Aggregate
   int64 version = 4;
 
-  // The ID to partition Events
-  int32 partition_id = 5;
-
   // The Name of the Event
-  string name = 6;
+  string name = 5;
 
   // The Schema for the internal data
-  string schema = 7;
+  string schema = 6;
 
   // The internal data of the Event
-  bytes data = 9;
+  bytes data = 7;
 }
 
 message AppendRequest {
   string tenant_id = 1;
-  AppendOptions options = 2;
-  repeated AppendEvent events = 3;
+
+  // The ID to partition Events
+  int32 partition_id = 2;
+
+  AppendOptions options = 3;
+
+  repeated AppendEvent events = 4;
 }
 
 message AppendResponse {}
@@ -141,7 +143,8 @@ message TestIdempotencyResponse {
 
 message GetRequest {
   string tenant_id = 1;
-  string aggregate_id = 2;
+  int32 partition_id = 2;
+  string aggregate_id = 3;
 }
 
 // -----------------------------------------------------------------------------
@@ -150,8 +153,9 @@ message GetRequest {
 
 message GetByAggregateIDAndNameRequest {
   string tenant_id = 1;
-  string aggregate_id = 2;
-  string name = 3;
+  int32 partition_id = 2;
+  string aggregate_id = 3;
+  string name = 4;
 }
 
 // -----------------------------------------------------------------------------

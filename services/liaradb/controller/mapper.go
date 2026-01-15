@@ -29,7 +29,6 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 		AggregateName: value.NewAggregateName(dto.AggregateName),
 		AggregateID:   value.NewAggregateID(dto.AggregateId),
 		Version:       value.NewVersion(uint64(dto.Version)),
-		PartitionID:   value.NewPartitionID(uint32(dto.PartitionId)),
 		Name:          value.NewEventName(dto.Name),
 		Schema:        value.NewSchema(dto.Schema),
 		Data:          dto.Data,
@@ -59,7 +58,7 @@ func metadataToDto(m entity.Metadata) *pb.EventMetadata {
 func dtoToPartitionRange(partitionIDs []int32) value.PartitionRange {
 	pids := make([]value.PartitionID, 0, len(partitionIDs))
 	for _, p := range partitionIDs {
-		pids = append(pids, value.NewPartitionID(uint32(p)))
+		pids = append(pids, value.NewPartitionID(p))
 	}
 	return value.NewPartitionRange(pids...)
 }

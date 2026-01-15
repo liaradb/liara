@@ -62,7 +62,7 @@ func (esc *EventSourceController) Get(
 ) error {
 	for row, err := range esc.eventService.Get(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.NewPartitionID(0), // TODO: Change this to parameter
+		value.NewPartitionID(request.PartitionId),
 		value.NewAggregateID(request.AggregateId),
 	) {
 		if err != nil {
@@ -82,7 +82,7 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 ) error {
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
 		value.TenantID(request.TenantId),
-		value.NewPartitionID(0), // TODO: Change this to parameter
+		value.NewPartitionID(request.PartitionId),
 		value.NewAggregateID(request.AggregateId),
 		value.NewAggregateName(request.Name)) {
 		if err != nil {

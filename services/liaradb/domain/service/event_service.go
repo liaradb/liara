@@ -48,7 +48,6 @@ type AppendEvent struct {
 	AggregateName value.AggregateName // The Name of the Aggregate
 	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
 	Version       value.Version       // The Version of the Aggregate
-	PartitionID   value.PartitionID   // The ID to partition Events
 	Name          value.EventName     // The Name of the Event
 	Schema        value.Schema        // The Schema for the internal data
 	Data          []byte              // The internal data of the Event
@@ -62,7 +61,7 @@ func (ae *AppendEvent) Valid() error {
 	return nil
 }
 
-func (ae *AppendEvent) toEvent(options AppendOptions) (entity.Event, error) {
+func (ae *AppendEvent) toEvent(pid value.PartitionID, options AppendOptions) (entity.Event, error) {
 	var id value.EventID
 	if ae.ID == "" {
 		id = value.NewEventID()
@@ -80,7 +79,7 @@ func (ae *AppendEvent) toEvent(options AppendOptions) (entity.Event, error) {
 		AggregateName: ae.AggregateName,
 		AggregateID:   ae.AggregateID,
 		Version:       ae.Version,
-		PartitionID:   ae.PartitionID,
+		PartitionID:   pid,
 		Name:          ae.Name,
 		Schema:        ae.Schema,
 		Metadata:      options.toMetadata(),
@@ -135,7 +134,7 @@ func (es *EventService) append(
 		buf := bytes.NewBuffer(nil)
 
 		for _, em := range evs {
-			e, err := em.toEvent(options)
+			e, err := em.toEvent(pid, options)
 			if err != nil {
 				return err
 			}
