@@ -142,12 +142,12 @@ func (es *EventService) append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, tn, pid, now, func() error {
-		if _, ok := options.RequestID(); ok {
+		if rqid, ok := options.RequestID(); ok {
 			// Verify idempotency
-			// 	// TODO: What should this return if requestID is present?
-			// 	if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
-			// 		return err
-			// 	}
+			// TODO: What should this return if requestID is present?
+			if ok, err := tx.TestIdempotency(ctx, tn, rqid); err != nil || !ok {
+				return err
+			}
 		}
 
 		buf := bytes.NewBuffer(nil)
@@ -167,9 +167,9 @@ func (es *EventService) append(
 			}
 		}
 
-		if _, ok := options.RequestID(); ok {
+		if rqid, ok := options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
-			// 	return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
+			return tx.InsertRequestID(ctx, tn, rqid, now)
 		}
 
 		return nil
@@ -180,9 +180,15 @@ func (es *EventService) TestIdempotency(
 	ctx context.Context,
 	tenantID value.TenantID,
 	id value.RequestID,
-) (bool, error) {
-	panic("unimplemented")
-	// return es.requestRepository.Test(ctx, tenantID, id)
+) (result bool, err error) {
+	tx := es.txManager.Next()
+	tn := tablename.New(tenantID)
+	now := time.Now()
+	err = tx.Run(ctx, tn, value.PartitionID{}, now, func() error {
+		result, err = tx.TestIdempotency(ctx, tn, id)
+		return err
+	})
+	return
 }
 
 func (es *EventService) Get(

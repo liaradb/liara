@@ -335,3 +335,29 @@ func (t *Transaction) SetOutbox(
 	t.lsn = lsn
 	return t.outbox.Set(ctx, tn, oid, e)
 }
+
+func (t *Transaction) InsertRequestID(
+	ctx context.Context,
+	tn tablename.TableName,
+	rqid value.RequestID,
+	now time.Time,
+) error {
+	return t.idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
+}
+
+func (t *Transaction) TestIdempotency(
+	ctx context.Context,
+	tn tablename.TableName,
+	rqid value.RequestID,
+) (bool, error) {
+	_, err := t.idempotency.Get(ctx, tn, value.PartitionID{}, rqid)
+	if errors.Is(err, btree.ErrNotFound) {
+		return true, nil
+	}
+
+	if err == nil {
+		return false, btree.ErrExists
+	}
+
+	return false, err
+}
