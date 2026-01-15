@@ -49,6 +49,8 @@ func testTransaction_Insert(t *testing.T) {
 	if c != 1 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 1)
 	}
+
+	synctest.Wait()
 }
 
 func TestTransaction_Insert__Unique(t *testing.T) {
@@ -85,6 +87,8 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	}); !errors.Is(err, btree.ErrExists) {
 		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
+
+	synctest.Wait()
 }
 
 func TestTransaction_Insert__UniqueCurrent(t *testing.T) {
@@ -116,6 +120,8 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 	}, nil); !errors.Is(err, btree.ErrExists) {
 		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
+
+	synctest.Wait()
 }
 
 func TestTransaction_Commit(t *testing.T) {
@@ -199,6 +205,8 @@ func testTransaction_Commit(t *testing.T) {
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
+
+	synctest.Wait()
 }
 
 func TestTransaction_Rollback(t *testing.T) {
@@ -262,4 +270,6 @@ func testTransaction_Rollback(t *testing.T) {
 	if length := len(result); length != 0 {
 		t.Errorf("incorrect result length: %v, expected: %v", length, 0)
 	}
+
+	synctest.Wait()
 }

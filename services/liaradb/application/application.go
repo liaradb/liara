@@ -139,7 +139,7 @@ func (a *Application) initService() *grpc.Server {
 		).
 		Build()
 
-	r, err := a.createRepositories()
+	_, err := a.createRepositories()
 	if err != nil {
 		slog.Error("create repositories",
 			"error", err)
@@ -148,11 +148,9 @@ func (a *Application) initService() *grpc.Server {
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
 		service.NewEventService(
-			r.requestRepository,
 			a.txManager,
 		),
 		service.NewTenantService(
-			r.requestRepository,
 			keyvalue.New(a.storage, btree.NewCursor(a.storage))),
 	))
 
@@ -160,7 +158,6 @@ func (a *Application) initService() *grpc.Server {
 }
 
 type repositories struct {
-	requestRepository service.RequestRepository
 }
 
 func (a *Application) createRepositories() (*repositories, error) {

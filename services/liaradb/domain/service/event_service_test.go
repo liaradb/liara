@@ -13,7 +13,7 @@ func TestEventService_Append(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should not append invalid version", func(t *testing.T) {
-		es := NewEventService(nil, nil)
+		es := NewEventService(nil)
 
 		aggregateID := value.NewAggregateID(uuid.NewString())
 		want := AppendEvent{

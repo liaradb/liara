@@ -13,17 +13,14 @@ import (
 )
 
 type TenantService struct {
-	requestRepository RequestRepository
-	kv                *keyvalue.KeyValue
+	kv *keyvalue.KeyValue
 }
 
 func NewTenantService(
-	requestRepository RequestRepository,
 	kv *keyvalue.KeyValue,
 ) *TenantService {
 	return &TenantService{
-		requestRepository: requestRepository,
-		kv:                kv,
+		kv: kv,
 	}
 }
 

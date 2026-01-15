@@ -14,17 +14,14 @@ import (
 )
 
 type EventService struct {
-	requestRepository RequestRepository
-	txManager         *transaction.Manager
+	txManager *transaction.Manager
 }
 
 func NewEventService(
-	requestRepository RequestRepository,
 	txManager *transaction.Manager,
 ) *EventService {
 	return &EventService{
-		requestRepository: requestRepository,
-		txManager:         txManager,
+		txManager: txManager,
 	}
 }
 
@@ -184,7 +181,8 @@ func (es *EventService) TestIdempotency(
 	tenantID value.TenantID,
 	id value.RequestID,
 ) (bool, error) {
-	return es.requestRepository.Test(ctx, tenantID, id)
+	panic("unimplemented")
+	// return es.requestRepository.Test(ctx, tenantID, id)
 }
 
 func (es *EventService) Get(
