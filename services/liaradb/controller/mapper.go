@@ -35,17 +35,28 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 	}
 }
 
-func dtoToAppendOptions(dto *pb.AppendOptions) service.AppendOptions {
+func dtoToAppendOptions(dto *pb.AppendOptions) (service.AppendOptions, error) {
 	if dto == nil {
-		return service.AppendOptions{}
+		return service.AppendOptions{}, nil
 	}
 
-	return service.AppendOptions{
-		RequestID:     value.RequestID(dto.RequestId),
-		CorrelationID: value.NewCorrelationID(dto.CorrelationId),
-		UserID:        value.NewUserID(dto.UserId),
-		Time:          dto.Time.AsTime(),
+	var rid *value.RequestID
+
+	if dto.RequestId != "" {
+		r, err := value.NewRequestIDFromString(dto.RequestId)
+		if err != nil {
+			return service.AppendOptions{}, err
+		}
+
+		rid = &r
 	}
+
+	return service.NewAppendOptions(
+		rid,
+		value.NewCorrelationID(dto.CorrelationId),
+		value.NewUserID(dto.UserId),
+		dto.Time.AsTime(),
+	), nil
 }
 
 func metadataToDto(m entity.Metadata) *pb.EventMetadata {

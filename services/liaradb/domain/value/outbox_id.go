@@ -7,9 +7,7 @@ type OutboxID struct {
 }
 
 func NewOutboxID() OutboxID {
-	return OutboxID{
-		raw.NewBaseID(),
-	}
+	return OutboxID{raw.NewBaseID()}
 }
 
 func NewOutboxIDFromString(value string) (OutboxID, error) {

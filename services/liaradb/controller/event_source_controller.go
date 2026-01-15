@@ -28,12 +28,16 @@ func (esc *EventSourceController) Append(
 	ctx context.Context,
 	request *pb.AppendRequest,
 ) (*pb.AppendResponse, error) {
-	err := esc.eventService.Append(ctx,
-		value.TenantID(request.TenantId),
-		dtoToAppendOptions(request.Options),
-		value.NewPartitionID(0),
-		mapSlice(request.Events, dtoToAppendEvent)...)
+	o, err := dtoToAppendOptions(request.Options)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := esc.eventService.Append(ctx,
+		value.TenantID(request.TenantId),
+		o,
+		value.NewPartitionID(0),
+		mapSlice(request.Events, dtoToAppendEvent)...); err != nil {
 		return nil, err
 	}
 
@@ -44,9 +48,14 @@ func (esc *EventSourceController) TestIdempotency(
 	ctx context.Context,
 	request *pb.TestIdempotencyRequest,
 ) (*pb.TestIdempotencyResponse, error) {
+	rid, err := value.NewRequestIDFromString(request.RequestId)
+	if err != nil {
+		return nil, err
+	}
+
 	ok, err := esc.eventService.TestIdempotency(ctx,
 		value.TenantID(request.TenantId),
-		value.RequestID(request.RequestId))
+		value.RequestID(rid))
 	if err != nil {
 		return nil, err
 	}

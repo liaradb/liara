@@ -29,17 +29,39 @@ func NewEventService(
 }
 
 type AppendOptions struct {
-	RequestID     value.RequestID     // The ID of the Request, for idempotency
-	CorrelationID value.CorrelationID // The ID of the entire Command and Event chain
-	UserID        value.UserID        // The ID of the User issuing the Command
-	Time          time.Time           // The Time this Event was created
+	requestID     *value.RequestID    // The ID of the Request, for idempotency
+	correlationID value.CorrelationID // The ID of the entire Command and Event chain
+	userID        value.UserID        // The ID of the User issuing the Command
+	time          time.Time           // The Time this Event was created
+}
+
+func NewAppendOptions(
+	requestID *value.RequestID, // The ID of the Request, for idempotency
+	correlationID value.CorrelationID, // The ID of the entire Command and Event chain
+	userID value.UserID, // The ID of the User issuing the Command
+	time time.Time, // The Time this Event was created
+) AppendOptions {
+	return AppendOptions{
+		requestID:     requestID,
+		correlationID: correlationID,
+		userID:        userID,
+		time:          time,
+	}
+}
+
+func (ao *AppendOptions) RequestID() (value.RequestID, bool) {
+	if ao.requestID == nil {
+		return value.NewRequestID(), false
+	}
+
+	return *ao.requestID, true
 }
 
 func (ao *AppendOptions) toMetadata() entity.Metadata {
 	return entity.Metadata{
-		UserID:        ao.UserID,
-		CorrelationID: ao.CorrelationID,
-		Time:          value.NewTime(ao.Time),
+		UserID:        ao.userID,
+		CorrelationID: ao.correlationID,
+		Time:          value.NewTime(ao.time),
 	}
 }
 
@@ -114,8 +136,8 @@ func (es *EventService) append(
 	pid value.PartitionID,
 	evs ...AppendEvent,
 ) error {
-	if options.Time.IsZero() {
-		options.Time = time.Now()
+	if options.time.IsZero() {
+		options.time = time.Now()
 	}
 
 	tx := es.txManager.Next()
@@ -123,7 +145,7 @@ func (es *EventService) append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, tn, pid, now, func() error {
-		if options.RequestID != "" {
+		if _, ok := options.RequestID(); ok {
 			// Verify idempotency
 			// 	// TODO: What should this return if requestID is present?
 			// 	if ok, err := es.requestRepository.Test(ctx, tenantID, options.RequestID); err != nil || !ok {
@@ -148,7 +170,7 @@ func (es *EventService) append(
 			}
 		}
 
-		if options.RequestID != "" {
+		if _, ok := options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
 			// 	return es.requestRepository.Insert(ctx, tenantID, options.RequestID, t)
 		}
