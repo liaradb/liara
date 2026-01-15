@@ -298,13 +298,14 @@ func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) e
 func (t *Transaction) GetOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
 		return nil, err
 	}
 
-	return t.outbox.Get(ctx, tn, oid)
+	return t.outbox.Get(ctx, tn, pid, oid)
 }
 
 func (t *Transaction) SetOutbox(

@@ -27,6 +27,7 @@ func testOutbox(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 7, 110)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.New("testfile")
+	pid := value.NewPartitionID(0)
 
 	data := createData()
 
@@ -34,8 +35,8 @@ func testOutbox(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, n, pid, data)
+	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
 }
@@ -50,6 +51,7 @@ func testOutbox__LargeBuffer(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.New("testfile")
+	pid := value.NewPartitionID(0)
 
 	data := createData()
 
@@ -57,8 +59,8 @@ func testOutbox__LargeBuffer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, n, pid, data)
+	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
 }
@@ -86,9 +88,16 @@ func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *Outbox, n tablename.TableName, data map[string]*entity.Outbox) {
+func testGet(
+	ctx context.Context,
+	t *testing.T,
+	kv *Outbox,
+	n tablename.TableName,
+	pid value.PartitionID,
+	data map[string]*entity.Outbox,
+) {
 	for k, v := range data {
-		value, err := kv.Get(ctx, n, v.ID())
+		value, err := kv.Get(ctx, n, pid, v.ID())
 		if err != nil {
 			t.Fatal(k, err)
 		}
@@ -99,8 +108,15 @@ func testGet(ctx context.Context, t *testing.T, kv *Outbox, n tablename.TableNam
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data map[string]*entity.Outbox, o *Outbox, n tablename.TableName) {
-	result, err := getListValues(ctx, data, o, n)
+func testList(
+	ctx context.Context,
+	t *testing.T,
+	data map[string]*entity.Outbox,
+	o *Outbox,
+	n tablename.TableName,
+	pid value.PartitionID,
+) {
+	result, err := getListValues(ctx, data, o, n, pid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,10 +127,16 @@ func testList(ctx context.Context, t *testing.T, data map[string]*entity.Outbox,
 	}
 }
 
-func getListValues(ctx context.Context, data map[string]*entity.Outbox, o *Outbox, n tablename.TableName) ([]entity.Outbox, error) {
+func getListValues(
+	ctx context.Context,
+	data map[string]*entity.Outbox,
+	o *Outbox,
+	n tablename.TableName,
+	pid value.PartitionID,
+) ([]entity.Outbox, error) {
 	result := make([]entity.Outbox, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n) {
+	for value, err := range o.List(ctx, n, pid) {
 		if err != nil {
 			return nil, err
 		}

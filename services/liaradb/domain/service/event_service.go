@@ -257,12 +257,13 @@ func (es *EventService) GetAfterGlobalVersion(
 func (es *EventService) GetByOutbox(
 	ctx context.Context,
 	tenantID value.TenantID,
+	partitionID value.PartitionID,
 	outboxID value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
-	o, err := tx.GetOutbox(ctx, tn, outboxID)
+	o, err := tx.GetOutbox(ctx, tn, partitionID, outboxID)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -279,7 +280,8 @@ func (es *EventService) CreateOutbox(
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
 	now := time.Now()
-	err := tx.Run(ctx, tn, value.NewPartitionID(0), now, func() error {
+	// TODO: How do we handle a range?
+	err := tx.Run(ctx, tn, partitionRange.Low(), now, func() error {
 		outbox := entity.NewOutbox(outboxID, partitionRange)
 		return tx.SetOutbox(ctx, tn, now, outboxID, outbox)
 	})
@@ -289,14 +291,15 @@ func (es *EventService) CreateOutbox(
 func (es *EventService) GetOutbox(
 	ctx context.Context,
 	tenantID value.TenantID,
+	partitionID value.PartitionID,
 	outboxID value.OutboxID,
 ) (*entity.Outbox, error) {
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
 	var e *entity.Outbox
-	err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
+	err := tx.Run(ctx, tn, partitionID, time.Now(), func() error {
 		var err error
-		e, err = tx.GetOutbox(ctx, tn, outboxID)
+		e, err = tx.GetOutbox(ctx, tn, partitionID, outboxID)
 		return err
 	})
 	return e, err
@@ -305,14 +308,15 @@ func (es *EventService) GetOutbox(
 func (es *EventService) UpdateOutboxPosition(
 	ctx context.Context,
 	tenantID value.TenantID,
+	partitionID value.PartitionID,
 	outboxID value.OutboxID,
 	globalVersion value.GlobalVersion,
 ) error {
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
 	now := time.Now()
-	return tx.Run(ctx, tn, value.NewPartitionID(0), now, func() error {
-		o, err := tx.GetOutbox(ctx, tn, outboxID)
+	return tx.Run(ctx, tn, partitionID, now, func() error {
+		o, err := tx.GetOutbox(ctx, tn, partitionID, outboxID)
 		if err != nil {
 			return err
 		}

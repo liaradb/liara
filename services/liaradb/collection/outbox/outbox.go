@@ -31,11 +31,11 @@ func New(storage *storage.Storage, cursor *btree.Cursor) *Outbox {
 func (o *Outbox) Get(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	// TODO: Make this variable
-	fnIdx := tn.Index(0, value.NewPartitionID(0))
+	fnIdx := tn.Index(0, pid)
 	rid, err := o.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
@@ -44,11 +44,13 @@ func (o *Outbox) Get(
 	return o.getItem(ctx, tn, rid)
 }
 
-// TODO: Test this
-func (o *Outbox) List(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Outbox, error] {
+func (o *Outbox) List(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		// TODO: Make this variable
-		fnIdx := tn.Index(0, value.NewPartitionID(0))
+		fnIdx := tn.Index(0, pid)
 		for rid, err := range o.c.All(ctx, fnIdx, 0, 0) {
 			if err != nil {
 				yield(nil, err)
