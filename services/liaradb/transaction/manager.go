@@ -3,6 +3,7 @@ package transaction
 import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
@@ -20,6 +21,7 @@ type Manager struct {
 	eventLog      *eventlog.EventLog
 	keyValue      *keyvalue.KeyValue
 	outbox        *outbox.Outbox
+	idempotency   *idempotency.Idempotency
 	lockTable     *locktable.LockTable[action.ItemID]
 	transactionID record.TransactionID
 }
@@ -32,13 +34,14 @@ func NewManager(
 	cursor := btree.NewCursor(storage)
 	kv := keyvalue.New(storage, cursor)
 	return &Manager{
-		log:       log,
-		storage:   storage,
-		manager:   manager.New(kv),
-		eventLog:  eventlog.New(storage, cursor),
-		keyValue:  kv,
-		outbox:    outbox.New(storage, cursor),
-		lockTable: lockTable,
+		log:         log,
+		storage:     storage,
+		manager:     manager.New(kv),
+		eventLog:    eventlog.New(storage, cursor),
+		keyValue:    kv,
+		outbox:      outbox.New(storage, cursor),
+		idempotency: idempotency.New(storage, cursor),
+		lockTable:   lockTable,
 	}
 }
 
@@ -53,5 +56,6 @@ func (m *Manager) Next() *Transaction {
 		m.eventLog,
 		m.keyValue,
 		m.outbox,
+		m.idempotency,
 	)
 }

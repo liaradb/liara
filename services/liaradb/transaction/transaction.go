@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
@@ -35,6 +36,7 @@ type Transaction struct {
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	outbox         *outbox.Outbox
+	idempotency    *idempotency.Idempotency
 	events         []eventItem
 	values         []valueItem
 	keys           set.Set[key.Key]
@@ -60,6 +62,7 @@ func newTransaction(
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 	outbox *outbox.Outbox,
+	idempotency *idempotency.Idempotency,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
@@ -70,6 +73,7 @@ func newTransaction(
 		eventLog:       eventLog,
 		keyValue:       keyValue,
 		outbox:         outbox,
+		idempotency:    idempotency,
 		keys:           set.Set[key.Key]{},
 	}
 }
