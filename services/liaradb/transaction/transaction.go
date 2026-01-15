@@ -312,7 +312,7 @@ func (t *Transaction) GetOutbox(
 	return t.outbox.Get(ctx, tn, pid, oid)
 }
 
-func (t *Transaction) SetOutbox(
+func (t *Transaction) InsertOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
 	now time.Time,
@@ -334,6 +334,37 @@ func (t *Transaction) SetOutbox(
 
 	t.lsn = lsn
 	return t.outbox.Set(ctx, tn, oid, e)
+}
+
+func (t *Transaction) UpdateOutbox(
+	ctx context.Context,
+	tn tablename.TableName,
+	now time.Time,
+	oid value.OutboxID,
+	v value.GlobalVersion,
+) error {
+	if err := t.concurrencyMgr.XLock(ctx, action.ItemID(oid.String())); err != nil {
+		return err
+	}
+
+	e, err := t.outbox.Get(ctx, tn, value.PartitionID{}, oid)
+	if err != nil {
+		return err
+	}
+
+	e.UpdateGlobalVersion(v)
+
+	// TODO: We are doing this twice
+	data := make([]byte, entity.OutboxSize)
+	_ = e.Write(data)
+
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionOutboxUpdate, data, nil)
+	if err != nil {
+		return err
+	}
+
+	t.lsn = lsn
+	return t.outbox.Replace(ctx, tn, oid, e)
 }
 
 func (t *Transaction) InsertRequestID(

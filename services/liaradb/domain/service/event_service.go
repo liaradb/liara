@@ -308,7 +308,7 @@ func (es *EventService) CreateOutbox(
 	// TODO: How do we handle a range?
 	err := tx.Run(ctx, tn, partitionRange.Low(), now, func() error {
 		outbox := entity.NewOutbox(outboxID, partitionRange)
-		return tx.SetOutbox(ctx, tn, now, outboxID, outbox)
+		return tx.InsertOutbox(ctx, tn, now, outboxID, outbox)
 	})
 	return outboxID, err
 }
@@ -346,6 +346,6 @@ func (es *EventService) UpdateOutboxPosition(
 			return err
 		}
 		o.UpdateGlobalVersion(globalVersion)
-		return tx.SetOutbox(ctx, tn, now, outboxID, o)
+		return tx.UpdateOutbox(ctx, tn, now, outboxID, globalVersion)
 	})
 }

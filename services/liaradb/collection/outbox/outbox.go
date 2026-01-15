@@ -154,3 +154,29 @@ func (o *Outbox) setNext(ctx context.Context, fn link.FileName, v []byte, crc pa
 
 	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }
+
+// TODO: Use io.Writer?
+func (o *Outbox) Replace(
+	ctx context.Context,
+	tn tablename.TableName,
+	oid value.OutboxID,
+	e *entity.Outbox,
+) error {
+	k := key.NewKey(oid.Bytes())
+	fnIdx := tn.Index(0, e.PartitionRange().Low())
+	rid, err := o.c.Search(ctx, fnIdx, k)
+	if err != nil {
+		return err
+	}
+
+	bid := tn.Outbox(value.NewPartitionID(0)).BlockID(rid.Block())
+	b, err := o.s.Request(ctx, bid)
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	// TODO: Replace child
+	panic("unimplemented")
+}
