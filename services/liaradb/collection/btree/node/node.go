@@ -46,12 +46,10 @@ func (p *Node) Unlatch()  { p.buffer.Unlatch() }
 func (p *Node) RLatch()   { p.buffer.RLatch() }
 func (p *Node) RUnlatch() { p.buffer.RUnlatch() }
 
-// TODO: Test this
 func (p *Node) SetDirty() {
 	p.buffer.SetDirty()
 }
 
-// TODO: Test this
 func (p *Node) SetLevel(l byte) {
 	p.header.setLevel(l)
 }
@@ -102,7 +100,6 @@ func (p Node) Length() int16 {
 	return int16(len(p.data))
 }
 
-// TODO: Test this
 func (p Node) Count() int16 {
 	return p.list.Count()
 }
