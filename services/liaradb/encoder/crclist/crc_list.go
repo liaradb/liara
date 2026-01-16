@@ -129,6 +129,11 @@ func (l *CRCList) Insert(a int16, b int16, c page.CRC, i int16) (int16, bool) {
 	return size, true
 }
 
+func (l *CRCList) SetCRC(c page.CRC, i int16) bool {
+	index := i*tupleSize + headerSize
+	return l.list.SetInt32(index+2, int32(c.Value()))
+}
+
 func (l *CRCList) Pop() (CRCItem, bool) {
 	size := l.Count()
 	if size < 1 {

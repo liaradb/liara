@@ -35,7 +35,7 @@ func testOutbox(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, pid, data)
+	testGet(ctx, t, o, n, data)
 	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
@@ -59,7 +59,7 @@ func testOutbox__LargeBuffer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, pid, data)
+	testGet(ctx, t, o, n, data)
 	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
@@ -93,11 +93,10 @@ func testGet(
 	t *testing.T,
 	kv *Outbox,
 	n tablename.TableName,
-	pid value.PartitionID,
 	data map[string]*entity.Outbox,
 ) {
 	for k, v := range data {
-		value, err := kv.Get(ctx, n, pid, v.ID())
+		value, err := kv.Get(ctx, n, v.ID())
 		if err != nil {
 			t.Fatal(k, err)
 		}

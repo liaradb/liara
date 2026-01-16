@@ -31,11 +31,10 @@ func New(storage *storage.Storage, cursor *btree.Cursor) *Outbox {
 func (o *Outbox) Get(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	fnIdx := tn.Index(0, pid)
+	fnIdx := tn.Index(0, value.NewPartitionID(0))
 	rid, err := o.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
@@ -163,7 +162,7 @@ func (o *Outbox) Replace(
 	e *entity.Outbox,
 ) error {
 	k := key.NewKey(oid.Bytes())
-	fnIdx := tn.Index(0, e.PartitionRange().Low())
+	fnIdx := tn.Index(0, value.NewPartitionID(0))
 	rid, err := o.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return err
@@ -178,5 +177,13 @@ func (o *Outbox) Replace(
 	defer b.Release()
 
 	// TODO: Replace child
-	panic("unimplemented")
+	n := node.New(b)
+
+	v := make([]byte, entity.OutboxSize)
+	_ = e.Write(v)
+	if !n.ReplaceChild(int16(rid.Position()), v) {
+		return btree.ErrNoUpdate
+	}
+
+	return nil
 }

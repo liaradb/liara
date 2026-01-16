@@ -141,6 +141,29 @@ func (p Node) Child(index int16) ([]byte, bool) {
 	return d, true
 }
 
+// TODO: Should we return old version?
+func (p Node) ReplaceChild(index int16, data []byte) bool {
+	i, ok := p.list.Item(index)
+	if !ok {
+		return false
+	}
+
+	// Must fit
+	if len(data) > int(i.Size) {
+		return false
+	}
+
+	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+	if !ok {
+		return false
+	}
+
+	copy(d, data)
+	p.SetDirty()
+
+	return p.list.SetCRC(page.NewCRC(data), index)
+}
+
 func (p Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.Items() {

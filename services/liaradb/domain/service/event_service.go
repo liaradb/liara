@@ -282,13 +282,12 @@ func (es *EventService) GetAfterGlobalVersion(
 func (es *EventService) GetByOutbox(
 	ctx context.Context,
 	tenantID value.TenantID,
-	partitionID value.PartitionID,
 	outboxID value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
 	tn := tablename.New(tenantID)
 	tx := es.txManager.Next()
-	o, err := tx.GetOutbox(ctx, tn, partitionID, outboxID)
+	o, err := tx.GetOutbox(ctx, tn, outboxID)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -324,7 +323,7 @@ func (es *EventService) GetOutbox(
 	var e *entity.Outbox
 	err := tx.Run(ctx, tn, partitionID, time.Now(), func() error {
 		var err error
-		e, err = tx.GetOutbox(ctx, tn, partitionID, outboxID)
+		e, err = tx.GetOutbox(ctx, tn, outboxID)
 		return err
 	})
 	return e, err
@@ -341,11 +340,6 @@ func (es *EventService) UpdateOutboxPosition(
 	tx := es.txManager.Next()
 	now := time.Now()
 	return tx.Run(ctx, tn, partitionID, now, func() error {
-		o, err := tx.GetOutbox(ctx, tn, partitionID, outboxID)
-		if err != nil {
-			return err
-		}
-		o.UpdateGlobalVersion(globalVersion)
 		return tx.UpdateOutbox(ctx, tn, now, outboxID, globalVersion)
 	})
 }

@@ -134,11 +134,8 @@ func (esc *EventSourceController) GetByOutbox(
 		return err
 	}
 
-	// TODO: How do we specify partition?
-	pid := value.NewPartitionID(0)
 	for row, err := range esc.eventService.GetByOutbox(stream.Context(),
 		value.TenantID(request.TenantId),
-		pid,
 		oid,
 		value.Limit(request.Limit)) {
 		if err != nil {
