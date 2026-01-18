@@ -11,7 +11,7 @@ import (
 )
 
 type Reader struct {
-	page *mempage.Page[*Header, *mempage.Item]
+	page Page[*mempage.Item]
 }
 
 func NewReader(pageSize int64) *Reader {
