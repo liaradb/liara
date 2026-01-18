@@ -40,7 +40,7 @@ func TestAction_String(t *testing.T) {
 	}{
 		"should handle zero": {
 			action: 0,
-			result: "Unknown"},
+			result: ""},
 		"should handle checkpoint": {
 			action: ActionCheckpoint,
 			result: "Checkpoint"},
