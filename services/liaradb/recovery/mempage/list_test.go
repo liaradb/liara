@@ -16,7 +16,7 @@ func TestList(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	l := List{}
+	l := list{}
 	var position page.Offset = 96
 
 	position -= 2
@@ -52,7 +52,7 @@ func TestList(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	var l2 List
+	var l2 list
 	if err := l2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}

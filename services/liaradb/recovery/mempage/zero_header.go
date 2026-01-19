@@ -2,18 +2,18 @@ package mempage
 
 import "io"
 
-type ZeroHeader struct{}
+type zeroHeader struct{}
 
-var _ Serializer = ZeroHeader{}
+var _ Serializer = zeroHeader{}
 
-func (z ZeroHeader) Read(io.Reader) error {
+func (z zeroHeader) Read(io.Reader) error {
 	return nil
 }
 
-func (z ZeroHeader) Size() int {
+func (z zeroHeader) Size() int {
 	return 0
 }
 
-func (z ZeroHeader) Write(io.Writer) error {
+func (z zeroHeader) Write(io.Writer) error {
 	return nil
 }

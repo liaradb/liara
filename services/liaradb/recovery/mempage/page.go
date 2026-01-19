@@ -22,12 +22,10 @@ import (
 type Page[H Serializer] struct {
 	size   page.Offset
 	header H
-	list   List
+	list   list
 	items  []*Item // TODO: Change back to []byte
 	newI   func(ListLength) *Item
 }
-
-type BytePage = Page[ZeroHeader]
 
 type Serializer interface {
 	Read(io.Reader) error
@@ -41,8 +39,8 @@ type ItemSerializer interface {
 	Write(io.Writer) (page.CRC, error)
 }
 
-func New(size page.Offset) *Page[ZeroHeader] {
-	return NewWithHeader(size, ZeroHeader{}, NewItemByLength)
+func New(size page.Offset) *Page[zeroHeader] {
+	return NewWithHeader(size, zeroHeader{}, NewItemByLength)
 }
 
 // TODO: Create simpler function

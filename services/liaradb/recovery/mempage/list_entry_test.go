@@ -14,7 +14,7 @@ func TestListEntry(t *testing.T) {
 
 	crc := page.NewCRC([]byte{1, 2, 3, 4, 5})
 
-	var le = ListEntry{1, 12345, 67890, crc}
+	var le = listEntry{1, 12345, 67890, crc}
 	if err := le.Write(w); err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestListEntry(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	var le2 ListEntry
+	var le2 listEntry
 	if err := le2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}

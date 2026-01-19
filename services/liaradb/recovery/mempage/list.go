@@ -7,22 +7,22 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-type List struct {
+type list struct {
 	headerSize int
 	highWater  page.Offset
-	entries    []ListEntry
+	entries    []listEntry
 }
 
 // TODO: Test headersize
-func newList(headerSize int) List {
-	return List{
+func newList(headerSize int) list {
+	return list{
 		headerSize: headerSize,
 	}
 }
 
-func (l List) Length() ListLength { return ListLength(len(l.entries)) }
+func (l list) Length() ListLength { return ListLength(len(l.entries)) }
 
-func (l *List) Add(offset page.Offset, length ListLength) (page.Offset, error) {
+func (l *list) Add(offset page.Offset, length ListLength) (page.Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, raw.ErrInsufficientSpace
@@ -35,11 +35,11 @@ func (l *List) Add(offset page.Offset, length ListLength) (page.Offset, error) {
 	return id, nil
 }
 
-func (l List) space() int {
-	return l.Size() + ListEntrySize
+func (l list) space() int {
+	return l.Size() + listEntrySize
 }
 
-func (l List) Size() int {
+func (l list) Size() int {
 	s := page.Offset(0).Size() + ListLength(0).Size() + l.headerSize
 	for _, e := range l.entries {
 		s += e.Size()
@@ -47,7 +47,7 @@ func (l List) Size() int {
 	return s
 }
 
-func (l List) offset(index int) page.Offset {
+func (l list) offset(index int) page.Offset {
 	if index < 0 || index >= len(l.entries) {
 		return 0
 	}
@@ -55,7 +55,7 @@ func (l List) offset(index int) page.Offset {
 	return l.entries[index].Offset
 }
 
-func (l *List) setCRC(index int, crc page.CRC) {
+func (l *list) setCRC(index int, crc page.CRC) {
 	if index < 0 || index >= len(l.entries) {
 		return
 	}
@@ -63,7 +63,7 @@ func (l *List) setCRC(index int, crc page.CRC) {
 	l.entries[index].CRC = crc
 }
 
-func (l List) entriesSize() int {
+func (l list) entriesSize() int {
 	var s int
 	for _, e := range l.entries {
 		s += e.Length.Value()
@@ -71,7 +71,7 @@ func (l List) entriesSize() int {
 	return s
 }
 
-func (l List) Write(w io.Writer) error {
+func (l list) Write(w io.Writer) error {
 	if err := l.highWater.Write(w); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (l List) Write(w io.Writer) error {
 	return nil
 }
 
-func (l *List) Read(r io.Reader) error {
+func (l *list) Read(r io.Reader) error {
 	if err := l.highWater.Read(r); err != nil {
 		return err
 	}
@@ -99,9 +99,9 @@ func (l *List) Read(r io.Reader) error {
 		return err
 	}
 
-	entries := make([]ListEntry, 0, length)
+	entries := make([]listEntry, 0, length)
 	for range length {
-		var le ListEntry
+		var le listEntry
 		if err := le.Read(r); err != nil {
 			return err
 		}
