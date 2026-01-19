@@ -24,19 +24,12 @@ type Page[H Serializer] struct {
 	header H
 	list   list
 	items  []*item // TODO: Change back to []byte
-	newI   func(ListLength) *item
 }
 
 type Serializer interface {
 	Read(io.Reader) error
 	Size() int
 	Write(io.Writer) error
-}
-
-type ItemSerializer interface {
-	Read(io.Reader, page.CRC) error
-	Size() int
-	Write(io.Writer) (page.CRC, error)
 }
 
 func New(size page.Offset) *Page[zeroHeader] {
@@ -49,7 +42,6 @@ func NewWithHeader[H Serializer](size page.Offset, header H) *Page[H] {
 		size:   size,
 		header: header,
 		list:   newList(page.MagicSize + header.Size()),
-		newI:   newItemByLength,
 	}
 }
 
@@ -152,7 +144,7 @@ func (p *Page[H]) readItems(r io.ReadSeeker) error {
 			return err
 		}
 
-		i := p.newI(e.Length)
+		i := newItemByLength(e.Length)
 		if err := i.Read(r, e.CRC); err != nil {
 			return err
 		}
