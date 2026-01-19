@@ -7,17 +7,11 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
-type Page[I ItemSerializer] interface {
+type Page interface {
 	Add([]byte) (page.Offset, error)
 	Header() *Header
-	Items() iter.Seq2[I, error]
-	ItemsReverse() iter.Seq2[I, error]
+	Items() iter.Seq2[[]byte, error]
+	ItemsReverse() iter.Seq2[[]byte, error]
 	Read(r io.ReadSeeker) error
 	Write(w io.WriteSeeker) error
-}
-
-type ItemSerializer interface {
-	Read(io.Reader, page.CRC) error
-	Size() int
-	Write(io.Writer) (page.CRC, error)
 }

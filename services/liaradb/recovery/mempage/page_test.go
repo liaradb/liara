@@ -30,7 +30,7 @@ func TestPage_Add(t *testing.T) {
 			t.Error(err)
 		}
 
-		result = append(result, i)
+		result = append(result, NewItem(i))
 	}
 
 	if !slices.EqualFunc(result, items, func(a, b *Item) bool {
@@ -78,7 +78,7 @@ func TestPage_ReadWrite(t *testing.T) {
 			t.Error(err)
 		}
 
-		result = append(result, i)
+		result = append(result, NewItem(i))
 	}
 
 	if !slices.EqualFunc(result, items, func(a, b *Item) bool {
@@ -109,7 +109,7 @@ func TestPage_Reverse(t *testing.T) {
 			t.Error(err)
 		}
 
-		result = append(result, i)
+		result = append(result, NewItem(i))
 	}
 
 	slices.Reverse(items)
@@ -143,7 +143,7 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 			t.Error(err)
 		}
 
-		result = append(result, i)
+		result = append(result, NewItem(i))
 	}
 
 	if !slices.EqualFunc(result, items, func(a, b *Item) bool {

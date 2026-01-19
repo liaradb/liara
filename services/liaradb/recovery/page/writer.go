@@ -10,7 +10,7 @@ import (
 
 type Writer struct {
 	bodySize int64
-	page     Page[*mempage.Item]
+	page     Page
 }
 
 func NewWriter(size int64) *Writer {

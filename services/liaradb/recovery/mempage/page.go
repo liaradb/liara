@@ -76,21 +76,21 @@ func (p *Page[H]) Size() int { return int(p.size) }
 
 // TODO: Create a way to iterate rather than reading the entire page
 // TODO: Do we need an error parameter?
-func (p *Page[H]) Items() iter.Seq2[*Item, error] {
-	return func(yield func(*Item, error) bool) {
+func (p *Page[H]) Items() iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
 		for _, i := range p.items {
-			if !yield(i, nil) {
+			if !yield(i.data, nil) {
 				return
 			}
 		}
 	}
 }
 
-func (p *Page[H]) ItemsReverse() iter.Seq2[*Item, error] {
-	return func(yield func(*Item, error) bool) {
+func (p *Page[H]) ItemsReverse() iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
 		l := len(p.items) - 1
 		for index := range p.items {
-			if !yield(p.items[l-index], nil) {
+			if !yield(p.items[l-index].data, nil) {
 				return
 			}
 		}

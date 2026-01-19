@@ -11,7 +11,7 @@ import (
 )
 
 type Reader struct {
-	page Page[*mempage.Item]
+	page Page
 }
 
 func NewReader(pageSize int64) *Reader {
@@ -79,7 +79,7 @@ func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			b := raw.NewBufferFromSlice(i.Value())
+			b := raw.NewBufferFromSlice(i)
 			rc := &record.Record{}
 			if err := rc.Read(b); err != nil {
 				yield(nil, err)
@@ -101,7 +101,7 @@ func (rd *Reader) reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			b := raw.NewBufferFromSlice(i.Value())
+			b := raw.NewBufferFromSlice(i)
 			rc := &record.Record{}
 			if err := rc.Read(b); err != nil {
 				yield(nil, err)
