@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/recovery/mempage"
+	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -124,7 +126,7 @@ func createWriter(t *testing.T) *Writer {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(256, 3)
+	sw := NewWriter(256, 3, mempage.NewWithHeader(256, &page.Header{}))
 	sw.Initialize(f)
 	return sw
 }

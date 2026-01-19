@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -246,7 +247,7 @@ func TestLog_Recover(t *testing.T) {
 	r1 := records[1]
 
 	{ // "should append and flush"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -279,7 +280,7 @@ func TestLog_Recover(t *testing.T) {
 	}
 
 	{ //"should recover"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -324,7 +325,7 @@ func TestLog_RecoverMany(t *testing.T) {
 	records := append(records1, records2...)
 
 	{ // "should append and flush"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -371,7 +372,7 @@ func TestLog_RecoverMany(t *testing.T) {
 	}
 
 	{ // "should append and flush more and iterate"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -478,7 +479,7 @@ func createLog(t *testing.T, segmentSize page.PageID) *Log {
 	t.Helper()
 
 	fsys, dir := createFiles(t)
-	l := NewLog(256, segmentSize, fsys, dir)
+	l := NewLog(256, segmentSize, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}

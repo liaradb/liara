@@ -16,10 +16,11 @@ func newWriter(
 	pageSize int64,
 	segmentSize page.PageID,
 	sl *segment.List,
+	p page.Page,
 ) *writer {
 	return &writer{
 		sl: sl,
-		sw: segment.NewWriter(pageSize, segmentSize),
+		sw: segment.NewWriter(pageSize, segmentSize, p),
 	}
 }
 

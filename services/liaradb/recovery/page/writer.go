@@ -11,10 +11,10 @@ type Writer struct {
 	page     Page
 }
 
-func NewWriter(size int64) *Writer {
+func NewWriter(size int64, page Page) *Writer {
 	return &Writer{
 		bodySize: size,
-		page:     newPage(size),
+		page:     page,
 	}
 }
 

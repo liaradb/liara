@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"iter"
 
+	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -16,10 +17,11 @@ type reader struct {
 func newReader(
 	pageSize int64,
 	sl *segment.List,
+	p page.Page,
 ) *reader {
 	return &reader{
 		sl: sl,
-		sr: segment.NewReader(pageSize),
+		sr: segment.NewReader(pageSize, p),
 	}
 }
 

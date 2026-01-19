@@ -32,12 +32,13 @@ type readWriterAt interface {
 func NewWriter(
 	pageSize int64,
 	segmentSize page.PageID,
+	p page.Page,
 ) *Writer {
 	return &Writer{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		recordBuf:   bytes.NewBuffer(nil),
-		pageWriter:  page.NewWriter(pageSize),
+		pageWriter:  page.NewWriter(pageSize, p),
 	}
 }
 

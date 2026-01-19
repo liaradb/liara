@@ -12,9 +12,9 @@ type Reader struct {
 	page Page
 }
 
-func NewReader(pageSize int64) *Reader {
+func NewReader(page Page) *Reader {
 	return &Reader{
-		page: newPage(pageSize),
+		page: page,
 	}
 }
 

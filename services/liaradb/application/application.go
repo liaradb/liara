@@ -16,6 +16,7 @@ import (
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
@@ -37,7 +38,8 @@ func New(conf configuration) *Application {
 	fsys := &disk.FileSystem{}
 
 	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
-	log := recovery.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
+	log := recovery.NewLog(int64(conf.BlockSize), page.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"),
+		mempage.NewWithHeader(int64(conf.BlockSize), &page.Header{}))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{

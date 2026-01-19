@@ -17,10 +17,11 @@ type Reader struct {
 
 func NewReader(
 	pageSize int64,
+	p page.Page,
 ) *Reader {
 	return &Reader{
 		pageSize:   pageSize,
-		pageReader: page.NewReader(pageSize),
+		pageReader: page.NewReader(p),
 	}
 }
 

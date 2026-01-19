@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -23,7 +24,7 @@ func TestWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(256)
+	pr := NewReader(mempage.NewWithHeader(256, &Header{}))
 	_, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
@@ -56,7 +57,7 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(256)
+	pr := NewReader(mempage.NewWithHeader(256, &Header{}))
 	it, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +87,7 @@ func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
 	tlid := TimeLineID(2)
 	rem := record.NewLength(3)
 
-	pw := NewWriter(256)
+	pw := NewWriter(256, mempage.NewWithHeader(256, &Header{}))
 	pw.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, pw

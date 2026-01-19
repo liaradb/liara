@@ -40,12 +40,13 @@ func NewLog(
 	segmentSize page.PageID,
 	fsys file.FileSystem,
 	dir string,
+	p page.Page,
 ) *Log {
 	sl := segment.NewList(fsys, dir)
 	return &Log{
 		sl:         sl,
-		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pageSize, segmentSize, sl),
+		reader:     newReader(pageSize, sl, p),
+		writer:     newWriter(pageSize, segmentSize, sl, p),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 	}
