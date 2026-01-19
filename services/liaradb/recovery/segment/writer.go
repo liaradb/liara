@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -16,9 +17,9 @@ const (
 
 type Writer struct {
 	pageSize    int64
-	segmentSize page.PageID
-	pageID      page.PageID
-	timeLineID  page.TimeLineID
+	segmentSize action.PageID
+	pageID      action.PageID
+	timeLineID  action.TimeLineID
 	writer      io.WriterAt
 	recordBuf   *bytes.Buffer
 	pageWriter  *page.Writer
@@ -31,7 +32,7 @@ type readWriterAt interface {
 
 func NewWriter(
 	pageSize int64,
-	segmentSize page.PageID,
+	segmentSize action.PageID,
 	p page.Page,
 ) *Writer {
 	return &Writer{
@@ -42,7 +43,7 @@ func NewWriter(
 	}
 }
 
-func (wr *Writer) PageID() page.PageID { return wr.pageID }
+func (wr *Writer) PageID() action.PageID { return wr.pageID }
 
 func (wr *Writer) Append(rc *record.Record) error {
 	data, err := wr.recordToBytes(rc)
@@ -120,7 +121,7 @@ func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 
 	wr.reset(rw)
 
-	wr.pageID = page.NewActivePageIDFromSize(size, wr.pageSize)
+	wr.pageID = action.NewActivePageIDFromSize(size, wr.pageSize)
 	return wr.pageWriter.Read(
 		io.NewSectionReader(rw, wr.pageID.Position(wr.pageSize), wr.pageSize))
 }

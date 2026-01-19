@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/filetesting"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/testutil"
 )
 
 func TestWriter(t *testing.T) {
@@ -24,13 +26,14 @@ func TestWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(mempage.NewWithHeader(256, &Header{}))
+	pr := NewReader(mempage.New(256))
 	_, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testHeader(t, pr.Header(), pid, tlid, rem)
+	// TODO: This is private
+	testPage(t, pr.page, pid, tlid, rem)
 }
 
 func TestWriter_Append(t *testing.T) {
@@ -57,13 +60,14 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(mempage.NewWithHeader(256, &Header{}))
+	pr := NewReader(mempage.New(256))
 	it, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	testHeader(t, pr.Header(), pid, tlid, rem)
+	// TODO: This is private
+	testPage(t, pr.page, pid, tlid, rem)
 
 	count := 0
 	for r, err := range it {
@@ -82,12 +86,12 @@ func TestWriter_Append(t *testing.T) {
 	}
 }
 
-func createWriter() (PageID, TimeLineID, record.Length, *Writer) {
-	pid := PageID(1)
-	tlid := TimeLineID(2)
+func createWriter() (action.PageID, action.TimeLineID, record.Length, *Writer) {
+	pid := action.PageID(1)
+	tlid := action.TimeLineID(2)
 	rem := record.NewLength(3)
 
-	pw := NewWriter(256, mempage.NewWithHeader(256, &Header{}))
+	pw := NewWriter(256, mempage.New(256))
 	pw.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, pw
@@ -112,4 +116,17 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 	}
 
 	return recordBuf.Bytes(), nil
+}
+
+func testPage(
+	t *testing.T,
+	p Page,
+	pid action.PageID,
+	tlid action.TimeLineID,
+	rem record.Length,
+) {
+	t.Helper()
+	testutil.Getter(t, p.ID, pid, "ID")
+	testutil.Getter(t, p.TimeLineID, tlid, "TimeLineID")
+	testutil.Getter(t, p.LengthRemaining, rem, "LengthRemaining")
 }

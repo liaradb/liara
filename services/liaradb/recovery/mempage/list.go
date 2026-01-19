@@ -25,9 +25,9 @@ func (l *list) Reset() {
 	l.entries = nil
 }
 
-func (l list) Length() ListLength { return ListLength(len(l.entries)) }
+func (l list) Length() listLength { return listLength(len(l.entries)) }
 
-func (l *list) Add(offset page.Offset, length ListLength) (page.Offset, error) {
+func (l *list) Add(offset page.Offset, length listLength) (page.Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
 		return 0, raw.ErrInsufficientSpace
@@ -45,7 +45,7 @@ func (l list) space() int {
 }
 
 func (l list) Size() int {
-	s := page.Offset(0).Size() + ListLength(0).Size() + l.headerSize
+	s := page.Offset(0).Size() + listLength(0).Size() + l.headerSize
 	for _, e := range l.entries {
 		s += e.Size()
 	}
@@ -99,7 +99,7 @@ func (l *list) Read(r io.Reader) error {
 		return err
 	}
 
-	var length ListLength
+	var length listLength
 	if err := length.Read(r); err != nil {
 		return err
 	}

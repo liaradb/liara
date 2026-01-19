@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -37,7 +38,7 @@ type appendValue struct {
 
 func NewLog(
 	pageSize int64,
-	segmentSize page.PageID,
+	segmentSize action.PageID,
 	fsys file.FileSystem,
 	dir string,
 	p page.Page,
@@ -54,7 +55,7 @@ func NewLog(
 
 func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
-func (l *Log) PageID() page.PageID                 { return l.writer.PageID() }
+func (l *Log) PageID() action.PageID               { return l.writer.PageID() }
 
 func (l *Log) run(ctx context.Context) {
 	for {

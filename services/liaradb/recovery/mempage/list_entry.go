@@ -10,13 +10,13 @@ import (
 type listEntry struct {
 	ID     page.Offset
 	Offset page.Offset
-	Length ListLength
+	Length listLength
 	CRC    page.CRC
 }
 
 const listEntrySize = page.OffsetSize + page.OffsetSize + ListLengthSize + page.CrcSize
 
-func newListEntry(id page.Offset, offset page.Offset, length ListLength) listEntry {
+func newListEntry(id page.Offset, offset page.Offset, length listLength) listEntry {
 	return listEntry{
 		ID:     id,
 		Offset: offset,

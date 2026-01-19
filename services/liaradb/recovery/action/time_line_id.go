@@ -1,4 +1,4 @@
-package page
+package action
 
 import (
 	"io"
@@ -8,7 +8,7 @@ import (
 
 type TimeLineID uint32
 
-const timeLineIDSize = 4
+const TimeLineIDSize = 4
 
 func (tlid TimeLineID) Write(w io.Writer) error {
 	return raw.WriteInt32(w, tlid)

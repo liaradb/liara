@@ -1,4 +1,4 @@
-package page
+package action
 
 import (
 	"io"
@@ -8,7 +8,7 @@ import (
 
 type PageID uint64
 
-const pageIDSize = 8
+const PageIDSize = 8
 
 func NewPageIDFromSize(size int64, pageSize int64) PageID {
 	if pageSize == 0 {

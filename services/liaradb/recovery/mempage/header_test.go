@@ -1,8 +1,9 @@
-package page
+package mempage
 
 import (
 	"testing"
 
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testutil"
 )
@@ -11,11 +12,11 @@ func TestHeader(t *testing.T) {
 	t.Parallel()
 
 	r, w := testutil.NewReaderBuffer()
-	pid := PageID(1)
-	tlid := TimeLineID(2)
+	pid := action.PageID(1)
+	tlid := action.TimeLineID(2)
 	rem := record.NewLength(3)
 
-	h := NewHeader(pid, tlid, rem)
+	h := newHeader(pid, tlid, rem)
 
 	if err := h.Write(w); err != nil {
 		t.Fatal(err)
@@ -26,7 +27,7 @@ func TestHeader(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	h2 := Header{}
+	h2 := header{}
 	if err := h2.Read(r); err != nil {
 		t.Fatal(err)
 	}
@@ -36,9 +37,9 @@ func TestHeader(t *testing.T) {
 
 func testHeader(
 	t *testing.T,
-	h Header,
-	pid PageID,
-	tlid TimeLineID,
+	h header,
+	pid action.PageID,
+	tlid action.TimeLineID,
 	rem record.Length,
 ) {
 	t.Helper()

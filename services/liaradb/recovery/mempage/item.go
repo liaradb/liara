@@ -16,7 +16,7 @@ func newItem(data []byte) *item {
 	return &item{data}
 }
 
-func newItemByLength(l ListLength) *item {
+func newItemByLength(l listLength) *item {
 	return &item{make([]byte, l)}
 }
 

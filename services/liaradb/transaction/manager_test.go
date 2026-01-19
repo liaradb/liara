@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/mempage"
-	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
@@ -51,7 +50,7 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {
 	t.Helper()
 
-	l := recovery.NewLog(256, 3, fsys, dir, mempage.NewWithHeader(256, &page.Header{}))
+	l := recovery.NewLog(256, 3, fsys, dir, mempage.New(256))
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}

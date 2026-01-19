@@ -3,6 +3,7 @@ package page
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -18,9 +19,8 @@ func NewWriter(size int64, page Page) *Writer {
 	}
 }
 
-func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
-	// TODO: Don't replace header
-	wr.page.Reset(NewHeader(id, tlid, rem))
+func (wr *Writer) Init(id action.PageID, tlid action.TimeLineID, rem record.Length) {
+	wr.page.Reset(id, tlid, rem)
 }
 
 func (wr *Writer) Append(data []byte) error {
@@ -29,7 +29,7 @@ func (wr *Writer) Append(data []byte) error {
 }
 
 func (wr *Writer) Position() int64 {
-	return wr.page.Header().ID().Position(wr.bodySize)
+	return wr.page.ID().Position(wr.bodySize)
 }
 
 func (wr *Writer) Write(w io.WriterAt) error {

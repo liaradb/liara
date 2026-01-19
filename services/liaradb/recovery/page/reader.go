@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -18,10 +19,12 @@ func NewReader(page Page) *Reader {
 	}
 }
 
-func (rd *Reader) Header() Header { return *rd.page.Header() }
+func (h *Reader) ID() action.PageID              { return h.page.ID() }
+func (h *Reader) TimeLineID() action.TimeLineID  { return h.page.TimeLineID() }
+func (h *Reader) LengthRemaining() record.Length { return h.page.LengthRemaining() }
 
 func (rd *Reader) Iterate(r io.ReadSeeker) (iter.Seq2[*record.Record, error], error) {
-	if _, err := rd.read(r); err != nil {
+	if err := rd.read(r); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +43,7 @@ func (rd *Reader) Iterate(r io.ReadSeeker) (iter.Seq2[*record.Record, error], er
 }
 
 func (rd *Reader) Reverse(r io.ReadSeeker) (iter.Seq2[*record.Record, error], error) {
-	if _, err := rd.read(r); err != nil {
+	if err := rd.read(r); err != nil {
 		return nil, err
 	}
 
@@ -58,12 +61,8 @@ func (rd *Reader) Reverse(r io.ReadSeeker) (iter.Seq2[*record.Record, error], er
 	}, nil
 }
 
-func (rd *Reader) read(r io.ReadSeeker) (*Header, error) {
-	if err := rd.page.Read(r); err != nil {
-		return nil, err
-	}
-
-	return rd.page.Header(), nil
+func (rd *Reader) read(r io.ReadSeeker) error {
+	return rd.page.Read(r)
 }
 
 func (rd *Reader) records() iter.Seq2[*record.Record, error] {

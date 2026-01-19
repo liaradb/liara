@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/mempage"
-	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -96,7 +95,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	mp := mempage.NewWithHeader(256, &page.Header{})
+	mp := mempage.New(256)
 	sw := NewWriter(256, 4, mp)
 	sw.Initialize(f)
 	return f, NewReader(256, mp), sw

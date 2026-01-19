@@ -2,6 +2,7 @@ package recovery
 
 import (
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -14,7 +15,7 @@ type writer struct {
 
 func newWriter(
 	pageSize int64,
-	segmentSize page.PageID,
+	segmentSize action.PageID,
 	sl *segment.List,
 	p page.Page,
 ) *writer {
@@ -24,7 +25,7 @@ func newWriter(
 	}
 }
 
-func (wr *writer) PageID() page.PageID { return wr.sw.PageID() }
+func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 
 func (wr *writer) Append(rc *record.Record) error {
 	err := wr.sw.Append(rc)
