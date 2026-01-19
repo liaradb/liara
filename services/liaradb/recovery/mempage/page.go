@@ -53,6 +53,12 @@ func NewWithHeader[H Serializer](size page.Offset, header H) *Page[H] {
 	}
 }
 
+func (p *Page[H]) Reset(h H) {
+	p.header = h
+	p.list.Reset()
+	p.items = nil
+}
+
 // TODO: Test offset return
 func (p *Page[H]) Add(data []byte) (page.Offset, error) {
 	i := newItem(data)

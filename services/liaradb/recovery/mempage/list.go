@@ -20,6 +20,11 @@ func newList(headerSize int) list {
 	}
 }
 
+func (l *list) Reset() {
+	l.highWater = 0
+	l.entries = nil
+}
+
 func (l list) Length() ListLength { return ListLength(len(l.entries)) }
 
 func (l *list) Add(offset page.Offset, length ListLength) (page.Offset, error) {

@@ -13,5 +13,6 @@ type Page interface {
 	Items() iter.Seq2[[]byte, error]
 	ItemsReverse() iter.Seq2[[]byte, error]
 	Read(r io.ReadSeeker) error
+	Reset(*Header)
 	Write(w io.WriteSeeker) error
 }

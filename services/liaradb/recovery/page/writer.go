@@ -23,11 +23,8 @@ func NewWriter(size int64) *Writer {
 }
 
 func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
-	h := NewHeader(id, tlid, rem)
-	// TODO: Don't replace page
-	wr.page = mempage.NewWithHeader(
-		page.Offset(wr.bodySize),
-		&h)
+	// TODO: Don't replace header
+	wr.page.Reset(NewHeader(id, tlid, rem))
 }
 
 func (wr *Writer) Append(data []byte) error {

@@ -22,17 +22,17 @@ func NewHeader(
 	id PageID,
 	timeLineID TimeLineID,
 	lengthRemaining record.Length,
-) Header {
-	return Header{
+) *Header {
+	return &Header{
 		id:              id,
 		timeLineID:      timeLineID,
 		lengthRemaining: lengthRemaining,
 	}
 }
 
-func (h Header) ID() PageID                     { return h.id }
-func (h Header) TimeLineID() TimeLineID         { return h.timeLineID }
-func (h Header) LengthRemaining() record.Length { return h.lengthRemaining }
+func (h *Header) ID() PageID                     { return h.id }
+func (h *Header) TimeLineID() TimeLineID         { return h.timeLineID }
+func (h *Header) LengthRemaining() record.Length { return h.lengthRemaining }
 
 func (h Header) Size() int {
 	return headerSize
