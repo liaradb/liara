@@ -23,8 +23,8 @@ type Page[H Serializer] struct {
 	size   page.Offset
 	header H
 	list   list
-	items  []*Item // TODO: Change back to []byte
-	newI   func(ListLength) *Item
+	items  []*item // TODO: Change back to []byte
+	newI   func(ListLength) *item
 }
 
 type Serializer interface {
@@ -40,22 +40,22 @@ type ItemSerializer interface {
 }
 
 func New(size page.Offset) *Page[zeroHeader] {
-	return NewWithHeader(size, zeroHeader{}, NewItemByLength)
+	return NewWithHeader(size, zeroHeader{})
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer](size page.Offset, header H, newI func(ListLength) *Item) *Page[H] {
+func NewWithHeader[H Serializer](size page.Offset, header H) *Page[H] {
 	return &Page[H]{
 		size:   size,
 		header: header,
 		list:   newList(page.MagicSize + header.Size()),
-		newI:   newI,
+		newI:   newItemByLength,
 	}
 }
 
 // TODO: Test offset return
 func (p *Page[H]) Add(data []byte) (page.Offset, error) {
-	i := NewItem(data)
+	i := newItem(data)
 	l := i.Size()
 	offset, err := p.list.Add(p.nextCursor(l), ListLength(l))
 	if err != nil {
@@ -139,7 +139,7 @@ func (p *Page[H]) writeHeader(w io.Writer) error {
 }
 
 func (p *Page[H]) readItems(r io.ReadSeeker) error {
-	items := make([]*Item, 0, p.list.Length())
+	items := make([]*item, 0, p.list.Length())
 
 	for _, e := range p.list.entries {
 		if _, err := r.Seek(int64(e.Offset), io.SeekStart); err != nil {

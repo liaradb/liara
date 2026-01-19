@@ -18,8 +18,7 @@ func NewReader(pageSize int64) *Reader {
 	return &Reader{
 		page: mempage.NewWithHeader(
 			page.Offset(pageSize),
-			&Header{},
-			mempage.NewItemByLength),
+			&Header{}),
 	}
 }
 

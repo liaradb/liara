@@ -7,29 +7,29 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
-type Item struct {
+type item struct {
 	data []byte
 }
 
-func NewItem(data []byte) *Item {
+func newItem(data []byte) *item {
 	// TODO: Do we need to clone the item?
-	return &Item{data}
+	return &item{data}
 }
 
-func NewItemByLength(l ListLength) *Item {
-	return &Item{make([]byte, l)}
+func newItemByLength(l ListLength) *item {
+	return &item{make([]byte, l)}
 }
 
-func (i *Item) String() string { return string(i.data) }
-func (i *Item) Value() []byte  { return i.data } // TODO: Should this clone?
-func (i *Item) Length() int    { return len(i.data) }
-func (i *Item) Size() int      { return len(i.data) }
+func (i *item) String() string { return string(i.data) }
+func (i *item) Value() []byte  { return i.data } // TODO: Should this clone?
+func (i *item) Length() int    { return len(i.data) }
+func (i *item) Size() int      { return len(i.data) }
 
-func (i *Item) Compare(a *Item) bool {
+func (i *item) Compare(a *item) bool {
 	return slices.Equal(i.data, a.data)
 }
 
-func (i *Item) Write(w io.Writer) (page.CRC, error) {
+func (i *item) Write(w io.Writer) (page.CRC, error) {
 	if n, err := w.Write(i.data); err != nil {
 		return page.CRC{}, err
 	} else if n < len(i.data) {
@@ -39,7 +39,7 @@ func (i *Item) Write(w io.Writer) (page.CRC, error) {
 	return page.NewCRC(i.data), nil
 }
 
-func (i *Item) Read(r io.Reader, crc page.CRC) error {
+func (i *item) Read(r io.Reader, crc page.CRC) error {
 	if _, err := r.Read(i.data); err != nil {
 		return err
 	}
