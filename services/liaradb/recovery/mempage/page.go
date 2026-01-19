@@ -32,14 +32,14 @@ type Serializer interface {
 	Write(io.Writer) error
 }
 
-func New(size page.Offset) *Page[zeroHeader] {
+func New(size int64) *Page[zeroHeader] {
 	return NewWithHeader(size, zeroHeader{})
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer](size page.Offset, header H) *Page[H] {
+func NewWithHeader[H Serializer](size int64, header H) *Page[H] {
 	return &Page[H]{
-		size:   size,
+		size:   page.Offset(size),
 		header: header,
 		list:   newList(page.MagicSize + header.Size()),
 	}

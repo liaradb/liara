@@ -5,6 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/mempage"
 )
 
 type Page interface {
@@ -15,4 +16,8 @@ type Page interface {
 	Read(r io.ReadSeeker) error
 	Reset(*Header)
 	Write(w io.WriteSeeker) error
+}
+
+func newPage(pageSize int64) Page {
+	return mempage.NewWithHeader(pageSize, &Header{})
 }

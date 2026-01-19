@@ -3,8 +3,6 @@ package page
 import (
 	"io"
 
-	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -16,9 +14,7 @@ type Writer struct {
 func NewWriter(size int64) *Writer {
 	return &Writer{
 		bodySize: size,
-		page: mempage.NewWithHeader(
-			page.Offset(size),
-			&Header{}),
+		page:     newPage(size),
 	}
 }
 

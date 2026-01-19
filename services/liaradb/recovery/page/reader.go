@@ -4,9 +4,7 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/recovery/mempage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -16,9 +14,7 @@ type Reader struct {
 
 func NewReader(pageSize int64) *Reader {
 	return &Reader{
-		page: mempage.NewWithHeader(
-			page.Offset(pageSize),
-			&Header{}),
+		page: newPage(pageSize),
 	}
 }
 
