@@ -33,7 +33,7 @@ func (wr *Writer) Init(id PageID, tlid TimeLineID, rem record.Length) {
 }
 
 func (wr *Writer) Append(data []byte) error {
-	_, err := wr.page.Add(mempage.NewItem(data))
+	_, err := wr.page.Add(data)
 	return err
 }
 

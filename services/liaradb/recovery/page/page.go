@@ -8,7 +8,7 @@ import (
 )
 
 type Page[I ItemSerializer] interface {
-	Add(i I) (page.Offset, error)
+	Add([]byte) (page.Offset, error)
 	Header() *Header
 	Items() iter.Seq2[I, error]
 	ItemsReverse() iter.Seq2[I, error]

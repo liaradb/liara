@@ -18,7 +18,7 @@ func TestPage_Add(t *testing.T) {
 		NewItem([]byte{1, 2, 3, 4}),
 		NewItem([]byte{5, 6, 7, 8})}
 	for _, i := range items {
-		if _, err := p.Add(i); err != nil {
+		if _, err := p.Add(i.data); err != nil {
 			t.Error(err)
 		}
 	}
@@ -51,7 +51,7 @@ func TestPage_Add__ErrInsufficientSpace(t *testing.T) {
 		NewItem([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17})}
 
 	for _, i := range items {
-		if _, err := p.Add(i); err != raw.ErrInsufficientSpace {
+		if _, err := p.Add(i.data); err != raw.ErrInsufficientSpace {
 			t.Error("should return insufficient space")
 		}
 	}
@@ -157,12 +157,12 @@ func TestPage_ReadWrite__Header(t *testing.T) {
 	}
 }
 
-func writeRecords[S Serializer](t *testing.T, size int64, p *Page[S, *Item]) (*raw.Buffer, []*Item) {
+func writeRecords[S Serializer](t *testing.T, size int64, p *Page[S]) (*raw.Buffer, []*Item) {
 	b := raw.NewBuffer(size)
 	items := createRecords(4, 32)
 
 	for _, i := range items {
-		if _, err := p.Add(i); err != nil {
+		if _, err := p.Add(i.data); err != nil {
 			t.Fatal(err)
 		}
 	}

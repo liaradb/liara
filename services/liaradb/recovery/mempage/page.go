@@ -19,15 +19,15 @@ import (
 // Then use the slices in a [raw.Buffer] to allow reading.
 
 // TODO: Potentially use io.OffsetWriter
-type Page[H Serializer, I ItemSerializer] struct {
+type Page[H Serializer] struct {
 	size   page.Offset
 	header H
 	list   List
-	items  []I // TODO: Change back to []byte
-	newI   func(ListLength) I
+	items  []*Item // TODO: Change back to []byte
+	newI   func(ListLength) *Item
 }
 
-type BytePage = Page[ZeroHeader, *Item]
+type BytePage = Page[ZeroHeader]
 
 type Serializer interface {
 	Read(io.Reader) error
@@ -41,13 +41,13 @@ type ItemSerializer interface {
 	Write(io.Writer) (page.CRC, error)
 }
 
-func New(size page.Offset) *Page[ZeroHeader, *Item] {
+func New(size page.Offset) *Page[ZeroHeader] {
 	return NewWithHeader(size, ZeroHeader{}, NewItemByLength)
 }
 
 // TODO: Create simpler function
-func NewWithHeader[H Serializer, I ItemSerializer](size page.Offset, header H, newI func(ListLength) I) *Page[H, I] {
-	return &Page[H, I]{
+func NewWithHeader[H Serializer](size page.Offset, header H, newI func(ListLength) *Item) *Page[H] {
+	return &Page[H]{
 		size:   size,
 		header: header,
 		list:   newList(page.MagicSize + header.Size()),
@@ -56,7 +56,8 @@ func NewWithHeader[H Serializer, I ItemSerializer](size page.Offset, header H, n
 }
 
 // TODO: Test offset return
-func (p *Page[H, I]) Add(i I) (page.Offset, error) {
+func (p *Page[H]) Add(data []byte) (page.Offset, error) {
+	i := NewItem(data)
 	l := i.Size()
 	offset, err := p.list.Add(p.nextCursor(l), ListLength(l))
 	if err != nil {
@@ -68,17 +69,17 @@ func (p *Page[H, I]) Add(i I) (page.Offset, error) {
 	return offset, nil
 }
 
-func (p *Page[H, I]) nextCursor(l int) page.Offset {
+func (p *Page[H]) nextCursor(l int) page.Offset {
 	return page.Offset(p.Size() - p.list.entriesSize() - l)
 }
 
-func (p *Page[H, I]) Header() H { return p.header }
-func (p *Page[H, I]) Size() int { return int(p.size) }
+func (p *Page[H]) Header() H { return p.header }
+func (p *Page[H]) Size() int { return int(p.size) }
 
 // TODO: Create a way to iterate rather than reading the entire page
 // TODO: Do we need an error parameter?
-func (p *Page[H, I]) Items() iter.Seq2[I, error] {
-	return func(yield func(I, error) bool) {
+func (p *Page[H]) Items() iter.Seq2[*Item, error] {
+	return func(yield func(*Item, error) bool) {
 		for _, i := range p.items {
 			if !yield(i, nil) {
 				return
@@ -87,8 +88,8 @@ func (p *Page[H, I]) Items() iter.Seq2[I, error] {
 	}
 }
 
-func (p *Page[H, I]) ItemsReverse() iter.Seq2[I, error] {
-	return func(yield func(I, error) bool) {
+func (p *Page[H]) ItemsReverse() iter.Seq2[*Item, error] {
+	return func(yield func(*Item, error) bool) {
 		l := len(p.items) - 1
 		for index := range p.items {
 			if !yield(p.items[l-index], nil) {
@@ -98,7 +99,7 @@ func (p *Page[H, I]) ItemsReverse() iter.Seq2[I, error] {
 	}
 }
 
-func (p *Page[H, I]) Read(r io.ReadSeeker) error {
+func (p *Page[H]) Read(r io.ReadSeeker) error {
 	if err := p.readHeader(r); err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func (p *Page[H, I]) Read(r io.ReadSeeker) error {
 	return p.readItems(r)
 }
 
-func (p *Page[H, I]) Write(w io.WriteSeeker) error {
+func (p *Page[H]) Write(w io.WriteSeeker) error {
 	if err := p.writeItems(w); err != nil {
 		return err
 	}
@@ -126,21 +127,21 @@ func (p *Page[H, I]) Write(w io.WriteSeeker) error {
 	return p.list.Write(w)
 }
 
-func (p *Page[H, I]) readHeader(r io.Reader) error {
+func (p *Page[H]) readHeader(r io.Reader) error {
 	var m page.Magic
 	return raw.ReadAll(r,
 		&m,
 		p.header)
 }
 
-func (p *Page[H, I]) writeHeader(w io.Writer) error {
+func (p *Page[H]) writeHeader(w io.Writer) error {
 	return raw.WriteAll(w,
 		page.MagicPage,
 		p.header)
 }
 
-func (p *Page[H, I]) readItems(r io.ReadSeeker) error {
-	items := make([]I, 0, p.list.Length())
+func (p *Page[H]) readItems(r io.ReadSeeker) error {
+	items := make([]*Item, 0, p.list.Length())
 
 	for _, e := range p.list.entries {
 		if _, err := r.Seek(int64(e.Offset), io.SeekStart); err != nil {
@@ -159,7 +160,7 @@ func (p *Page[H, I]) readItems(r io.ReadSeeker) error {
 	return nil
 }
 
-func (p *Page[H, I]) writeItems(w io.WriteSeeker) error {
+func (p *Page[H]) writeItems(w io.WriteSeeker) error {
 	for index, i := range p.items {
 		if _, err := w.Seek(int64(p.list.offset(index)), io.SeekStart); err != nil {
 			return err
