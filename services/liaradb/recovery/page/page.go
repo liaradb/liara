@@ -13,8 +13,6 @@ type Page[I ItemSerializer] interface {
 	Items() iter.Seq2[I, error]
 	ItemsReverse() iter.Seq2[I, error]
 	Read(r io.ReadSeeker) error
-	Reset(h *Header)
-	Size() int
 	Write(w io.WriteSeeker) error
 }
 

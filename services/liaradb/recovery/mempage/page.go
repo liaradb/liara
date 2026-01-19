@@ -55,14 +55,6 @@ func NewWithHeader[H Serializer, I ItemSerializer](size page.Offset, header H, n
 	}
 }
 
-// TODO: Test this
-func (p *Page[H, I]) Reset(h H) {
-	p.header = h
-	p.list.reset()
-	clear(p.items)
-	p.items = p.items[:0]
-}
-
 // TODO: Test offset return
 func (p *Page[H, I]) Add(i I) (page.Offset, error) {
 	l := i.Size()

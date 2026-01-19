@@ -22,12 +22,6 @@ func newList(headerSize int) List {
 
 func (l List) Length() ListLength { return ListLength(len(l.entries)) }
 
-// TODO: Test this
-func (l List) reset() {
-	clear(l.entries)
-	l.entries = l.entries[:0]
-}
-
 func (l *List) Add(offset page.Offset, length ListLength) (page.Offset, error) {
 	// TODO: Test this
 	if int(offset) < l.space() {
