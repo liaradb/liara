@@ -78,22 +78,21 @@ func (p *Page) nextCursor(l int) page.Offset {
 func (p *Page) Size() int { return int(p.size) }
 
 // TODO: Create a way to iterate rather than reading the entire page
-// TODO: Do we need an error parameter?
-func (p *Page) Items() iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
+func (p *Page) Items() iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
 		for _, i := range p.items {
-			if !yield(i.data, nil) {
+			if !yield(i.data) {
 				return
 			}
 		}
 	}
 }
 
-func (p *Page) ItemsReverse() iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
+func (p *Page) ItemsReverse() iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
 		l := len(p.items) - 1
 		for index := range p.items {
-			if !yield(p.items[l-index].data, nil) {
+			if !yield(p.items[l-index].data) {
 				return
 			}
 		}

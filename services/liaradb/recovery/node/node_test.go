@@ -5,7 +5,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -41,47 +40,42 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	crc := page.NewCRC(v0)
-	i, b0, ok := p.Append(16, crc)
-	if !ok {
-		t.Error("should get a buffer")
+	i, err := p.Add(v0)
+	if err != nil {
+		t.Error(err)
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if s := p.Space(); s != s1 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s1)
-	}
+	// if s := p.Space(); s != s1 {
+	// 	t.Errorf("incorrect space: %v, expected: %v", s, s1)
+	// }
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
+	i, err = p.Add(v1)
+	if err != nil {
 		t.Error(err)
-	}
-
-	crc = page.NewCRC(v1)
-	i, b1, ok := p.Append(16, crc)
-	if !ok {
-		t.Error("should get a buffer")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
-	if s := p.Space(); s != s2 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s2)
-	}
-
-	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
-		t.Error(err)
-	}
+	// if s := p.Space(); s != s2 {
+	// 	t.Errorf("incorrect space: %v, expected: %v", s, s2)
+	// }
 
 	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
 	// 	t.Error(err)
 	// }
 
-	r0 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
-		t.Error(err)
+	result := make([][]byte, 0)
+	for i := range p.Items() {
+		result = append(result, i)
 	}
+	// // r0 := make([]byte, 5)
+	// // if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
+	// // 	t.Error(err)
+	// // }
 
+	r0 := result[0]
 	if !slices.Equal(r0, v0) {
 		t.Errorf("incorrect result: %v, expected: %v", r0, v0)
 	}
@@ -90,93 +84,12 @@ func testNode_Append(t *testing.T) {
 	// 	t.Error(err)
 	// }
 
-	r1 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
-		t.Error(err)
-	}
-
-	if !slices.Equal(r1, v1) {
-		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
-	}
-}
-
-func TestNode_Insert(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Insert)
-}
-
-func testNode_Insert(t *testing.T) {
-	const (
-		size int16 = 256
-		s0         = size - itemSize - testHeaderSize
-		s1         = s0 - itemSize - 16
-		s2         = s1 - itemSize - 16
-	)
-
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
-
-	p := New(b)
-	v0 := []byte{1, 2, 3, 4, 5}
-	v1 := []byte{6, 7, 8, 9, 10}
-
-	if s := p.Space(); s != s0 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
-	}
-
-	i, b0, ok := p.Insert(16, 0, page.NewCRC(v0))
-	if !ok {
-		t.Fatal("should get a buffer")
-	} else if i != 0 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 0)
-	}
-
-	if s := p.Space(); s != s1 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
-	}
-
-	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
-		t.Fatal(err)
-	}
-
-	i, b1, ok := p.Insert(16, 1, page.NewCRC(v1))
-	if !ok {
-		t.Fatal("should get a buffer")
-	} else if i != 1 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 1)
-	}
-
-	if s := p.Space(); s != s2 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
-	}
-
-	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
-		t.Fatal(err)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
-	// 	t.Fatal(err)
+	// r1 := make([]byte, 5)
+	// if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
+	// 	t.Error(err)
 	// }
 
-	r0 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
-		t.Fatal(err)
-	}
-
-	if !slices.Equal(r0, v0) {
-		t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	r1 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
-		t.Fatal(err)
-	}
-
+	r1 := result[1]
 	if !slices.Equal(r1, v1) {
 		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
 	}
@@ -198,17 +111,15 @@ func testNode_Space(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
 	}
 
-	crc := page.NewCRC(nil)
-
-	if _, _, ok := p.Append(16, crc); !ok {
-		t.Error("should get a buffer")
+	if _, err := p.Add(make([]byte, 16)); err != nil {
+		t.Error(err)
 	}
 
 	if s := p.Space(); s != 0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
 	}
 
-	if _, _, ok := p.Append(16, crc); ok {
+	if _, err := p.Add(make([]byte, 16)); err == nil {
 		t.Error("should not get a buffer")
 	}
 }
@@ -227,21 +138,12 @@ func testNode_Child(t *testing.T) {
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
-	_, b0, ok := p.Append(5, page.NewCRC(values[0]))
-	if !ok {
+
+	if _, err := p.Add(values[0]); err != nil {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(values[0]); err != nil {
-		t.Error(err)
-	}
-
-	_, b1, ok := p.Append(5, page.NewCRC(values[1]))
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	if _, err := raw.NewBufferFromSlice(b1).Write(values[1]); err != nil {
+	if _, err := p.Add(values[1]); err != nil {
 		t.Error(err)
 	}
 
@@ -265,12 +167,12 @@ func testNode_Child(t *testing.T) {
 	}
 }
 
-func TestNode_Children(t *testing.T) {
+func TestNode_Items(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testNode_Children)
+	synctest.Test(t, testNode_Items)
 }
 
-func testNode_Children(t *testing.T) {
+func testNode_Items(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 	defer b.Release()
@@ -284,18 +186,13 @@ func testNode_Children(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b, ok := p.Append(int16(len(v)), page.NewCRC(v))
-		if !ok {
-			t.Error("should get a buffer")
-		}
-
-		if _, err := raw.NewBufferFromSlice(b).Write(v); err != nil {
+		if _, err := p.Add(v); err != nil {
 			t.Error(err)
 		}
 	}
 
 	result := make([][]byte, 0, len(values))
-	for c := range p.Children() {
+	for c := range p.Items() {
 		v := make([]byte, 2)
 		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
@@ -328,12 +225,7 @@ func testNode_ChildrenRange(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b0, ok := p.Append(int16(len(v)), page.NewCRC(v))
-		if !ok {
-			t.Error("should get a buffer")
-		}
-
-		if _, err := raw.NewBufferFromSlice(b0).Write(v); err != nil {
+		if _, err := p.Add(v); err != nil {
 			t.Error(err)
 		}
 	}

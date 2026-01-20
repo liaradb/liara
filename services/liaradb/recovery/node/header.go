@@ -1,6 +1,10 @@
 package node
 
-import "github.com/liaradb/liaradb/encoder/wrap"
+import (
+	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/record"
+)
 
 // TODO: Should this have a magic entry?
 const (
@@ -28,3 +32,8 @@ func (h *header) Next() int16 {
 func (h *header) setNext(o int16) {
 	h.next.Set(o)
 }
+
+// TODO: Fix these
+func (p *header) ID() action.PageID              { return 0 }
+func (p *header) TimeLineID() action.TimeLineID  { return 0 }
+func (p *header) LengthRemaining() record.Length { return record.NewLength(0) }

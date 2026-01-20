@@ -14,8 +14,8 @@ type Page interface {
 	ID() action.PageID
 	TimeLineID() action.TimeLineID
 	LengthRemaining() record.Length
-	Items() iter.Seq2[[]byte, error]
-	ItemsReverse() iter.Seq2[[]byte, error]
+	Items() iter.Seq[[]byte]
+	ItemsReverse() iter.Seq[[]byte]
 	Read(r io.ReadSeeker) error
 	Reset(action.PageID, action.TimeLineID, record.Length)
 	Write(w io.WriteSeeker) error

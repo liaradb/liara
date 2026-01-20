@@ -25,11 +25,7 @@ func TestPage_Add(t *testing.T) {
 
 	result := make([]*item, 0)
 
-	for i, err := range p.Items() {
-		if err != nil {
-			t.Error(err)
-		}
-
+	for i := range p.Items() {
 		result = append(result, newItem(i))
 	}
 
@@ -73,11 +69,7 @@ func TestPage_ReadWrite(t *testing.T) {
 
 	result := make([]*item, 0)
 
-	for i, err := range p1.Items() {
-		if err != nil {
-			t.Error(err)
-		}
-
+	for i := range p1.Items() {
 		result = append(result, newItem(i))
 	}
 
@@ -104,11 +96,7 @@ func TestPage_Reverse(t *testing.T) {
 
 	result := make([]*item, 0)
 
-	for i, err := range p1.ItemsReverse() {
-		if err != nil {
-			t.Error(err)
-		}
-
+	for i := range p1.ItemsReverse() {
 		result = append(result, newItem(i))
 	}
 

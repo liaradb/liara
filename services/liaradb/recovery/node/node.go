@@ -1,13 +1,17 @@
 package node
 
 import (
+	"errors"
+	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/crclist"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/action"
+	p "github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
 )
 
 const (
@@ -21,6 +25,8 @@ type Node struct {
 	list     crclist.CRCList
 	byteList bytelist.ByteList
 }
+
+var _ p.Page = (*Node)(nil)
 
 func New(buffer *storage.Buffer) Node {
 	data := buffer.Raw()
@@ -53,18 +59,19 @@ func (p *Node) SetDirty() {
 	p.buffer.SetDirty()
 }
 
-func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
+func (p *Node) Add(data []byte) (page.Offset, error) {
 	p.Latch()
 	defer p.Unlatch()
 
+	size := int16(len(data))
 	if !p.hasSpace(size) {
-		return 0, nil, false
+		return 0, errors.New("no space")
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Push(offset, size, crc)
+	i, ok := p.list.Push(offset, size, page.NewCRC(data))
 	if !ok {
-		return 0, nil, false
+		return 0, errors.New("no space")
 	}
 
 	p.header.setNext(offset)
@@ -72,35 +79,12 @@ func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bo
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
-		return 0, nil, false
+		return 0, errors.New("no space")
 	}
 
-	return link.RecordPosition(i), b, true
-}
+	copy(b, data)
 
-func (p *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
-	p.Latch()
-	defer p.Unlatch()
-
-	if !p.hasSpace(size) {
-		return 0, nil, false
-	}
-
-	offset := p.next() - size
-	i, ok := p.list.Insert(offset, size, crc, index)
-	if !ok {
-		return 0, nil, false
-	}
-
-	p.header.setNext(offset)
-	p.SetDirty()
-
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
-	if !ok { // We already checked hasSpace
-		return 0, nil, false
-	}
-
-	return link.RecordPosition(i), b, true
+	return page.Offset(i), nil
 }
 
 func (p *Node) next() int16 {
@@ -141,30 +125,7 @@ func (p Node) Child(index int16) ([]byte, bool) {
 	return d, true
 }
 
-// TODO: Should we return old version?
-func (p Node) ReplaceChild(index int16, data []byte) bool {
-	i, ok := p.list.Item(index)
-	if !ok {
-		return false
-	}
-
-	// Must fit
-	if len(data) > int(i.Size) {
-		return false
-	}
-
-	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
-	if !ok {
-		return false
-	}
-
-	copy(d, data)
-	p.SetDirty()
-
-	return p.list.SetCRC(page.NewCRC(data), index)
-}
-
-func (p Node) Children() iter.Seq[[]byte] {
+func (p Node) Items() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.Items() {
 			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
@@ -173,6 +134,10 @@ func (p Node) Children() iter.Seq[[]byte] {
 			}
 		}
 	}
+}
+
+func (p Node) ItemsReverse() iter.Seq[[]byte] {
+	panic("unimplemented")
 }
 
 func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
@@ -184,4 +149,37 @@ func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 			}
 		}
 	}
+}
+
+// ID implements [page.Page].
+// Subtle: this method shadows the method (header).ID of Node.header.
+// func (p *Node) ID() action.PageID {
+// 	panic("unimplemented")
+// }
+
+// LengthRemaining implements [page.Page].
+// Subtle: this method shadows the method (header).LengthRemaining of Node.header.
+// func (p *Node) LengthRemaining() record.Length {
+// 	panic("unimplemented")
+// }
+
+// Read implements [page.Page].
+func (p *Node) Read(r io.ReadSeeker) error {
+	panic("unimplemented")
+}
+
+// Reset implements [page.Page].
+func (p *Node) Reset(action.PageID, action.TimeLineID, record.Length) {
+	panic("unimplemented")
+}
+
+// TimeLineID implements [page.Page].
+// Subtle: this method shadows the method (header).TimeLineID of Node.header.
+// func (p *Node) TimeLineID() action.TimeLineID {
+// 	panic("unimplemented")
+// }
+
+// Write implements [page.Page].
+func (p *Node) Write(w io.WriteSeeker) error {
+	panic("unimplemented")
 }

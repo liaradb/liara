@@ -67,12 +67,7 @@ func (rd *Reader) read(r io.ReadSeeker) error {
 
 func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		for i, err := range rd.page.Items() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
+		for i := range rd.page.Items() {
 			b := raw.NewBufferFromSlice(i)
 			rc := &record.Record{}
 			if err := rc.Read(b); err != nil {
@@ -89,12 +84,7 @@ func (rd *Reader) records() iter.Seq2[*record.Record, error] {
 
 func (rd *Reader) reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		for i, err := range rd.page.ItemsReverse() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
+		for i := range rd.page.ItemsReverse() {
 			b := raw.NewBufferFromSlice(i)
 			rc := &record.Record{}
 			if err := rc.Read(b); err != nil {
