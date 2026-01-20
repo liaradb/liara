@@ -29,6 +29,10 @@ func NewActivePageIDFromSize(size int64, pageSize int64) PageID {
 	return PageID(pid)
 }
 
+func (pid PageID) Value() uint64 {
+	return uint64(pid)
+}
+
 func (pid PageID) Position(pageSize int64) int64 {
 	return int64(pid) * pageSize
 }

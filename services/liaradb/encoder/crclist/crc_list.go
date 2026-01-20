@@ -87,6 +87,18 @@ func (l *CRCList) Items() iter.Seq[CRCItem] {
 	}
 }
 
+func (l *CRCList) ItemsReverse() iter.Seq[CRCItem] {
+	return func(yield func(CRCItem) bool) {
+		c := l.count - 1
+		for i := range l.count {
+			item, ok := l.Item(c - i)
+			if !ok || !yield(item) {
+				return
+			}
+		}
+	}
+}
+
 func (l *CRCList) ItemsRange(start, end int16) iter.Seq[CRCItem] {
 	return func(yield func(CRCItem) bool) {
 		if start < 0 {

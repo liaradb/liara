@@ -171,6 +171,35 @@ func TestCRCList_Items(t *testing.T) {
 	}
 }
 
+func TestCRCList_ItemsReverse(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 42))
+
+	data := []tuple{
+		{10, 60, page.RestoreCRC(int32(100))},
+		{20, 70, page.RestoreCRC(int32(200))},
+		{30, 80, page.RestoreCRC(int32(300))},
+		{40, 90, page.RestoreCRC(int32(400))},
+		{50, 100, page.RestoreCRC(int32(500))}}
+
+	for _, i := range data {
+		if _, ok := l.Push(i.a, i.b, i.c); !ok {
+			t.Error("should push")
+		}
+	}
+
+	result := make([]tuple, 0, len(data))
+	for i := range l.ItemsReverse() {
+		result = append(result, tuple{i.Offset, i.Size, i.CRC})
+	}
+
+	slices.Reverse(data)
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+}
+
 func TestCRCList_ItemsRange(t *testing.T) {
 	t.Parallel()
 

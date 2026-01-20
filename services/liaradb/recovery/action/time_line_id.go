@@ -10,6 +10,10 @@ type TimeLineID uint32
 
 const TimeLineIDSize = 4
 
+func (tlid TimeLineID) Value() uint32 {
+	return uint32(tlid)
+}
+
 func (tlid TimeLineID) Write(w io.Writer) error {
 	return raw.WriteInt32(w, tlid)
 }

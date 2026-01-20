@@ -11,7 +11,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/action"
 	p "github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/storage"
 )
 
 const (
@@ -20,7 +19,6 @@ const (
 
 type Node struct {
 	header
-	buffer   *storage.Buffer
 	data     []byte
 	list     crclist.CRCList
 	byteList bytelist.ByteList
@@ -28,13 +26,11 @@ type Node struct {
 
 var _ p.Page = (*Node)(nil)
 
-func New(buffer *storage.Buffer) Node {
-	data := buffer.Raw()
+func New(data []byte) Node {
 	header, data0 := newHeader(data)
 
 	return Node{
 		header:   header,
-		buffer:   buffer,
 		data:     data,
 		list:     crclist.New(data0),
 		byteList: bytelist.New(data0),
@@ -43,26 +39,15 @@ func New(buffer *storage.Buffer) Node {
 
 // TODO: Test this
 func (p *Node) Clear() {
-	p.buffer.Clear()
+	clear(p.data)
 	p.list.Clear()
 }
 
-// TODO: Test this
-func (p *Node) Release()  { p.buffer.Release() }
-func (p *Node) Latch()    { p.buffer.Latch() }
-func (p *Node) Unlatch()  { p.buffer.Unlatch() }
-func (p *Node) RLatch()   { p.buffer.RLatch() }
-func (p *Node) RUnlatch() { p.buffer.RUnlatch() }
-
-// TODO: Test this
-func (p *Node) SetDirty() {
-	p.buffer.SetDirty()
+func (p *Node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
+	p.header.Reset(pid, tlid, rl)
 }
 
 func (p *Node) Add(data []byte) (page.Offset, error) {
-	p.Latch()
-	defer p.Unlatch()
-
 	size := int16(len(data))
 	if !p.hasSpace(size) {
 		return 0, errors.New("no space")
@@ -75,7 +60,6 @@ func (p *Node) Add(data []byte) (page.Offset, error) {
 	}
 
 	p.header.setNext(offset)
-	p.SetDirty()
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
@@ -137,7 +121,14 @@ func (p Node) Items() iter.Seq[[]byte] {
 }
 
 func (p Node) ItemsReverse() iter.Seq[[]byte] {
-	panic("unimplemented")
+	return func(yield func([]byte) bool) {
+		for i := range p.list.ItemsReverse() {
+			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+			if !ok || !i.CRC.Compare(b) || !yield(b) {
+				return
+			}
+		}
+	}
 }
 
 func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
@@ -151,35 +142,12 @@ func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	}
 }
 
-// ID implements [page.Page].
-// Subtle: this method shadows the method (header).ID of Node.header.
-// func (p *Node) ID() action.PageID {
-// 	panic("unimplemented")
-// }
-
-// LengthRemaining implements [page.Page].
-// Subtle: this method shadows the method (header).LengthRemaining of Node.header.
-// func (p *Node) LengthRemaining() record.Length {
-// 	panic("unimplemented")
-// }
-
-// Read implements [page.Page].
 func (p *Node) Read(r io.ReadSeeker) error {
-	panic("unimplemented")
+	_, err := r.Read(p.data)
+	return err
 }
 
-// Reset implements [page.Page].
-func (p *Node) Reset(action.PageID, action.TimeLineID, record.Length) {
-	panic("unimplemented")
-}
-
-// TimeLineID implements [page.Page].
-// Subtle: this method shadows the method (header).TimeLineID of Node.header.
-// func (p *Node) TimeLineID() action.TimeLineID {
-// 	panic("unimplemented")
-// }
-
-// Write implements [page.Page].
 func (p *Node) Write(w io.WriteSeeker) error {
-	panic("unimplemented")
+	_, err := w.Write(p.data)
+	return err
 }
