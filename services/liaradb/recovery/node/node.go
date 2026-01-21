@@ -1,15 +1,14 @@
 package node
 
 import (
-	"errors"
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/crclist"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
-	p "github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -24,12 +23,10 @@ type Node struct {
 	byteList bytelist.ByteList
 }
 
-var _ p.Page = (*Node)(nil)
-
-func New(data []byte) Node {
+func New(data []byte) *Node {
 	header, data0 := newHeader(data)
 
-	return Node{
+	return &Node{
 		header:   header,
 		data:     data,
 		list:     crclist.New(data0),
@@ -38,32 +35,29 @@ func New(data []byte) Node {
 }
 
 // TODO: Test this
-func (p *Node) Clear() {
+func (p *Node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	clear(p.data)
 	p.list.Clear()
-}
-
-func (p *Node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	p.header.Reset(pid, tlid, rl)
 }
 
 func (p *Node) Add(data []byte) (page.Offset, error) {
 	size := int16(len(data))
 	if !p.hasSpace(size) {
-		return 0, errors.New("no space")
+		return 0, raw.ErrInsufficientSpace
 	}
 
 	offset := p.next() - size
 	i, ok := p.list.Push(offset, size, page.NewCRC(data))
 	if !ok {
-		return 0, errors.New("no space")
+		return 0, raw.ErrInsufficientSpace
 	}
 
 	p.header.setNext(offset)
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
-		return 0, errors.New("no space")
+		return 0, raw.ErrInsufficientSpace
 	}
 
 	copy(b, data)
@@ -144,7 +138,12 @@ func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 
 func (p *Node) Read(r io.ReadSeeker) error {
 	_, err := r.Read(p.data)
-	return err
+	if err != nil {
+		return err
+	}
+
+	p.list.Clear()
+	return nil
 }
 
 func (p *Node) Write(w io.WriteSeeker) error {

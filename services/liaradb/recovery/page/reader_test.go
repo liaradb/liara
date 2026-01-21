@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/recovery/mempage"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -123,7 +123,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	mp := mempage.New(256)
+	mp := node.New(make([]byte, 256))
 	sw := NewWriter(256, mp)
 	return f, NewReader(mp), sw
 }

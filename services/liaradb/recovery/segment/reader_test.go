@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/recovery/mempage"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -23,7 +23,7 @@ func TestReader_Iterate(t *testing.T) {
 
 	for _, rc := range records {
 		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 	}
 
@@ -57,7 +57,7 @@ func TestReader_Reverse(t *testing.T) {
 
 	for _, rc := range records {
 		if err := sw.Append(rc); err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 	}
 
@@ -95,10 +95,10 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	mp := mempage.New(256)
-	sw := NewWriter(256, 4, mp)
+	n := node.New(make([]byte, 256))
+	sw := NewWriter(256, 4, n)
 	sw.Initialize(f)
-	return f, NewReader(256, mp), sw
+	return f, NewReader(256, n), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

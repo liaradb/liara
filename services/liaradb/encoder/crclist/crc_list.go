@@ -30,7 +30,8 @@ func New(data []byte) CRCList {
 
 // TODO: Test this
 func (l *CRCList) Clear() {
-	l.count = 0
+	count, _ := l.list.Get(0)
+	l.count = count
 }
 
 func (l *CRCList) Length() int {

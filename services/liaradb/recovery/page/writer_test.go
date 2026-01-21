@@ -10,7 +10,7 @@ import (
 
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/mempage"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testutil"
 )
@@ -20,13 +20,12 @@ func TestWriter(t *testing.T) {
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	pid, tlid, rem, wr := createWriter()
+	pid, tlid, rem, pr, wr := createWriter()
 
 	if err := wr.Write(f); err != nil {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(mempage.New(256))
 	_, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
@@ -41,7 +40,7 @@ func TestWriter_Append(t *testing.T) {
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
-	pid, tlid, rem, pw := createWriter()
+	pid, tlid, rem, pr, pw := createWriter()
 
 	rc, data, err := createRecord()
 	if err != nil {
@@ -60,7 +59,6 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pr := NewReader(mempage.New(256))
 	it, err := pr.Iterate(io.NewSectionReader(f, 256, 256))
 	if err != nil {
 		t.Fatal(err)
@@ -86,15 +84,17 @@ func TestWriter_Append(t *testing.T) {
 	}
 }
 
-func createWriter() (action.PageID, action.TimeLineID, record.Length, *Writer) {
+func createWriter() (action.PageID, action.TimeLineID, record.Length, *Reader, *Writer) {
 	pid := action.PageID(1)
 	tlid := action.TimeLineID(2)
 	rem := record.NewLength(3)
 
-	pw := NewWriter(256, mempage.New(256))
+	n := node.New(make([]byte, 256))
+	pr := NewReader(n)
+	pw := NewWriter(256, n)
 	pw.Init(pid, tlid, rem)
 
-	return pid, tlid, rem, pw
+	return pid, tlid, rem, pr, pw
 }
 
 func createRecord() (*record.Record, []byte, error) {
