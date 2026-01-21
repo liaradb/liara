@@ -35,6 +35,11 @@ func (b *Buffer) Clear() {
 	b.cursor = 0
 }
 
+func (b *Buffer) Reset(data []byte) {
+	b.data = data
+	b.cursor = 0
+}
+
 func (b *Buffer) Bytes() []byte { return b.data }
 func (b *Buffer) Length() int64 { return int64(len(b.data)) }
 

@@ -107,6 +107,38 @@ func TestBuffer_Clear(t *testing.T) {
 	}
 }
 
+func TestBuffer_Reset(t *testing.T) {
+	t.Parallel()
+
+	b0 := NewBuffer(20)
+
+	if n, err := b0.Write(data0); err != nil {
+		t.Error(err)
+	} else if n != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 5)
+	}
+
+	b1 := NewBuffer(20)
+
+	if n, err := b1.Write(data1); err != nil {
+		t.Error(err)
+	} else if n != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 5)
+	}
+
+	b1.Reset(b0.Bytes())
+
+	result := make([]byte, 5)
+
+	if n, err := b1.Read(result); err != nil {
+		t.Error(err)
+	} else if n != 5 {
+		t.Errorf("incorrect count: %v, expected: %v", n, 5)
+	} else if !slices.Equal(result, data0) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data0)
+	}
+}
+
 func TestBuffer_ReadWrite(t *testing.T) {
 	t.Parallel()
 
