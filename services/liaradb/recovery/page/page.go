@@ -15,10 +15,10 @@ type Page struct {
 	page     *node.Node
 }
 
-func New(size int64, page *node.Node) *Page {
+func New(size int64) *Page {
 	return &Page{
 		bodySize: size,
-		page:     page,
+		page:     node.New(size),
 	}
 }
 

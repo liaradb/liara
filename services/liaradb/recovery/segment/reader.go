@@ -5,7 +5,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -19,11 +18,10 @@ type Reader struct {
 
 func NewReader(
 	pageSize int64,
-	p *node.Node,
 ) *Reader {
 	return &Reader{
 		pageSize:   pageSize,
-		pageReader: page.New(pageSize, p),
+		pageReader: page.New(pageSize),
 	}
 }
 

@@ -90,7 +90,7 @@ func createWriter() (action.PageID, action.TimeLineID, record.Length, *Page) {
 	tlid := action.TimeLineID(2)
 	rem := record.NewLength(3)
 
-	p := New(256, node.New(256))
+	p := New(256)
 	p.Init(pid, tlid, rem)
 
 	return pid, tlid, rem, p
@@ -240,7 +240,7 @@ func createReaderWriter(t *testing.T) (file.File, *Page) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	return f, New(256, node.New(256))
+	return f, New(256)
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

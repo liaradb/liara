@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -43,11 +42,10 @@ func NewLog(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir)
-	p := node.New(pageSize)
 	return &Log{
 		sl:         sl,
-		reader:     newReader(pageSize, sl, p),
-		writer:     newWriter(pageSize, segmentSize, sl, p),
+		reader:     newReader(pageSize, sl),
+		writer:     newWriter(pageSize, segmentSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 	}

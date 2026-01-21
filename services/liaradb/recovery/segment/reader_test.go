@@ -9,7 +9,6 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
-	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -95,10 +94,9 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	n := node.New(256)
-	sw := NewWriter(256, 4, n)
+	sw := NewWriter(256, 4)
 	sw.Initialize(f)
-	return f, NewReader(256, n), sw
+	return f, NewReader(256), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
