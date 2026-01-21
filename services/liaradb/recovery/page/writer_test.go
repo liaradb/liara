@@ -89,7 +89,7 @@ func createWriter() (action.PageID, action.TimeLineID, record.Length, *Reader, *
 	tlid := action.TimeLineID(2)
 	rem := record.NewLength(3)
 
-	n := node.New(make([]byte, 256))
+	n := node.New(256)
 	pr := NewReader(n)
 	pw := NewWriter(256, n)
 	pw.Init(pid, tlid, rem)

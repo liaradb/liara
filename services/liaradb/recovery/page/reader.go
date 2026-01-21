@@ -29,18 +29,7 @@ func (rd *Reader) Iterate(r io.ReadSeeker) (iter.Seq2[*record.Record, error], er
 		return nil, err
 	}
 
-	return func(yield func(*record.Record, error) bool) {
-		for rc, err := range rd.records() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(rc, nil) {
-				return
-			}
-		}
-	}, nil
+	return rd.records(), nil
 }
 
 func (rd *Reader) Reverse(r io.ReadSeeker) (iter.Seq2[*record.Record, error], error) {
@@ -48,18 +37,7 @@ func (rd *Reader) Reverse(r io.ReadSeeker) (iter.Seq2[*record.Record, error], er
 		return nil, err
 	}
 
-	return func(yield func(*record.Record, error) bool) {
-		for rc, err := range rd.reverse() {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(rc, nil) {
-				return
-			}
-		}
-	}, nil
+	return rd.reverse(), nil
 }
 
 func (rd *Reader) read(r io.ReadSeeker) error {

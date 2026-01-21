@@ -32,7 +32,7 @@ func testNode_Append(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := New(b.Raw())
+	p := NewFromSlice(b.Raw())
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -105,7 +105,7 @@ func testNode_Space(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := New(b.Raw())
+	p := NewFromSlice(b.Raw())
 
 	if s := p.Space(); s != 16 {
 		t.Fatalf("incorrect space: %v, expected: %v", s, 16)
@@ -134,7 +134,7 @@ func testNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	b.Release()
 
-	p := New(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -177,7 +177,7 @@ func testNode_Items(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := New(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -216,7 +216,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := New(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2},
 		{3, 4},

@@ -43,7 +43,7 @@ func NewLog(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir)
-	p := node.New(make([]byte, pageSize))
+	p := node.New(pageSize)
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl, p),

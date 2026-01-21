@@ -123,7 +123,7 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	mp := node.New(make([]byte, 256))
+	mp := node.New(256)
 	sw := NewWriter(256, mp)
 	return f, NewReader(mp), sw
 }
