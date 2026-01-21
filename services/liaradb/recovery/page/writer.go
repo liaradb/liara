@@ -4,15 +4,16 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Writer struct {
 	bodySize int64
-	page     Page
+	page     *node.Node
 }
 
-func NewWriter(size int64, page Page) *Writer {
+func NewWriter(size int64, page *node.Node) *Writer {
 	return &Writer{
 		bodySize: size,
 		page:     page,

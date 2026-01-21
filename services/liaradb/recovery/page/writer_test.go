@@ -120,7 +120,7 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 
 func testPage(
 	t *testing.T,
-	p Page,
+	p *node.Node,
 	pid action.PageID,
 	tlid action.TimeLineID,
 	rem record.Length,

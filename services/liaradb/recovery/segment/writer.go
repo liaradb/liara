@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -33,7 +34,7 @@ type readWriterAt interface {
 func NewWriter(
 	pageSize int64,
 	segmentSize action.PageID,
-	p page.Page,
+	p *node.Node,
 ) *Writer {
 	return &Writer{
 		pageSize:    pageSize,

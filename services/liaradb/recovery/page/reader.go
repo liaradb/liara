@@ -6,14 +6,15 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Reader struct {
-	page Page
+	page *node.Node
 }
 
-func NewReader(page Page) *Reader {
+func NewReader(page *node.Node) *Reader {
 	return &Reader{
 		page: page,
 	}

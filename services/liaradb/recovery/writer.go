@@ -3,7 +3,7 @@ package recovery
 import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -17,7 +17,7 @@ func newWriter(
 	pageSize int64,
 	segmentSize action.PageID,
 	sl *segment.List,
-	p page.Page,
+	p *node.Node,
 ) *writer {
 	return &writer{
 		sl: sl,
