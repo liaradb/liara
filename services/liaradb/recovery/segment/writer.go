@@ -23,7 +23,7 @@ type Writer struct {
 	timeLineID  action.TimeLineID
 	writer      io.WriterAt
 	recordBuf   *bytes.Buffer
-	pageWriter  *page.Writer
+	pageWriter  *page.Page
 }
 
 type readWriterAt interface {
@@ -40,7 +40,7 @@ func NewWriter(
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		recordBuf:   bytes.NewBuffer(nil),
-		pageWriter:  page.NewWriter(pageSize, p),
+		pageWriter:  page.New(pageSize, p),
 	}
 }
 

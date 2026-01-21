@@ -14,7 +14,7 @@ import (
 
 type Reader struct {
 	pageSize   int64
-	pageReader *page.Reader
+	pageReader *page.Page
 }
 
 func NewReader(
@@ -23,7 +23,7 @@ func NewReader(
 ) *Reader {
 	return &Reader{
 		pageSize:   pageSize,
-		pageReader: page.NewReader(p),
+		pageReader: page.New(pageSize, p),
 	}
 }
 
