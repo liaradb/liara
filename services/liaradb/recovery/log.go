@@ -8,7 +8,7 @@ import (
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -41,9 +41,9 @@ func NewLog(
 	segmentSize action.PageID,
 	fsys file.FileSystem,
 	dir string,
-	p page.Page,
 ) *Log {
 	sl := segment.NewList(fsys, dir)
+	p := node.New(make([]byte, pageSize))
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl, p),

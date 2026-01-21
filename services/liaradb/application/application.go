@@ -16,7 +16,6 @@ import (
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
-	n "github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
@@ -37,8 +36,7 @@ func New(conf configuration) *Application {
 	fsys := &disk.FileSystem{}
 
 	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
-	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"),
-		n.New(make([]byte, conf.BlockSize)))
+	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{
