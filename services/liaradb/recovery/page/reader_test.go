@@ -27,8 +27,8 @@ func TestReader_Iterate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := sw.Append(d); err != nil {
-			t.Fatal(err)
+		if ok := sw.Append(d); !ok {
+			t.Fatal("should append record")
 		}
 	}
 
@@ -78,8 +78,8 @@ func TestReader_Reverse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := sw.Append(d); err != nil {
-			t.Fatal(err)
+		if ok := sw.Append(d); !ok {
+			t.Fatal("should append record")
 		}
 	}
 

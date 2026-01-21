@@ -74,11 +74,7 @@ func (wr *Writer) append(data []byte) error {
 }
 
 func (wr *Writer) appendOrNext(data []byte) error {
-	if err := wr.pageWriter.Append(data); err != nil {
-		if err != raw.ErrInsufficientSpace {
-			return err
-		}
-
+	if ok := wr.pageWriter.Append(data); !ok {
 		return wr.next(data)
 	}
 
@@ -97,8 +93,13 @@ func (wr *Writer) next(data []byte) error {
 		return raw.ErrInsufficientSpace
 	}
 
+	// TODO: Verify that record can fit at all before initializing
 	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-	return wr.pageWriter.Append(data)
+	if ok := wr.pageWriter.Append(data); !ok {
+		return raw.ErrInsufficientSpace
+	}
+
+	return nil
 }
 
 func (wr *Writer) Flush() error {

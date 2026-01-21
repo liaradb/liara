@@ -24,9 +24,9 @@ func (wr *Writer) Init(id action.PageID, tlid action.TimeLineID, rem record.Leng
 	wr.page.Reset(id, tlid, rem)
 }
 
-func (wr *Writer) Append(data []byte) error {
-	_, err := wr.page.Add(data)
-	return err
+func (wr *Writer) Append(data []byte) bool {
+	_, ok := wr.page.Append(data)
+	return ok
 }
 
 func (wr *Writer) Position() int64 {

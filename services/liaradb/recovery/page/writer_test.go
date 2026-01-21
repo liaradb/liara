@@ -47,12 +47,12 @@ func TestWriter_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := pw.Append(data); err != nil {
-		t.Fatal(err)
+	if ok := pw.Append(data); !ok {
+		t.Fatal("should append record")
 	}
 
-	if err := pw.Append(data); err != nil {
-		t.Fatal(err)
+	if ok := pw.Append(data); !ok {
+		t.Fatal("should append record")
 	}
 
 	if err := pw.Write(f); err != nil {

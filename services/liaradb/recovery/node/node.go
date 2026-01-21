@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/crclist"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -41,28 +40,28 @@ func (p *Node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length
 	p.header.Reset(pid, tlid, rl)
 }
 
-func (p *Node) Add(data []byte) (page.Offset, error) {
+func (p *Node) Append(data []byte) (page.Offset, bool) {
 	size := int16(len(data))
 	if !p.hasSpace(size) {
-		return 0, raw.ErrInsufficientSpace
+		return 0, false
 	}
 
 	offset := p.next() - size
 	i, ok := p.list.Push(offset, size, page.NewCRC(data))
 	if !ok {
-		return 0, raw.ErrInsufficientSpace
+		return 0, false
 	}
 
 	p.header.setNext(offset)
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
-		return 0, raw.ErrInsufficientSpace
+		return 0, false
 	}
 
 	copy(b, data)
 
-	return page.Offset(i), nil
+	return page.Offset(i), true
 }
 
 func (p *Node) next() int16 {
