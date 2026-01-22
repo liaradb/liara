@@ -1,4 +1,4 @@
-package node
+package page
 
 import (
 	"io"
@@ -15,7 +15,7 @@ const (
 	itemSize = 8
 )
 
-type Node struct {
+type node struct {
 	header
 	data     []byte
 	list     crclist.CRCList
@@ -27,15 +27,15 @@ type number interface {
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
 }
 
-func New[S number](size S) *Node {
+func newNode[S number](size S) *node {
 	data := make([]byte, size)
-	return NewFromSlice(data)
+	return newFromSlice(data)
 }
 
-func NewFromSlice(data []byte) *Node {
+func newFromSlice(data []byte) *node {
 	header, data0 := newHeader(data)
 
-	return &Node{
+	return &node{
 		header:   header,
 		data:     data,
 		list:     crclist.New(data0),
@@ -44,13 +44,13 @@ func NewFromSlice(data []byte) *Node {
 }
 
 // TODO: Test this
-func (p *Node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
+func (p *node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	clear(p.data)
 	p.list.Clear()
 	p.header.Reset(pid, tlid, rl)
 }
 
-func (p *Node) Append(data []byte) (page.Offset, bool) {
+func (p *node) Append(data []byte) (page.Offset, bool) {
 	size := int16(len(data))
 	if !p.hasSpace(size) {
 		return 0, false
@@ -74,7 +74,7 @@ func (p *Node) Append(data []byte) (page.Offset, bool) {
 	return page.Offset(i), true
 }
 
-func (p *Node) next() int16 {
+func (p *node) next() int16 {
 	size := p.list.Count()
 	if size == 0 {
 		return int16(p.list.Length())
@@ -83,18 +83,18 @@ func (p *Node) next() int16 {
 	}
 }
 
-func (p Node) Space() int16 {
+func (p node) Space() int16 {
 	next := p.next()
 	size := p.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
-func (p Node) hasSpace(size int16) bool {
+func (p node) hasSpace(size int16) bool {
 	s := p.Space()
 	return size <= s
 }
 
-func (p Node) Child(index int16) ([]byte, bool) {
+func (p node) Child(index int16) ([]byte, bool) {
 	i, ok := p.list.Item(index)
 	if !ok {
 		return nil, false
@@ -112,7 +112,7 @@ func (p Node) Child(index int16) ([]byte, bool) {
 	return d, true
 }
 
-func (p Node) Items() iter.Seq[[]byte] {
+func (p node) Items() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.Items() {
 			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
@@ -123,7 +123,7 @@ func (p Node) Items() iter.Seq[[]byte] {
 	}
 }
 
-func (p Node) ItemsReverse() iter.Seq[[]byte] {
+func (p node) ItemsReverse() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.ItemsReverse() {
 			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
@@ -134,7 +134,7 @@ func (p Node) ItemsReverse() iter.Seq[[]byte] {
 	}
 }
 
-func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (p node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.ItemsRange(start, end) {
 			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
@@ -145,7 +145,7 @@ func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	}
 }
 
-func (p *Node) Read(r io.ReadSeeker) error {
+func (p *node) Read(r io.ReadSeeker) error {
 	_, err := r.Read(p.data)
 	if err != nil {
 		return err
@@ -155,7 +155,7 @@ func (p *Node) Read(r io.ReadSeeker) error {
 	return nil
 }
 
-func (p *Node) Write(w io.WriteSeeker) error {
+func (p *node) Write(w io.WriteSeeker) error {
 	_, err := w.Write(p.data)
 	return err
 }

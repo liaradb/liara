@@ -6,19 +6,18 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/node"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Page struct {
 	bodySize int64
-	page     *node.Node
+	page     *node
 }
 
 func New(size int64) *Page {
 	return &Page{
 		bodySize: size,
-		page:     node.New(size),
+		page:     newNode(size),
 	}
 }
 

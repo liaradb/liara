@@ -1,4 +1,4 @@
-package node
+package page
 
 import (
 	"github.com/liaradb/liaradb/encoder/wrap"
