@@ -221,22 +221,16 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	i, ok := p.Append(v0)
-	if !ok {
+	if ok := p.Append(v0); !ok {
 		t.Fatal("should append record")
-	} else if i != 0 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 0)
 	}
 
 	// if s := p.Space(); s != s1 {
 	// 	t.Errorf("incorrect space: %v, expected: %v", s, s1)
 	// }
 
-	i, ok = p.Append(v1)
-	if !ok {
+	if ok := p.Append(v1); !ok {
 		t.Fatal("should append record")
-	} else if i != 1 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	// if s := p.Space(); s != s2 {
@@ -292,7 +286,7 @@ func testNode_Space(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, 16)
 	}
 
-	if _, ok := p.Append(make([]byte, 16)); !ok {
+	if ok := p.Append(make([]byte, 16)); !ok {
 		t.Fatal("should append record")
 	}
 
@@ -300,7 +294,7 @@ func testNode_Space(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, 0)
 	}
 
-	if _, ok := p.Append(make([]byte, 16)); ok {
+	if ok := p.Append(make([]byte, 16)); ok {
 		t.Fatal("should not get a buffer")
 	}
 }
@@ -320,11 +314,11 @@ func testNode_Child(t *testing.T) {
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
 
-	if _, ok := p.Append(values[0]); !ok {
+	if ok := p.Append(values[0]); !ok {
 		t.Fatal("should append record")
 	}
 
-	if _, ok := p.Append(values[1]); !ok {
+	if ok := p.Append(values[1]); !ok {
 		t.Fatal("should append record")
 	}
 
@@ -367,7 +361,7 @@ func testNode_Items(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		if _, ok := p.Append(v); !ok {
+		if ok := p.Append(v); !ok {
 			t.Fatal("should append record")
 		}
 	}
@@ -406,7 +400,7 @@ func testNode_ChildrenRange(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		if _, ok := p.Append(v); !ok {
+		if ok := p.Append(v); !ok {
 			t.Fatal("should append record")
 		}
 	}

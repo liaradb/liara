@@ -50,28 +50,31 @@ func (p *node) Reset(pid action.PageID, tlid action.TimeLineID, rl record.Length
 	p.header.Reset(pid, tlid, rl)
 }
 
-func (p *node) Append(data []byte) (page.Offset, bool) {
+func (p *node) Position() int64 {
+	return p.header.ID().Position(int64(len(p.data)))
+}
+
+func (p *node) Append(data []byte) bool {
 	size := int16(len(data))
 	if !p.hasSpace(size) {
-		return 0, false
+		return false
 	}
 
 	offset := p.next() - size
-	i, ok := p.list.Push(offset, size, page.NewCRC(data))
-	if !ok {
-		return 0, false
+	if _, ok := p.list.Push(offset, size, page.NewCRC(data)); !ok {
+		return false
 	}
 
 	p.header.setNext(offset)
 
 	b, ok := p.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
-		return 0, false
+		return false
 	}
 
 	copy(b, data)
 
-	return page.Offset(i), true
+	return true
 }
 
 func (p *node) next() int16 {

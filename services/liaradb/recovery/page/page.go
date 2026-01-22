@@ -10,14 +10,12 @@ import (
 )
 
 type Page struct {
-	bodySize int64
-	page     *node
+	page *node
 }
 
 func New(size int64) *Page {
 	return &Page{
-		bodySize: size,
-		page:     newNode(size),
+		page: newNode(size),
 	}
 }
 
@@ -26,12 +24,11 @@ func (p *Page) Init(id action.PageID, tlid action.TimeLineID, rem record.Length)
 }
 
 func (p *Page) Append(data []byte) bool {
-	_, ok := p.page.Append(data)
-	return ok
+	return p.page.Append(data)
 }
 
 func (p *Page) Position() int64 {
-	return p.page.ID().Position(p.bodySize)
+	return p.page.Position()
 }
 
 func (p *Page) Write(w io.WriterAt) error {
