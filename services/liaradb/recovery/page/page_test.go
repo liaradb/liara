@@ -41,8 +41,7 @@ func TestPage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO: This is private
-	testPage(t, p.page, pid, tlid, rem)
+	testPage(t, p, pid, tlid, rem)
 }
 
 func TestPage_Append(t *testing.T) {
@@ -74,8 +73,7 @@ func TestPage_Append(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO: This is private
-	testPage(t, p.page, pid, tlid, rem)
+	testPage(t, p, pid, tlid, rem)
 
 	count := 0
 	for r, err := range it {
@@ -213,7 +211,7 @@ func testNode_Append(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := newFromSlice(b.Raw())
+	p := NewFromSlice(b.Raw())
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -280,7 +278,7 @@ func testNode_Space(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := newFromSlice(b.Raw())
+	p := NewFromSlice(b.Raw())
 
 	if s := p.Space(); s != 16 {
 		t.Fatalf("incorrect space: %v, expected: %v", s, 16)
@@ -309,7 +307,7 @@ func testNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	b.Release()
 
-	p := newFromSlice(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -352,7 +350,7 @@ func testNode_Items(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := newFromSlice(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -391,7 +389,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := newFromSlice(b.Raw())
+	p := NewFromSlice(b.Raw())
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -459,7 +457,7 @@ func recordToBytes(rc *record.Record) ([]byte, error) {
 
 func testPage(
 	t *testing.T,
-	p *node,
+	p *Page,
 	pid action.PageID,
 	tlid action.TimeLineID,
 	rem record.Length,
