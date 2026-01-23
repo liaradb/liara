@@ -1,16 +1,17 @@
 package page
 
 import (
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
-// TODO: Should this have a magic entry?
 const (
 	nextSize = 2
 
 	headerSize = 0 +
+		page.MagicSize +
 		nextSize +
 		action.PageIDSize +
 		action.TimeLineIDSize +
@@ -25,17 +26,19 @@ type header struct {
 }
 
 func newHeader(data []byte) (header, []byte) {
-	next, data0 := wrap.NewInt16(data)
-	id, data1 := wrap.NewInt64(data0)
-	tlid, data2 := wrap.NewInt32(data1)
-	lr, data3 := wrap.NewInt32(data2)
+	// TODO: Should this have a magic entry?
+	_, data0 := wrap.NewInt32(data) // Magic
+	next, data1 := wrap.NewInt16(data0)
+	id, data2 := wrap.NewInt64(data1)
+	tlid, data3 := wrap.NewInt32(data2)
+	lr, data4 := wrap.NewInt32(data3)
 
 	return header{
 		next:            next,
 		id:              id,
 		timeLineID:      tlid,
 		lengthRemaining: lr,
-	}, data3
+	}, data4
 }
 
 func (h *header) Reset(

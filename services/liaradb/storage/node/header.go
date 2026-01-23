@@ -1,12 +1,16 @@
 package node
 
-import "github.com/liaradb/liaradb/encoder/wrap"
+import (
+	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/encoder/wrap"
+)
 
-// TODO: Should this have a magic entry?
 const (
 	nextSize = 2
 
-	headerSize = nextSize
+	headerSize = 0 +
+		page.MagicSize +
+		nextSize
 )
 
 type header struct {
@@ -14,11 +18,13 @@ type header struct {
 }
 
 func newHeader(data []byte) (header, []byte) {
-	next, data0 := wrap.NewInt16(data)
+	// TODO: Should this have a magic entry?
+	_, data0 := wrap.NewInt32(data) // Magic
+	next, data1 := wrap.NewInt16(data0)
 
 	return header{
 		next: next,
-	}, data0
+	}, data1
 }
 
 func (h *header) Next() int16 {
