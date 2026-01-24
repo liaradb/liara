@@ -66,10 +66,8 @@ func metadataToDto(m entity.Metadata) *pb.EventMetadata {
 		Time:          timestamppb.New(m.Time.Value())}
 }
 
-func dtoToPartitionRange(partitionIDs []int32) value.PartitionRange {
-	pids := make([]value.PartitionID, 0, len(partitionIDs))
-	for _, p := range partitionIDs {
-		pids = append(pids, value.NewPartitionID(p))
-	}
-	return value.NewPartitionRange(pids...)
+func dtoToPartitionRange(low int32, high int32) value.PartitionRange {
+	return value.NewPartitionRange(
+		value.NewPartitionID(low),
+		value.NewPartitionID(high))
 }

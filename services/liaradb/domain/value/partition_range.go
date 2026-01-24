@@ -8,19 +8,7 @@ type PartitionRange struct {
 }
 
 // TODO: Should this be two parameters?
-func NewPartitionRange(pids ...PartitionID) PartitionRange {
-	var low PartitionID
-	var high PartitionID
-
-	switch len(pids) {
-	case 0:
-		break
-	case 1:
-		low, high = pids[0], pids[0]
-	default:
-		low, high = pids[0], pids[1]
-	}
-
+func NewPartitionRange(low PartitionID, high PartitionID) PartitionRange {
 	if low.Value() > high.Value() {
 		low, high = high, low
 	}

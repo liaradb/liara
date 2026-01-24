@@ -112,7 +112,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		value.TenantID(request.TenantId),
 		value.NewGlobalVersion(uint64(request.GlobalVersion)),
-		dtoToPartitionRange(request.PartitionIds),
+		dtoToPartitionRange(request.Low, request.High),
 		value.Limit(request.Limit)) {
 		if err != nil {
 			return err
@@ -161,7 +161,7 @@ func (esc *EventSourceController) CreateOutbox(
 	outboxID, err := esc.eventService.CreateOutbox(ctx,
 		value.TenantID(request.TenantId),
 		oid,
-		dtoToPartitionRange(request.PartitionId))
+		dtoToPartitionRange(request.Low, request.High))
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,8 @@ func (esc *EventSourceController) GetOutbox(
 
 	return &pb.GetOutboxResponse{
 		GlobalVersion: int64(result.GlobalVersion().Value()),
-		PartitionId:   []int32{int32(low.Value()), int32(high.Value())},
+		Low:           int32(low.Value()),
+		High:          int32(high.Value()),
 	}, nil
 }
 

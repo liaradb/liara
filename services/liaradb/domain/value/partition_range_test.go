@@ -14,7 +14,7 @@ func TestPartitionRange_ReadWrite(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	pr2 := NewPartitionRange()
+	pr2 := NewPartitionRange(NewPartitionID(0), NewPartitionID(0))
 	data1 := pr2.ReadData(data)
 
 	if l := len(data1); l != 4 {

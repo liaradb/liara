@@ -67,15 +67,15 @@ func testOutbox__LargeBuffer(t *testing.T) {
 
 func createData() map[string]*entity.Outbox {
 	return map[string]*entity.Outbox{
-		"1": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"2": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"3": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"4": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"5": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"6": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"7": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"8": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
-		"9": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange()),
+		"1": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"2": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"3": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"4": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"5": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"6": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"7": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"8": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+		"9": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
 	}
 }
 
