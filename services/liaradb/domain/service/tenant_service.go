@@ -12,8 +12,6 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 )
 
-const tenantTable = "tenants"
-
 type TenantService struct {
 	kv *keyvalue.KeyValue
 }
@@ -39,8 +37,6 @@ type TenantModel struct {
 
 // TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
-	tn := tablename.NewFromString(tenantTable)
-
 	tnt := entity.NewTenant(cmd.TenantID, cmd.TenantName)
 	data, err := json.Marshal(TenantModel{
 		ID:      tnt.ID().String(),
@@ -51,7 +47,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 		return value.TenantID{}, err
 	}
 
-	return cmd.TenantID, ts.kv.Set(ctx, tn, key.NewKey(cmd.TenantID.Bytes()), data)
+	return cmd.TenantID, ts.kv.Set(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()), data)
 	// id := cmd.TenantID.NewIfEmpty()
 	// tenant := entity.NewTenant(id, cmd.TenantName)
 
@@ -124,10 +120,8 @@ func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) er
 
 // TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	tn := tablename.NewFromString(tenantTable)
-
 	k := key.NewKey(tenantID.Bytes())
-	data, err := ts.kv.Get(ctx, tn, k)
+	data, err := ts.kv.Get(ctx, tablename.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
@@ -152,9 +146,7 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		tn := tablename.NewFromString(tenantTable)
-
-		for data, err := range ts.kv.List(ctx, tn) {
+		for data, err := range ts.kv.List(ctx, tablename.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return

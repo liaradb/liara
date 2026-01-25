@@ -10,8 +10,6 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-const table = "tables"
-
 type Manager struct {
 	s  *storage.Storage
 	kv *keyvalue.KeyValue
@@ -21,7 +19,7 @@ type Manager struct {
 func New(kv *keyvalue.KeyValue) *Manager {
 	return &Manager{
 		kv: kv,
-		tn: tablename.NewFromString(table),
+		tn: tablename.Manager,
 	}
 }
 
