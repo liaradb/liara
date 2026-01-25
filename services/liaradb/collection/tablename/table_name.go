@@ -11,21 +11,27 @@ import (
 const defaultTenantID = "default"
 
 type TableName struct {
-	tenantID value.TenantID
+	value string
 }
 
 func New(tenantID value.TenantID) TableName {
 	return TableName{
-		tenantID: tenantID,
+		value: tenantID.String(),
+	}
+}
+
+func NewFromString(value string) TableName {
+	return TableName{
+		value: value,
 	}
 }
 
 func (tn *TableName) String() string {
-	if tn.tenantID == "" {
+	if tn.value == "" {
 		return defaultTenantID
 	}
 
-	return string(tn.tenantID)
+	return string(tn.value)
 }
 
 func (tn *TableName) KeyValue(pid value.PartitionID) link.FileName {

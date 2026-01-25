@@ -1,15 +1,21 @@
 package value
 
-import "strings"
+import "github.com/liaradb/liaradb/encoder/raw"
 
-type TenantName string
+const TenantNameSize = 256
 
-func (tn TenantName) String() string { return string(tn) }
-
-func (tn TenantName) IsEmpty() bool {
-	return tn.trim() == ""
+type TenantName struct {
+	baseString
 }
 
-func (tn TenantName) trim() TenantName {
-	return TenantName(strings.TrimSpace(string(tn)))
+func NewTenantName(value string) TenantName {
+	return TenantName{raw.BaseString(value)}
+}
+
+func (tn TenantName) WriteData(data []byte) []byte {
+	return tn.baseString.WriteData(data, TenantNameSize)
+}
+
+func (tn *TenantName) ReadData(data []byte) []byte {
+	return tn.baseString.ReadData(data, TenantNameSize)
 }

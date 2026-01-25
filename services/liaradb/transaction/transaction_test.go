@@ -25,7 +25,7 @@ func testTransaction_Insert(t *testing.T) {
 
 	tx := m.Next()
 
-	if err := tx.Insert(ctx, tablename.New("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
+	if err := tx.Insert(ctx, tablename.NewFromString("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -62,7 +62,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tn := tablename.New("a")
+	tn := tablename.NewFromString("a")
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
 	tm := time.UnixMicro(1234567890)
@@ -102,7 +102,7 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 
 	tx := m.Next()
 
-	tn := tablename.New("a")
+	tn := tablename.NewFromString("a")
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
 	tm := time.UnixMicro(1234567890)
@@ -156,7 +156,7 @@ func testTransaction_Commit(t *testing.T) {
 		data: []byte{5},
 	}}
 
-	tn := tablename.New("filename")
+	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
@@ -222,7 +222,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 
-	tn := tablename.New("a")
+	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {

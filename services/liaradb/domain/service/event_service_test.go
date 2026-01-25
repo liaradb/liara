@@ -23,7 +23,7 @@ func TestEventService_Append(t *testing.T) {
 			Version:     value.NewVersion(0),
 		}
 
-		err := es.Append(context.Background(), "", AppendOptions{}, value.NewPartitionID(0), want)
+		err := es.Append(context.Background(), value.NewTenantID(), AppendOptions{}, value.NewPartitionID(0), want)
 		if !errors.Is(err, value.ErrAggregateVersionInvalid) {
 			t.Error("should return error")
 		}

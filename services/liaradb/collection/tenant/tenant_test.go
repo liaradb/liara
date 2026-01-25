@@ -1,4 +1,4 @@
-package outbox
+package tenant
 
 import (
 	"context"
@@ -15,16 +15,16 @@ import (
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
-func TestOutbox(t *testing.T) {
+func TestTenant(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testOutbox)
+	synctest.Test(t, testTenant)
 }
 
-func testOutbox(t *testing.T) {
+func testTenant(t *testing.T) {
 	ctx := t.Context()
 	// TODO: This is flaky on insert when buffer count is 5
 	// s := storagetesting.CreateStorage(t, 5, 84)
-	s := storagetesting.CreateStorage(t, 7, 110)
+	s := storagetesting.CreateStorage(t, 7, 296)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
@@ -41,14 +41,14 @@ func testOutbox(t *testing.T) {
 	synctest.Wait()
 }
 
-func TestOutbox__LargeBuffer(t *testing.T) {
+func TestTenant__LargeBuffer(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testOutbox__LargeBuffer)
+	synctest.Test(t, testTenant__LargeBuffer)
 }
 
-func testOutbox__LargeBuffer(t *testing.T) {
+func testTenant__LargeBuffer(t *testing.T) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 256)
+	s := storagetesting.CreateStorage(t, 2, 1024)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
@@ -65,21 +65,21 @@ func testOutbox__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string]*entity.Outbox {
-	return map[string]*entity.Outbox{
-		"1": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"2": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"3": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"4": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"5": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"6": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"7": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"8": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"9": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+func createData() map[string]*entity.Tenant {
+	return map[string]*entity.Tenant{
+		"1": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"2": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"3": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"4": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"5": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"6": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"7": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"8": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+		"9": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
 	}
 }
 
-func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[string]*entity.Outbox) error {
+func insertData(ctx context.Context, o *Tenant, n tablename.TableName, data map[string]*entity.Tenant) error {
 	for _, v := range data {
 		if err := o.Set(ctx, n, v.ID(), v); err != nil {
 			return err
@@ -91,9 +91,9 @@ func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[
 func testGet(
 	ctx context.Context,
 	t *testing.T,
-	kv *Outbox,
+	kv *Tenant,
 	n tablename.TableName,
-	data map[string]*entity.Outbox,
+	data map[string]*entity.Tenant,
 ) {
 	for k, v := range data {
 		value, err := kv.Get(ctx, n, v.ID())
@@ -110,8 +110,8 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
-	data map[string]*entity.Outbox,
-	o *Outbox,
+	data map[string]*entity.Tenant,
+	o *Tenant,
 	n tablename.TableName,
 	pid value.PartitionID,
 ) {
@@ -128,12 +128,12 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
-	data map[string]*entity.Outbox,
-	o *Outbox,
+	data map[string]*entity.Tenant,
+	o *Tenant,
 	n tablename.TableName,
 	pid value.PartitionID,
-) ([]entity.Outbox, error) {
-	result := make([]entity.Outbox, 0, len(data))
+) ([]entity.Tenant, error) {
+	result := make([]entity.Tenant, 0, len(data))
 	i := 0
 	for value, err := range o.List(ctx, n, pid) {
 		if err != nil {
@@ -146,10 +146,10 @@ func getListValues(
 	return result, nil
 }
 
-func createSortedValues(data map[string]*entity.Outbox) []entity.Outbox {
+func createSortedValues(data map[string]*entity.Tenant) []entity.Tenant {
 	type tuple struct {
 		key   key.Key
-		value *entity.Outbox
+		value *entity.Tenant
 	}
 
 	tuples := make([]tuple, 0, len(data))
@@ -159,7 +159,7 @@ func createSortedValues(data map[string]*entity.Outbox) []entity.Outbox {
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())
 	})
-	want := make([]entity.Outbox, 0, len(data))
+	want := make([]entity.Tenant, 0, len(data))
 	for _, t := range tuples {
 		want = append(want, *t.value)
 	}

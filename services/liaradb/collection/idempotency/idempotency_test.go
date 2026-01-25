@@ -27,7 +27,7 @@ func testIdempotency(t *testing.T) {
 	// s := storagetesting.CreateStorage(t, 5, 84)
 	s := storagetesting.CreateStorage(t, 7, 110)
 	o := New(s, btree.NewCursor(s))
-	n := tablename.New("testfile")
+	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()
@@ -51,7 +51,7 @@ func testRequestLog__LargeBuffer(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	o := New(s, btree.NewCursor(s))
-	n := tablename.New("testfile")
+	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()

@@ -26,7 +26,7 @@ func testEventLog_Append(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s, btree.NewCursor(s))
-	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
@@ -88,7 +88,7 @@ func testEventLog_Find(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s, btree.NewCursor(s))
-	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 
 	records := []*entity.Event{{
@@ -143,7 +143,7 @@ func testEventLog_GetAggregate(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s, btree.NewCursor(s))
-	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
 
@@ -212,7 +212,7 @@ func testEventLog_AppendEvent(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	el := New(s, btree.NewCursor(s))
-	tn := tablename.New(value.TenantID(path.Join(t.TempDir(), "testfile")))
+	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 
 	records := [][]byte{

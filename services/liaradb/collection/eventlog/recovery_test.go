@@ -29,7 +29,7 @@ func testRecovery(t *testing.T) {
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
 	dir := t.TempDir()
-	tn := tablename.New(value.TenantID(path.Join(dir, "testfile")))
+	tn := tablename.NewFromString(path.Join(dir, "testfile"))
 	pid := value.NewPartitionID(0)
 
 	var max int = 2

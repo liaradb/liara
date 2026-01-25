@@ -10,8 +10,7 @@ import (
 func TestTableName_Default(t *testing.T) {
 	t.Parallel()
 
-	n := value.TenantID("")
-	tn := New(n)
+	tn := NewFromString("")
 
 	wantKV := link.NewFileName("default--00000001.kv")
 	if kv := tn.KeyValue(value.NewPartitionID(1)); kv != wantKV {
@@ -37,8 +36,7 @@ func TestTableName_Default(t *testing.T) {
 func TestTableName(t *testing.T) {
 	t.Parallel()
 
-	n := value.TenantID("testfile")
-	tn := New(n)
+	tn := NewFromString("testfile")
 
 	wantKV := link.NewFileName("testfile--00000001.kv")
 	if kv := tn.KeyValue(value.NewPartitionID(1)); kv != wantKV {

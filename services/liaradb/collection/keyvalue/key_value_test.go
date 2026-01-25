@@ -24,7 +24,7 @@ func testKeyValue(t *testing.T) {
 	// s := storagetesting.CreateStorage(t, 5, 84)
 	s := storagetesting.CreateStorage(t, 6, 84)
 	kv := New(s, btree.NewCursor(s))
-	n := tablename.New("testfile")
+	n := tablename.NewFromString("testfile")
 
 	data := createData()
 
@@ -47,7 +47,7 @@ func testKeyValue__LargeBuffer(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s, btree.NewCursor(s))
-	n := tablename.New("testfile")
+	n := tablename.NewFromString("testfile")
 
 	data := createData()
 

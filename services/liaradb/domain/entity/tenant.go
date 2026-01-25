@@ -2,6 +2,12 @@ package entity
 
 import "github.com/liaradb/liaradb/domain/value"
 
+const (
+	TenantSize = value.TenantIDSize +
+		value.VersionSize +
+		value.TenantNameSize
+)
+
 type Tenant struct {
 	id      value.TenantID
 	version value.Version
@@ -13,17 +19,9 @@ func (t *Tenant) Version() value.Version { return t.version }
 func (t *Tenant) Name() value.TenantName { return t.name }
 
 func NewTenant(
-	id value.TenantID,
+	id value.TenantID, // TODO: Is TenantID required?
 	name value.TenantName,
 ) *Tenant {
-	if !id.IsEmpty() {
-		if name.IsEmpty() {
-			name = value.TenantName(id.Trim())
-		}
-	} else {
-		id = value.NewTenantID()
-	}
-
 	return &Tenant{
 		id:      id,
 		version: value.NewVersion(0),
@@ -46,4 +44,16 @@ func RestoreTenant(
 func (t *Tenant) Rename(name value.TenantName) error {
 	t.name = name
 	return nil
+}
+
+func (t *Tenant) Write(data []byte) []byte {
+	data0 := t.id.WriteData(data)
+	data1 := t.version.WriteData(data0)
+	return t.name.WriteData(data1)
+}
+
+func (t *Tenant) Read(data []byte) []byte {
+	data0 := t.id.ReadData(data)
+	data1 := t.version.ReadData(data0)
+	return t.name.ReadData(data1)
 }

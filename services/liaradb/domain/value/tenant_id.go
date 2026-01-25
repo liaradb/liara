@@ -1,32 +1,23 @@
 package value
 
 import (
-	"strings"
-
-	"github.com/google/uuid"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-type TenantID string
-
-func (i TenantID) String() string { return string(i) }
-
-func NewTenantID() TenantID {
-	return TenantID(uuid.NewString())
+type TenantID struct {
+	baseID
 }
 
-func (i TenantID) NewIfEmpty() TenantID {
-	id := i.Trim()
-	if id == "" {
-		return NewTenantID()
+func NewTenantID() TenantID {
+	return TenantID{raw.NewBaseID()}
+}
+
+func NewTenantIDFromString(value string) (TenantID, error) {
+	if id, err := raw.NewBaseIDFromString(value); err != nil {
+		return TenantID{}, err
 	} else {
-		return id
+		return TenantID{id}, nil
 	}
 }
 
-func (i TenantID) IsEmpty() bool {
-	return i.Trim() == ""
-}
-
-func (i TenantID) Trim() TenantID {
-	return TenantID(strings.TrimSpace(string(i)))
-}
+const TenantIDSize = raw.BaseIDSize

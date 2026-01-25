@@ -12,6 +12,8 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 )
 
+const tenantTable = "tenants"
+
 type TenantService struct {
 	kv *keyvalue.KeyValue
 }
@@ -37,7 +39,7 @@ type TenantModel struct {
 
 // TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
-	tn := tablename.New("tenants")
+	tn := tablename.NewFromString(tenantTable)
 
 	tnt := entity.NewTenant(cmd.TenantID, cmd.TenantName)
 	data, err := json.Marshal(TenantModel{
@@ -46,10 +48,10 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 		Name:    tnt.Name().String(),
 	})
 	if err != nil {
-		return "", err
+		return value.TenantID{}, err
 	}
 
-	return cmd.TenantID, ts.kv.Set(ctx, tn, key.NewKey([]byte(cmd.TenantID)), data)
+	return cmd.TenantID, ts.kv.Set(ctx, tn, key.NewKey(cmd.TenantID.Bytes()), data)
 	// id := cmd.TenantID.NewIfEmpty()
 	// tenant := entity.NewTenant(id, cmd.TenantName)
 
@@ -122,9 +124,9 @@ func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) er
 
 // TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	tn := tablename.New("tenants")
+	tn := tablename.NewFromString(tenantTable)
 
-	k := key.NewKey([]byte(tenantID))
+	k := key.NewKey(tenantID.Bytes())
 	data, err := ts.kv.Get(ctx, tn, k)
 	if err != nil {
 		return nil, err
@@ -135,17 +137,22 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 		return nil, err
 	}
 
+	tid, err := value.NewTenantIDFromString(m.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return entity.RestoreTenant(
-		value.TenantID(m.ID),
+		tid,
 		value.NewVersion(uint64(m.Version)),
-		value.TenantName(m.Name),
+		value.NewTenantName(m.Name),
 	), nil
 }
 
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		tn := tablename.New("tenants")
+		tn := tablename.NewFromString(tenantTable)
 
 		for data, err := range ts.kv.List(ctx, tn) {
 			if err != nil {
@@ -159,10 +166,16 @@ func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.S
 				return
 			}
 
+			tid, err := value.NewTenantIDFromString(m.ID)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
 			if !yield(entity.RestoreTenant(
-				value.TenantID(m.ID),
+				tid,
 				value.NewVersion(uint64(m.Version)),
-				value.TenantName(m.Name),
+				value.NewTenantName(m.Name),
 			), nil) {
 				return
 			}

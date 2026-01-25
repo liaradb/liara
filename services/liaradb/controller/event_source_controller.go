@@ -33,8 +33,13 @@ func (esc *EventSourceController) Append(
 		return nil, err
 	}
 
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := esc.eventService.Append(ctx,
-		value.TenantID(request.TenantId),
+		tid,
 		o,
 		value.NewPartitionID(0),
 		mapSlice(request.Events, dtoToAppendEvent)...); err != nil {
@@ -48,14 +53,19 @@ func (esc *EventSourceController) TestIdempotency(
 	ctx context.Context,
 	request *pb.TestIdempotencyRequest,
 ) (*pb.TestIdempotencyResponse, error) {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	rid, err := value.NewRequestIDFromString(request.RequestId)
 	if err != nil {
 		return nil, err
 	}
 
 	ok, err := esc.eventService.TestIdempotency(ctx,
-		value.TenantID(request.TenantId),
-		value.RequestID(rid))
+		tid,
+		rid)
 	if err != nil {
 		return nil, err
 	}
@@ -69,8 +79,13 @@ func (esc *EventSourceController) Get(
 	request *pb.GetRequest,
 	stream pb.EventSourceService_GetServer,
 ) error {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return err
+	}
+
 	for row, err := range esc.eventService.Get(stream.Context(),
-		value.TenantID(request.TenantId),
+		tid,
 		value.NewPartitionID(request.PartitionId),
 		value.NewAggregateID(request.AggregateId),
 	) {
@@ -89,8 +104,13 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 	request *pb.GetByAggregateIDAndNameRequest,
 	stream pb.EventSourceService_GetByAggregateIDAndNameServer,
 ) error {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return err
+	}
+
 	for row, err := range esc.eventService.GetByAggregateIDAndName(stream.Context(),
-		value.TenantID(request.TenantId),
+		tid,
 		value.NewPartitionID(request.PartitionId),
 		value.NewAggregateID(request.AggregateId),
 		value.NewAggregateName(request.Name)) {
@@ -109,8 +129,13 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	request *pb.GetAfterGlobalVersionRequest,
 	stream pb.EventSourceService_GetAfterGlobalVersionServer,
 ) error {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return err
+	}
+
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
-		value.TenantID(request.TenantId),
+		tid,
 		value.NewGlobalVersion(uint64(request.GlobalVersion)),
 		dtoToPartitionRange(request.Low, request.High),
 		value.Limit(request.Limit)) {
@@ -129,13 +154,18 @@ func (esc *EventSourceController) GetByOutbox(
 	request *pb.GetByOutboxRequest,
 	stream pb.EventSourceService_GetByOutboxServer,
 ) error {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return err
+	}
+
 	oid, err := value.NewOutboxIDFromString(request.OutboxId)
 	if err != nil {
 		return err
 	}
 
 	for row, err := range esc.eventService.GetByOutbox(stream.Context(),
-		value.TenantID(request.TenantId),
+		tid,
 		oid,
 		value.Limit(request.Limit)) {
 		if err != nil {
@@ -158,8 +188,13 @@ func (esc *EventSourceController) CreateOutbox(
 		return nil, err
 	}
 
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	outboxID, err := esc.eventService.CreateOutbox(ctx,
-		value.TenantID(request.TenantId),
+		tid,
 		oid,
 		dtoToPartitionRange(request.Low, request.High))
 	if err != nil {
@@ -180,11 +215,16 @@ func (esc *EventSourceController) GetOutbox(
 		return nil, err
 	}
 
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: How do we specify partition?
 	pid := value.NewPartitionID(0)
 
 	result, err := esc.eventService.GetOutbox(ctx,
-		value.TenantID(request.TenantId),
+		tid,
 		pid,
 		oid)
 	if err != nil {
@@ -208,11 +248,16 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 		return nil, err
 	}
 
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	// TODO: How do we specify partition?
 	pid := value.NewPartitionID(0)
 
 	if err := esc.eventService.UpdateOutboxPosition(ctx,
-		value.TenantID(request.TenantId),
+		tid,
 		pid,
 		oid,
 		value.NewGlobalVersion(uint64(request.GlobalVersion))); err != nil {
@@ -223,9 +268,15 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 }
 
 func (esc *EventSourceController) CreateTenant(ctx context.Context, request *pb.CreateTenantRequest) (*pb.CreateTenantReponse, error) {
+	// TODO: Is TenantID required?
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
 	id, err := esc.tenantService.Create(ctx, service.CreateTenantCommand{
-		TenantID:   value.TenantID(request.TenantId),
-		TenantName: value.TenantName(request.Name),
+		TenantID:   tid,
+		TenantName: value.NewTenantName(request.Name),
 	})
 	if err != nil {
 		return nil, err
@@ -237,10 +288,14 @@ func (esc *EventSourceController) CreateTenant(ctx context.Context, request *pb.
 }
 
 func (esc *EventSourceController) DeleteTenant(ctx context.Context, request *pb.DeleteTenantRequest) (*pb.DeleteTenantResponse, error) {
-	err := esc.tenantService.Delete(ctx, service.DeleteTenantCommand{
-		TenantID: value.TenantID(request.TenantId),
-	})
+	tid, err := value.NewTenantIDFromString(request.TenantId)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := esc.tenantService.Delete(ctx, service.DeleteTenantCommand{
+		TenantID: tid,
+	}); err != nil {
 		return nil, err
 	}
 
@@ -249,7 +304,7 @@ func (esc *EventSourceController) DeleteTenant(ctx context.Context, request *pb.
 
 func (esc *EventSourceController) RenameTenant(ctx context.Context, request *pb.RenameTenantRequest) (*pb.RenameTenantResponse, error) {
 	err := esc.tenantService.Rename(ctx, service.RenameTenantCommand{
-		TenantName: value.TenantName(request.Name),
+		TenantName: value.NewTenantName(request.Name),
 	})
 	if err != nil {
 		return nil, err
@@ -259,7 +314,12 @@ func (esc *EventSourceController) RenameTenant(ctx context.Context, request *pb.
 }
 
 func (esc *EventSourceController) GetTenant(ctx context.Context, request *pb.GetTenantRequest) (*pb.GetTenantResponse, error) {
-	t, err := esc.tenantService.Get(ctx, value.TenantID(request.TenantId))
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := esc.tenantService.Get(ctx, tid)
 	if err != nil {
 		return nil, err
 	}
