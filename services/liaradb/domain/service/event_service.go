@@ -343,3 +343,24 @@ func (es *EventService) UpdateOutboxPosition(
 		return tx.UpdateOutbox(ctx, tn, now, outboxID, globalVersion)
 	})
 }
+
+func (es *EventService) ListOutboxes(
+	ctx context.Context,
+	tenantID value.TenantID,
+) iter.Seq2[*entity.Outbox, error] {
+	return func(yield func(*entity.Outbox, error) bool) {
+		tn := tablename.New(tenantID)
+		tx := es.txManager.Next()
+		err := tx.Run(ctx, tn, value.NewPartitionID(0), time.Now(), func() error {
+			for e, err := range tx.ListOutboxes(ctx, tn) {
+				for !yield(e, err) {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			yield(nil, err)
+		}
+	}
+}

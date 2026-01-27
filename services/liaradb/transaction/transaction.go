@@ -366,6 +366,18 @@ func (t *Transaction) UpdateOutbox(
 	return t.outbox.Replace(ctx, tn, oid, e)
 }
 
+func (t *Transaction) ListOutboxes(
+	ctx context.Context,
+	tn tablename.TableName,
+) iter.Seq2[*entity.Outbox, error] {
+	// TODO: How do we lock this query?
+	// if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
+	// 	return nil, err
+	// }
+
+	return t.outbox.List(ctx, tn, value.NewPartitionID(0))
+}
+
 func (t *Transaction) InsertRequestID(
 	ctx context.Context,
 	tn tablename.TableName,

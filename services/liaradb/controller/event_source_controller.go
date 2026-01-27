@@ -332,6 +332,28 @@ func (esc *EventSourceController) GetTenant(ctx context.Context, request *pb.Get
 	}, nil
 }
 
+func (esc *EventSourceController) ListOutboxes(request *pb.ListOutboxesRequest, stream pb.EventSourceService_ListOutboxesServer) error {
+	tid, err := value.NewTenantIDFromString(request.TenantId)
+	if err != nil {
+		return err
+	}
+
+	for t, err := range esc.eventService.ListOutboxes(stream.Context(), tid) {
+		if err != nil {
+			return err
+		}
+
+		// TODO: Fix these unsigned types
+		stream.Send(&pb.Outbox{
+			OutboxId:      t.ID().String(),
+			GlobalVersion: int64(t.GlobalVersion().Value()),
+			Low:           int32(t.PartitionRange().Low().Value()),
+			High:          int32(t.PartitionRange().High().Value()),
+		})
+	}
+	return nil
+}
+
 func (esc *EventSourceController) ListTenants(request *pb.ListTenantsRequest, stream pb.EventSourceService_ListTenantsServer) error {
 	for t, err := range esc.tenantService.List(stream.Context(), 0, 0) {
 		if err != nil {

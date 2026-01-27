@@ -24,6 +24,7 @@ service EventSourceService {
   rpc DeleteTenant(DeleteTenantRequest) returns (DeleteTenantResponse) {}
   rpc RenameTenant(RenameTenantRequest) returns (RenameTenantResponse) {}
   rpc GetTenant(GetTenantRequest) returns (GetTenantResponse) {}
+  rpc ListOutboxes(ListOutboxesRequest) returns (stream Outbox) {}
   rpc ListTenants(ListTenantsRequest) returns (stream Tenant) {}
 }
 
@@ -266,6 +267,21 @@ message GetTenantRequest {
 
 message GetTenantResponse {
   Tenant tenant = 1;
+}
+
+// -----------------------------------------------------------------------------
+// List Outboxes
+// -----------------------------------------------------------------------------
+
+message ListOutboxesRequest {
+  string tenant_id = 1;
+}
+
+message Outbox {
+  string outbox_id = 1;
+  int64 global_version = 2;
+  int32 low = 3;
+  int32 high = 4;
 }
 
 // -----------------------------------------------------------------------------

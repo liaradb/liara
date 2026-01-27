@@ -35,6 +35,7 @@ type EventSourceServiceClient interface {
 	DeleteTenant(ctx context.Context, in *DeleteTenantRequest, opts ...grpc.CallOption) (*DeleteTenantResponse, error)
 	RenameTenant(ctx context.Context, in *RenameTenantRequest, opts ...grpc.CallOption) (*RenameTenantResponse, error)
 	GetTenant(ctx context.Context, in *GetTenantRequest, opts ...grpc.CallOption) (*GetTenantResponse, error)
+	ListOutboxes(ctx context.Context, in *ListOutboxesRequest, opts ...grpc.CallOption) (EventSourceService_ListOutboxesClient, error)
 	ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (EventSourceService_ListTenantsClient, error)
 }
 
@@ -255,8 +256,40 @@ func (c *eventSourceServiceClient) GetTenant(ctx context.Context, in *GetTenantR
 	return out, nil
 }
 
+func (c *eventSourceServiceClient) ListOutboxes(ctx context.Context, in *ListOutboxesRequest, opts ...grpc.CallOption) (EventSourceService_ListOutboxesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[4], "/liara.EventSourceService/ListOutboxes", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventSourceServiceListOutboxesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventSourceService_ListOutboxesClient interface {
+	Recv() (*Outbox, error)
+	grpc.ClientStream
+}
+
+type eventSourceServiceListOutboxesClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventSourceServiceListOutboxesClient) Recv() (*Outbox, error) {
+	m := new(Outbox)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *eventSourceServiceClient) ListTenants(ctx context.Context, in *ListTenantsRequest, opts ...grpc.CallOption) (EventSourceService_ListTenantsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[4], "/liara.EventSourceService/ListTenants", opts...)
+	stream, err := c.cc.NewStream(ctx, &EventSourceService_ServiceDesc.Streams[5], "/liara.EventSourceService/ListTenants", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +337,7 @@ type EventSourceServiceServer interface {
 	DeleteTenant(context.Context, *DeleteTenantRequest) (*DeleteTenantResponse, error)
 	RenameTenant(context.Context, *RenameTenantRequest) (*RenameTenantResponse, error)
 	GetTenant(context.Context, *GetTenantRequest) (*GetTenantResponse, error)
+	ListOutboxes(*ListOutboxesRequest, EventSourceService_ListOutboxesServer) error
 	ListTenants(*ListTenantsRequest, EventSourceService_ListTenantsServer) error
 	mustEmbedUnimplementedEventSourceServiceServer()
 }
@@ -350,6 +384,9 @@ func (UnimplementedEventSourceServiceServer) RenameTenant(context.Context, *Rena
 }
 func (UnimplementedEventSourceServiceServer) GetTenant(context.Context, *GetTenantRequest) (*GetTenantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTenant not implemented")
+}
+func (UnimplementedEventSourceServiceServer) ListOutboxes(*ListOutboxesRequest, EventSourceService_ListOutboxesServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListOutboxes not implemented")
 }
 func (UnimplementedEventSourceServiceServer) ListTenants(*ListTenantsRequest, EventSourceService_ListTenantsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListTenants not implemented")
@@ -613,6 +650,27 @@ func _EventSourceService_GetTenant_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventSourceService_ListOutboxes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ListOutboxesRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventSourceServiceServer).ListOutboxes(m, &eventSourceServiceListOutboxesServer{stream})
+}
+
+type EventSourceService_ListOutboxesServer interface {
+	Send(*Outbox) error
+	grpc.ServerStream
+}
+
+type eventSourceServiceListOutboxesServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventSourceServiceListOutboxesServer) Send(m *Outbox) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _EventSourceService_ListTenants_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ListTenantsRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -697,6 +755,11 @@ var EventSourceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetByOutbox",
 			Handler:       _EventSourceService_GetByOutbox_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ListOutboxes",
+			Handler:       _EventSourceService_ListOutboxes_Handler,
 			ServerStreams: true,
 		},
 		{
