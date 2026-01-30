@@ -34,10 +34,10 @@ func TestCRCList_Default(t *testing.T) {
 func TestCRCList_Push(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 18))
+	l := New(make([]byte, 32))
 
-	if length := l.Length(); length != 18 {
-		t.Errorf("incorrect length: %v, expected: %v", length, 18)
+	if length := l.Length(); length != 32 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 32)
 	}
 
 	if i, ok := l.Push(1, 10, page.RestoreCRC(int32(100))); !ok {
@@ -86,6 +86,10 @@ func TestCRCList_Push(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", item.Size, 20)
 	} else if item.CRC != page.RestoreCRC(int32(200)) {
 		t.Errorf("incorrect value: %v, expected: %v", item.CRC, page.RestoreCRC(int32(200)))
+	}
+
+	if _, ok := l.Item(2); ok {
+		t.Errorf("should not have a value")
 	}
 }
 

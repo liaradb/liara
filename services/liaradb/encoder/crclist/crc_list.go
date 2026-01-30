@@ -53,6 +53,10 @@ func (l *CRCList) setSize(size int16) {
 }
 
 func (l *CRCList) Item(index int16) (CRCItem, bool) {
+	if index >= l.count {
+		return CRCItem{}, false
+	}
+
 	a, ok := l.list.Get((tupleSize * index) + headerSize)
 	if !ok {
 		return CRCItem{}, false

@@ -162,10 +162,9 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid
 				return
 			}
 
-			if e.AggregateID != id || !yield(e, err) {
+			if e.AggregateID != id || !yield(e, nil) {
 				return
 			}
-
 		}
 	}
 }
