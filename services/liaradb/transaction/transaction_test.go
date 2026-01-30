@@ -62,14 +62,15 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tn := tablename.NewFromString("a")
+	tid := value.NewTenantID()
+	tn := tablename.New(tid)
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
 	tm := time.UnixMicro(1234567890)
 	pid := value.NewPartitionID(2)
 
 	tx := m.Next()
-	if err := tx.Run(ctx, tn, pid, tm, func() error {
+	if err := tx.Run(ctx, tid, pid, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -79,7 +80,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	}
 
 	tx = m.Next()
-	if err := tx.Run(ctx, tn, pid, tm, func() error {
+	if err := tx.Run(ctx, tid, pid, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -156,14 +157,15 @@ func testTransaction_Commit(t *testing.T) {
 		data: []byte{5},
 	}}
 
-	tn := tablename.NewFromString("a")
+	tid := value.NewTenantID()
+	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, tn, pid, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, tid, pid, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 

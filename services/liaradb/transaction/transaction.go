@@ -203,12 +203,12 @@ func (t *Transaction) SetValue(
 
 func (t *Transaction) Run(
 	ctx context.Context,
-	tn tablename.TableName, // TODO: How should this be specified?
+	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
-	if err := t.run(ctx, tn, pid, now, f); err != nil {
+	if err := t.run(ctx, tid, pid, now, f); err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 
@@ -217,7 +217,7 @@ func (t *Transaction) Run(
 
 func (t *Transaction) run(
 	ctx context.Context,
-	tn tablename.TableName, // TODO: How should this be specified?
+	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
@@ -232,7 +232,7 @@ func (t *Transaction) run(
 		return t.rollback(ctx, now)
 	}
 
-	return t.commit(ctx, tn, pid, now)
+	return t.commit(ctx, tid, pid, now)
 }
 
 func (t *Transaction) release() {
@@ -242,7 +242,7 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
-	tn tablename.TableName, // TODO: How should this be specified?
+	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time,
 ) error {
@@ -255,7 +255,7 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.appendToEventLog(ctx, tn, pid); err != nil {
+	if err := t.appendToEventLog(ctx, tid, pid); err != nil {
 		return err
 	}
 
@@ -264,9 +264,10 @@ func (t *Transaction) commit(
 
 func (t *Transaction) appendToEventLog(
 	ctx context.Context,
-	tn tablename.TableName,
+	tid value.TenantID,
 	pid value.PartitionID,
 ) error {
+	tn := tablename.New(tid)
 	for _, item := range t.events {
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
