@@ -201,18 +201,41 @@ func (t *Transaction) SetValue(
 	return nil
 }
 
-func (t *Transaction) Run(
+func Run(
 	ctx context.Context,
+	t *Transaction,
 	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
-	if err := t.run(ctx, tid, pid, now, f); err != nil {
+	_, err := t.run(ctx, tid, pid, now, func() (any, error) {
+		return struct{}{}, f()
+	})
+	if err != nil {
 		return errTransactionFailed(t.id, err)
 	}
 
 	return nil
+}
+
+func RunResult[R any](
+	ctx context.Context,
+	t *Transaction,
+	tid value.TenantID,
+	pid value.PartitionID,
+	now time.Time, // TODO: How should this be specified?
+	f func() (R, error),
+) (R, error) {
+	r, err := t.run(ctx, tid, pid, now, func() (any, error) {
+		return f()
+	})
+	if err != nil {
+		var r R
+		return r, errTransactionFailed(t.id, err)
+	}
+
+	return r.(R), nil
 }
 
 func (t *Transaction) run(
@@ -220,19 +243,20 @@ func (t *Transaction) run(
 	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
-	f func() error,
-) error {
+	f func() (any, error),
+) (any, error) {
 	defer t.release()
 
-	if err := f(); err != nil {
-		return errors.Join(err, t.rollback(ctx, now))
+	r, err := f()
+	if err != nil {
+		return nil, errors.Join(err, t.rollback(ctx, now))
 	}
 
 	if t.forceRollback {
-		return t.rollback(ctx, now)
+		return nil, t.rollback(ctx, now)
 	}
 
-	return t.commit(ctx, tid, pid, now)
+	return r, t.commit(ctx, tid, pid, now)
 }
 
 func (t *Transaction) release() {

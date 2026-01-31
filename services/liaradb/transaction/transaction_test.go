@@ -70,7 +70,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	pid := value.NewPartitionID(2)
 
 	tx := m.Next()
-	if err := tx.Run(ctx, tid, pid, tm, func() error {
+	if err := Run(ctx, tx, tid, pid, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -80,7 +80,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	}
 
 	tx = m.Next()
-	if err := tx.Run(ctx, tid, pid, tm, func() error {
+	if err := Run(ctx, tx, tid, pid, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,
