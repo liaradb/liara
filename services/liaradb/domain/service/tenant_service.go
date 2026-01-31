@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -28,24 +27,13 @@ type CreateTenantCommand struct {
 	TenantName value.TenantName
 }
 
-type TenantModel struct {
-	ID      string `json:"id"`
-	Version int64  `json:"version"`
-	Name    string `json:"name"`
-}
-
 // TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
-	data, err := json.Marshal(TenantModel{
-		ID:      tnt.ID().String(),
-		Version: int64(tnt.Version().Value()),
-		Name:    tnt.Name().String(),
-	})
-	if err != nil {
-		return value.TenantID{}, err
-	}
+
+	data := make([]byte, entity.TenantSize)
+	_ = tnt.Write(data)
 
 	if err := ts.kv.Set(ctx, tablename.Tenant, key.NewKey(tid.Bytes()), data); err != nil {
 		return value.TenantID{}, err
@@ -130,21 +118,10 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 		return nil, err
 	}
 
-	m := TenantModel{}
-	if err := json.Unmarshal(data, &m); err != nil {
-		return nil, err
-	}
+	tnt := &entity.Tenant{}
+	_ = tnt.Read(data)
 
-	tid, err := value.NewTenantIDFromString(m.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	return entity.RestoreTenant(
-		tid,
-		value.NewVersion(uint64(m.Version)),
-		value.NewTenantName(m.Name),
-	), nil
+	return tnt, nil
 }
 
 // TODO: Create transaction
@@ -156,23 +133,9 @@ func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.S
 				return
 			}
 
-			m := TenantModel{}
-			if err := json.Unmarshal(data, &m); err != nil {
-				yield(nil, err)
-				return
-			}
-
-			tid, err := value.NewTenantIDFromString(m.ID)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(entity.RestoreTenant(
-				tid,
-				value.NewVersion(uint64(m.Version)),
-				value.NewTenantName(m.Name),
-			), nil) {
+			tnt := &entity.Tenant{}
+			_ = tnt.Read(data)
+			if !yield(tnt, nil) {
 				return
 			}
 		}

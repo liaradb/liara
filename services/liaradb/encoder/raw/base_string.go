@@ -17,7 +17,7 @@ func (s *BaseString) Read(r io.Reader) error { return ReadString(r, s) }
 func (s BaseString) WriteData(data []byte, colSize int) []byte {
 	data[0] = byte(len(s))
 	copy(data[1:colSize], []byte(s))
-	clear(data[len(s):colSize])
+	clear(data[1+len(s) : colSize])
 	return data[colSize:]
 }
 
