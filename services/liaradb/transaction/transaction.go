@@ -327,7 +327,7 @@ func (t *Transaction) InsertOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = e.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionUpdate, data, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
 		return err
 	}
@@ -347,24 +347,28 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	e, err := t.outbox.Get(ctx, tn, oid)
+	o, err := t.outbox.Get(ctx, tn, oid)
 	if err != nil {
 		return err
 	}
 
-	e.UpdateGlobalVersion(v)
+	// TODO: This is inefficient
+	prev := make([]byte, entity.OutboxSize)
+	_ = o.Write(prev)
+
+	o.UpdateGlobalVersion(v)
 
 	// TODO: We are doing this twice
 	data := make([]byte, entity.OutboxSize)
-	_ = e.Write(data)
+	_ = o.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionUpdate, data, nil)
+	lsn, err := t.log.Append(ctx, t.id, now, record.ActionUpdate, data, prev)
 	if err != nil {
 		return err
 	}
 
 	t.lsn = lsn
-	return t.outbox.Replace(ctx, tn, oid, e)
+	return t.outbox.Replace(ctx, tn, oid, o)
 }
 
 func (t *Transaction) ListOutboxes(
