@@ -305,18 +305,20 @@ func (es *EventService) GetByOutbox(
 func (es *EventService) CreateOutbox(
 	ctx context.Context,
 	tenantID value.TenantID,
-	outboxID value.OutboxID,
 	partitionRange value.PartitionRange,
 ) (value.OutboxID, error) {
 	tx := es.txManager.Next()
 	now := time.Now()
 	// TODO: How do we handle a range?
-	err := transaction.Run(ctx, tx, tenantID, partitionRange.Low(), now, func() error {
+	return transaction.RunResult(ctx, tx, tenantID, partitionRange.Low(), now, func() (value.OutboxID, error) {
 		tn := tablename.New(tenantID)
-		outbox := entity.NewOutbox(outboxID, partitionRange)
-		return tx.InsertOutbox(ctx, tn, now, outboxID, outbox)
+		oid := value.NewOutboxID()
+		outbox := entity.NewOutbox(oid, partitionRange)
+		if err := tx.InsertOutbox(ctx, tn, now, oid, outbox); err != nil {
+			return value.OutboxID{}, err
+		}
+		return oid, nil
 	})
-	return outboxID, err
 }
 
 func (es *EventService) GetOutbox(
@@ -326,14 +328,10 @@ func (es *EventService) GetOutbox(
 	outboxID value.OutboxID,
 ) (*entity.Outbox, error) {
 	tx := es.txManager.Next()
-	var e *entity.Outbox
-	err := transaction.Run(ctx, tx, tenantID, partitionID, time.Now(), func() error {
-		var err error
+	return transaction.RunResult(ctx, tx, tenantID, partitionID, time.Now(), func() (*entity.Outbox, error) {
 		tn := tablename.New(tenantID)
-		e, err = tx.GetOutbox(ctx, tn, outboxID)
-		return err
+		return tx.GetOutbox(ctx, tn, outboxID)
 	})
-	return e, err
 }
 
 func (es *EventService) UpdateOutboxPosition(

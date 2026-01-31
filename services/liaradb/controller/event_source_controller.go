@@ -183,11 +183,6 @@ func (esc *EventSourceController) CreateOutbox(
 	ctx context.Context,
 	request *pb.CreateOutboxRequest,
 ) (*pb.CreateOutboxResponse, error) {
-	oid, err := value.NewOutboxIDFromString(request.OutboxId)
-	if err != nil {
-		return nil, err
-	}
-
 	tid, err := value.NewTenantIDFromString(request.TenantId)
 	if err != nil {
 		return nil, err
@@ -195,7 +190,6 @@ func (esc *EventSourceController) CreateOutbox(
 
 	outboxID, err := esc.eventService.CreateOutbox(ctx,
 		tid,
-		oid,
 		dtoToPartitionRange(request.Low, request.High))
 	if err != nil {
 		return nil, err
