@@ -25,7 +25,6 @@ func NewTenantService(
 }
 
 type CreateTenantCommand struct {
-	TenantID   value.TenantID
 	TenantName value.TenantName
 }
 
@@ -37,7 +36,8 @@ type TenantModel struct {
 
 // TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
-	tnt := entity.NewTenant(cmd.TenantID, cmd.TenantName)
+	tid := value.NewTenantID()
+	tnt := entity.NewTenant(tid, cmd.TenantName)
 	data, err := json.Marshal(TenantModel{
 		ID:      tnt.ID().String(),
 		Version: int64(tnt.Version().Value()),
@@ -47,7 +47,11 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 		return value.TenantID{}, err
 	}
 
-	return cmd.TenantID, ts.kv.Set(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()), data)
+	if err := ts.kv.Set(ctx, tablename.Tenant, key.NewKey(tid.Bytes()), data); err != nil {
+		return value.TenantID{}, err
+	}
+
+	return tid, nil
 	// id := cmd.TenantID.NewIfEmpty()
 	// tenant := entity.NewTenant(id, cmd.TenantName)
 

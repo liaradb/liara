@@ -262,14 +262,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 }
 
 func (esc *EventSourceController) CreateTenant(ctx context.Context, request *pb.CreateTenantRequest) (*pb.CreateTenantReponse, error) {
-	// TODO: Is TenantID required?
-	tid, err := value.NewTenantIDFromString(request.TenantId)
-	if err != nil {
-		return nil, err
-	}
-
 	id, err := esc.tenantService.Create(ctx, service.CreateTenantCommand{
-		TenantID:   tid,
 		TenantName: value.NewTenantName(request.Name),
 	})
 	if err != nil {
