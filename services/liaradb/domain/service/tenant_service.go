@@ -4,22 +4,21 @@ import (
 	"context"
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
 type TenantService struct {
-	kv *keyvalue.KeyValue
+	tc *tenant.Tenant
 }
 
 func NewTenantService(
-	kv *keyvalue.KeyValue,
+	tc *tenant.Tenant,
 ) *TenantService {
 	return &TenantService{
-		kv: kv,
+		tc: tc,
 	}
 }
 
@@ -32,10 +31,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
 
-	data := make([]byte, entity.TenantSize)
-	_ = tnt.Write(data)
-
-	if err := ts.kv.Set(ctx, tablename.Tenant, key.NewKey(tid.Bytes()), data); err != nil {
+	if err := ts.tc.Set(ctx, tablename.Tenant, tid, tnt); err != nil {
 		return value.TenantID{}, err
 	}
 
@@ -98,21 +94,16 @@ type RenameTenantCommand struct {
 
 // TODO: Create transaction
 func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) error {
-	data, err := ts.kv.Get(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()))
+	tnt, err := ts.tc.Get(ctx, tablename.Tenant, cmd.TenantID)
 	if err != nil {
 		return err
 	}
-
-	tnt := entity.Tenant{}
-	_ = tnt.Read(data)
 
 	if err := tnt.Rename(cmd.TenantName); err != nil {
 		return err
 	}
 
-	_ = tnt.Write(data)
-
-	return ts.kv.Set(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()), data)
+	return ts.tc.Replace(ctx, tablename.Tenant, cmd.TenantID, tnt)
 	// t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
 	// if err != nil {
 	// 	return err
@@ -127,32 +118,10 @@ func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) er
 
 // TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	k := key.NewKey(tenantID.Bytes())
-	data, err := ts.kv.Get(ctx, tablename.Tenant, k)
-	if err != nil {
-		return nil, err
-	}
-
-	tnt := &entity.Tenant{}
-	_ = tnt.Read(data)
-
-	return tnt, nil
+	return ts.tc.Get(ctx, tablename.Tenant, tenantID)
 }
 
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	return func(yield func(*entity.Tenant, error) bool) {
-		for data, err := range ts.kv.List(ctx, tablename.Tenant) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			tnt := &entity.Tenant{}
-			_ = tnt.Read(data)
-			if !yield(tnt, nil) {
-				return
-			}
-		}
-	}
+	return ts.tc.List(ctx, tablename.Tenant)
 }

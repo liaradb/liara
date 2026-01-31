@@ -27,7 +27,6 @@ func testTenant(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 7, 296)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
-	pid := value.NewPartitionID(0)
 
 	data := createData()
 
@@ -36,7 +35,7 @@ func testTenant(t *testing.T) {
 	}
 
 	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n, pid)
+	testList(ctx, t, data, o, n)
 
 	synctest.Wait()
 }
@@ -51,7 +50,6 @@ func testTenant__LargeBuffer(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
-	pid := value.NewPartitionID(0)
 
 	data := createData()
 
@@ -60,7 +58,7 @@ func testTenant__LargeBuffer(t *testing.T) {
 	}
 
 	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n, pid)
+	testList(ctx, t, data, o, n)
 
 	synctest.Wait()
 }
@@ -113,9 +111,8 @@ func testList(
 	data map[string]*entity.Tenant,
 	o *Tenant,
 	n tablename.TableName,
-	pid value.PartitionID,
 ) {
-	result, err := getListValues(ctx, data, o, n, pid)
+	result, err := getListValues(ctx, data, o, n)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,11 +128,10 @@ func getListValues(
 	data map[string]*entity.Tenant,
 	o *Tenant,
 	n tablename.TableName,
-	pid value.PartitionID,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n, pid) {
+	for value, err := range o.List(ctx, n) {
 		if err != nil {
 			return nil, err
 		}

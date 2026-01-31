@@ -46,10 +46,9 @@ func (o *Tenant) Get(
 func (o *Tenant) List(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		fnIdx := tn.Index(0, pid)
+		fnIdx := tn.Index(0, value.PartitionID{})
 		for rid, err := range o.c.All(ctx, fnIdx, 0, 0) {
 			if err != nil {
 				yield(nil, err)

@@ -9,7 +9,7 @@ import (
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/file/disk"
@@ -150,7 +150,7 @@ func (a *Application) initService() *grpc.Server {
 			a.txManager,
 		),
 		service.NewTenantService(
-			keyvalue.New(a.storage, btree.NewCursor(a.storage))),
+			tenant.New(a.storage, btree.NewCursor(a.storage))),
 	))
 
 	return s
