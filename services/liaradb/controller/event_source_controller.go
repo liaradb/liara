@@ -290,10 +290,15 @@ func (esc *EventSourceController) DeleteTenant(ctx context.Context, request *pb.
 }
 
 func (esc *EventSourceController) RenameTenant(ctx context.Context, request *pb.RenameTenantRequest) (*pb.RenameTenantResponse, error) {
-	err := esc.tenantService.Rename(ctx, service.RenameTenantCommand{
-		TenantName: value.NewTenantName(request.Name),
-	})
+	tid, err := value.NewTenantIDFromString(request.TenantId)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := esc.tenantService.Rename(ctx, service.RenameTenantCommand{
+		TenantID:   tid,
+		TenantName: value.NewTenantName(request.Name),
+	}); err != nil {
 		return nil, err
 	}
 

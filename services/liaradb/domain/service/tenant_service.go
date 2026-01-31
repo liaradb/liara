@@ -96,8 +96,23 @@ type RenameTenantCommand struct {
 	TenantName value.TenantName
 }
 
+// TODO: Create transaction
 func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) error {
-	panic("unimplemented")
+	data, err := ts.kv.Get(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()))
+	if err != nil {
+		return err
+	}
+
+	tnt := entity.Tenant{}
+	_ = tnt.Read(data)
+
+	if err := tnt.Rename(cmd.TenantName); err != nil {
+		return err
+	}
+
+	_ = tnt.Write(data)
+
+	return ts.kv.Set(ctx, tablename.Tenant, key.NewKey(cmd.TenantID.Bytes()), data)
 	// t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
 	// if err != nil {
 	// 	return err
