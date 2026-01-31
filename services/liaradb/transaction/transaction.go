@@ -15,6 +15,7 @@ import (
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/schema"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -33,6 +34,7 @@ type Transaction struct {
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
 	manager        *manager.Manager
 	schemaMgr      *schema.Manager
+	tenant         *tenant.Tenant
 	eventLog       *eventlog.EventLog
 	keyValue       *keyvalue.KeyValue
 	outbox         *outbox.Outbox
@@ -59,6 +61,7 @@ func newTransaction(
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
 	manager *manager.Manager,
+	tenant *tenant.Tenant,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 	outbox *outbox.Outbox,
@@ -70,6 +73,7 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		manager:        manager,
+		tenant:         tenant,
 		eventLog:       eventLog,
 		keyValue:       keyValue,
 		outbox:         outbox,

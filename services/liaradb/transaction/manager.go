@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -18,6 +19,7 @@ type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
 	manager       *manager.Manager
+	tenant        *tenant.Tenant
 	eventLog      *eventlog.EventLog
 	keyValue      *keyvalue.KeyValue
 	outbox        *outbox.Outbox
@@ -37,6 +39,7 @@ func NewManager(
 		log:         log,
 		storage:     storage,
 		manager:     manager.New(kv),
+		tenant:      tenant.New(storage, cursor),
 		eventLog:    eventlog.New(storage, cursor),
 		keyValue:    kv,
 		outbox:      outbox.New(storage, cursor),
@@ -53,6 +56,7 @@ func (m *Manager) Next() *Transaction {
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
 		m.manager,
+		m.tenant,
 		m.eventLog,
 		m.keyValue,
 		m.outbox,
