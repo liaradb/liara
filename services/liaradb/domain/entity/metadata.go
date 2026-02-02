@@ -7,9 +7,11 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
+// TODO: Map ClientVersion
 type Metadata struct {
 	UserID        value.UserID        // The ID of the User issuing the Command
 	CorrelationID value.CorrelationID // The ID of the entire Command and Event chain
+	ClientVersion string              // The Version of the Client emitting the Event
 	Time          value.Time          // The Time this Event was created
 }
 
