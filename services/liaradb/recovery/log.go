@@ -113,6 +113,10 @@ func (l *Log) append(
 	return l.highWater, nil
 }
 
+func (l *Log) Checkpoint(ctx context.Context, now time.Time) (record.LogSequenceNumber, error) {
+	return l.Append(ctx, value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+}
+
 func (l *Log) Close() error {
 	if l.cancel != nil {
 		l.cancel()
@@ -167,4 +171,8 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 // TODO: Should this be merged with Open?
 func (l *Log) StartWriter() error {
 	return l.writer.Start()
+}
+
+func (l *Log) FlushCheckpoint(now time.Time) (record.LogSequenceNumber, error) {
+	return l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
 }

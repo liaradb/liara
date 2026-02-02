@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log/slog"
 	"path"
+	"time"
 
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -119,14 +121,9 @@ func (a *Application) recover(ctx context.Context) error {
 		case record.ActionCheckpoint:
 		case record.ActionCommit:
 		case record.ActionInsert:
-			var e entity.Event
-			if err := e.Read(raw.NewBufferFromSlice(r.Data())); err != nil {
+			if err := a.recoverEvent(ctx, r); err != nil {
 				return err
 			}
-
-			// tn := tablename.New(value.NewTenantID())
-			// a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
-			fmt.Printf("append event: %v\n", e)
 		case record.ActionRemove:
 		case record.ActionRollback:
 		case record.ActionUpdate:
@@ -135,6 +132,18 @@ func (a *Application) recover(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error {
+	var e entity.Event
+	if err := e.Read(raw.NewBufferFromSlice(r.Data())); err != nil {
+		return err
+	}
+
+	tn := tablename.New(r.TenantID())
+	_, err := a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+	fmt.Printf("recover: %v\n", e)
+	return err
 }
 
 func (a *Application) listen(ctx context.Context) {
@@ -150,6 +159,11 @@ func (a *Application) close() {
 	slog.Info("flushing...")
 	if err := a.storage.FlushAll(); err != nil {
 		slog.Error("unable to flush",
+			"error", err)
+		return
+	}
+	if _, err := a.log.FlushCheckpoint(time.Now()); err != nil {
+		slog.Error("unable to checkpoint",
 			"error", err)
 		return
 	}
