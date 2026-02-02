@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -13,9 +14,17 @@ func TestWriter_Append(t *testing.T) {
 	t.Parallel()
 
 	sw := createWriter(t)
+	tid := value.NewTenantID()
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(record.NewLogSequenceNumber(1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+	var rec = record.New(
+		record.NewLogSequenceNumber(1),
+		tid,
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		record.ActionInsert,
+		data,
+		reverse)
 
 	if err := sw.Append(rec); err != nil {
 		t.Error(err)
@@ -25,9 +34,17 @@ func TestWriter_Append(t *testing.T) {
 func TestWriter_Flush(t *testing.T) {
 	t.Parallel()
 
+	tid := value.NewTenantID()
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
-	var rec = record.New(record.NewLogSequenceNumber(1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+	var rec = record.New(
+		record.NewLogSequenceNumber(1),
+		tid,
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		record.ActionInsert,
+		data,
+		reverse)
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()

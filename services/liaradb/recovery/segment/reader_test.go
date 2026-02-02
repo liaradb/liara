@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -100,12 +101,20 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+	tid := value.NewTenantID()
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(
+			record.NewLogSequenceNumber(i),
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse))
 	}
 	return records, count.Decrement()
 }

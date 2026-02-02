@@ -2,31 +2,37 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"path"
 
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
+	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
+	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
 )
 
 type Application struct {
-	conf      configuration
-	storage   *storage.Storage
-	txManager *transaction.Manager
-	log       *recovery.Log
-	lockTable *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
+	conf        configuration
+	storage     *storage.Storage
+	collections *collection.Collections
+	txManager   *transaction.Manager
+	log         *recovery.Log
+	lockTable   *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
 }
 
 func New(conf configuration) *Application {
@@ -40,11 +46,12 @@ func New(conf configuration) *Application {
 	lt := locktable.NewLockTable[action.ItemID](inSize)
 
 	return &Application{
-		conf:      conf,
-		storage:   s,
-		txManager: transaction.NewManager(log, s, lt),
-		log:       log,
-		lockTable: lt,
+		conf:        conf,
+		storage:     s,
+		collections: collection.NewCollections(s),
+		txManager:   transaction.NewManager(log, s, lt),
+		log:         log,
+		lockTable:   lt,
 	}
 }
 
@@ -81,13 +88,8 @@ func (a *Application) run(ctx context.Context) error {
 
 	slog.Info("recovering...")
 
-	it, err := a.log.Recover()
-	if err != nil {
+	if err := a.recover(ctx); err != nil {
 		return err
-	}
-
-	for range it {
-		// fmt.Printf("recover: %v\n", r.Action())
 	}
 
 	slog.Info("recovered")
@@ -101,6 +103,36 @@ func (a *Application) run(ctx context.Context) error {
 	a.lockTable.Run(ctx)
 
 	slog.Info("lock table running")
+
+	return nil
+}
+
+func (a *Application) recover(ctx context.Context) error {
+	it, err := a.log.Recover()
+	if err != nil {
+		return err
+	}
+
+	for r := range it {
+		fmt.Printf("recover: %v\n", r.Action())
+		switch r.Action() {
+		case record.ActionCheckpoint:
+		case record.ActionCommit:
+		case record.ActionInsert:
+			var e entity.Event
+			if err := e.Read(raw.NewBufferFromSlice(r.Data())); err != nil {
+				return err
+			}
+
+			// tn := tablename.New(value.NewTenantID())
+			// a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+			fmt.Printf("append event: %v\n", e)
+		case record.ActionRemove:
+		case record.ActionRollback:
+		case record.ActionUpdate:
+		default:
+		}
+	}
 
 	return nil
 }

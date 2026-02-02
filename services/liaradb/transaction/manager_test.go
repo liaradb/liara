@@ -4,6 +4,7 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/locktable"
@@ -21,14 +22,16 @@ func TestManager(t *testing.T) {
 func testManager(t *testing.T) {
 	m, _ := createManager(t)
 
-	tx0 := m.Next()
+	tid := value.NewTenantID()
+
+	tx0 := m.Next(tid)
 
 	var tid0 = record.NewTransactionID(1)
 	if i := tx0.ID(); i != tid0 {
 		t.Errorf("id does not match: %v, expected: %v", i, tid0)
 	}
 
-	tx1 := m.Next()
+	tx1 := m.Next(tid)
 
 	var tid1 = record.NewTransactionID(2)
 	if i := tx1.ID(); i != tid1 {

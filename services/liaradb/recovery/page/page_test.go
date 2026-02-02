@@ -10,6 +10,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
@@ -436,12 +437,13 @@ func createWriter() (action.PageID, action.TimeLineID, record.Length, *Page) {
 
 func createRecord() (*record.Record, []byte, error) {
 	lsn := record.NewLogSequenceNumber(1)
-	tid := record.NewTransactionID(2)
+	tid := value.NewTenantID()
+	txid := record.NewTransactionID(2)
 	now := time.UnixMicro(1234567890)
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := record.New(lsn, tid, now, record.ActionInsert, data, reverse)
+	rc := record.New(lsn, tid, txid, now, record.ActionInsert, data, reverse)
 	data, err := recordToBytes(rc)
 	return rc, data, err
 }
@@ -480,12 +482,13 @@ func createReaderWriter(t *testing.T) (file.File, *Page) {
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+	tid := value.NewTenantID()
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(record.NewLogSequenceNumber(i), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
 	return records, count.Decrement()
 }

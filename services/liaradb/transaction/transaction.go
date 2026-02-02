@@ -28,6 +28,7 @@ import (
 
 type Transaction struct {
 	id             record.TransactionID
+	tid            value.TenantID
 	lsn            record.LogSequenceNumber
 	log            *recovery.Log
 	bufferList     *BufferList
@@ -57,6 +58,7 @@ type valueItem struct {
 
 func newTransaction(
 	id record.TransactionID,
+	tid value.TenantID,
 	log *recovery.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
@@ -69,6 +71,7 @@ func newTransaction(
 ) *Transaction {
 	return &Transaction{
 		id:             id,
+		tid:            tid,
 		log:            log,
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
@@ -153,7 +156,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
 		return err
 	}
@@ -191,7 +194,7 @@ func (t *Transaction) SetValue(
 	// 	return err
 	// }
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
 		return err
 	}
@@ -208,12 +211,11 @@ func (t *Transaction) SetValue(
 func Run(
 	ctx context.Context,
 	t *Transaction,
-	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() error,
 ) error {
-	_, err := t.run(ctx, tid, pid, now, func() (any, error) {
+	_, err := t.run(ctx, pid, now, func() (any, error) {
 		return struct{}{}, f()
 	})
 	if err != nil {
@@ -226,12 +228,11 @@ func Run(
 func RunResult[R any](
 	ctx context.Context,
 	t *Transaction,
-	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() (R, error),
 ) (R, error) {
-	r, err := t.run(ctx, tid, pid, now, func() (any, error) {
+	r, err := t.run(ctx, pid, now, func() (any, error) {
 		return f()
 	})
 	if err != nil {
@@ -244,7 +245,6 @@ func RunResult[R any](
 
 func (t *Transaction) run(
 	ctx context.Context,
-	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time, // TODO: How should this be specified?
 	f func() (any, error),
@@ -260,7 +260,7 @@ func (t *Transaction) run(
 		return nil, t.rollback(ctx, now)
 	}
 
-	return r, t.commit(ctx, tid, pid, now)
+	return r, t.commit(ctx, pid, now)
 }
 
 func (t *Transaction) release() {
@@ -270,11 +270,10 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
-	tid value.TenantID,
 	pid value.PartitionID,
 	now time.Time,
 ) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionCommit, nil, nil)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionCommit, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -283,7 +282,7 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.appendToEventLog(ctx, tid, pid); err != nil {
+	if err := t.appendToEventLog(ctx, pid); err != nil {
 		return err
 	}
 
@@ -292,10 +291,9 @@ func (t *Transaction) commit(
 
 func (t *Transaction) appendToEventLog(
 	ctx context.Context,
-	tid value.TenantID,
 	pid value.PartitionID,
 ) error {
-	tn := tablename.New(tid)
+	tn := tablename.New(t.tid)
 	for _, item := range t.events {
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
@@ -310,7 +308,7 @@ func (t *Transaction) appendToEventLog(
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionRollback, nil, nil)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionRollback, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -355,7 +353,7 @@ func (t *Transaction) InsertOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = e.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
 	if err != nil {
 		return err
 	}
@@ -390,7 +388,7 @@ func (t *Transaction) UpdateOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = o.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.id, now, record.ActionUpdate, data, prev)
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionUpdate, data, prev)
 	if err != nil {
 		return err
 	}

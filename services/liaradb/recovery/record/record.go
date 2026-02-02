@@ -4,11 +4,13 @@ import (
 	"io"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 type Record struct {
 	logSequenceNumber LogSequenceNumber
+	tenantID          value.TenantID
 	transactionID     TransactionID
 	time              Time
 	action            Action
@@ -18,7 +20,8 @@ type Record struct {
 
 func New(
 	lsn LogSequenceNumber,
-	tid TransactionID,
+	tid value.TenantID,
+	txid TransactionID,
 	time time.Time,
 	action Action,
 	data []byte,
@@ -26,7 +29,8 @@ func New(
 ) *Record {
 	return &Record{
 		logSequenceNumber: lsn,
-		transactionID:     tid,
+		tenantID:          tid,
+		transactionID:     txid,
 		time:              NewTime(time),
 		action:            action,
 		data:              LogData{data},
@@ -35,6 +39,7 @@ func New(
 }
 
 func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
+func (rc *Record) TenantID() value.TenantID             { return rc.tenantID }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
 func (rc *Record) Time() time.Time                      { return rc.time.Time }
 func (rc *Record) Action() Action                       { return rc.action }
@@ -44,6 +49,7 @@ func (rc *Record) Reverse() []byte                      { return rc.reverse.Byte
 func (rc *Record) Size() int {
 	return raw.Size(
 		rc.logSequenceNumber,
+		rc.tenantID,
 		rc.transactionID,
 		rc.time,
 		rc.action,
@@ -53,6 +59,10 @@ func (rc *Record) Size() int {
 
 func (rc *Record) Write(w io.Writer) error {
 	if err := rc.logSequenceNumber.Write(w); err != nil {
+		return err
+	}
+
+	if err := rc.tenantID.Write(w); err != nil {
 		return err
 	}
 
@@ -81,6 +91,10 @@ func (rc *Record) Write(w io.Writer) error {
 
 func (rc *Record) Read(r io.Reader) error {
 	if err := rc.logSequenceNumber.Read(r); err != nil {
+		return err
+	}
+
+	if err := rc.tenantID.Read(r); err != nil {
 		return err
 	}
 

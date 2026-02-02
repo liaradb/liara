@@ -23,7 +23,8 @@ func testTransaction_Insert(t *testing.T) {
 	m, l := createManager(t)
 	ctx := t.Context()
 
-	tx := m.Next()
+	tid := value.NewTenantID()
+	tx := m.Next(tid)
 
 	if err := tx.Insert(ctx, tablename.NewFromString("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
 		t.Fatal(err)
@@ -69,8 +70,8 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	tm := time.UnixMicro(1234567890)
 	pid := value.NewPartitionID(2)
 
-	tx := m.Next()
-	if err := Run(ctx, tx, tid, pid, tm, func() error {
+	tx := m.Next(tid)
+	if err := Run(ctx, tx, pid, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -79,8 +80,8 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tx = m.Next()
-	if err := Run(ctx, tx, tid, pid, tm, func() error {
+	tx = m.Next(tid)
+	if err := Run(ctx, tx, pid, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -101,7 +102,8 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tx := m.Next()
+	tid := value.NewTenantID()
+	tx := m.Next(tid)
 
 	tn := tablename.NewFromString("a")
 	id := value.NewAggregateID("b")
@@ -134,7 +136,8 @@ func testTransaction_Commit(t *testing.T) {
 	m, l := createManager(t)
 	ctx := t.Context()
 
-	tx := m.Next()
+	tid := value.NewTenantID()
+	tx := m.Next(tid)
 
 	type item struct {
 		e    *entity.Event
@@ -157,7 +160,6 @@ func testTransaction_Commit(t *testing.T) {
 		data: []byte{5},
 	}}
 
-	tid := value.NewTenantID()
 	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
@@ -165,7 +167,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, tid, pid, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, pid, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -220,7 +222,8 @@ func testTransaction_Rollback(t *testing.T) {
 	m, l := createManager(t)
 	ctx := t.Context()
 
-	tx := m.Next()
+	tid := value.NewTenantID()
+	tx := m.Next(tid)
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 

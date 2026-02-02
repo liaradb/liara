@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/async"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -28,7 +29,8 @@ type flushRequest = async.Command[record.LogSequenceNumber]
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 
 type appendValue struct {
-	tid     record.TransactionID
+	tid     value.TenantID
+	txid    record.TransactionID
 	time    time.Time
 	action  record.Action
 	data    []byte
@@ -70,7 +72,8 @@ func (l *Log) run(ctx context.Context) {
 
 func (l *Log) Append(
 	ctx context.Context,
-	tid record.TransactionID,
+	tid value.TenantID,
+	txid record.TransactionID,
 	time time.Time,
 	action record.Action,
 	data []byte,
@@ -78,6 +81,7 @@ func (l *Log) Append(
 ) (record.LogSequenceNumber, error) {
 	return l.appendReqs.Send(ctx, appendValue{
 		tid:     tid,
+		txid:    txid,
 		time:    time,
 		action:  action,
 		data:    data,
@@ -87,19 +91,20 @@ func (l *Log) Append(
 
 func (l *Log) appendRequest(r *appendRequest) {
 	v := r.Value()
-	lsn, err := l.append(v.tid, v.time, v.action, v.data, v.reverse)
+	lsn, err := l.append(v.tid, v.txid, v.time, v.action, v.data, v.reverse)
 	r.Reply(lsn, err)
 }
 
 func (l *Log) append(
-	tid record.TransactionID,
+	tid value.TenantID,
+	txid record.TransactionID,
 	time time.Time,
 	action record.Action,
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
-	rc := record.New(h, tid, time, action, data, reverse)
+	rc := record.New(h, tid, txid, time, action, data, reverse)
 	if err := l.writer.Append(rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}

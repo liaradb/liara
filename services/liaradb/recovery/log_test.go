@@ -7,6 +7,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
@@ -38,7 +39,14 @@ func testLog_Append(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != nil {
+	if lsn, err := l.Append(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		record.ActionInsert,
+		data,
+		reverse,
+	); err != nil {
 		t.Error(err)
 	} else if lsn != record.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -63,7 +71,14 @@ func testLog_Append__Large(t *testing.T) {
 	}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse); err != raw.ErrInsufficientSpace {
+	if _, err := l.Append(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		record.ActionInsert,
+		data,
+		reverse,
+	); err != raw.ErrInsufficientSpace {
 		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
@@ -81,13 +96,27 @@ func TestLog_Flush(t *testing.T) {
 
 		l := createLogStart(t, 3)
 
-		lsn1, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		tid := value.NewTenantID()
+
+		lsn1, err := l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
-		if err != nil {
+		if _, err = l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse,
+		); err != nil {
 			t.Error(err)
 		}
 
@@ -102,14 +131,27 @@ func TestLog_Flush(t *testing.T) {
 		ctx := t.Context()
 
 		l := createLogStart(t, 3)
+		tid := value.NewTenantID()
 
-		_, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
-		if err != nil {
+		if _, err := l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse,
+		); err != nil {
 			t.Error(err)
 		}
 
-		_, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
-		if err != nil {
+		if _, err := l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse,
+		); err != nil {
 			t.Error(err)
 		}
 
@@ -124,14 +166,21 @@ func TestLog_Flush(t *testing.T) {
 		ctx := t.Context()
 
 		l := createLogStart(t, 4)
+		tid := value.NewTenantID()
 
 		count := 14
 
 		var lsn record.LogSequenceNumber
 		var err error
 		for range count {
-			lsn, err = l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
-			if err != nil {
+			if lsn, err = l.Append(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				record.ActionInsert,
+				data,
+				reverse,
+			); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -154,8 +203,15 @@ func TestLog_Flush(t *testing.T) {
 		ctx := t.Context()
 
 		l := createLogStart(t, 3)
+		tid := value.NewTenantID()
 
-		lsn1, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn1, err := l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -164,7 +220,13 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Append(ctx, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse)
+		lsn2, err := l.Append(ctx,
+			tid,
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			record.ActionInsert,
+			data,
+			reverse)
 		if err != nil {
 			t.Error(err)
 		}
@@ -201,12 +263,19 @@ func testLog_Iterate(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 2)
+	tid := value.NewTenantID()
 
-	records, _ := createRecords(record.NewLogSequenceNumber(100))
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+		lsn, err = l.Append(ctx,
+			tid,
+			rec.TransactionID(),
+			rec.Time(),
+			rec.Action(),
+			rec.Data(),
+			rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -241,7 +310,8 @@ func TestLog_Recover(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
-	records, _ := createRecords(record.NewLogSequenceNumber(2))
+	tid := value.NewTenantID()
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(2))
 	r0 := records[0]
 	r1 := records[1]
 
@@ -255,7 +325,13 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn1, err := l.Append(ctx, r0.TransactionID(), r0.Time(), r0.Action(), r0.Data(), r0.Reverse())
+		lsn1, err := l.Append(ctx,
+			tid,
+			r0.TransactionID(),
+			r0.Time(),
+			r0.Action(),
+			r0.Data(),
+			r0.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -264,7 +340,13 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn2, err := l.Append(ctx, r1.TransactionID(), r1.Time(), r1.Action(), r1.Data(), r1.Reverse())
+		lsn2, err := l.Append(ctx,
+			tid,
+			r1.TransactionID(),
+			r1.Time(),
+			r1.Action(),
+			r1.Data(),
+			r1.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -315,12 +397,13 @@ func TestLog_RecoverMany(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
+	tid := value.NewTenantID()
 
 	var aCount1 = record.NewLogSequenceNumber(1)
 	var aCount2 = record.NewLogSequenceNumber(1)
 	aCount := aCount1.Value() + aCount2.Value()
-	records1, _ := createRecords(aCount1)
-	records2, _ := createRecords(aCount2)
+	records1, _ := createRecords(tid, aCount1)
+	records2, _ := createRecords(tid, aCount2)
 	records := append(records1, records2...)
 
 	{ // "should append and flush"
@@ -336,7 +419,13 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records1 {
-			lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+			lsn, err = l.Append(ctx,
+				tid,
+				rec.TransactionID(),
+				rec.Time(),
+				rec.Action(),
+				rec.Data(),
+				rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -383,7 +472,13 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records2 {
-			lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+			lsn, err = l.Append(ctx,
+				tid,
+				rec.TransactionID(),
+				rec.Time(),
+				rec.Action(),
+				rec.Data(),
+				rec.Reverse())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -427,12 +522,19 @@ func testLog_Reverse(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 2)
+	tid := value.NewTenantID()
 
-	records, _ := createRecords(record.NewLogSequenceNumber(100))
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(ctx, rec.TransactionID(), rec.Time(), rec.Action(), rec.Data(), rec.Reverse())
+		lsn, err = l.Append(ctx,
+			tid,
+			rec.TransactionID(),
+			rec.Time(),
+			rec.Action(),
+			rec.Data(),
+			rec.Reverse())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -478,7 +580,7 @@ func createLog(t *testing.T, segmentSize action.PageID) *Log {
 	t.Helper()
 
 	fsys, dir := createFiles(t)
-	l := NewLog(256, segmentSize, fsys, dir)
+	l := NewLog(320, segmentSize, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -503,13 +605,13 @@ func createFiles(t *testing.T) (file.FileSystem, string) {
 	return filetesting.NewMockFileSystem(t, nil), "."
 }
 
-func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i+1), record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(record.NewLogSequenceNumber(i+1), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
 	}
 	return records, count.Decrement()
 }

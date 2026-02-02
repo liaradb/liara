@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/idempotency"
@@ -8,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/tenant"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -18,6 +20,7 @@ import (
 type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
+	collections   *collection.Collections
 	manager       *manager.Manager
 	tenant        *tenant.Tenant
 	eventLog      *eventlog.EventLog
@@ -38,6 +41,7 @@ func NewManager(
 	return &Manager{
 		log:         log,
 		storage:     storage,
+		collections: collection.NewCollections(storage),
 		manager:     manager.New(kv),
 		tenant:      tenant.New(storage, cursor),
 		eventLog:    eventlog.New(storage, cursor),
@@ -48,10 +52,11 @@ func NewManager(
 	}
 }
 
-func (m *Manager) Next() *Transaction {
+func (m *Manager) Next(tid value.TenantID) *Transaction {
 	m.transactionID = record.NewTransactionID(m.transactionID.Value() + 1)
 	return newTransaction(
 		m.transactionID,
+		tid,
 		m.log,
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
