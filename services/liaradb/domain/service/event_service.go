@@ -26,87 +26,6 @@ func NewEventService(
 	}
 }
 
-type AppendOptions struct {
-	requestID     *value.RequestID    // The ID of the Request, for idempotency
-	correlationID value.CorrelationID // The ID of the entire Command and Event chain
-	userID        value.UserID        // The ID of the User issuing the Command
-	time          time.Time           // The Time this Event was created
-}
-
-func NewAppendOptions(
-	requestID *value.RequestID, // The ID of the Request, for idempotency
-	correlationID value.CorrelationID, // The ID of the entire Command and Event chain
-	userID value.UserID, // The ID of the User issuing the Command
-	time time.Time, // The Time this Event was created
-) AppendOptions {
-	return AppendOptions{
-		requestID:     requestID,
-		correlationID: correlationID,
-		userID:        userID,
-		time:          time,
-	}
-}
-
-func (ao *AppendOptions) RequestID() (value.RequestID, bool) {
-	if ao.requestID == nil {
-		return value.NewRequestID(), false
-	}
-
-	return *ao.requestID, true
-}
-
-func (ao *AppendOptions) toMetadata() entity.Metadata {
-	return entity.Metadata{
-		UserID:        ao.userID,
-		CorrelationID: ao.correlationID,
-		Time:          value.NewTime(ao.time),
-	}
-}
-
-type AppendEvent struct {
-	ID            string              // The ID of the Event, used for de-duplication
-	AggregateName value.AggregateName // The Name of the Aggregate
-	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
-	Version       value.Version       // The Version of the Aggregate
-	Name          value.EventName     // The Name of the Event
-	Schema        value.Schema        // The Schema for the internal data
-	Data          []byte              // The internal data of the Event
-}
-
-func (ae *AppendEvent) Valid() error {
-	if ae.Version.Value() < 1 {
-		return value.ErrAggregateVersionInvalid
-	}
-
-	return nil
-}
-
-func (ae *AppendEvent) toEvent(pid value.PartitionID, options AppendOptions) (entity.Event, error) {
-	var id value.EventID
-	if ae.ID == "" {
-		id = value.NewEventID()
-	} else {
-		var err error
-		id, err = value.NewEventIDFromString(ae.ID)
-		if err != nil {
-			return entity.Event{}, err
-		}
-	}
-
-	return entity.Event{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            id,
-		AggregateName: ae.AggregateName,
-		AggregateID:   ae.AggregateID,
-		Version:       ae.Version,
-		PartitionID:   pid,
-		Name:          ae.Name,
-		Schema:        ae.Schema,
-		Metadata:      options.toMetadata(),
-		Data:          value.NewData(ae.Data),
-	}, nil
-}
-
 func (es *EventService) Append(
 	ctx context.Context,
 	tenantID value.TenantID,
@@ -204,19 +123,9 @@ func (es *EventService) Get(
 	partitionID value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		tn := tablename.New(tid)
-		tx := es.txManager.Next(tid)
-		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-			if !yield(e, nil) {
-				return
-			}
-		}
-	}
+	tn := tablename.New(tid)
+	tx := es.txManager.Next(tid)
+	return tx.GetAggregate(ctx, tn, partitionID, id)
 }
 
 func (es *EventService) GetByAggregateIDAndName(
@@ -353,18 +262,7 @@ func (es *EventService) ListOutboxes(
 	ctx context.Context,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
-	return func(yield func(*entity.Outbox, error) bool) {
-		tx := es.txManager.Next(tid)
-		if err := transaction.Run(ctx, tx, value.NewPartitionID(0), time.Now(), func() error {
-			tn := tablename.New(tid)
-			for e, err := range tx.ListOutboxes(ctx, tn) {
-				for !yield(e, err) {
-					return err
-				}
-			}
-			return nil
-		}); err != nil {
-			yield(nil, err)
-		}
-	}
+	tx := es.txManager.Next(tid)
+	tn := tablename.New(tid)
+	return tx.ListOutboxes(ctx, tn)
 }
