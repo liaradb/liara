@@ -107,7 +107,10 @@ func (sr *Reader) readReverse(pid action.PageID, r io.ReaderAt) iter.Seq2[iter.S
 			sec := io.NewSectionReader(r, sr.position(pid-i), sr.pageSize)
 			it, err := sr.pageReader.Reverse(sec)
 			if err != nil {
-				yield(nil, err)
+				// TODO: Is this correct?
+				if err != io.EOF {
+					yield(nil, err)
+				}
 				return
 			}
 
