@@ -174,5 +174,14 @@ func (l *Log) StartWriter() error {
 }
 
 func (l *Log) FlushCheckpoint(now time.Time) (record.LogSequenceNumber, error) {
-	return l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+	if err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	if err := l.writer.Flush(lsn); err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	return lsn, err
 }

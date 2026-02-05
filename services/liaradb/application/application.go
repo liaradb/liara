@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path"
+	"time"
 
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
@@ -170,11 +171,11 @@ func (a *Application) close() {
 			"error", err)
 		return
 	}
-	// if _, err := a.log.FlushCheckpoint(time.Now()); err != nil {
-	// 	slog.Error("unable to checkpoint",
-	// 		"error", err)
-	// 	return
-	// }
+	if _, err := a.log.FlushCheckpoint(time.Now()); err != nil {
+		slog.Error("unable to checkpoint",
+			"error", err)
+		return
+	}
 	slog.Info("flushing complete")
 
 	slog.Info("shutdown complete")
