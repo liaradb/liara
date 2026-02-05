@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -118,18 +119,23 @@ func (a *Application) recover(ctx context.Context) error {
 	}
 
 	for r := range it {
-		fmt.Printf("recover: %v\n", r.Action())
 		switch r.Action() {
 		case record.ActionCheckpoint:
+			fmt.Printf("recover: %v\n", r.Action())
 		case record.ActionCommit:
+			fmt.Printf("recover: %v\n", r.Action())
 		case record.ActionInsert:
 			if err := a.recoverEvent(ctx, r); err != nil {
 				return err
 			}
 		case record.ActionRemove:
+			fmt.Printf("recover: %v\n", r.Action())
 		case record.ActionRollback:
+			fmt.Printf("recover: %v\n", r.Action())
 		case record.ActionUpdate:
+			fmt.Printf("recover: %v\n", r.Action())
 		default:
+			fmt.Printf("recover: %v\n", r.Action())
 		}
 	}
 
@@ -142,12 +148,10 @@ func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error 
 		return err
 	}
 
-	// tn := tablename.New(r.TenantID())
-	// _, err := a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
-	// return err
-
-	fmt.Printf("recover: %v\n", e)
-	return nil
+	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
+	tn := tablename.New(r.TenantID())
+	_, err := a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+	return err
 }
 
 func (a *Application) listen(ctx context.Context) {
