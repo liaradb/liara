@@ -58,7 +58,11 @@ func New(conf configuration) *Application {
 // TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
 	ctx, cancelMain := context.WithCancel(ctx)
-	a.run(ctx)
+	if err := a.run(ctx); err != nil {
+		cancelMain()
+		return err
+	}
+
 	defer a.close()
 	defer func() {
 		slog.Info("shutting down...")
