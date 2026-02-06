@@ -130,18 +130,16 @@ func (es *EventSourceGRPC) GetAfterGlobalVersion(
 	ctx context.Context,
 	tenantID liara.TenantID,
 	version liara.GlobalVersion,
-	partitionIDs []liara.PartitionID,
+	low liara.PartitionID,
+	high liara.PartitionID,
 	limit liara.Limit,
 ) iter.Seq2[liara.Event, error] {
 	return func(yield func(liara.Event, error) bool) {
-		pids := make([]int32, 0, len(partitionIDs))
-		for _, p := range partitionIDs {
-			pids = append(pids, p.Value())
-		}
 		stream, err := es.client.GetAfterGlobalVersion(ctx, &pb.GetAfterGlobalVersionRequest{
 			TenantId:      tenantID.String(),
 			GlobalVersion: int64(version),
-			PartitionIds:  pids,
+			Low:           low.Value(),
+			High:          high.Value(),
 			Limit:         int64(limit),
 		})
 		if err != nil {
@@ -205,12 +203,13 @@ func (es *EventSourceGRPC) GetByOutbox(
 func (es *EventSourceGRPC) CreateOutbox(
 	ctx context.Context,
 	tenantID liara.TenantID,
-	outboxID liara.OutboxID,
-	partitionIDs []liara.PartitionID,
+	low liara.PartitionID,
+	high liara.PartitionID,
 ) (liara.OutboxID, error) {
 	response, err := es.client.CreateOutbox(ctx, &pb.CreateOutboxRequest{
 		TenantId: tenantID.String(),
-		OutboxId: outboxID.String(),
+		Low:      low.Value(),
+		High:     high.Value(),
 	})
 	if err != nil {
 		return "", err
@@ -251,12 +250,10 @@ func (es *EventSourceGRPC) UpdateOutboxPosition(
 
 func (es *EventSourceGRPC) CreateTenant(
 	ctx context.Context,
-	tenantID liara.TenantID,
 	tenantName liara.TenantName,
 ) (liara.TenantID, error) {
 	response, err := es.client.CreateTenant(ctx, &pb.CreateTenantRequest{
-		TenantId: tenantID.String(),
-		Name:     tenantName.String(),
+		Name: tenantName.String(),
 	})
 	if err != nil {
 		return "", err

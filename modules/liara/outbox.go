@@ -31,8 +31,8 @@ func NewOutbox(
 	}
 }
 
-func (o *Outbox) Create(ctx context.Context, outboxID OutboxID, partitionIDs []PartitionID) (OutboxID, error) {
-	return o.outboxRepository.CreateOutbox(ctx, o.tenantID, outboxID, partitionIDs)
+func (o *Outbox) Create(ctx context.Context, outboxID OutboxID, low PartitionID, high PartitionID) (OutboxID, error) {
+	return o.outboxRepository.CreateOutbox(ctx, o.tenantID, low, high)
 }
 
 func (o *Outbox) Run(ctx context.Context, outboxID OutboxID, duration time.Duration, limit Limit) {

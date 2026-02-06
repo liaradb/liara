@@ -58,7 +58,6 @@ func appendEventToDto(e liara.AppendEvent) *pb.AppendEvent {
 		AggregateId:   e.AggregateID.String(),
 		Version:       int64(e.Version),
 		Name:          e.Name.String(),
-		PartitionId:   e.PartitionID.Value(),
 		Schema:        e.Schema.String(),
 		Data:          e.Data,
 	}
