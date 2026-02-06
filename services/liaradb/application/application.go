@@ -10,6 +10,7 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
+	"github.com/liaradb/liaradb/checkpoint"
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -32,6 +33,7 @@ type Application struct {
 	conf        configuration
 	storage     *storage.Storage
 	collections *collection.Collections
+	checkpoint  *checkpoint.Checkpoint
 	txManager   *transaction.Manager
 	log         *recovery.Log
 	lockTable   *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
@@ -51,6 +53,7 @@ func New(conf configuration) *Application {
 		conf:        conf,
 		storage:     s,
 		collections: collection.NewCollections(s),
+		checkpoint:  checkpoint.New(log, s),
 		txManager:   transaction.NewManager(log, s, lt),
 		log:         log,
 		lockTable:   lt,
@@ -166,13 +169,8 @@ func (a *Application) listen(ctx context.Context) {
 //   - Flush Buffers
 func (a *Application) close() {
 	slog.Info("flushing...")
-	if err := a.storage.FlushAll(); err != nil {
+	if err := a.checkpoint.Flush(time.Now()); err != nil {
 		slog.Error("unable to flush",
-			"error", err)
-		return
-	}
-	if _, err := a.log.FlushCheckpoint(time.Now()); err != nil {
-		slog.Error("unable to checkpoint",
 			"error", err)
 		return
 	}
