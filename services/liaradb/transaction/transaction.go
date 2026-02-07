@@ -249,6 +249,12 @@ func (t *Transaction) run(
 	now time.Time, // TODO: How should this be specified?
 	f func() (any, error),
 ) (any, error) {
+	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionStart, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	t.lsn = lsn
 	defer t.release()
 
 	r, err := f()
