@@ -4,7 +4,7 @@ test:
 
 .PHONY: build
 build:
-	go build -o bin/liaradb cmd/main.go
+	go build -o bin/liaradb cmd/liaradb/main.go
 
 .PHONY: clean-all
 clean-all: clean clean-data

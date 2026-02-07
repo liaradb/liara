@@ -13,7 +13,7 @@ COPY --from=eventsource_go . .
 WORKDIR /build/services/liaradb
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o bin/liaradb cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o bin/liaradb cmd/liaradb/main.go
 
 FROM scratch AS app
 
