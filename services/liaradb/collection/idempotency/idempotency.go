@@ -2,6 +2,7 @@ package idempotency
 
 import (
 	"context"
+	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -153,4 +154,21 @@ func (i *Idempotency) setNext(ctx context.Context, fn link.FileName, v []byte, c
 	copy(d, v)
 
 	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+}
+
+func (i *Idempotency) Test(
+	ctx context.Context,
+	tn tablename.TableName,
+	rqid value.RequestID,
+) (bool, error) {
+	_, err := i.Get(ctx, tn, value.PartitionID{}, rqid)
+	if errors.Is(err, btree.ErrNotFound) {
+		return true, nil
+	}
+
+	if err == nil {
+		return false, btree.ErrExists
+	}
+
+	return false, err
 }

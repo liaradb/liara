@@ -73,7 +73,7 @@ func (es *EventService) append(
 		if rqid, ok := options.RequestID(); ok {
 			// Verify idempotency
 			// TODO: What should this return if requestID is present?
-			if ok, err := tx.TestIdempotency(ctx, tn, rqid); err != nil || !ok {
+			if ok, err := tx.TestRequestID(ctx, tn, rqid); err != nil || !ok {
 				return err
 			}
 		}
@@ -113,7 +113,7 @@ func (es *EventService) TestIdempotency(
 	now := time.Now()
 	return transaction.RunResult(ctx, tx, value.PartitionID{}, now, func() (bool, error) {
 		tn := tablename.New(tid)
-		return tx.TestIdempotency(ctx, tn, id)
+		return tx.TestRequestID(ctx, tn, id)
 	})
 }
 

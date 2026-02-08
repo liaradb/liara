@@ -424,19 +424,10 @@ func (t *Transaction) InsertRequestID(
 	return t.idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
 }
 
-func (t *Transaction) TestIdempotency(
+func (t *Transaction) TestRequestID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	_, err := t.idempotency.Get(ctx, tn, value.PartitionID{}, rqid)
-	if errors.Is(err, btree.ErrNotFound) {
-		return true, nil
-	}
-
-	if err == nil {
-		return false, btree.ErrExists
-	}
-
-	return false, err
+	return t.idempotency.Test(ctx, tn, rqid)
 }
