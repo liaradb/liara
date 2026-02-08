@@ -596,7 +596,7 @@ func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*recor
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i+1), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(record.NewLogSequenceNumber(i+1), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionUpdate, data, reverse))
 	}
 	return records, count.Decrement()
 }
