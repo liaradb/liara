@@ -70,7 +70,7 @@ func (l *Log) run(ctx context.Context) {
 	}
 }
 
-func (l *Log) Append(
+func (l *Log) appendRecord(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
@@ -113,8 +113,56 @@ func (l *Log) append(
 	return l.highWater, nil
 }
 
+func (l *Log) Start(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, nil, nil)
+}
+
+func (l *Log) Commit(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionCommit, nil, nil)
+}
+
+func (l *Log) Rollback(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, nil, nil)
+}
+
 func (l *Log) Checkpoint(ctx context.Context, now time.Time) (record.LogSequenceNumber, error) {
-	return l.Append(ctx, value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+	return l.appendRecord(ctx, value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+}
+
+func (l *Log) Insert(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+	data []byte,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, data, nil)
+}
+
+func (l *Log) Update(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+	data []byte,
+	prev []byte,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, data, prev)
 }
 
 func (l *Log) Close() error {

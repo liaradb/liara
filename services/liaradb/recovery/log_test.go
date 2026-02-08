@@ -39,11 +39,10 @@ func testLog_Append(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := l.Append(ctx,
+	if lsn, err := l.Update(ctx,
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
-		record.ActionInsert,
 		data,
 		reverse,
 	); err != nil {
@@ -71,11 +70,10 @@ func testLog_Append__Large(t *testing.T) {
 	}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := l.Append(ctx,
+	if _, err := l.Update(ctx,
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
-		record.ActionInsert,
 		data,
 		reverse,
 	); err != raw.ErrInsufficientSpace {
@@ -98,22 +96,20 @@ func TestLog_Flush(t *testing.T) {
 
 		tid := value.NewTenantID()
 
-		lsn1, err := l.Append(ctx,
+		lsn1, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse)
 		if err != nil {
 			t.Error(err)
 		}
 
-		if _, err = l.Append(ctx,
+		if _, err = l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse,
 		); err != nil {
@@ -133,22 +129,20 @@ func TestLog_Flush(t *testing.T) {
 		l := createLogStart(t, 3)
 		tid := value.NewTenantID()
 
-		if _, err := l.Append(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse,
 		); err != nil {
 			t.Error(err)
 		}
 
-		if _, err := l.Append(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse,
 		); err != nil {
@@ -173,11 +167,10 @@ func TestLog_Flush(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for range count {
-			if lsn, err = l.Append(ctx,
+			if lsn, err = l.Update(ctx,
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
-				record.ActionInsert,
 				data,
 				reverse,
 			); err != nil {
@@ -205,11 +198,10 @@ func TestLog_Flush(t *testing.T) {
 		l := createLogStart(t, 3)
 		tid := value.NewTenantID()
 
-		lsn1, err := l.Append(ctx,
+		lsn1, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse)
 		if err != nil {
@@ -220,11 +212,10 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Append(ctx,
+		lsn2, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
-			record.ActionInsert,
 			data,
 			reverse)
 		if err != nil {
@@ -269,11 +260,10 @@ func testLog_Iterate(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(ctx,
+		lsn, err = l.Update(ctx,
 			tid,
 			rec.TransactionID(),
 			rec.Time(),
-			rec.Action(),
 			rec.Data(),
 			rec.Reverse())
 		if err != nil {
@@ -325,11 +315,10 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn1, err := l.Append(ctx,
+		lsn1, err := l.Update(ctx,
 			tid,
 			r0.TransactionID(),
 			r0.Time(),
-			r0.Action(),
 			r0.Data(),
 			r0.Reverse())
 		if err != nil {
@@ -340,11 +329,10 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn2, err := l.Append(ctx,
+		lsn2, err := l.Update(ctx,
 			tid,
 			r1.TransactionID(),
 			r1.Time(),
-			r1.Action(),
 			r1.Data(),
 			r1.Reverse())
 		if err != nil {
@@ -419,11 +407,10 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records1 {
-			lsn, err = l.Append(ctx,
+			lsn, err = l.Update(ctx,
 				tid,
 				rec.TransactionID(),
 				rec.Time(),
-				rec.Action(),
 				rec.Data(),
 				rec.Reverse())
 			if err != nil {
@@ -472,11 +459,10 @@ func TestLog_RecoverMany(t *testing.T) {
 		var lsn record.LogSequenceNumber
 		var err error
 		for _, rec := range records2 {
-			lsn, err = l.Append(ctx,
+			lsn, err = l.Update(ctx,
 				tid,
 				rec.TransactionID(),
 				rec.Time(),
-				rec.Action(),
 				rec.Data(),
 				rec.Reverse())
 			if err != nil {
@@ -528,11 +514,10 @@ func testLog_Reverse(t *testing.T) {
 	var lsn record.LogSequenceNumber
 	var err error
 	for _, rec := range records {
-		lsn, err = l.Append(ctx,
+		lsn, err = l.Update(ctx,
 			tid,
 			rec.TransactionID(),
 			rec.Time(),
-			rec.Action(),
 			rec.Data(),
 			rec.Reverse())
 		if err != nil {

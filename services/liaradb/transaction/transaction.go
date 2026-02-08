@@ -156,7 +156,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (t *Transaction) SetValue(
 	// 	return err
 	// }
 
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func (t *Transaction) run(
 	now time.Time, // TODO: How should this be specified?
 	f func() (any, error),
 ) (any, error) {
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionStart, nil, nil)
+	lsn, err := t.log.Start(ctx, t.tid, t.id, now)
 	if err != nil {
 		return nil, err
 	}
@@ -279,7 +279,7 @@ func (t *Transaction) commit(
 	pid value.PartitionID,
 	now time.Time,
 ) error {
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionCommit, nil, nil)
+	lsn, err := t.log.Commit(ctx, t.tid, t.id, now)
 	if err != nil {
 		return err
 	}
@@ -314,7 +314,7 @@ func (t *Transaction) appendToEventLog(
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionRollback, nil, nil)
+	lsn, err := t.log.Rollback(ctx, t.tid, t.id, now)
 	if err != nil {
 		return err
 	}
@@ -359,7 +359,7 @@ func (t *Transaction) InsertOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = e.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionInsert, data, nil)
+	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
@@ -394,7 +394,7 @@ func (t *Transaction) UpdateOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = o.Write(data)
 
-	lsn, err := t.log.Append(ctx, t.tid, t.id, now, record.ActionUpdate, data, prev)
+	lsn, err := t.log.Update(ctx, t.tid, t.id, now, data, prev)
 	if err != nil {
 		return err
 	}
