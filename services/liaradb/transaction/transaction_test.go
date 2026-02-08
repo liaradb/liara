@@ -197,7 +197,7 @@ func testTransaction_Commit(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range m.eventLog.Iterate(ctx, tn, pid) {
+	for n, err := range m.collections.EventLog.Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -264,7 +264,7 @@ func testTransaction_Rollback(t *testing.T) {
 
 	result := [][]byte{}
 
-	for n, err := range m.eventLog.Iterate(ctx, tn, pid) {
+	for n, err := range m.collections.EventLog.Iterate(ctx, tn, pid) {
 		if err != nil {
 			t.Fatal(err)
 		}

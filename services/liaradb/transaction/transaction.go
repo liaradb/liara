@@ -6,16 +6,10 @@ import (
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/eventlog"
-	"github.com/liaradb/liaradb/collection/idempotency"
-	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/collection/manager"
-	"github.com/liaradb/liaradb/collection/outbox"
-	"github.com/liaradb/liaradb/collection/schema"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -33,13 +27,7 @@ type Transaction struct {
 	log            *recovery.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
-	manager        *manager.Manager
-	schemaMgr      *schema.Manager
-	tenant         *tenant.Tenant
-	eventLog       *eventlog.EventLog
-	keyValue       *keyvalue.KeyValue
-	outbox         *outbox.Outbox
-	idempotency    *idempotency.Idempotency
+	collection     *collection.Collections
 	events         []eventItem
 	values         []valueItem
 	keys           set.Set[key.Key]
@@ -62,12 +50,7 @@ func newTransaction(
 	log *recovery.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
-	manager *manager.Manager,
-	tenant *tenant.Tenant,
-	eventLog *eventlog.EventLog,
-	keyValue *keyvalue.KeyValue,
-	outbox *outbox.Outbox,
-	idempotency *idempotency.Idempotency,
+	collection *collection.Collections,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
@@ -75,12 +58,7 @@ func newTransaction(
 		log:            log,
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
-		manager:        manager,
-		tenant:         tenant,
-		eventLog:       eventLog,
-		keyValue:       keyValue,
-		outbox:         outbox,
-		idempotency:    idempotency,
+		collection:     collection,
 		keys:           set.Set[key.Key]{},
 	}
 }
@@ -102,7 +80,7 @@ func (t *Transaction) GetAggregate(
 
 		defer t.release()
 
-		for e, err := range t.eventLog.GetAggregate(ctx, tn, pid, id) {
+		for e, err := range t.collection.EventLog.GetAggregate(ctx, tn, pid, id) {
 			if !yield(e, err) {
 				return
 			}
@@ -124,7 +102,7 @@ func (t *Transaction) Events(
 
 		// defer t.release()
 
-		for e, err := range t.eventLog.Events(ctx, tn, pid) {
+		for e, err := range t.collection.EventLog.Events(ctx, tn, pid) {
 			if !yield(e, err) {
 				return
 			}
@@ -152,7 +130,7 @@ func (t *Transaction) Insert(
 	t.keys.Add(k)
 
 	// Verify this AggregateID and Version is unique in Index
-	if err := t.eventLog.CanAppend(ctx, tn, e.PartitionID, k); err != nil {
+	if err := t.collection.EventLog.CanAppend(ctx, tn, e.PartitionID, k); err != nil {
 		return err
 	}
 
@@ -304,7 +282,7 @@ func (t *Transaction) appendToEventLog(
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
 
-		_, err := t.eventLog.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(item.data))
+		_, err := t.collection.EventLog.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(item.data))
 		if err != nil {
 			return err
 		}
@@ -341,7 +319,7 @@ func (t *Transaction) GetOutbox(
 		return nil, err
 	}
 
-	return t.outbox.Get(ctx, tn, oid)
+	return t.collection.Outbox.Get(ctx, tn, oid)
 }
 
 func (t *Transaction) InsertOutbox(
@@ -365,7 +343,7 @@ func (t *Transaction) InsertOutbox(
 	}
 
 	t.lsn = lsn
-	return t.outbox.Set(ctx, tn, oid, e)
+	return t.collection.Outbox.Set(ctx, tn, oid, e)
 }
 
 func (t *Transaction) UpdateOutbox(
@@ -379,7 +357,7 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	o, err := t.outbox.Get(ctx, tn, oid)
+	o, err := t.collection.Outbox.Get(ctx, tn, oid)
 	if err != nil {
 		return err
 	}
@@ -400,7 +378,7 @@ func (t *Transaction) UpdateOutbox(
 	}
 
 	t.lsn = lsn
-	return t.outbox.Replace(ctx, tn, oid, o)
+	return t.collection.Outbox.Replace(ctx, tn, oid, o)
 }
 
 func (t *Transaction) ListOutboxes(
@@ -412,7 +390,7 @@ func (t *Transaction) ListOutboxes(
 	// 	return nil, err
 	// }
 
-	return t.outbox.List(ctx, tn, value.NewPartitionID(0))
+	return t.collection.Outbox.List(ctx, tn, value.NewPartitionID(0))
 }
 
 func (t *Transaction) InsertRequestID(
@@ -421,7 +399,7 @@ func (t *Transaction) InsertRequestID(
 	rqid value.RequestID,
 	now time.Time,
 ) error {
-	return t.idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
+	return t.collection.Idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
 }
 
 func (t *Transaction) TestRequestID(
@@ -429,5 +407,5 @@ func (t *Transaction) TestRequestID(
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	return t.idempotency.Test(ctx, tn, rqid)
+	return t.collection.Idempotency.Test(ctx, tn, rqid)
 }
