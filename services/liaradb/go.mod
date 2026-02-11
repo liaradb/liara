@@ -1,6 +1,6 @@
 module github.com/liaradb/liaradb
 
-go 1.25.5
+go 1.26.0
 
 replace github.com/liaradb/eventsource_go => ../../modules/eventsource_go
 
@@ -17,9 +17,9 @@ require (
 
 require (
 	github.com/joho/godotenv v1.5.1 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260114163908-3f89685c29c3 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
