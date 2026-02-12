@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -22,11 +23,11 @@ func New(
 	}
 }
 
-func (c *Checkpoint) Flush(now time.Time) error {
+func (c *Checkpoint) Flush(now time.Time, txids []record.TransactionID) error {
 	if err := c.s.FlushAll(); err != nil {
 		return err
 	}
 
-	_, err := c.l.FlushCheckpoint(now)
+	_, err := c.l.FlushCheckpoint(now, txids)
 	return err
 }

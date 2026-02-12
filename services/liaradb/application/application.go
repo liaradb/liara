@@ -169,7 +169,7 @@ func (a *Application) listen(ctx context.Context) {
 //   - Flush Buffers
 func (a *Application) close() {
 	slog.Info("flushing...")
-	if err := a.checkpoint.Flush(time.Now()); err != nil {
+	if err := a.checkpoint.Flush(time.Now(), nil); err != nil {
 		slog.Error("unable to flush",
 			"error", err)
 		return

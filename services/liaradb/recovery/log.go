@@ -221,8 +221,10 @@ func (l *Log) StartWriter() error {
 	return l.writer.Start()
 }
 
-func (l *Log) FlushCheckpoint(now time.Time) (record.LogSequenceNumber, error) {
-	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
+func (l *Log) FlushCheckpoint(now time.Time, txids []record.TransactionID) (record.LogSequenceNumber, error) {
+	data := l.txIDsToData(txids)
+
+	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, data, nil)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}
@@ -232,4 +234,15 @@ func (l *Log) FlushCheckpoint(now time.Time) (record.LogSequenceNumber, error) {
 	}
 
 	return lsn, err
+}
+
+func (*Log) txIDsToData(txids []record.TransactionID) []byte {
+	data := make([]byte, len(txids)*record.TransactionIDSize)
+
+	data0 := data
+	for _, txid := range txids {
+		data0 = txid.WriteData(data0)
+	}
+
+	return data
 }
