@@ -21,17 +21,24 @@ func TestManager(t *testing.T) {
 
 func testManager(t *testing.T) {
 	m, _ := createManager(t)
+	ctx := t.Context()
 
 	tid := value.NewTenantID()
 
-	tx0 := m.Next(tid)
+	tx0, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var tid0 = record.NewTransactionID(1)
 	if i := tx0.ID(); i != tid0 {
 		t.Errorf("id does not match: %v, expected: %v", i, tid0)
 	}
 
-	tx1 := m.Next(tid)
+	tx1, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var tid1 = record.NewTransactionID(2)
 	if i := tx1.ID(); i != tid1 {
@@ -46,7 +53,10 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	l := createLog(t, fsys, dir)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
 	lt := createLockTable(t)
-	return NewManager(l, s, lt), l
+	m := NewManager(l, s, lt)
+	m.Run(t.Context())
+
+	return m, l
 }
 
 func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {

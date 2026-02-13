@@ -24,7 +24,10 @@ func testTransaction_Insert(t *testing.T) {
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
-	tx := m.Next(tid)
+	tx, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if err := tx.Insert(ctx, tablename.NewFromString("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
 		t.Fatal(err)
@@ -70,7 +73,11 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	tm := time.UnixMicro(1234567890)
 	pid := value.NewPartitionID(2)
 
-	tx := m.Next(tid)
+	tx, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if err := Run(ctx, tx, pid, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
@@ -80,7 +87,11 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tx = m.Next(tid)
+	tx, err = m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if err := Run(ctx, tx, pid, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
@@ -103,7 +114,10 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
-	tx := m.Next(tid)
+	tx, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	tn := tablename.NewFromString("a")
 	id := value.NewAggregateID("b")
@@ -137,7 +151,10 @@ func testTransaction_Commit(t *testing.T) {
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
-	tx := m.Next(tid)
+	tx, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	type item struct {
 		e    *entity.Event
@@ -223,7 +240,10 @@ func testTransaction_Rollback(t *testing.T) {
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
-	tx := m.Next(tid)
+	tx, err := m.Next(ctx, tid)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	records := [][]byte{{1, 2, 3, 4, 5}}
 

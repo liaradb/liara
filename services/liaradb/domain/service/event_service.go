@@ -65,7 +65,11 @@ func (es *EventService) append(
 		options.time = time.Now()
 	}
 
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return transaction.Run(ctx, tx, pid, now, func() error {
@@ -109,7 +113,11 @@ func (es *EventService) TestIdempotency(
 	tid value.TenantID,
 	id value.RequestID,
 ) (result bool, err error) {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return false, err
+	}
+
 	now := time.Now()
 	return transaction.RunResult(ctx, tx, value.PartitionID{}, now, func() (bool, error) {
 		tn := tablename.New(tid)
@@ -124,7 +132,11 @@ func (es *EventService) Get(
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
 	tn := tablename.New(tid)
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
+
 	return tx.GetAggregate(ctx, tn, partitionID, id)
 }
 
@@ -137,7 +149,12 @@ func (es *EventService) GetByAggregateIDAndName(
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		tn := tablename.New(tid)
-		tx := es.txManager.Next(tid)
+		tx, err := es.txManager.Next(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
 		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
 			if err != nil {
 				yield(nil, err)
@@ -164,11 +181,15 @@ func (es *EventService) GetAfterGlobalVersion(
 	}
 
 	return func(yield func(*entity.Event, error) bool) {
-		tx := es.txManager.Next(tid)
+		tx, err := es.txManager.Next(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
 		now := time.Now()
 		// TODO: How do we handle a range?
 		count := 0
-		err := transaction.Run(ctx, tx, partitionRange.Low(), now, func() error {
+		if err := transaction.Run(ctx, tx, partitionRange.Low(), now, func() error {
 			tn := tablename.New(tid)
 			for e, err := range tx.Events(ctx, tn, partitionRange.Low()) {
 				if err != nil {
@@ -188,8 +209,7 @@ func (es *EventService) GetAfterGlobalVersion(
 			}
 
 			return nil
-		})
-		if err != nil {
+		}); err != nil {
 			yield(nil, err)
 		}
 	}
@@ -201,7 +221,11 @@ func (es *EventService) GetByOutbox(
 	outboxID value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
+
 	tn := tablename.New(tid)
 	o, err := tx.GetOutbox(ctx, tn, outboxID)
 	if err != nil {
@@ -216,7 +240,11 @@ func (es *EventService) CreateOutbox(
 	tid value.TenantID,
 	partitionRange value.PartitionRange,
 ) (value.OutboxID, error) {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return value.OutboxID{}, err
+	}
+
 	now := time.Now()
 	// TODO: How do we handle a range?
 	return transaction.RunResult(ctx, tx, partitionRange.Low(), now, func() (value.OutboxID, error) {
@@ -236,7 +264,11 @@ func (es *EventService) GetOutbox(
 	partitionID value.PartitionID,
 	outboxID value.OutboxID,
 ) (*entity.Outbox, error) {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return nil, err
+	}
+
 	return transaction.RunResult(ctx, tx, partitionID, time.Now(), func() (*entity.Outbox, error) {
 		tn := tablename.New(tid)
 		return tx.GetOutbox(ctx, tn, outboxID)
@@ -250,7 +282,11 @@ func (es *EventService) UpdateOutboxPosition(
 	outboxID value.OutboxID,
 	globalVersion value.GlobalVersion,
 ) error {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return err
+	}
+
 	now := time.Now()
 	return transaction.Run(ctx, tx, partitionID, now, func() error {
 		tn := tablename.New(tid)
@@ -262,7 +298,11 @@ func (es *EventService) ListOutboxes(
 	ctx context.Context,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
-	tx := es.txManager.Next(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Outbox](err)
+	}
+
 	tn := tablename.New(tid)
 	return tx.ListOutboxes(ctx, tn)
 }

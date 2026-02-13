@@ -85,6 +85,8 @@ func (a *Application) Run(ctx context.Context) error {
 func (a *Application) run(ctx context.Context) error {
 	slog.Info("starting...")
 
+	a.txManager.Run(ctx)
+
 	if err := a.storage.Run(ctx); err != nil {
 		return err
 	}
