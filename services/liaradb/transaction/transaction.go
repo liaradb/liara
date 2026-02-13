@@ -32,6 +32,7 @@ type Transaction struct {
 	values         []valueItem
 	keys           set.Set[key.Key]
 	forceRollback  bool
+	manager        *Manager
 }
 
 type eventItem struct {
@@ -51,6 +52,7 @@ func newTransaction(
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID],
 	collection *collection.Collections,
+	manager *Manager,
 ) *Transaction {
 	return &Transaction{
 		id:             id,
@@ -60,6 +62,7 @@ func newTransaction(
 		concurrencyMgr: concurrencyMgr,
 		collection:     collection,
 		keys:           set.Set[key.Key]{},
+		manager:        manager,
 	}
 }
 
@@ -250,6 +253,7 @@ func (t *Transaction) run(
 func (t *Transaction) release() {
 	t.concurrencyMgr.Release()
 	t.bufferList.Release()
+	t.manager.End(t.id)
 }
 
 func (t *Transaction) commit(
