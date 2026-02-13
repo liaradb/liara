@@ -24,6 +24,7 @@ type Manager struct {
 	txReqs        async.Handler[value.TenantID, *Transaction]
 	returns       chan record.TransactionID
 	active        set.Set[record.TransactionID]
+	highWater     record.LogSequenceNumber
 }
 
 func NewManager(
@@ -47,8 +48,14 @@ func (m *Manager) Run(ctx context.Context) {
 }
 
 func (m *Manager) run(ctx context.Context) {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	for {
 		select {
+		case t := <-ticker.C:
+			// TODO: Should we try and drain m.returns?
+			m.flush(t)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -61,6 +68,13 @@ func (m *Manager) run(ctx context.Context) {
 
 func (m *Manager) Active() []record.TransactionID {
 	return m.active.Slice()
+}
+
+func (m *Manager) isDirty() bool {
+	hw := m.log.HighWater()
+	isDirty := hw.Value() > m.highWater.Value()
+	m.highWater = hw
+	return isDirty
 }
 
 func (m *Manager) Next(ctx context.Context, tid value.TenantID) (*Transaction, error) {
@@ -87,6 +101,15 @@ func (m *Manager) End(txid record.TransactionID) {
 
 func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
+}
+
+func (m *Manager) flush(now time.Time) {
+	if !m.isDirty() {
+		return
+	}
+
+	// TODO: What do we do with this error?
+	_ = m.Flush(now)
 }
 
 func (m *Manager) Flush(now time.Time) error {
