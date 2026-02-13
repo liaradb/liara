@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/liaradb/liaradb/async"
@@ -13,6 +14,11 @@ import (
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/util/set"
+)
+
+const (
+	returnSize = 100
+	interval   = 10 * time.Second
 )
 
 type Manager struct {
@@ -38,7 +44,7 @@ func NewManager(
 		collections: collection.NewCollections(storage),
 		lockTable:   lockTable,
 		txReqs:      make(async.Handler[value.TenantID, *Transaction]),
-		returns:     make(chan record.TransactionID), // TODO: Should this be buffered?
+		returns:     make(chan record.TransactionID, returnSize),
 		active:      make(set.Set[record.TransactionID]),
 	}
 }
@@ -48,13 +54,13 @@ func (m *Manager) Run(ctx context.Context) {
 }
 
 func (m *Manager) run(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Second)
+	// TODO: This may back up over time
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case t := <-ticker.C:
-			// TODO: Should we try and drain m.returns?
 			m.flush(t)
 		case r := <-m.txReqs:
 			m.next(r)
@@ -70,11 +76,14 @@ func (m *Manager) Active() []record.TransactionID {
 	return m.active.Slice()
 }
 
-func (m *Manager) isDirty() bool {
+// TODO: Should we use highWater or lowWater?
+func (m *Manager) isDirty() (record.LogSequenceNumber, bool) {
 	hw := m.log.HighWater()
-	isDirty := hw.Value() > m.highWater.Value()
+	return hw, hw.Value() > m.highWater.Value()
+}
+
+func (m *Manager) setHighwater(hw record.LogSequenceNumber) {
 	m.highWater = hw
-	return isDirty
 }
 
 func (m *Manager) Next(ctx context.Context, tid value.TenantID) (*Transaction, error) {
@@ -104,12 +113,32 @@ func (m *Manager) end(txid record.TransactionID) {
 }
 
 func (m *Manager) flush(now time.Time) {
-	if !m.isDirty() {
+	hw, isDirty := m.isDirty()
+	if !isDirty {
 		return
 	}
 
+	m.drainEnd()
+
+	slog.Info("flushing...")
+
 	// TODO: What do we do with this error?
-	_ = m.Flush(now)
+	if err := m.Flush(now); err != nil {
+		slog.Error("unable to flush",
+			"error", err)
+		return
+	}
+
+	m.setHighwater(hw)
+
+	slog.Info("flushing complete")
+}
+
+func (m *Manager) drainEnd() {
+	for range min(returnSize, len(m.returns)) {
+		txid := <-m.returns
+		m.end(txid)
+	}
 }
 
 func (m *Manager) Flush(now time.Time) error {
