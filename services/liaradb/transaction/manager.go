@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"time"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/collection"
@@ -86,4 +87,13 @@ func (m *Manager) End(txid record.TransactionID) {
 
 func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
+}
+
+func (m *Manager) Flush(now time.Time) error {
+	if err := m.storage.FlushAll(); err != nil {
+		return err
+	}
+
+	_, err := m.log.FlushCheckpoint(now, m.Active())
+	return err
 }
