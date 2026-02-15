@@ -61,7 +61,7 @@ func (m *Manager) run(ctx context.Context) {
 	for {
 		select {
 		case t := <-ticker.C:
-			m.flush(t)
+			m.flushCheckpoint(t)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -111,17 +111,16 @@ func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
 }
 
-func (m *Manager) flush(now time.Time) {
+func (m *Manager) flushCheckpoint(now time.Time) {
+	m.drainEnd()
 	if !m.isDirty() {
 		return
 	}
 
-	m.drainEnd()
-
 	slog.Info("flushing...")
 
 	// TODO: What do we do with this error?
-	if err := m.Flush(now); err != nil {
+	if err := m.flush(now); err != nil {
 		slog.Error("unable to flush",
 			"error", err)
 		return
@@ -137,9 +136,29 @@ func (m *Manager) drainEnd() {
 	}
 }
 
-func (m *Manager) Flush(now time.Time) error {
+func (m *Manager) flush(now time.Time) error {
 	if err := m.storage.FlushAll(); err != nil {
 		return err
+	}
+
+	lsn, err := m.log.FlushCheckpoint(now, m.Active())
+	if err != nil {
+		return err
+	}
+
+	m.setCheckpoint(lsn)
+	return nil
+}
+
+func (m *Manager) Shutdown(now time.Time) error {
+	m.drainEnd()
+
+	if err := m.storage.FlushAll(); err != nil {
+		return err
+	}
+
+	if !m.isDirty() {
+		return nil
 	}
 
 	lsn, err := m.log.FlushCheckpoint(now, m.Active())
