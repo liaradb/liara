@@ -22,28 +22,54 @@ func testStorage(t *testing.T) {
 
 	fn := link.NewFileName("testfile")
 
-	b, err := s.Request(ctx, fn.BlockID(1))
+	bid0 := fn.BlockID(1)
+	b, err := s.Request(ctx, bid0)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if i := b.BlockID(); i != bid0 {
+		t.Errorf("incorrect block id: %v, expected: %v", i, bid0)
 	}
 
 	if p := b.blockID.Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
-	b0, err := s.Request(ctx, fn.BlockID(2))
+	if p := b.Pins(); p != 1 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
+	}
+
+	bid1 := fn.BlockID(2)
+	b0, err := s.Request(ctx, bid1)
 	if err != nil {
 		t.Error(err)
+	}
+
+	if i := b0.BlockID(); i != bid1 {
+		t.Errorf("incorrect block id: %v, expected: %v", i, bid1)
 	}
 
 	if p := b0.blockID.Position(); p != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 
+	if p := b0.Pins(); p != 1 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
+	}
+
 	b.Release()
 	b0.Release()
 
 	synctest.Wait()
+
+	if p := b.Pins(); p != 0 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
+
+	if p := b0.Pins(); p != 0 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
 }
 
 func TestStorage_RequestBeforeRun(t *testing.T) {
