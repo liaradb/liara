@@ -30,7 +30,7 @@ type Manager struct {
 	txReqs        async.Handler[value.TenantID, *Transaction]
 	returns       chan record.TransactionID
 	active        set.Set[record.TransactionID]
-	highWater     record.LogSequenceNumber
+	checkpoint    record.LogSequenceNumber
 }
 
 func NewManager(
@@ -77,13 +77,12 @@ func (m *Manager) Active() []record.TransactionID {
 }
 
 // TODO: Should we use highWater or lowWater?
-func (m *Manager) isDirty() (record.LogSequenceNumber, bool) {
-	hw := m.log.HighWater()
-	return hw, hw.Value() > m.highWater.Value()
+func (m *Manager) isDirty() bool {
+	return m.log.HighWater().Value() > m.checkpoint.Value()
 }
 
-func (m *Manager) setHighwater(hw record.LogSequenceNumber) {
-	m.highWater = hw
+func (m *Manager) setCheckpoint(cp record.LogSequenceNumber) {
+	m.checkpoint = cp
 }
 
 func (m *Manager) Next(ctx context.Context, tid value.TenantID) (*Transaction, error) {
@@ -113,8 +112,7 @@ func (m *Manager) end(txid record.TransactionID) {
 }
 
 func (m *Manager) flush(now time.Time) {
-	hw, isDirty := m.isDirty()
-	if !isDirty {
+	if !m.isDirty() {
 		return
 	}
 
@@ -128,8 +126,6 @@ func (m *Manager) flush(now time.Time) {
 			"error", err)
 		return
 	}
-
-	m.setHighwater(hw)
 
 	slog.Info("flushing complete")
 }
@@ -146,6 +142,11 @@ func (m *Manager) Flush(now time.Time) error {
 		return err
 	}
 
-	_, err := m.log.FlushCheckpoint(now, m.Active())
-	return err
+	lsn, err := m.log.FlushCheckpoint(now, m.Active())
+	if err != nil {
+		return err
+	}
+
+	m.setCheckpoint(lsn)
+	return nil
 }
