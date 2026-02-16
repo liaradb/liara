@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -38,6 +39,22 @@ func testStorage(t *testing.T) {
 
 	if p := b.Pins(); p != 1 {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
+	}
+
+	if s := b.Size(); s != 16 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 16)
+	}
+
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+
+	if n, err := b.Write(data); err != nil {
+		t.Fatal(err)
+	} else if n != 16 {
+		t.Fatalf("incorrect length: %v, expected: %v", n, 16)
+	}
+
+	if bytes := b.Raw(); !slices.Equal(bytes, data) {
+		t.Errorf("incorrect raw value: %v, expected: %v", bytes, data)
 	}
 
 	bid1 := fn.BlockID(2)

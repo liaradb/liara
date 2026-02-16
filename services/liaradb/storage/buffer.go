@@ -24,7 +24,6 @@ func newBuffer(s *Storage) *Buffer {
 	}
 }
 
-// TODO: Test these
 func (b *Buffer) BlockID() link.BlockID { return b.blockID }
 func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int             { return b.pins }
