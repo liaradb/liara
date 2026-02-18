@@ -11,7 +11,7 @@ type LockTable[K comparable] struct {
 	cancel       context.CancelFunc
 }
 
-func NewLockTable[K comparable](inSize int) *LockTable[K] {
+func New[K comparable](inSize int) *LockTable[K] {
 	return &LockTable[K]{
 		requestLists: make(map[K]*lockRequestList[K]),
 		in:           make(chan K, inSize),

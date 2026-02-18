@@ -15,7 +15,7 @@ func TestConcurrencyMgr_SLock(t *testing.T) {
 }
 
 func testConcurrencyMgr_SLock(t *testing.T) {
-	lt := NewLockTable[int](1)
+	lt := New[int](1)
 	lt.Run(t.Context())
 	cm1 := NewConcurrencyMgr(lt)
 	cm2 := NewConcurrencyMgr(lt)
@@ -41,7 +41,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	t.Parallel()
 
 	testutil.Run(t, "should lock once", func(t *testing.T) {
-		lt := NewLockTable[int](1)
+		lt := New[int](1)
 		lt.Run(t.Context())
 		cm := NewConcurrencyMgr(lt)
 		ctx := t.Context()
@@ -52,7 +52,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	testutil.Run(t, "should not lock twice", func(t *testing.T) {
-		lt := NewLockTable[int](1)
+		lt := New[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)
@@ -70,7 +70,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	testutil.Run(t, "should not XLock after other SLock", func(t *testing.T) {
-		lt := NewLockTable[int](1)
+		lt := New[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)
@@ -88,7 +88,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	testutil.Run(t, "should upgrade lock", func(t *testing.T) {
-		lt := NewLockTable[int](1)
+		lt := New[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		ctx := t.Context()
@@ -103,7 +103,7 @@ func TestConcurrencyMgr_XLock(t *testing.T) {
 	})
 
 	testutil.Run(t, "should lock after release", func(t *testing.T) {
-		lt := NewLockTable[int](1)
+		lt := New[int](1)
 		lt.Run(t.Context())
 		cm1 := NewConcurrencyMgr(lt)
 		cm2 := NewConcurrencyMgr(lt)

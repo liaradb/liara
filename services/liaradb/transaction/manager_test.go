@@ -83,7 +83,7 @@ func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {
 }
 
 func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
-	lt := locktable.NewLockTable[action.ItemID](1)
+	lt := locktable.New[action.ItemID](1)
 	lt.Run(t.Context())
 	t.Cleanup(lt.Close)
 	return lt
