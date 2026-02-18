@@ -141,7 +141,6 @@ func (b *Buffer) Clear() {
 	b.status = BufferStatusUninitialized
 }
 
-// TODO: Test this
 func (b *Buffer) Read(p []byte) (int, error) {
 	return b.buffer.Read(p)
 }
@@ -151,7 +150,6 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	return b.buffer.Seek(offset, whence)
 }
 
-// TODO: Test this
 func (b *Buffer) Write(p []byte) (int, error) {
 	n, err := b.buffer.Write(p)
 	if n != 0 {
