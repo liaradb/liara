@@ -82,3 +82,20 @@ func (e *Row) Read(r io.Reader) error {
 		&e.metadata,
 		&e.data)
 }
+
+func (e *Row) Compare(b *Row) bool {
+	if e == b {
+		return true
+	}
+
+	if e.id != b.id ||
+		e.metadata != b.metadata ||
+		e.name != b.name ||
+		e.partitionID != b.partitionID ||
+		e.schema != b.schema ||
+		e.version != b.version {
+		return false
+	}
+
+	return e.data.Compare(&b.data)
+}
