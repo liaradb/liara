@@ -157,8 +157,6 @@ func testStorage_Pinned(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	defer b.Release()
-
 	if b.Dirty() {
 		t.Error("should not be dirty")
 	}
@@ -180,6 +178,7 @@ func testStorage_Pinned(t *testing.T) {
 		t.Error("should be dirty")
 	}
 
+	b.Release()
 	b0.Release()
 
 	synctest.Wait()

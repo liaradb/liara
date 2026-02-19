@@ -349,7 +349,6 @@ func (s *Storage) initHighwater(fn link.FileName, f file.File) error {
 }
 
 // TODO: Test this
-// TODO: Integrate this with Run
 func (s *Storage) FlushAll() error {
 	for _, b := range s.pinned {
 		if err := b.flushIfDirty(); err != nil {
