@@ -345,3 +345,54 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.File
 
 	return s
 }
+
+func TestStorage_FlushAll(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_FlushAll)
+}
+
+func testStorage_FlushAll(t *testing.T) {
+	s := createStorage(t, 2, 16)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+	b0, err := s.Request(ctx, fn.BlockID(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b0.Write([]byte{1})
+	if !b0.Dirty() {
+		t.Error("should be dirty")
+	}
+
+	b1, err := s.Request(ctx, fn.BlockID(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b1.Write([]byte{1})
+	if !b1.Dirty() {
+		t.Error("should be dirty")
+	}
+
+	b1.Release()
+
+	synctest.Wait()
+
+	if err := s.FlushAll(); err != nil {
+		t.Fatal(err)
+	}
+
+	if b0.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	if b1.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	b0.Release()
+
+	synctest.Wait()
+}
