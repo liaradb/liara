@@ -13,7 +13,6 @@ func (s BaseString) Size() int               { return StringSize(s) }
 func (s BaseString) Write(w io.Writer) error { return WriteString(w, s) }
 func (s *BaseString) Read(r io.Reader) error { return ReadString(r, s) }
 
-// TODO: Test this
 func (s BaseString) WriteData(data []byte, colSize int) []byte {
 	data[0] = byte(len(s))
 	copy(data[1:colSize], []byte(s))
@@ -21,7 +20,6 @@ func (s BaseString) WriteData(data []byte, colSize int) []byte {
 	return data[colSize:]
 }
 
-// TODO: Test this
 func (s *BaseString) ReadData(data []byte, colSize int) []byte {
 	l := data[0]
 	*s = BaseString(data[1 : 1+l])
