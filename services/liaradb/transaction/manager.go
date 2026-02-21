@@ -151,6 +151,7 @@ func (m *Manager) flush(now time.Time) error {
 }
 
 func (m *Manager) Shutdown(now time.Time) error {
+	// TODO: How do we drain everything?
 	m.drainEnd()
 
 	if err := m.storage.FlushAll(); err != nil {
