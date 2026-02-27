@@ -83,13 +83,10 @@ func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
-	// TODO: Create second goroutine
-	// One for loaded Buffers, one for non-loaded Buffers
-	// This will allow loaded traffic to continue
 	if bid, err := s.getBufferID(r.Value()); err != nil {
 		r.Reply(nil, err)
 	} else {
-		b, err := s.getBuffer(r.Context(), bid)
+		b, err := s.getBuffer(r.Context(), bid, r.Value().isNext())
 		r.Reply(b, err)
 	}
 }
@@ -108,12 +105,12 @@ func (s *Storage) getBufferID(v bufferQuery) (link.BlockID, error) {
 	}
 }
 
-func (s *Storage) getBuffer(ctx context.Context, bid link.BlockID) (*Buffer, error) {
+func (s *Storage) getBuffer(ctx context.Context, bid link.BlockID, next bool) (*Buffer, error) {
 	if b, ok := s.getLoaded(bid); ok {
 		return b, nil
 	}
 
-	return s.getUnloaded(ctx, bid)
+	return s.getUnloaded(ctx, bid, next)
 }
 
 func (s *Storage) getLoaded(bid link.BlockID) (*Buffer, bool) {
@@ -134,15 +131,17 @@ func (s *Storage) getUnpinned(bid link.BlockID) (*Buffer, bool) {
 	return b, ok
 }
 
-func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID) (*Buffer, error) {
+// TODO: Create second goroutine
+// One for loaded Buffers, one for non-loaded Buffers
+// This will allow loaded traffic to continue
+func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) (*Buffer, error) {
 	b, err := s.popAllocateOrWait(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Don't load here.  Do this in separate goroutine.
-	// TODO: Don't load if just allocated
-	if err := b.load(bid); err != nil {
+	if err := b.load(bid, next); err != nil {
 		return nil, err
 	}
 

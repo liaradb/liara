@@ -41,3 +41,7 @@ func newNextBufferQuery(fn link.FileName) bufferQuery {
 		queryType: bufferQueryTypeNext,
 	}
 }
+
+func (q bufferQuery) isNext() bool {
+	return q.queryType == bufferQueryTypeNext
+}
