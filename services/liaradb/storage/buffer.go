@@ -91,10 +91,14 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 func (b *Buffer) read(r io.ReaderAt) error {
 	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
 	if err != nil {
+		// Ignore EOF
 		if err != io.EOF {
 			return err
 		}
-		clear(b.buffer.Bytes()[n:])
+
+		// Clear the remainder of the buffer
+		b.buffer.ClearAfter(n)
+
 		// TODO: Test if page has been initialized
 		// if n == 0 {
 		// 	// TODO: Initialize page

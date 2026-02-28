@@ -35,6 +35,11 @@ func (b *Buffer) Clear() {
 	b.cursor = 0
 }
 
+// TODO: Test this
+func (b *Buffer) ClearAfter(n int) {
+	clear(b.data[n:])
+}
+
 func (b *Buffer) Reset(data []byte) {
 	b.data = data
 	b.cursor = 0

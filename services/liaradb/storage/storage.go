@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"io"
 	"path"
 
 	"github.com/liaradb/liaradb/async"
@@ -285,8 +284,7 @@ func (s *Storage) load(b *Buffer) error {
 		return err
 	}
 
-	// TODO: Do we need to check io.EOF?
-	if err := b.read(f); err != nil && err != io.EOF {
+	if err := b.read(f); err != nil {
 		return err
 	}
 
