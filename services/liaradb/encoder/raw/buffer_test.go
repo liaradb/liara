@@ -393,6 +393,54 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 			t.Errorf("should return remainder: %v, expected: %v", n, 0)
 		}
 	})
+
+	t.Run("should not read at buffer end", func(t *testing.T) {
+		t.Parallel()
+
+		b := NewBuffer(20)
+
+		result := make([]byte, 5)
+
+		n, err := b.ReadAt(result, 20)
+		if err != io.EOF {
+			t.Error("should return EOF")
+		}
+		if n != 0 {
+			t.Errorf("should return remainder: %v, expected: %v", n, 0)
+		}
+	})
+
+	t.Run("should read trivial case", func(t *testing.T) {
+		t.Parallel()
+
+		b := NewBuffer(20)
+
+		result := make([]byte, 0)
+
+		n, err := b.ReadAt(result, 0)
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 0 {
+			t.Errorf("should return remainder: %v, expected: %v", n, 0)
+		}
+	})
+
+	t.Run("should read trivial case at buffer end", func(t *testing.T) {
+		t.Parallel()
+
+		b := NewBuffer(20)
+
+		result := make([]byte, 0)
+
+		n, err := b.ReadAt(result, 20)
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 0 {
+			t.Errorf("should return remainder: %v, expected: %v", n, 0)
+		}
+	})
 }
 
 func TestBuffer_Seek(t *testing.T) {

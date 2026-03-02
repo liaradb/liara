@@ -53,11 +53,6 @@ func (b *Buffer) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 
-	// TODO: Test this case
-	if b.cursor == int64(len(b.data)) {
-		return 0, nil
-	}
-
 	if n = copy(p, b.data[b.cursor:]); n < len(p) {
 		err = io.EOF
 	}
