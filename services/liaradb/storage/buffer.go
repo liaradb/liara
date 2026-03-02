@@ -58,26 +58,25 @@ func (b *Buffer) Release() {
 }
 
 func (b *Buffer) load(bid link.BlockID, next bool) error {
-	// TODO: Test this
-	if b.blockID == bid && b.status == BufferStatusLoaded {
-		return nil
-	}
-
-	if b.blockID != bid && b.status == BufferStatusDirty {
+	// blockID will always be changing
+	// status is dirty only if already loaded
+	if b.status == BufferStatusDirty {
 		if err := b.s.flush(b); err != nil {
 			return err
 		}
+
+		b.status = BufferStatusLoaded
 	}
 
 	b.blockID = bid
+	b.status = BufferStatusLoading
+
 	if next {
 		// TODO: Test this
 		b.buffer.Clear()
 		b.status = BufferStatusLoaded
 		return nil
 	}
-
-	b.status = BufferStatusLoading
 
 	if err := b.s.load(b); err != nil {
 		b.status = BufferStatusCorrupt
