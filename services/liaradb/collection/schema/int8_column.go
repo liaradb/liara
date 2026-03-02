@@ -14,7 +14,6 @@ func (ic Int8Column) Name() string     { return ic.name }
 func (ic Int8Column) Size() int        { return 1 }
 func (ic Int8Column) Type() ColumnType { return ColumnTypeInt8 }
 
-// TODO: How do we read this value?
 func (ic Int8Column) Value() int8 {
 	return 0
 }
