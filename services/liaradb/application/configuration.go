@@ -6,12 +6,11 @@ import (
 	"github.com/cardboardrobots/config"
 )
 
-// TODO: Fix camel case
 type configuration struct {
-	Port      int    `yml:"port" config:"PORT"`
-	Buffers   int    `yml:"buffers" config:"BUFFERS"`
-	BlockSize int    `yml:"blocksize" config:"BLOCK_SIZE"`
-	Directory string `yml:"directory" config:"DIRECTORY"`
+	Port      int    `yaml:"port" config:"PORT"`
+	Buffers   int    `yaml:"buffers" config:"BUFFERS"`
+	BlockSize int    `yaml:"blockSize" config:"BLOCK_SIZE"`
+	Directory string `yaml:"directory" config:"DIRECTORY"`
 }
 
 func LoadConfig() (configuration, error) {
