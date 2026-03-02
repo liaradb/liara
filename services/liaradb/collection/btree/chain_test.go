@@ -37,8 +37,7 @@ func TestChain__Crabbing(t *testing.T) {
 	}
 
 	for i := range len(values) {
-		// TODO: Use method
-		c.released = byte(i)
+		c.setReleased(byte(i))
 
 		result := make([]int, 0, len(values))
 		for _, i := range c.unreleasedItems() {

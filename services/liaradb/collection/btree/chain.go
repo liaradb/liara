@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 )
 
-// TODO: Test this
 // TODO: Create latch crabbing support
 type chain struct {
 	l        *list.List
@@ -21,6 +20,11 @@ func newChain() *chain {
 
 func (c *chain) append(v any) {
 	c.l.PushFront(v)
+}
+
+// TODO: Should this be exposed?
+func (c *chain) setReleased(i byte) {
+	c.released = i
 }
 
 func (c *chain) items() iter.Seq2[int, any] {
@@ -67,7 +71,7 @@ func (c *chain) release() {
 			kn.Release()
 		}
 	}
-	c.released = byte(c.l.Len())
+	c.setReleased(byte(c.l.Len()))
 }
 
 func (c *chain) latch() {
