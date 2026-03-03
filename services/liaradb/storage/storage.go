@@ -254,7 +254,6 @@ func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error
 }
 
 // External thread
-// TODO: Test this
 func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized
@@ -264,7 +263,6 @@ func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer
 }
 
 // External thread
-// TODO: Test this
 func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized

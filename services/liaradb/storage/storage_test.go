@@ -100,6 +100,14 @@ func testStorage_RequestBeforeRun(t *testing.T) {
 	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
 	}
+
+	if b, err := s.RequestCurrent(t.Context(), link.NewFileName("")); b != nil || err == nil {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
+	}
+
+	if b, err := s.RequestNext(t.Context(), link.NewFileName("")); b != nil || err == nil {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
+	}
 }
 
 func TestStorage_CancelRun(t *testing.T) {
@@ -393,6 +401,93 @@ func testStorage_FlushAll(t *testing.T) {
 	}
 
 	b0.Release()
+
+	synctest.Wait()
+}
+
+func TestStorage_Request__AlreadyLoaded(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Request__AlreadyLoaded)
+}
+
+func testStorage_Request__AlreadyLoaded(t *testing.T) {
+	s := createStorage(t, 1, 16)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+	b0, err := s.Request(ctx, fn.BlockID(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b0.Release()
+
+	synctest.Wait()
+
+	b1, err := s.Request(ctx, fn.BlockID(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b1.Release()
+
+	synctest.Wait()
+}
+
+func TestStorage_RequestCurrent_RequestNext(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_RequestCurrent_RequestNext)
+}
+
+func testStorage_RequestCurrent_RequestNext(t *testing.T) {
+	s := createStorage(t, 1, 16)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+
+	b0, err := s.RequestCurrent(ctx, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if p := b0.BlockID().Position().Value(); p != 0 {
+		t.Errorf("incorrect position: %v, expected: %v", p, 0)
+	}
+
+	b0.Release()
+
+	b1, err := s.RequestNext(ctx, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if p := b1.BlockID().Position().Value(); p != 1 {
+		t.Errorf("incorrect position: %v, expected: %v", p, 1)
+	}
+
+	b1.Release()
+
+	b2, err := s.RequestNext(ctx, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if p := b2.BlockID().Position().Value(); p != 2 {
+		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	}
+
+	b2.Release()
+
+	b3, err := s.RequestCurrent(ctx, fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if p := b3.BlockID().Position().Value(); p != 2 {
+		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	}
+
+	b3.Release()
 
 	synctest.Wait()
 }
