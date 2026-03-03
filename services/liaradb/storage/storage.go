@@ -239,11 +239,6 @@ func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID
 	return s.highWReqs.Send(ctx, fn)
 }
 
-// TODO: Is this still needed?
-func (s *Storage) RequestLatest(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	return s.Request(ctx, fn.BlockID(-1))
-}
-
 // External thread
 func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error) {
 	if s.bufferReqs == nil {
@@ -282,11 +277,7 @@ func (s *Storage) load(b *Buffer) error {
 		return err
 	}
 
-	if err := b.read(f); err != nil {
-		return err
-	}
-
-	return nil
+	return b.read(f)
 }
 
 func (s *Storage) flush(b *Buffer) error {
