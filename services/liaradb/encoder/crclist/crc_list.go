@@ -28,7 +28,6 @@ func New(data []byte) CRCList {
 	}
 }
 
-// TODO: Test this
 func (l *CRCList) Reset() {
 	count, _ := l.list.Get(0)
 	l.count = count

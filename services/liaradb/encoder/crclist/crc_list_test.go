@@ -1,6 +1,7 @@
 package crclist
 
 import (
+	"encoding/binary"
 	"slices"
 	"testing"
 
@@ -341,6 +342,42 @@ func TestCRCList_Insert(t *testing.T) {
 				t.Errorf("incorrect result: %v, expected: %v", result, c.want)
 			}
 		})
+	}
+}
+
+func TestCRCList_Reset(t *testing.T) {
+	t.Parallel()
+
+	data := make([]byte, 32)
+
+	l := New(data)
+
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
+	}
+
+	if c := l.Count(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+
+	binary.BigEndian.PutUint16(data, 3)
+	l.Reset()
+
+	if s := l.Size(); s != 26 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 26)
+	}
+
+	if c := l.Count(); c != 3 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 3)
+	}
+
+	c := 0
+	for range l.Items() {
+		c++
+	}
+
+	if c != 3 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 3)
 	}
 }
 
