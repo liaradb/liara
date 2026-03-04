@@ -41,7 +41,7 @@ func NewFromSlice(data []byte) *Page {
 // TODO: Test this
 func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	clear(p.data)
-	p.list.Clear()
+	p.list.Reset()
 	p.header.Reset(pid, tlid, rl)
 }
 
@@ -104,7 +104,7 @@ func (p *Page) Read(r io.ReadSeeker) error {
 		return err
 	}
 
-	p.list.Clear()
+	p.list.Reset()
 	return nil
 }
 

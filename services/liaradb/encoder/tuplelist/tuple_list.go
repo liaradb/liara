@@ -27,8 +27,8 @@ func New(data []byte) TupleList {
 	}
 }
 
-// TODO: Test this
 func (l *TupleList) Clear() {
+	_ = l.list.Set(0, 0)
 	l.count = 0
 }
 

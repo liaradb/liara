@@ -343,3 +343,46 @@ func TestCRCList_Insert(t *testing.T) {
 		})
 	}
 }
+
+func TestCRCList_Clear(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 16))
+
+	if length := l.Length(); length != 16 {
+		t.Errorf("incorrect length: %v, expected: %v", length, 16)
+	}
+
+	if i, ok := l.Push(1, 2, page.CRC{}); !ok {
+		t.Error("should push")
+	} else if i != 0 {
+		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	}
+
+	if s := l.Size(); s != 10 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 10)
+	}
+
+	if c := l.Count(); c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+
+	l.Clear()
+
+	if s := l.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
+	}
+
+	if c := l.Count(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+
+	c := 0
+	for range l.Items() {
+		c++
+	}
+
+	if c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+}

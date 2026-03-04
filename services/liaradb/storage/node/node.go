@@ -38,7 +38,7 @@ func New(buffer *storage.Buffer) Node {
 // TODO: Test this
 func (p *Node) Clear() {
 	p.buffer.Clear()
-	p.list.Clear()
+	p.list.Reset()
 }
 
 // TODO: Test this
