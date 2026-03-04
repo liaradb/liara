@@ -41,7 +41,7 @@ func newHeader(data []byte) (header, []byte) {
 	}, data4
 }
 
-func (h *header) Reset(
+func (h *header) reset(
 	id action.PageID,
 	timeLineID action.TimeLineID,
 	lengthRemaining record.Length,

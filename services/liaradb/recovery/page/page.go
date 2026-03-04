@@ -38,11 +38,10 @@ func NewFromSlice(data []byte) *Page {
 	}
 }
 
-// TODO: Test this
 func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	clear(p.data)
 	p.list.Reset()
-	p.header.Reset(pid, tlid, rl)
+	p.header.reset(pid, tlid, rl)
 }
 
 func (p *Page) Append(data []byte) bool {
