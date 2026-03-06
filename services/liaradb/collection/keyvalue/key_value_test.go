@@ -15,27 +15,42 @@ import (
 
 func TestKeyValue(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testKeyValue)
-}
 
-func testKeyValue(t *testing.T) {
-	ctx := t.Context()
-	// TODO: This is flaky on insert when buffer count is 5
-	// s := storagetesting.CreateStorage(t, 5, 84)
-	s := storagetesting.CreateStorage(t, 7, 84)
-	kv := New(s, btree.NewCursor(s))
-	n := tablename.NewFromString("testfile")
+	for message, c := range map[string]struct {
+		skip bool
+		data []item
+	}{
+		"should insert data": {
+			data: createData(),
+		},
+		"should insert data in reverse": {
+			data: createDataReverse(),
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
 
-	data := createData()
+			synctest.Test(t, func(t *testing.T) {
+				ctx := t.Context()
 
-	if err := insertData(ctx, kv, n, data); err != nil {
-		t.Fatal(err)
+				s := storagetesting.CreateStorage(t, 8, 84)
+				kv := New(s, btree.NewCursor(s))
+				n := tablename.NewFromString("testfile")
+
+				if err := insertData(ctx, kv, n, c.data); err != nil {
+					t.Fatal(err)
+				}
+
+				testGet(ctx, t, kv, n, c.data)
+				testList(ctx, t, c.data, kv, n)
+
+				synctest.Wait()
+			})
+		})
 	}
-
-	testGet(ctx, t, kv, n, data)
-	testList(ctx, t, data, kv, n)
-
-	synctest.Wait()
 }
 
 func TestKeyValue__LargeBuffer(t *testing.T) {
@@ -61,37 +76,49 @@ func testKeyValue__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string][]byte {
-	return map[string][]byte{
-		"1": []byte("a"),
-		"2": []byte("b"),
-		"3": []byte("c"),
-		"4": []byte("d"),
-		"5": []byte("e"),
-		"6": []byte("f"),
-		"7": []byte("g"),
-		"8": []byte("h"),
-		"9": []byte("i"),
+type item struct {
+	key   string
+	value []byte
+}
+
+func createDataReverse() []item {
+	data := createData()
+	slices.Reverse(data)
+	return data
+}
+
+func createData() []item {
+	return []item{
+		{"1", []byte("a")},
+		{"2", []byte("b")},
+		{"3", []byte("c")},
+		{"4", []byte("d")},
+		{"5", []byte("e")},
+		{"6", []byte("f")},
+		{"7", []byte("g")},
+		{"8", []byte("h")},
+		{"9", []byte("i")},
 	}
 }
 
-func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data map[string][]byte) error {
-	for k, v := range data {
-		if err := kv.Set(ctx, n, key.NewKey([]byte(k)), v); err != nil {
+func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data []item) error {
+	for _, i := range data {
+		if err := kv.Set(ctx, n, key.NewKey([]byte(i.key)), i.value); err != nil {
 			return err
 		}
+		synctest.Wait()
 	}
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableName, data map[string][]byte) {
-	for k, v := range data {
-		value, err := kv.Get(ctx, n, key.NewKey([]byte(k)))
+func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableName, data []item) {
+	for _, i := range data {
+		value, err := kv.Get(ctx, n, key.NewKey([]byte(i.key)))
 		if err != nil {
-			t.Fatal(k, err)
+			t.Fatal(i.key, err)
 		}
 
-		want := string(v)
+		want := string(i.value)
 		result := string(value)
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
@@ -99,7 +126,7 @@ func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableN
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data map[string][]byte, kv *KeyValue, n tablename.TableName) {
+func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, n tablename.TableName) {
 	result, err := getListValues(ctx, data, kv, n)
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +138,7 @@ func testList(ctx context.Context, t *testing.T, data map[string][]byte, kv *Key
 	}
 }
 
-func getListValues(ctx context.Context, data map[string][]byte, kv *KeyValue, n tablename.TableName) ([]string, error) {
+func getListValues(ctx context.Context, data []item, kv *KeyValue, n tablename.TableName) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
 	for value, err := range kv.List(ctx, n) {
@@ -125,15 +152,15 @@ func getListValues(ctx context.Context, data map[string][]byte, kv *KeyValue, n 
 	return result, nil
 }
 
-func createSortedValues(data map[string][]byte) []string {
+func createSortedValues(data []item) []string {
 	type tuple struct {
 		key   key.Key
 		value []byte
 	}
 
 	tuples := make([]tuple, 0, len(data))
-	for k, v := range data {
-		tuples = append(tuples, tuple{key.NewKey([]byte(k)), v})
+	for _, i := range data {
+		tuples = append(tuples, tuple{key.NewKey([]byte(i.key)), i.value})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())
