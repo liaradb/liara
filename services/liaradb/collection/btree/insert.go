@@ -120,32 +120,38 @@ func (c *insert) insertChainLeaf(
 
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
+		// no split
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 
-	ln2, bid2, err := c.ns.getNextLeafNode(ctx, fn)
+	middle, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
 		return link.BlockID{}, key.Key{}, false, err
 	}
 
-	defer ln2.Release()
+	defer middle.Release()
 
-	ln2.Latch()
-	defer ln2.Unlatch()
+	middle.Latch()
+	defer middle.Unlatch()
 
-	ln3, err := c.ns.getLeafNode(ctx, fn.BlockID(ln.RightID()))
-	if err != nil {
-		return link.BlockID{}, key.Key{}, false, err
+	rightID := fn.BlockID(ln.RightID())
+	if rightID.Position() != 0 {
+		// Only update right node if not root
+		right, err := c.ns.getLeafNode(ctx, rightID)
+		if err != nil {
+			return link.BlockID{}, key.Key{}, false, err
+		}
+
+		defer right.Release()
+
+		// TODO: Figure out latching
+		// ln3.Latch()
+		// defer ln3.Unlatch()
+
+		right.SetLeftID(bid2.Position())
 	}
 
-	defer ln3.Release()
-
-	// TODO: Figure out latching
-	// ln3.Latch()
-	// defer ln3.Unlatch()
-
-	ln3.SetLeftID(bid2.Position())
-	key := ln2.Fill(bid.Position(), ln.RightID(), second)
+	key := middle.Fill(bid.Position(), ln.RightID(), second)
 	ln.Replace(bid2.Position(), first)
 
 	return bid2, key, true, nil
