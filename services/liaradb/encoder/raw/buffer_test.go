@@ -107,6 +107,24 @@ func TestBuffer_Clear(t *testing.T) {
 	}
 }
 
+func TestBuffer_ClearAfter(t *testing.T) {
+	t.Parallel()
+
+	base := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	b := NewBufferFromSlice(slices.Clone(base))
+
+	if !slices.Equal(b.Bytes(), base) {
+		t.Errorf("incorrect bytes: %v, expected: %v", b.Bytes(), base)
+	}
+
+	b.ClearAfter(4)
+
+	want := []byte{1, 2, 3, 4, 0, 0, 0, 0}
+	if !slices.Equal(b.Bytes(), want) {
+		t.Errorf("incorrect bytes: %v, expected: %v", b.Bytes(), want)
+	}
+}
+
 func TestBuffer_Reset(t *testing.T) {
 	t.Parallel()
 
