@@ -22,14 +22,13 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T) {
 	ctx := t.Context()
-	// TODO: This is flaky on insert when buffer count is 5
-	// s := storagetesting.CreateStorage(t, 5, 84)
 	s := storagetesting.CreateStorage(t, 7, 110)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()
+	slices.Reverse(data)
 
 	if err := insertData(ctx, o, n, data); err != nil {
 		t.Fatal(err)
@@ -65,23 +64,28 @@ func testOutbox__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string]*entity.Outbox {
-	return map[string]*entity.Outbox{
-		"1": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"2": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"3": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"4": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"5": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"6": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"7": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"8": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
-		"9": entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0))),
+type item struct {
+	key   string
+	value *entity.Outbox
+}
+
+func createData() []item {
+	return []item{
+		{"1", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"2", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"3", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"4", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"5", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"6", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"7", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"8", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+		{"9", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
 	}
 }
 
-func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data map[string]*entity.Outbox) error {
-	for _, v := range data {
-		if err := o.Set(ctx, n, v.ID(), v); err != nil {
+func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data []item) error {
+	for _, i := range data {
+		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -93,16 +97,16 @@ func testGet(
 	t *testing.T,
 	kv *Outbox,
 	n tablename.TableName,
-	data map[string]*entity.Outbox,
+	data []item,
 ) {
-	for k, v := range data {
-		value, err := kv.Get(ctx, n, v.ID())
+	for _, i := range data {
+		value, err := kv.Get(ctx, n, i.value.ID())
 		if err != nil {
-			t.Fatal(k, err)
+			t.Fatal(i.key, err)
 		}
 
-		if *value != *v {
-			t.Errorf("incorrect result: %v, expected: %v", *value, *v)
+		if *value != *i.value {
+			t.Errorf("incorrect result: %v, expected: %v", *value, *i.value)
 		}
 	}
 }
@@ -110,7 +114,7 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
-	data map[string]*entity.Outbox,
+	data []item,
 	o *Outbox,
 	n tablename.TableName,
 	pid value.PartitionID,
@@ -128,7 +132,7 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
-	data map[string]*entity.Outbox,
+	data []item,
 	o *Outbox,
 	n tablename.TableName,
 	pid value.PartitionID,
@@ -146,15 +150,15 @@ func getListValues(
 	return result, nil
 }
 
-func createSortedValues(data map[string]*entity.Outbox) []entity.Outbox {
+func createSortedValues(data []item) []entity.Outbox {
 	type tuple struct {
 		key   key.Key
 		value *entity.Outbox
 	}
 
 	tuples := make([]tuple, 0, len(data))
-	for _, v := range data {
-		tuples = append(tuples, tuple{key.NewKey(v.ID().Bytes()), v})
+	for _, i := range data {
+		tuples = append(tuples, tuple{key.NewKey(i.value.ID().Bytes()), i.value})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())

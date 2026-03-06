@@ -22,13 +22,12 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T) {
 	ctx := t.Context()
-	// TODO: This is flaky on insert when buffer count is 5
-	// s := storagetesting.CreateStorage(t, 5, 84)
-	s := storagetesting.CreateStorage(t, 7, 296)
+	s := storagetesting.CreateStorage(t, 5, 296)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
 
 	data := createData()
+	slices.Reverse(data)
 
 	if err := insertData(ctx, o, n, data); err != nil {
 		t.Fatal(err)
@@ -63,23 +62,28 @@ func testTenant__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string]*entity.Tenant {
-	return map[string]*entity.Tenant{
-		"1": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"2": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"3": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"4": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"5": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"6": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"7": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"8": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
-		"9": entity.NewTenant(value.NewTenantID(), value.TenantName{}),
+type item struct {
+	key   string
+	value *entity.Tenant
+}
+
+func createData() []item {
+	return []item{
+		{"1", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"2", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"3", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"4", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"5", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"6", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"7", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"8", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
+		{"9", entity.NewTenant(value.NewTenantID(), value.TenantName{})},
 	}
 }
 
-func insertData(ctx context.Context, o *Tenant, n tablename.TableName, data map[string]*entity.Tenant) error {
-	for _, v := range data {
-		if err := o.Set(ctx, n, v.ID(), v); err != nil {
+func insertData(ctx context.Context, o *Tenant, n tablename.TableName, data []item) error {
+	for _, i := range data {
+		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -91,16 +95,16 @@ func testGet(
 	t *testing.T,
 	kv *Tenant,
 	n tablename.TableName,
-	data map[string]*entity.Tenant,
+	data []item,
 ) {
-	for k, v := range data {
-		value, err := kv.Get(ctx, n, v.ID())
+	for _, i := range data {
+		value, err := kv.Get(ctx, n, i.value.ID())
 		if err != nil {
-			t.Fatal(k, err)
+			t.Fatal(i.key, err)
 		}
 
-		if *value != *v {
-			t.Errorf("incorrect result: %v, expected: %v", *value, *v)
+		if *value != *i.value {
+			t.Errorf("incorrect result: %v, expected: %v", *value, *i.value)
 		}
 	}
 }
@@ -108,7 +112,7 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
-	data map[string]*entity.Tenant,
+	data []item,
 	o *Tenant,
 	n tablename.TableName,
 ) {
@@ -125,7 +129,7 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
-	data map[string]*entity.Tenant,
+	data []item,
 	o *Tenant,
 	n tablename.TableName,
 ) ([]entity.Tenant, error) {
@@ -142,15 +146,15 @@ func getListValues(
 	return result, nil
 }
 
-func createSortedValues(data map[string]*entity.Tenant) []entity.Tenant {
+func createSortedValues(data []item) []entity.Tenant {
 	type tuple struct {
 		key   key.Key
 		value *entity.Tenant
 	}
 
 	tuples := make([]tuple, 0, len(data))
-	for _, v := range data {
-		tuples = append(tuples, tuple{key.NewKey(v.ID().Bytes()), v})
+	for _, i := range data {
+		tuples = append(tuples, tuple{key.NewKey(i.value.ID().Bytes()), i.value})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())

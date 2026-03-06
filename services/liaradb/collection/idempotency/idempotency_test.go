@@ -23,14 +23,13 @@ func TestIdempotency(t *testing.T) {
 
 func testIdempotency(t *testing.T) {
 	ctx := t.Context()
-	// TODO: This is flaky on insert when buffer count is 5
-	// s := storagetesting.CreateStorage(t, 5, 84)
-	s := storagetesting.CreateStorage(t, 7, 110)
+	s := storagetesting.CreateStorage(t, 6, 110)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()
+	slices.Reverse(data)
 
 	if err := insertData(ctx, o, n, data); err != nil {
 		t.Fatal(err)
@@ -66,23 +65,28 @@ func testRequestLog__LargeBuffer(t *testing.T) {
 	synctest.Wait()
 }
 
-func createData() map[string]*entity.RequestLog {
-	return map[string]*entity.RequestLog{
-		"1": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(0*time.Second)),
-		"2": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(1*time.Second)),
-		"3": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(2*time.Second)),
-		"4": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(3*time.Second)),
-		"5": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(4*time.Second)),
-		"6": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(5*time.Second)),
-		"7": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(6*time.Second)),
-		"8": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(7*time.Second)),
-		"9": entity.NewRequestLog(value.NewRequestID(), time.Now().Add(8*time.Second)),
+type item struct {
+	key   string
+	value *entity.RequestLog
+}
+
+func createData() []item {
+	return []item{
+		{"1", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(0*time.Second))},
+		{"2", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(1*time.Second))},
+		{"3", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(2*time.Second))},
+		{"4", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(3*time.Second))},
+		{"5", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(4*time.Second))},
+		{"6", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(5*time.Second))},
+		{"7", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(6*time.Second))},
+		{"8", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(7*time.Second))},
+		{"9", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(8*time.Second))},
 	}
 }
 
-func insertData(ctx context.Context, o *Idempotency, n tablename.TableName, data map[string]*entity.RequestLog) error {
-	for _, v := range data {
-		if err := o.Set(ctx, n, v.ID(), v); err != nil {
+func insertData(ctx context.Context, o *Idempotency, n tablename.TableName, data []item) error {
+	for _, i := range data {
+		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -95,16 +99,16 @@ func testGet(
 	kv *Idempotency,
 	n tablename.TableName,
 	pid value.PartitionID,
-	data map[string]*entity.RequestLog,
+	data []item,
 ) {
-	for k, v := range data {
-		value, err := kv.Get(ctx, n, pid, v.ID())
+	for _, i := range data {
+		value, err := kv.Get(ctx, n, pid, i.value.ID())
 		if err != nil {
-			t.Fatal(k, err)
+			t.Fatal(i.key, err)
 		}
 
-		if *value != *v {
-			t.Errorf("incorrect result: %v, expected: %v", *value, *v)
+		if *value != *i.value {
+			t.Errorf("incorrect result: %v, expected: %v", *value, *i.value)
 		}
 	}
 }
@@ -112,7 +116,7 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
-	data map[string]*entity.RequestLog,
+	data []item,
 	o *Idempotency,
 	n tablename.TableName,
 	pid value.PartitionID,
@@ -130,7 +134,7 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
-	data map[string]*entity.RequestLog,
+	data []item,
 	o *Idempotency,
 	n tablename.TableName,
 	pid value.PartitionID,
@@ -148,15 +152,15 @@ func getListValues(
 	return result, nil
 }
 
-func createSortedValues(data map[string]*entity.RequestLog) []entity.RequestLog {
+func createSortedValues(data []item) []entity.RequestLog {
 	type tuple struct {
 		key   key.Key
 		value *entity.RequestLog
 	}
 
 	tuples := make([]tuple, 0, len(data))
-	for _, v := range data {
-		tuples = append(tuples, tuple{key.NewKey(v.ID().Bytes()), v})
+	for _, i := range data {
+		tuples = append(tuples, tuple{key.NewKey(i.value.ID().Bytes()), i.value})
 	}
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())
