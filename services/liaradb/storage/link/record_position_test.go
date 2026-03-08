@@ -28,4 +28,8 @@ func TestRecordPosition(t *testing.T) {
 	if p != p2 {
 		t.Errorf("incorrect value: %v, expected: %v", p2, p)
 	}
+
+	if s := p.String(); s != "123" {
+		t.Errorf("incorrect string: %v, expected: %v", s, "123")
+	}
 }

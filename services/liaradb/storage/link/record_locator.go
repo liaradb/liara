@@ -4,9 +4,8 @@ import (
 	"github.com/liaradb/liaradb/encoder/scan"
 )
 
-const RecordIDSize = 8 + 1
+const RecordLocatorSize = 8 + 1
 
-// TODO: Test this
 type RecordLocator struct {
 	block    FilePosition
 	position RecordPosition
@@ -21,7 +20,7 @@ func NewRecordLocator(block FilePosition, position RecordPosition) RecordLocator
 
 func (i RecordLocator) Block() FilePosition { return i.block }
 func (i RecordLocator) Position() int8      { return i.position.Value() }
-func (i RecordLocator) Size() int           { return RecordIDSize }
+func (i RecordLocator) Size() int           { return RecordLocatorSize }
 
 func (le RecordLocator) Write(data []byte) []byte {
 	data0 := scan.SetInt64(data, le.block.Value())
