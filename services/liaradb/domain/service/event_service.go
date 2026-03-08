@@ -101,7 +101,7 @@ func (es *EventService) append(
 
 		if rqid, ok := options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
-			return tx.InsertRequestID(ctx, tn, rqid, now)
+			return tx.InsertRequestID(ctx, tn, rqid, value.NewTime(now))
 		}
 
 		return nil

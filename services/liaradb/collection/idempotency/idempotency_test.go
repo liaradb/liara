@@ -79,7 +79,7 @@ func createData() []item {
 	for i := range count {
 		data[15] = byte(i) + 1
 		rid, _ := value.NewRequestIDFromString(data.String())
-		items = append(items, item{fmt.Sprintf("%v", i+1), entity.NewRequestLog(rid, time.Now().Add(time.Duration(i)*time.Second))})
+		items = append(items, item{fmt.Sprintf("%v", i+1), entity.NewRequestLog(rid, value.NewTime(time.Now().Add(time.Duration(i)*time.Second)))})
 	}
 	return items
 }

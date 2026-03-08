@@ -8,10 +8,11 @@ import (
 func TestTime(t *testing.T) {
 	t.Parallel()
 
-	now := time.Now().UTC()
+	now := time.Now()
 	tm := NewTime(now)
 
-	if v := tm.Value(); v != now {
-		t.Errorf("incorrect value: %v, expected: %v", v, now)
+	value := now.Truncate(time.Microsecond).UTC()
+	if v := tm.Value(); v != value {
+		t.Errorf("incorrect value: %v, expected: %v", v, value)
 	}
 }

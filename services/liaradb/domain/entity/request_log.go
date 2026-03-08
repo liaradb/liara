@@ -20,26 +20,34 @@ type RequestLog struct {
 
 func NewRequestLog(
 	id value.RequestID,
-	t time.Time,
+	t value.Time,
 ) *RequestLog {
 	return &RequestLog{
 		id:   id,
-		time: value.NewTime(t.Truncate(time.Microsecond).UTC()),
+		time: t,
 	}
 }
 
 func RestoreRequestLog(
 	id value.RequestID,
-	t time.Time,
+	t value.Time,
 ) *RequestLog {
 	return &RequestLog{
 		id:   id,
-		time: value.NewTime(t),
+		time: t,
 	}
 }
 
 func (rl *RequestLog) ID() value.RequestID { return rl.id }
 func (rl *RequestLog) Time() value.Time    { return rl.time }
+
+func (rl *RequestLog) Compare(b *RequestLog) bool {
+	if rl == b {
+		return true
+	}
+
+	return rl.id == b.id && rl.time.Compare(b.time.Value()) == 0
+}
 
 func (rl *RequestLog) Write(data []byte) []byte {
 	data0 := rl.id.WriteData(data)

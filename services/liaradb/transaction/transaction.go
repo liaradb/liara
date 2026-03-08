@@ -401,7 +401,7 @@ func (t *Transaction) InsertRequestID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rqid value.RequestID,
-	now time.Time,
+	now value.Time,
 ) error {
 	return t.collection.Idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
 }
