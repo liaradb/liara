@@ -54,6 +54,7 @@ func dtoToAppendOptions(dto *pb.AppendOptions) (service.AppendOptions, error) {
 	return service.NewAppendOptions(
 		rid,
 		value.NewCorrelationID(dto.CorrelationId),
+		value.NewClientVersion(dto.ClientVersion),
 		value.NewUserID(dto.UserId),
 		dto.Time.AsTime(),
 	), nil
@@ -61,9 +62,9 @@ func dtoToAppendOptions(dto *pb.AppendOptions) (service.AppendOptions, error) {
 
 func metadataToDto(m entity.Metadata) *pb.EventMetadata {
 	return &pb.EventMetadata{
-		CorrelationId: m.CorrelationID.String(),
-		UserId:        m.UserID.String(),
-		Time:          timestamppb.New(m.Time.Value())}
+		CorrelationId: m.CorrelationID().String(),
+		UserId:        m.UserID().String(),
+		Time:          timestamppb.New(m.Time().Value())}
 }
 
 func dtoToPartitionRange(low int32, high int32) value.PartitionRange {

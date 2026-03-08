@@ -82,11 +82,14 @@ message AppendOptions {
   // The ID of the entire Command and Event chain
   string correlation_id = 2;
 
+  // The Version of the client
+  string client_version = 3;
+
   // The ID of the User issuing the Command
-  string user_id = 3;
+  string user_id = 4;
 
   // The Time this Event was created
-  google.protobuf.Timestamp time = 4;
+  google.protobuf.Timestamp time = 5;
 }
 
 message AppendEvent {
