@@ -7,7 +7,6 @@ type PartitionRange struct {
 	high PartitionID
 }
 
-// TODO: Should this be two parameters?
 func NewPartitionRange(low PartitionID, high PartitionID) PartitionRange {
 	if low.Value() > high.Value() {
 		low, high = high, low

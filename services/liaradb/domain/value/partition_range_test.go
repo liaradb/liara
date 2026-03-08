@@ -2,6 +2,52 @@ package value
 
 import "testing"
 
+func TestParitionRange(t *testing.T) {
+	for message, c := range map[string]struct {
+		skip bool
+		a    PartitionID
+		b    PartitionID
+		low  PartitionID
+		high PartitionID
+	}{
+		"should create": {
+			a:    NewPartitionID(1),
+			b:    NewPartitionID(2),
+			low:  NewPartitionID(1),
+			high: NewPartitionID(2),
+		},
+		"should create in reverse": {
+			a:    NewPartitionID(2),
+			b:    NewPartitionID(1),
+			low:  NewPartitionID(1),
+			high: NewPartitionID(2),
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			pr := NewPartitionRange(c.a, c.b)
+
+			if l := pr.Low(); l != c.low {
+				t.Errorf("incorrect value: %v, expected: %v", l, c.low)
+			}
+
+			if h := pr.High(); h != c.high {
+				t.Errorf("incorrect value: %v, expected: %v", h, c.high)
+			}
+
+			if l, h := pr.All(); l != c.low {
+				t.Errorf("incorrect value: %v, expected: %v", l, c.low)
+			} else if h != c.high {
+				t.Errorf("incorrect value: %v, expected: %v", h, c.high)
+			}
+		})
+	}
+}
+
 func TestPartitionRange_ReadWrite(t *testing.T) {
 	t.Parallel()
 

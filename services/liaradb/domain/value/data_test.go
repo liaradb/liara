@@ -1,6 +1,26 @@
 package value
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
+
+func TestData(t *testing.T) {
+	value := "value"
+	data := NewData([]byte(value))
+
+	if s := data.String(); s != value {
+		t.Errorf("incorrect string: %v, expected: %v", s, value)
+	}
+
+	if v := data.Value(); !slices.Equal(v, []byte(value)) {
+		t.Errorf("incorrect value: %v, expected: %v", v, []byte(value))
+	}
+
+	if s := data.Size(); s != len(value) {
+		t.Errorf("incorrect size: %v, expected: %v", s, len(value))
+	}
+}
 
 func TestData_Compare(t *testing.T) {
 	for message, c := range map[string]struct {
