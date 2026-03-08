@@ -1,20 +1,18 @@
 package value
 
 import (
-	"bufio"
-	"bytes"
 	"io"
 	"testing"
 
 	"github.com/google/uuid"
 )
 
-func TestEventID(t *testing.T) {
+func TestTenantID(t *testing.T) {
 	t.Parallel()
 
 	r, w := newReaderWriter()
 
-	var e EventID = NewEventID()
+	var e TenantID = NewTenantID()
 	if err := e.Write(w); err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +22,7 @@ func TestEventID(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	var e2 EventID
+	var e2 TenantID
 	if err := e2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
@@ -35,12 +33,12 @@ func TestEventID(t *testing.T) {
 	}
 }
 
-func TestEventID_NewEventIDFromString(t *testing.T) {
+func TestTenantID_NewTenantIDFromString(t *testing.T) {
 	t.Parallel()
 
 	value := uuid.NewString()
 
-	e, err := NewEventIDFromString(value)
+	e, err := NewTenantIDFromString(value)
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,13 +47,8 @@ func TestEventID_NewEventIDFromString(t *testing.T) {
 		t.Errorf("incorrect string: %v, expected: %v", s, value)
 	}
 
-	_, err = NewEventIDFromString("abcde")
+	_, err = NewTenantIDFromString("abcde")
 	if err == nil {
 		t.Error("should return error")
 	}
-}
-
-func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
-	buffer := bytes.NewBuffer(nil)
-	return bufio.NewReader(buffer), buffer
 }

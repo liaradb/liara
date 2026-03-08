@@ -1,8 +1,11 @@
 package value
 
 import (
+	"io"
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestData(t *testing.T) {
@@ -19,6 +22,32 @@ func TestData(t *testing.T) {
 
 	if s := data.Size(); s != len(value) {
 		t.Errorf("incorrect size: %v, expected: %v", s, len(value))
+	}
+}
+
+func TestData_WriteRead(t *testing.T) {
+	t.Parallel()
+
+	r, w := newReaderWriter()
+
+	var e Data = NewData([]byte{1, 2, 3, 4})
+	if err := e.Write(w); err != nil {
+		t.Fatal(err)
+	}
+
+	size := w.Len() - raw.HeaderSize
+	if s := e.Size(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
+	}
+
+	var e2 Data
+	if err := e2.Read(r); err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+
+	s1, s2 := e.String(), e2.String()
+	if s1 != s2 {
+		t.Errorf("incorrect value: %v, expected: %v", s2, s1)
 	}
 }
 
