@@ -1,8 +1,6 @@
 package raw
 
-import (
-	"io"
-)
+import "io"
 
 type BaseString string
 

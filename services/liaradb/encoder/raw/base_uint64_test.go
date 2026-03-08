@@ -58,4 +58,8 @@ func TestBaseUIn64__Remainder(t *testing.T) {
 	if v := b0.Value(); v != 2 {
 		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
+
+	if s := b.Size(); s != 8 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	}
 }
