@@ -1,9 +1,9 @@
 module github.com/liaradb/eventsource_go
 
-go 1.26.0
+go 1.26.1
 
 require (
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 )
 
