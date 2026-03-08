@@ -15,7 +15,7 @@ const (
 
 type RequestLog struct {
 	id   value.RequestID
-	time time.Time // TODO: Change to raw.BaseTime
+	time value.Time
 }
 
 func NewRequestLog(
@@ -24,7 +24,7 @@ func NewRequestLog(
 ) *RequestLog {
 	return &RequestLog{
 		id:   id,
-		time: t.Truncate(time.Microsecond).UTC(),
+		time: value.NewTime(t.Truncate(time.Microsecond).UTC()),
 	}
 }
 
@@ -34,12 +34,12 @@ func RestoreRequestLog(
 ) *RequestLog {
 	return &RequestLog{
 		id:   id,
-		time: t,
+		time: value.NewTime(t),
 	}
 }
 
 func (rl *RequestLog) ID() value.RequestID { return rl.id }
-func (rl *RequestLog) Time() time.Time     { return rl.time }
+func (rl *RequestLog) Time() value.Time    { return rl.time }
 
 func (rl *RequestLog) Write(data []byte) []byte {
 	data0 := rl.id.WriteData(data)
@@ -50,6 +50,6 @@ func (rl *RequestLog) Write(data []byte) []byte {
 func (rl *RequestLog) Read(data []byte) []byte {
 	data0 := rl.id.ReadData(data)
 	t, data1 := scan.Int64(data0)
-	rl.time = time.UnixMicro(t).UTC()
+	rl.time = value.NewTime(time.UnixMicro(t).UTC())
 	return data1
 }

@@ -41,3 +41,26 @@ func TestTenant_Rename(t *testing.T) {
 	}
 
 }
+
+func TestTenant_ReadWrite(t *testing.T) {
+	tid := value.NewTenantID()
+	name := value.NewTenantName("name")
+	tn := NewTenant(tid, name)
+
+	data := make([]byte, TenantSize+2)
+	data0 := tn.Write(data)
+
+	if l := len(data0); l != 2 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	}
+
+	tn1 := &Tenant{}
+	data1 := tn1.Read(data)
+	if l := len(data1); l != 2 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	}
+
+	if *tn1 != *tn {
+		t.Errorf("incorrect result: %v, expected: %v", *tn1, *tn)
+	}
+}

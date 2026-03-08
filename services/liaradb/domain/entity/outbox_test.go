@@ -22,7 +22,7 @@ func TestOutbox(t *testing.T) {
 		t.Errorf("incorrect partition range: %v, expected: %v", r, pr)
 	}
 
-	if v := o.globalVersion.Value(); v != 0 {
+	if v := o.GlobalVersion().Value(); v != 0 {
 		t.Errorf("incorrect global version: %v, expected: %v", v, 0)
 	}
 }
@@ -35,7 +35,7 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 
 	o := NewOutbox(oid, pr)
 
-	if v := o.globalVersion.Value(); v != 0 {
+	if v := o.GlobalVersion().Value(); v != 0 {
 		t.Errorf("incorrect global version: %v, expected: %v", v, 0)
 	}
 
@@ -43,7 +43,7 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 
 	o.UpdateGlobalVersion(gv)
 
-	if v := o.globalVersion; v != gv {
+	if v := o.GlobalVersion(); v != gv {
 		t.Errorf("incorrect global version: %v, expected: %v", v, gv)
 	}
 }

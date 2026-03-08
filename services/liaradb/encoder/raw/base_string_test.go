@@ -12,7 +12,11 @@ func TestBaseString(t *testing.T) {
 	_ = n.WriteData(data, size)
 
 	var r BaseString
-	r.ReadData(data, size)
+	data0 := r.ReadData(data, size)
+
+	if l := len(data0); l != 0 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 0)
+	}
 
 	if r.String() != n.String() {
 		t.Errorf("incorrect result: %v, expected: %v", r.String(), n.String())

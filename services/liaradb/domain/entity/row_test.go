@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestRow_Default(t *testing.T) {
@@ -20,10 +21,10 @@ func TestRow_Default(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// size := w.Len()
-	// if s := lsn.Size(); s != size {
-	// 	t.Errorf("incorrect size: %v, expected: %v", s, size)
-	// }
+	size := w.Len() - raw.HeaderSize
+	if s := row.Size(); s != size {
+		t.Errorf("incorrect size: %v, expected: %v", s, size)
+	}
 
 	var row2 Row
 	if err := row2.Read(r); err != nil && err != io.EOF {
@@ -150,19 +151,26 @@ func TestRow_Compare(t *testing.T) {
 	cver := value.NewClientVersion("clientversion")
 	tm := value.NewTime(time.Now())
 
+	pointer := &Row{}
+
 	for message, c := range map[string]struct {
 		skip  bool
-		a     Row
-		b     Row
+		a     *Row
+		b     *Row
 		equal bool
 	}{
 		"should equal zero": {
-			a:     Row{},
-			b:     Row{},
+			a:     &Row{},
+			b:     &Row{},
+			equal: true,
+		},
+		"should equal pointer": {
+			a:     pointer,
+			b:     pointer,
 			equal: true,
 		},
 		"should equal same values": {
-			a: *NewRow(
+			a: NewRow(
 				rid,
 				v,
 				pid,
@@ -176,7 +184,7 @@ func TestRow_Compare(t *testing.T) {
 				),
 				value.NewData([]byte{1, 2, 3}),
 			),
-			b: *NewRow(
+			b: NewRow(
 				rid,
 				v,
 				pid,
@@ -193,7 +201,7 @@ func TestRow_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should not equal different values": {
-			a: *NewRow(
+			a: NewRow(
 				rid,
 				v,
 				pid,
@@ -207,7 +215,7 @@ func TestRow_Compare(t *testing.T) {
 				),
 				value.NewData([]byte{1, 2, 3}),
 			),
-			b: *NewRow(
+			b: NewRow(
 				value.NewRowID(),
 				v,
 				pid,
@@ -224,7 +232,7 @@ func TestRow_Compare(t *testing.T) {
 			equal: false,
 		},
 		"should not equal different data": {
-			a: *NewRow(
+			a: NewRow(
 				rid,
 				v,
 				pid,
@@ -238,7 +246,7 @@ func TestRow_Compare(t *testing.T) {
 				),
 				value.NewData([]byte{1, 2, 3}),
 			),
-			b: *NewRow(
+			b: NewRow(
 				rid,
 				v,
 				pid,
@@ -261,7 +269,7 @@ func TestRow_Compare(t *testing.T) {
 				t.Skip()
 			}
 
-			if c.a.Compare(&c.b) != c.equal {
+			if c.a.Compare(c.b) != c.equal {
 				if c.equal {
 					t.Error("should equal")
 				} else {

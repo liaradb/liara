@@ -20,7 +20,6 @@ type Event struct {
 	Data          value.Data          // The internal data of the Event
 }
 
-// TODO: Test this
 func (e Event) Size() int {
 	return raw.Size(
 		e.GlobalVersion,

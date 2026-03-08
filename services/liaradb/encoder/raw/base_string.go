@@ -21,5 +21,5 @@ func (s BaseString) WriteData(data []byte, colSize int) []byte {
 func (s *BaseString) ReadData(data []byte, colSize int) []byte {
 	l := data[0]
 	*s = BaseString(data[1 : 1+l])
-	return data[1+l:]
+	return data[colSize:]
 }

@@ -49,7 +49,6 @@ func (r *Row) SetData(data value.Data) {
 	r.data = data
 }
 
-// TODO: Test this
 func (r *Row) Size() int {
 	return raw.Size(
 		r.id,
