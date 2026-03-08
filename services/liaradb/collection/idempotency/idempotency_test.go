@@ -2,12 +2,14 @@ package idempotency
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
 	"testing/synctest"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -71,17 +73,15 @@ type item struct {
 }
 
 func createData() []item {
-	return []item{
-		{"1", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(0*time.Second))},
-		{"2", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(1*time.Second))},
-		{"3", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(2*time.Second))},
-		{"4", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(3*time.Second))},
-		{"5", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(4*time.Second))},
-		{"6", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(5*time.Second))},
-		{"7", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(6*time.Second))},
-		{"8", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(7*time.Second))},
-		{"9", entity.NewRequestLog(value.NewRequestID(), time.Now().Add(8*time.Second))},
+	count := 9
+	data := uuid.UUID{}
+	items := make([]item, 0, count)
+	for i := range count {
+		data[15] = byte(i) + 1
+		rid, _ := value.NewRequestIDFromString(data.String())
+		items = append(items, item{fmt.Sprintf("%v", i+1), entity.NewRequestLog(rid, time.Now().Add(time.Duration(i)*time.Second))})
 	}
+	return items
 }
 
 func insertData(ctx context.Context, o *Idempotency, n tablename.TableName, data []item) error {
