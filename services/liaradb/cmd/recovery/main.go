@@ -45,7 +45,7 @@ func run() error {
 			slog.Error("recovery", "error", err)
 		}
 
-		fmt.Printf("<%v>\n", rc.Action())
+		fmt.Printf("%v\t%v\t<%v>\n", rc.LogSequenceNumber(), rc.TransactionID(), rc.Action())
 	}
 
 	return nil
