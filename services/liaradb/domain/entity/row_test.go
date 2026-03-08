@@ -120,8 +120,20 @@ func TestRow__Getters(t *testing.T) {
 		t.Errorf("incorrect schema: %v, expected: %v", v, schema)
 	}
 
-	if v := row.Name(); v != name {
-		t.Errorf("incorrect name: %v, expected: %v", v, name)
+	if v := row.Metadata().UserID(); v != userID {
+		t.Errorf("incorrect user id: %v, expected: %v", v, userID)
+	}
+
+	if v := row.Metadata().CorrelationID(); v != correlationID {
+		t.Errorf("incorrect correlation id: %v, expected: %v", v, correlationID)
+	}
+
+	if v := row.Metadata().ClientVersion(); v != clientVersion {
+		t.Errorf("incorrect client version: %v, expected: %v", v, clientVersion)
+	}
+
+	if v := row.Metadata().Time(); v != tm {
+		t.Errorf("incorrect time: %v, expected: %v", v, tm)
 	}
 }
 

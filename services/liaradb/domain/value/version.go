@@ -10,4 +10,8 @@ func NewVersion(value uint64) Version {
 	return Version{baseUint64(value)}
 }
 
+func (v *Version) Increment() {
+	v.baseUint64++
+}
+
 const VersionSize = raw.BaseUint64Size

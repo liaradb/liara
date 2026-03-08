@@ -43,6 +43,7 @@ func RestoreTenant(
 
 func (t *Tenant) Rename(name value.TenantName) error {
 	t.name = name
+	t.version.Increment()
 	return nil
 }
 
