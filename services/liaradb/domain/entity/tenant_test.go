@@ -24,6 +24,25 @@ func TestTenant(t *testing.T) {
 	}
 }
 
+func TestTenant_RestoreTenant(t *testing.T) {
+	tid := value.NewTenantID()
+	name := value.NewTenantName("name")
+	version := value.NewVersion(1)
+	tn := RestoreTenant(tid, version, name)
+
+	if i := tn.ID(); i != tid {
+		t.Errorf("incorrect id: %v, expected: %v", i, tid)
+	}
+
+	if v := tn.Version(); v != version {
+		t.Errorf("incorrect version: %v, expected: %v", v, version)
+	}
+
+	if n := tn.Name(); n != name {
+		t.Errorf("incorrect name: %v, expected: %v", n, name)
+	}
+}
+
 func TestTenant_Rename(t *testing.T) {
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")

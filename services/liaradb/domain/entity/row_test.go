@@ -2,6 +2,7 @@ package entity
 
 import (
 	"io"
+	"slices"
 	"testing"
 	"time"
 
@@ -135,6 +136,10 @@ func TestRow__Getters(t *testing.T) {
 
 	if v := row.Metadata().Time(); v != tm {
 		t.Errorf("incorrect time: %v, expected: %v", v, tm)
+	}
+
+	if v := row.Data().Value(); !slices.Equal(v, data.Value()) {
+		t.Errorf("incorrect name: %v, expected: %v", v, data.Value())
 	}
 }
 

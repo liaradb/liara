@@ -7,6 +7,34 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 )
 
+func TestRequestLog(t *testing.T) {
+	rlid := value.NewRequestID()
+	tm := time.Now().UTC()
+	rl := NewRequestLog(rlid, tm)
+
+	if i := rl.ID(); i != rlid {
+		t.Errorf("incorrect id: %v, expected: %v", i, rlid)
+	}
+
+	if tm2 := rl.Time().Value(); tm2 != tm {
+		t.Errorf("incorrect time: %v, expected: %v", tm2, tm)
+	}
+}
+
+func TestRequestLog_RestoreRequestLog(t *testing.T) {
+	rlid := value.NewRequestID()
+	tm := time.Now().UTC()
+	rl := RestoreRequestLog(rlid, tm)
+
+	if i := rl.ID(); i != rlid {
+		t.Errorf("incorrect id: %v, expected: %v", i, rlid)
+	}
+
+	if tm2 := rl.Time().Value(); tm2 != tm {
+		t.Errorf("incorrect time: %v, expected: %v", tm2, tm)
+	}
+}
+
 func TestRequestLog_ReadWrite(t *testing.T) {
 	rl := NewRequestLog(
 		value.NewRequestID(),
