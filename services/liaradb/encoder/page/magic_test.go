@@ -126,10 +126,50 @@ func TestMagic_Read__Error(t *testing.T) {
 	}
 }
 
+func TestMagicEmpty(t *testing.T) {
+	t.Parallel()
+
+	if s := MagicEmpty.String(); s != "\x00\x00\x00\x00" {
+		t.Error("value is incorrect")
+	}
+
+	if !MagicEmpty.IsEmpty() {
+		t.Error("should be empty")
+	}
+
+	if MagicEmpty.IsPage() {
+		t.Error("should not be page")
+	}
+}
+
+func TestMagicFree(t *testing.T) {
+	t.Parallel()
+
+	if s := MagicFree.String(); s != "FREE" {
+		t.Error("value is incorrect")
+	}
+
+	if MagicFree.IsEmpty() {
+		t.Error("should not be empty")
+	}
+
+	if MagicFree.IsPage() {
+		t.Error("should not be page")
+	}
+}
+
 func TestMagicPage(t *testing.T) {
 	t.Parallel()
 
 	if s := MagicPage.String(); s != "PAGE" {
 		t.Error("value is incorrect")
+	}
+
+	if MagicPage.IsEmpty() {
+		t.Error("should not be empty")
+	}
+
+	if !MagicPage.IsPage() {
+		t.Error("should be page")
 	}
 }
