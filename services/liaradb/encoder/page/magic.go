@@ -26,6 +26,14 @@ func (m *Magic) Read(r io.Reader) error {
 		return err
 	}
 
+	return m.validate()
+}
+
+func (m *Magic) read(r io.Reader) error {
+	return raw.ReadInt32(r, m)
+}
+
+func (m *Magic) validate() error {
 	switch *m {
 	case MagicEmpty:
 		return nil
@@ -36,10 +44,6 @@ func (m *Magic) Read(r io.Reader) error {
 	default:
 		return ErrNotPage
 	}
-}
-
-func (m *Magic) read(r io.Reader) error {
-	return raw.ReadInt32(r, m)
 }
 
 func (m Magic) String() string {

@@ -25,6 +25,12 @@ func TestCRC(t *testing.T) {
 	if err := c2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
+}
+
+func TestCRC_RestoreCRC(t *testing.T) {
+	var c CRC = NewCRC([]byte{1, 2, 3, 4, 5})
+
+	c2 := RestoreCRC(c.Value())
 
 	if c != c2 {
 		t.Errorf("incorrect value: %v, expected: %v", c2, c)

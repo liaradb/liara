@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-// TODO: This must be int64 to prevent overflows
+// This must be signed to prevent overflows
 type Offset int64
 
 const OffsetSize = 8
