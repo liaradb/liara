@@ -202,7 +202,6 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 func testLeafNode_Insert__Split(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
-	defer b.Release()
 
 	bp := node.New(b)
 	ln := New(bp)
@@ -253,6 +252,10 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 	// 	}
 	// }
+
+	b.Release()
+
+	synctest.Wait()
 }
 
 func TestLeafNode_SetLeftID(t *testing.T) {
