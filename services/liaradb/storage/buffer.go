@@ -4,13 +4,13 @@ import (
 	"io"
 	"sync"
 
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Buffer struct {
 	blockID link.BlockID
-	buffer  *raw.Buffer
+	buffer  *buffer.Buffer
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -19,7 +19,7 @@ type Buffer struct {
 
 func newBuffer(s *Storage) *Buffer {
 	return &Buffer{
-		buffer: raw.NewBuffer(s.BufferSize()),
+		buffer: buffer.New(s.BufferSize()),
 		s:      s,
 	}
 }

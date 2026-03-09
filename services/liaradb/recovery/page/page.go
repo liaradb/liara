@@ -4,10 +4,10 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/crclist"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -129,7 +129,7 @@ func (p *Page) read(r io.ReadSeeker) error {
 
 func (p *Page) records() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		b := &raw.Buffer{}
+		b := &buffer.Buffer{}
 		for i := range p.Items() {
 			b.Reset(i)
 			rc := &record.Record{}
@@ -147,7 +147,7 @@ func (p *Page) records() iter.Seq2[*record.Record, error] {
 
 func (p *Page) reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		b := &raw.Buffer{}
+		b := &buffer.Buffer{}
 		for i := range p.ItemsReverse() {
 			b.Reset(i)
 			rc := &record.Record{}

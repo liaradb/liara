@@ -13,7 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/storage/storagetesting"
 )
 
@@ -224,7 +224,7 @@ func testEventLog_AppendEvent(t *testing.T) {
 
 	for i, r := range records {
 		k := key.NewKey2([]byte(""), int64(i))
-		if _, err := el.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(r)); err != nil {
+		if _, err := el.AppendEvent(ctx, tn, pid, k, buffer.NewFromSlice(r)); err != nil {
 			t.Fatal(err)
 		}
 	}

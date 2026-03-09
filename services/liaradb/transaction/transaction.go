@@ -12,7 +12,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -286,7 +286,7 @@ func (t *Transaction) appendToEventLog(
 		// TODO: Fix unsigned int
 		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
 
-		_, err := t.collection.EventLog.AppendEvent(ctx, tn, pid, k, raw.NewBufferFromSlice(item.data))
+		_, err := t.collection.EventLog.AppendEvent(ctx, tn, pid, k, buffer.NewFromSlice(item.data))
 		if err != nil {
 			return err
 		}

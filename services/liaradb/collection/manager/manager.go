@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 )
@@ -29,13 +30,13 @@ func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
 		return 0, err
 	}
 
-	b := raw.NewBufferFromSlice(d)
+	b := buffer.NewFromSlice(d)
 	var i int64
 	return i, raw.ReadInt64(b, &i)
 }
 
 func (m *Manager) Insert(ctx context.Context, k key.Key, i int64) error {
-	b := raw.NewBuffer(8)
+	b := buffer.New(8)
 	raw.WriteInt64(b, i)
 	return m.kv.Set(ctx, m.tn, k, b.Bytes())
 }
@@ -47,7 +48,7 @@ func (m *Manager) List(ctx context.Context) ([]int64, error) {
 			return nil, err
 		}
 
-		b := raw.NewBufferFromSlice(d)
+		b := buffer.NewFromSlice(d)
 		var i int64
 		if err := raw.ReadInt64(b, &i); err != nil {
 			return nil, err

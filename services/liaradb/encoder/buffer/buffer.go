@@ -1,4 +1,4 @@
-package raw
+package buffer
 
 import "io"
 
@@ -8,13 +8,13 @@ type Buffer struct {
 	cursor int64
 }
 
-func NewBuffer(size int64) *Buffer {
+func New(size int64) *Buffer {
 	return &Buffer{
 		data: make([]byte, size),
 	}
 }
 
-func NewBufferFromSlice(data []byte) *Buffer {
+func NewFromSlice(data []byte) *Buffer {
 	return &Buffer{
 		data: data,
 	}

@@ -4,5 +4,4 @@ import "errors"
 
 var (
 	ErrInsufficientSpace = errors.New("insufficient space")
-	ErrUnderflow         = errors.New("underflow")
 )

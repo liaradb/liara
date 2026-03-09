@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -329,7 +329,7 @@ func testNode_Child(t *testing.T) {
 		}
 
 		v := make([]byte, 5)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 
@@ -368,7 +368,7 @@ func testNode_Items(t *testing.T) {
 	result := make([][]byte, 0, len(values))
 	for c := range p.Items() {
 		v := make([]byte, 2)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 
@@ -407,7 +407,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	result := make([][]byte, 0, len(values))
 	for c := range p.ChildrenRange(1, 4) {
 		v := make([]byte, 2)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 

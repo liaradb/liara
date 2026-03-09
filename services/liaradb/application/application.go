@@ -17,7 +17,7 @@ import (
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
@@ -147,7 +147,7 @@ func (a *Application) recover(ctx context.Context) error {
 
 func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error {
 	var e entity.Event
-	if err := e.Read(raw.NewBufferFromSlice(r.Data())); err != nil {
+	if err := e.Read(buffer.NewFromSlice(r.Data())); err != nil {
 		return err
 	}
 

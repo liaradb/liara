@@ -5,8 +5,8 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/storage/storagetesting"
@@ -53,7 +53,7 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s1)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
+	if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
 		t.Error(err)
 	}
 
@@ -69,7 +69,7 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s2)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
+	if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
 		t.Error(err)
 	}
 
@@ -78,7 +78,7 @@ func testNode_Append(t *testing.T) {
 	// }
 
 	r0 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
+	if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
 		t.Error(err)
 	}
 
@@ -91,7 +91,7 @@ func testNode_Append(t *testing.T) {
 	// }
 
 	r1 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
+	if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
 		t.Error(err)
 	}
 
@@ -136,7 +136,7 @@ func testNode_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(v0); err != nil {
+	if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -151,7 +151,7 @@ func testNode_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
 	}
 
-	if _, err := raw.NewBufferFromSlice(b1).Write(v1); err != nil {
+	if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -160,7 +160,7 @@ func testNode_Insert(t *testing.T) {
 	// }
 
 	r0 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b0).Read(r0); err != nil {
+	if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -173,7 +173,7 @@ func testNode_Insert(t *testing.T) {
 	// }
 
 	r1 := make([]byte, 5)
-	if _, err := raw.NewBufferFromSlice(b1).Read(r1); err != nil {
+	if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -232,7 +232,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := raw.NewBufferFromSlice(b0).Write(values[0]); err != nil {
+	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
 	}
 
@@ -241,7 +241,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if _, err := raw.NewBufferFromSlice(b1).Write(values[1]); err != nil {
+	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
 	}
 
@@ -253,7 +253,7 @@ func testNode_Child(t *testing.T) {
 		}
 
 		v := make([]byte, 5)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 
@@ -289,7 +289,7 @@ func testNode_Children(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		if _, err := raw.NewBufferFromSlice(b).Write(v); err != nil {
+		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
 		}
 	}
@@ -297,7 +297,7 @@ func testNode_Children(t *testing.T) {
 	result := make([][]byte, 0, len(values))
 	for c := range p.Children() {
 		v := make([]byte, 2)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 
@@ -333,7 +333,7 @@ func testNode_ChildrenRange(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		if _, err := raw.NewBufferFromSlice(b0).Write(v); err != nil {
+		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
 			t.Error(err)
 		}
 	}
@@ -341,7 +341,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	result := make([][]byte, 0, len(values))
 	for c := range p.ChildrenRange(1, 4) {
 		v := make([]byte, 2)
-		if _, err := raw.NewBufferFromSlice(c).Read(v); err != nil {
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
 		}
 

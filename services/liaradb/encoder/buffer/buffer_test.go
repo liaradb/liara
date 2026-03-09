@@ -1,4 +1,4 @@
-package raw
+package buffer
 
 import (
 	"io"
@@ -14,7 +14,7 @@ var (
 func TestBuffer_Default(t *testing.T) {
 	t.Parallel()
 
-	b := NewBuffer(10)
+	b := New(10)
 
 	result := make([]byte, 10)
 	if n, err := b.Read(result); err != nil {
@@ -33,7 +33,7 @@ func TestBuffer_NewBufferFromSlice(t *testing.T) {
 	t.Parallel()
 
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
-	b := NewBufferFromSlice(data)
+	b := NewFromSlice(data)
 
 	result := make([]byte, 10)
 	if n, err := b.Read(result); err != nil {
@@ -51,7 +51,7 @@ func TestBuffer_Bytes(t *testing.T) {
 	t.Parallel()
 
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
-	b := NewBufferFromSlice(data)
+	b := NewFromSlice(data)
 
 	if b := b.Bytes(); !slices.Equal(b, data) {
 		t.Errorf("incorrect byte slice: %v, expected: %v", b, data)
@@ -62,7 +62,7 @@ func TestBuffer_Length(t *testing.T) {
 	t.Parallel()
 
 	var size int64 = 10
-	b := NewBuffer(size)
+	b := New(size)
 
 	if s := b.Length(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", size, s)
@@ -72,7 +72,7 @@ func TestBuffer_Length(t *testing.T) {
 func TestBuffer_Clear(t *testing.T) {
 	t.Parallel()
 
-	b := NewBuffer(10)
+	b := New(10)
 
 	if n, err := b.Write(data0); err != nil {
 		t.Error(err)
@@ -111,7 +111,7 @@ func TestBuffer_ClearAfter(t *testing.T) {
 	t.Parallel()
 
 	base := []byte{1, 2, 3, 4, 5, 6, 7, 8}
-	b := NewBufferFromSlice(slices.Clone(base))
+	b := NewFromSlice(slices.Clone(base))
 
 	if !slices.Equal(b.Bytes(), base) {
 		t.Errorf("incorrect bytes: %v, expected: %v", b.Bytes(), base)
@@ -128,7 +128,7 @@ func TestBuffer_ClearAfter(t *testing.T) {
 func TestBuffer_Reset(t *testing.T) {
 	t.Parallel()
 
-	b0 := NewBuffer(20)
+	b0 := New(20)
 
 	if n, err := b0.Write(data0); err != nil {
 		t.Error(err)
@@ -136,7 +136,7 @@ func TestBuffer_Reset(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", n, 5)
 	}
 
-	b1 := NewBuffer(20)
+	b1 := New(20)
 
 	if n, err := b1.Write(data1); err != nil {
 		t.Error(err)
@@ -163,7 +163,7 @@ func TestBuffer_ReadWrite(t *testing.T) {
 	t.Run("should write", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		if n, err := b.Write(data0); err != nil {
 			t.Error(err)
@@ -205,7 +205,7 @@ func TestBuffer_ReadWrite(t *testing.T) {
 	t.Run("should not write after buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(2)
+		b := New(2)
 
 		result := make([]byte, 5)
 
@@ -221,7 +221,7 @@ func TestBuffer_ReadWrite(t *testing.T) {
 	t.Run("should not read after buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(2)
+		b := New(2)
 
 		result := make([]byte, 5)
 
@@ -241,7 +241,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should write at", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(256)
+		b := New(256)
 
 		// Write out of order
 		if n, err := b.WriteAt(data1, 5); err != nil {
@@ -277,7 +277,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	})
 
 	t.Run("should update cursor position", func(t *testing.T) {
-		b := NewBuffer(256)
+		b := New(256)
 
 		if n, err := b.WriteAt(data0, 0); err != nil {
 			t.Error(err)
@@ -319,7 +319,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not write before buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -335,7 +335,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not write beyond buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -351,7 +351,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not write after buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -367,7 +367,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not read before buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -383,7 +383,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not read beyond buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -399,7 +399,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not read after buffer", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -415,7 +415,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should not read at buffer end", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 5)
 
@@ -431,7 +431,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should read trivial case", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 0)
 
@@ -447,7 +447,7 @@ func TestBuffer_ReadAtWriteAt(t *testing.T) {
 	t.Run("should read trivial case at buffer end", func(t *testing.T) {
 		t.Parallel()
 
-		b := NewBuffer(20)
+		b := New(20)
 
 		result := make([]byte, 0)
 
@@ -500,7 +500,7 @@ func TestBuffer_Seek(t *testing.T) {
 				t.Skip()
 			}
 
-			b := NewBuffer(20)
+			b := New(20)
 
 			if n, err := b.Seek(initialPosition, io.SeekStart); err != nil {
 				t.Error(err)
