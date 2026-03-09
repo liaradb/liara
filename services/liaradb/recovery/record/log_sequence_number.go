@@ -6,10 +6,10 @@ type LogSequenceNumber struct {
 	baseUint64
 }
 
-const LogSequenceNumberSize = base.BaseUint64Size
+const LogSequenceNumberSize = base.Uint64Size
 
 func NewLogSequenceNumber(value uint64) LogSequenceNumber {
-	return LogSequenceNumber{base.NewBaseUint64(value)}
+	return LogSequenceNumber{base.NewUint64(value)}
 }
 
 func (l LogSequenceNumber) Increment() LogSequenceNumber {

@@ -9,5 +9,5 @@ type (
 	baseString = base.String
 	baseTime   = base.Time
 	baseUint32 = base.Uint32
-	baseUint64 = base.BaseUint64
+	baseUint64 = base.Uint64
 )

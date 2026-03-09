@@ -2,24 +2,24 @@ package base
 
 import "testing"
 
-func TestBaseUint64_String(t *testing.T) {
+func TestUint64_String(t *testing.T) {
 	t.Parallel()
 
 	for message, c := range map[string]struct {
 		skip  bool
-		value BaseUint64
+		value Uint64
 		want  string
 	}{
 		"should handle 0": {
-			value: NewBaseUint64(0),
+			value: NewUint64(0),
 			want:  "0000000000000000",
 		},
 		"should handle 1": {
-			value: NewBaseUint64(1),
+			value: NewUint64(1),
 			want:  "0000000000000001",
 		},
 		"should handle 2": {
-			value: NewBaseUint64(2),
+			value: NewUint64(2),
 			want:  "0000000000000002",
 		},
 	} {
@@ -36,10 +36,10 @@ func TestBaseUint64_String(t *testing.T) {
 	}
 }
 
-func TestBaseUIn64__Remainder(t *testing.T) {
+func TestUIn64__Remainder(t *testing.T) {
 	t.Parallel()
 
-	b := NewBaseUint64(2)
+	b := NewUint64(2)
 
 	data := make([]byte, 16)
 	data0 := b.WriteData(data)
@@ -48,7 +48,7 @@ func TestBaseUIn64__Remainder(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	b0 := BaseUint64(0)
+	b0 := Uint64(0)
 	data1 := b0.ReadData(data)
 
 	if l := len(data1); l != 8 {

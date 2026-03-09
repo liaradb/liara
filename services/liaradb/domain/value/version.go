@@ -14,4 +14,4 @@ func (v *Version) Increment() {
 	v.baseUint64++
 }
 
-const VersionSize = base.BaseUint64Size
+const VersionSize = base.Uint64Size
