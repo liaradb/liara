@@ -5,13 +5,13 @@ import (
 	"testing"
 )
 
-func TestBaseString(t *testing.T) {
+func TestString(t *testing.T) {
 	size := 32
-	n := BaseString("name")
+	n := String("name")
 	data := make([]byte, size)
 	_ = n.WriteData(data, size)
 
-	var r BaseString
+	var r String
 	data0 := r.ReadData(data, size)
 
 	if l := len(data0); l != 0 {

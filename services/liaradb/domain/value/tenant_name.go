@@ -9,7 +9,7 @@ type TenantName struct {
 }
 
 func NewTenantName(value string) TenantName {
-	return TenantName{base.BaseString(value)}
+	return TenantName{base.String(value)}
 }
 
 func (tn TenantName) WriteData(data []byte) []byte {
