@@ -3,7 +3,7 @@ package value
 import (
 	"time"
 
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/base"
 )
 
 type Time struct {
@@ -11,5 +11,5 @@ type Time struct {
 }
 
 func NewTime(t time.Time) Time {
-	return Time{raw.NewTime(t)}
+	return Time{base.NewTime(t)}
 }

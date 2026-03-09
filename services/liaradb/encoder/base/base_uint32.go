@@ -1,9 +1,10 @@
-package raw
+package base
 
 import (
 	"fmt"
 	"io"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/scan"
 )
 
@@ -20,11 +21,11 @@ func (b BaseUint32) Size() int      { return BaseUint32Size }
 func (b BaseUint32) String() string { return fmt.Sprintf("%08x", b.Value()) }
 
 func (b BaseUint32) Write(w io.Writer) error {
-	return WriteInt32(w, b)
+	return raw.WriteInt32(w, b)
 }
 
 func (b *BaseUint32) Read(r io.Reader) error {
-	return ReadInt32(r, b)
+	return raw.ReadInt32(r, b)
 }
 
 func (b BaseUint32) WriteData(data []byte) []byte {

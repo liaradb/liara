@@ -1,6 +1,6 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
 type Version struct {
 	baseUint64
@@ -14,4 +14,4 @@ func (v *Version) Increment() {
 	v.baseUint64++
 }
 
-const VersionSize = raw.BaseUint64Size
+const VersionSize = base.BaseUint64Size

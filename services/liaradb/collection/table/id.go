@@ -1,8 +1,8 @@
 package table
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
-type baseUUID = raw.BaseID
+type baseUUID = base.BaseID
 
 type ID struct {
 	baseUUID

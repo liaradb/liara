@@ -1,15 +1,19 @@
-package raw
+package base
 
-import "io"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/encoder/raw"
+)
 
 type BaseString string
 
 func (s BaseString) String() string          { return string(s) }
 func (s BaseString) Bytes() []byte           { return []byte(s) }
 func (s BaseString) Length() int             { return len(s) }
-func (s BaseString) Size() int               { return StringSize(s) }
-func (s BaseString) Write(w io.Writer) error { return WriteString(w, s) }
-func (s *BaseString) Read(r io.Reader) error { return ReadString(r, s) }
+func (s BaseString) Size() int               { return raw.StringSize(s) }
+func (s BaseString) Write(w io.Writer) error { return raw.WriteString(w, s) }
+func (s *BaseString) Read(r io.Reader) error { return raw.ReadString(r, s) }
 
 func (s BaseString) WriteData(data []byte, colSize int) []byte {
 	data[0] = byte(len(s))

@@ -1,6 +1,6 @@
 package record
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
 type Length struct {
 	baseUint32
@@ -9,5 +9,5 @@ type Length struct {
 const LengthSize = 4
 
 func NewLength(size uint32) Length {
-	return Length{raw.NewBaseUint32(size)}
+	return Length{base.NewBaseUint32(size)}
 }

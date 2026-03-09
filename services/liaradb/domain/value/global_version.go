@@ -1,8 +1,8 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
-const GlobalVersionSize = raw.BaseUint64Size
+const GlobalVersionSize = base.BaseUint64Size
 
 type GlobalVersion struct {
 	baseUint64

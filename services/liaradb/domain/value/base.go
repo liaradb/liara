@@ -1,11 +1,13 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import (
+	"github.com/liaradb/liaradb/encoder/base"
+)
 
 type (
-	baseID     = raw.BaseID
-	baseString = raw.BaseString
-	baseTime   = raw.Time
-	baseUint32 = raw.BaseUint32
-	baseUint64 = raw.BaseUint64
+	baseID     = base.BaseID
+	baseString = base.BaseString
+	baseTime   = base.Time
+	baseUint32 = base.BaseUint32
+	baseUint64 = base.BaseUint64
 )

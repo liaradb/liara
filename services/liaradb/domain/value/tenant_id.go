@@ -1,23 +1,21 @@
 package value
 
-import (
-	"github.com/liaradb/liaradb/encoder/raw"
-)
+import "github.com/liaradb/liaradb/encoder/base"
 
 type TenantID struct {
 	baseID
 }
 
 func NewTenantID() TenantID {
-	return TenantID{raw.NewBaseID()}
+	return TenantID{base.NewBaseID()}
 }
 
 func NewTenantIDFromString(value string) (TenantID, error) {
-	if id, err := raw.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewBaseIDFromString(value); err != nil {
 		return TenantID{}, err
 	} else {
 		return TenantID{id}, nil
 	}
 }
 
-const TenantIDSize = raw.BaseIDSize
+const TenantIDSize = base.BaseIDSize

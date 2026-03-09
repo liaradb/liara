@@ -1,21 +1,21 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
 type OutboxID struct {
 	baseID
 }
 
 func NewOutboxID() OutboxID {
-	return OutboxID{raw.NewBaseID()}
+	return OutboxID{base.NewBaseID()}
 }
 
 func NewOutboxIDFromString(value string) (OutboxID, error) {
-	if id, err := raw.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewBaseIDFromString(value); err != nil {
 		return OutboxID{}, err
 	} else {
 		return OutboxID{id}, nil
 	}
 }
 
-const OutboxIDSize = raw.BaseIDSize
+const OutboxIDSize = base.BaseIDSize

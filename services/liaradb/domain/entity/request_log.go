@@ -2,12 +2,12 @@ package entity
 
 import (
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/base"
 )
 
 const (
 	RequestLogSize = value.RequestIDIDSize +
-		raw.TimeSize
+		base.TimeSize
 )
 
 type RequestLog struct {

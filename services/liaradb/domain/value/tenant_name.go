@@ -1,6 +1,6 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/raw"
+import "github.com/liaradb/liaradb/encoder/base"
 
 const TenantNameSize = 256
 
@@ -9,7 +9,7 @@ type TenantName struct {
 }
 
 func NewTenantName(value string) TenantName {
-	return TenantName{raw.BaseString(value)}
+	return TenantName{base.BaseString(value)}
 }
 
 func (tn TenantName) WriteData(data []byte) []byte {

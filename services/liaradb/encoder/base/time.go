@@ -1,9 +1,10 @@
-package raw
+package base
 
 import (
 	"io"
 	"time"
 
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/scan"
 )
 
@@ -23,21 +24,21 @@ func (t Time) Value() time.Time { return t.baseTime }
 func (Time) Size() int          { return TimeSize }
 
 func (t Time) Write(w io.Writer) error {
-	if err := WriteInt64(w, t.baseTime.Unix()); err != nil {
+	if err := raw.WriteInt64(w, t.baseTime.Unix()); err != nil {
 		return err
 	}
 
-	return WriteInt64(w, int64(t.baseTime.Nanosecond()))
+	return raw.WriteInt64(w, int64(t.baseTime.Nanosecond()))
 }
 
 func (t *Time) Read(r io.Reader) error {
 	var s int64
-	if err := ReadInt64(r, &s); err != nil {
+	if err := raw.ReadInt64(r, &s); err != nil {
 		return err
 	}
 
 	var n int64
-	if err := ReadInt64(r, &n); err != nil {
+	if err := raw.ReadInt64(r, &n); err != nil {
 		return err
 	}
 
