@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	baseID     = base.BaseID
+	baseID     = base.ID
 	baseString = base.BaseString
 	baseTime   = base.Time
 	baseUint32 = base.BaseUint32

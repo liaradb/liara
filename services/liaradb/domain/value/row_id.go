@@ -7,11 +7,11 @@ type RowID struct {
 }
 
 func NewRowID() RowID {
-	return RowID{base.NewBaseID()}
+	return RowID{base.NewID()}
 }
 
 func NewRowIDFromString(value string) (RowID, error) {
-	if id, err := base.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewIDFromString(value); err != nil {
 		return RowID{}, err
 	} else {
 		return RowID{id}, nil

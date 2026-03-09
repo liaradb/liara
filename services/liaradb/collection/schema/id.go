@@ -2,12 +2,12 @@ package schema
 
 import "github.com/liaradb/liaradb/encoder/base"
 
-type baseUUID = base.BaseID
+type baseUUID = base.ID
 
 type ID struct {
 	baseUUID
 }
 
 func NewID() ID {
-	return ID{base.NewBaseID()}
+	return ID{base.NewID()}
 }

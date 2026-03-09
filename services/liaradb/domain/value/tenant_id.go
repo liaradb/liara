@@ -7,11 +7,11 @@ type TenantID struct {
 }
 
 func NewTenantID() TenantID {
-	return TenantID{base.NewBaseID()}
+	return TenantID{base.NewID()}
 }
 
 func NewTenantIDFromString(value string) (TenantID, error) {
-	if id, err := base.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewIDFromString(value); err != nil {
 		return TenantID{}, err
 	} else {
 		return TenantID{id}, nil

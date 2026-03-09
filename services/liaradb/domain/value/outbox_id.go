@@ -7,11 +7,11 @@ type OutboxID struct {
 }
 
 func NewOutboxID() OutboxID {
-	return OutboxID{base.NewBaseID()}
+	return OutboxID{base.NewID()}
 }
 
 func NewOutboxIDFromString(value string) (OutboxID, error) {
-	if id, err := base.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewIDFromString(value); err != nil {
 		return OutboxID{}, err
 	} else {
 		return OutboxID{id}, nil

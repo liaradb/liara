@@ -9,11 +9,11 @@ type EventID struct {
 }
 
 func NewEventID() EventID {
-	return EventID{base.NewBaseID()}
+	return EventID{base.NewID()}
 }
 
 func NewEventIDFromString(value string) (EventID, error) {
-	if id, err := base.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewIDFromString(value); err != nil {
 		return EventID{}, err
 	} else {
 		return EventID{id}, nil

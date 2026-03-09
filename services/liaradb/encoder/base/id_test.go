@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
-func TestBaseID__Remainder(t *testing.T) {
+func TestID__Remainder(t *testing.T) {
 	t.Parallel()
 
-	b := NewBaseID()
+	b := NewID()
 
 	data := make([]byte, 20)
 	data0 := b.WriteData(data)
@@ -17,7 +17,7 @@ func TestBaseID__Remainder(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	b0 := BaseID{}
+	b0 := ID{}
 	data1 := b0.ReadData(data)
 
 	if l := len(data1); l != 4 {

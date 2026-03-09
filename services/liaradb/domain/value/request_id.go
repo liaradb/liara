@@ -8,12 +8,12 @@ type RequestID struct {
 
 func NewRequestID() RequestID {
 	return RequestID{
-		base.NewBaseID(),
+		base.NewID(),
 	}
 }
 
 func NewRequestIDFromString(value string) (RequestID, error) {
-	if id, err := base.NewBaseIDFromString(value); err != nil {
+	if id, err := base.NewIDFromString(value); err != nil {
 		return RequestID{}, err
 	} else {
 		return RequestID{id}, nil
