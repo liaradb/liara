@@ -17,7 +17,6 @@ const (
 type Node struct {
 	header
 	buffer   *storage.Buffer
-	data     []byte
 	list     crclist.CRCList
 	byteList bytelist.ByteList
 }
@@ -29,48 +28,49 @@ func New(buffer *storage.Buffer) Node {
 	return Node{
 		header:   header,
 		buffer:   buffer,
-		data:     data,
 		list:     crclist.New(data0),
 		byteList: bytelist.New(data0),
 	}
 }
 
+func (n *Node) Count() int16 { return n.list.Count() }
+func (n *Node) Raw() []byte  { return n.buffer.Raw() }
+
 // TODO: Test this
-func (p *Node) Clear() {
-	p.buffer.Clear()
-	p.list.Reset()
+func (n *Node) Release()  { n.buffer.Release() }
+func (n *Node) Latch()    { n.buffer.Latch() }
+func (n *Node) Unlatch()  { n.buffer.Unlatch() }
+func (n *Node) RLatch()   { n.buffer.RLatch() }
+func (n *Node) RUnlatch() { n.buffer.RUnlatch() }
+
+func (n *Node) Clear() {
+	n.buffer.Clear()
+	n.list.Reset()
 }
 
 // TODO: Test this
-func (p *Node) Release()  { p.buffer.Release() }
-func (p *Node) Latch()    { p.buffer.Latch() }
-func (p *Node) Unlatch()  { p.buffer.Unlatch() }
-func (p *Node) RLatch()   { p.buffer.RLatch() }
-func (p *Node) RUnlatch() { p.buffer.RUnlatch() }
-
-// TODO: Test this
-func (p *Node) SetDirty() {
-	p.buffer.SetDirty()
+func (n *Node) SetDirty() {
+	n.buffer.SetDirty()
 }
 
-func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
-	p.Latch()
-	defer p.Unlatch()
+func (n *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
+	n.Latch()
+	defer n.Unlatch()
 
-	if !p.hasSpace(size) {
+	if !n.hasSpace(size) {
 		return 0, nil, false
 	}
 
-	offset := p.next() - size
-	i, ok := p.list.Push(offset, size, crc)
+	offset := n.next() - size
+	i, ok := n.list.Push(offset, size, crc)
 	if !ok {
 		return 0, nil, false
 	}
 
-	p.header.setNext(offset)
-	p.SetDirty()
+	n.header.setNext(offset)
+	n.SetDirty()
 
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -78,24 +78,24 @@ func (p *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bo
 	return link.RecordPosition(i), b, true
 }
 
-func (p *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
-	p.Latch()
-	defer p.Unlatch()
+func (n *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
+	n.Latch()
+	defer n.Unlatch()
 
-	if !p.hasSpace(size) {
+	if !n.hasSpace(size) {
 		return 0, nil, false
 	}
 
-	offset := p.next() - size
-	i, ok := p.list.Insert(offset, size, crc, index)
+	offset := n.next() - size
+	i, ok := n.list.Insert(offset, size, crc, index)
 	if !ok {
 		return 0, nil, false
 	}
 
-	p.header.setNext(offset)
-	p.SetDirty()
+	n.header.setNext(offset)
+	n.SetDirty()
 
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -103,33 +103,33 @@ func (p *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPositio
 	return link.RecordPosition(i), b, true
 }
 
-func (p *Node) next() int16 {
-	size := p.list.Count()
+func (n *Node) next() int16 {
+	size := n.list.Count()
 	if size == 0 {
-		return int16(p.list.Length())
+		return int16(n.list.Length())
 	} else {
-		return p.header.Next()
+		return n.header.Next()
 	}
 }
 
-func (p Node) Space() int16 {
-	next := p.next()
-	size := p.list.Size()
+func (n Node) Space() int16 {
+	next := n.next()
+	size := n.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
-func (p Node) hasSpace(size int16) bool {
-	s := p.Space()
+func (n Node) hasSpace(size int16) bool {
+	s := n.Space()
 	return size <= s
 }
 
-func (p Node) Child(index int16) ([]byte, bool) {
-	i, ok := p.list.Item(index)
+func (n Node) Child(index int16) ([]byte, bool) {
+	i, ok := n.list.Item(index)
 	if !ok {
 		return nil, false
 	}
 
-	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+	d, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 	if !ok {
 		return nil, false
 	}
@@ -142,8 +142,8 @@ func (p Node) Child(index int16) ([]byte, bool) {
 }
 
 // TODO: Should we return old version?
-func (p Node) ReplaceChild(index int16, data []byte) bool {
-	i, ok := p.list.Item(index)
+func (n Node) ReplaceChild(index int16, data []byte) bool {
+	i, ok := n.list.Item(index)
 	if !ok {
 		return false
 	}
@@ -153,21 +153,21 @@ func (p Node) ReplaceChild(index int16, data []byte) bool {
 		return false
 	}
 
-	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+	d, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 	if !ok {
 		return false
 	}
 
 	copy(d, data)
-	p.SetDirty()
+	n.SetDirty()
 
-	return p.list.SetCRC(page.NewCRC(data), index)
+	return n.list.SetCRC(page.NewCRC(data), index)
 }
 
-func (p Node) Children() iter.Seq[[]byte] {
+func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for i := range p.list.Items() {
-			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+		for i := range n.list.Items() {
+			b, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 			if !ok || !i.CRC.Compare(b) || !yield(b) {
 				return
 			}
@@ -175,10 +175,10 @@ func (p Node) Children() iter.Seq[[]byte] {
 	}
 }
 
-func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (n Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for i := range p.list.ItemsRange(start, end) {
-			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+		for i := range n.list.ItemsRange(start, end) {
+			b, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 			if !ok || !i.CRC.Compare(b) || !yield(b) {
 				return
 			}

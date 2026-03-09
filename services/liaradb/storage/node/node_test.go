@@ -358,6 +358,52 @@ func testNode_ChildrenRange(t *testing.T) {
 	}
 }
 
+func TestNode_Clear(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_Clear)
+}
+
+func testNode_Clear(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 8)
+	b := createBuffer(t, s)
+
+	base := []byte{5, 6, 7, 8, 9, 10, 0, 1}
+	empty := make([]byte, 8)
+
+	data := slices.Clone(base)
+	if _, err := b.Write(data); err != nil {
+		t.Fatal(err)
+	}
+
+	if !slices.Equal(data, base) {
+		t.Error("should not change data")
+	}
+
+	n := New(b)
+
+	if c := n.Count(); c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+
+	n.Clear()
+
+	if c := n.Count(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+
+	if !slices.Equal(data, base) {
+		t.Error("should not change data")
+	}
+
+	if raw := n.Raw(); !slices.Equal(raw, empty) {
+		t.Errorf("incorrect data: %v, expected: %v", raw, empty)
+	}
+
+	b.Release()
+
+	synctest.Wait()
+}
+
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	b, err := s.Request(t.Context(), link.BlockID{})
 	if err != nil {
