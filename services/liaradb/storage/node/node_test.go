@@ -404,6 +404,32 @@ func testNode_Clear(t *testing.T) {
 	synctest.Wait()
 }
 
+func TestNode_Dirty(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_Dirty)
+}
+
+func testNode_Dirty(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 8)
+	b := createBuffer(t, s)
+
+	n := New(b)
+
+	if n.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	n.SetDirty()
+
+	if !n.Dirty() {
+		t.Error("should be dirty")
+	}
+
+	b.Release()
+
+	synctest.Wait()
+}
+
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	b, err := s.Request(t.Context(), link.BlockID{})
 	if err != nil {

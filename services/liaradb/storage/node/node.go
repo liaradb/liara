@@ -34,6 +34,7 @@ func New(buffer *storage.Buffer) Node {
 }
 
 func (n *Node) Count() int16 { return n.list.Count() }
+func (n *Node) Dirty() bool  { return n.buffer.Dirty() }
 func (n *Node) Raw() []byte  { return n.buffer.Raw() }
 
 // TODO: Test this
@@ -48,7 +49,6 @@ func (n *Node) Clear() {
 	n.list.Reset()
 }
 
-// TODO: Test this
 func (n *Node) SetDirty() {
 	n.buffer.SetDirty()
 }
