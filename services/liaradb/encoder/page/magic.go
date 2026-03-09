@@ -26,15 +26,15 @@ func (m *Magic) Read(r io.Reader) error {
 		return err
 	}
 
-	return m.validate()
+	return m.Validate()
 }
 
 func (m *Magic) read(r io.Reader) error {
 	return raw.ReadInt32(r, m)
 }
 
-func (m *Magic) validate() error {
-	switch *m {
+func (m Magic) Validate() error {
+	switch m {
 	case MagicEmpty:
 		return nil
 	case MagicFree:

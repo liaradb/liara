@@ -74,6 +74,11 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 	defer b.Release()
 
 	n := node.New(b)
+
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+
 	// TODO: Fix this type
 	d, ok := n.Child(int16(rid.Position()))
 	if !ok {
@@ -125,6 +130,11 @@ func (o *Outbox) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc
 	defer b.Release()
 
 	n := node.New(b)
+
+	if err := n.Validate(); err != nil {
+		return link.RecordLocator{}, false, err
+	}
+
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil
@@ -144,6 +154,8 @@ func (o *Outbox) setNext(ctx context.Context, fn link.FileName, v []byte, crc pa
 	defer b.Release()
 
 	n := node.New(b)
+	n.Init()
+
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil
@@ -178,6 +190,10 @@ func (o *Outbox) Replace(
 
 	// TODO: Replace child
 	n := node.New(b)
+
+	if err := n.Validate(); err != nil {
+		return err
+	}
 
 	v := make([]byte, entity.OutboxSize)
 	_ = e.Write(v)

@@ -76,6 +76,11 @@ func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid l
 	defer b.Release()
 
 	n := node.New(b)
+
+	if err := n.Validate(); err != nil {
+		return nil, err
+	}
+
 	// TODO: Fix this type
 	d, ok := n.Child(int16(rid.Position()))
 	if !ok {
@@ -127,6 +132,10 @@ func (i *Idempotency) setCurrent(ctx context.Context, fn link.FileName, v []byte
 	defer b.Release()
 
 	n := node.New(b)
+	if err := n.Validate(); err != nil {
+		return link.RecordLocator{}, false, err
+	}
+
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil
@@ -146,6 +155,8 @@ func (i *Idempotency) setNext(ctx context.Context, fn link.FileName, v []byte, c
 	defer b.Release()
 
 	n := node.New(b)
+	n.Init()
+
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil

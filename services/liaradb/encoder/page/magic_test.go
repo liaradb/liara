@@ -35,6 +35,48 @@ func TestMagic(t *testing.T) {
 func TestMagic_Validate(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip  bool
+		m     Magic
+		valid bool
+	}{
+		"should handle empty": {
+			valid: true,
+		},
+		"should handle free": {
+			m:     MagicFree,
+			valid: true,
+		},
+		"should handle page": {
+			m:     MagicPage,
+			valid: true,
+		},
+		"should return error on unknown": {
+			m:     Magic(10),
+			valid: false,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			err := c.m.Validate()
+			if c.valid {
+				if err != nil {
+					t.Error(err)
+				}
+			} else {
+				if err != ErrNotPage {
+					t.Error("should return error")
+				}
+			}
+		})
+	}
+}
+
+func TestMagic_Read(t *testing.T) {
+	for message, c := range map[string]struct {
+		skip  bool
 		b     *buffer.Buffer
 		valid bool
 	}{

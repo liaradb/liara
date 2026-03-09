@@ -33,9 +33,10 @@ func New(buffer *storage.Buffer) Node {
 	}
 }
 
-func (n *Node) Count() int16 { return n.list.Count() }
-func (n *Node) Dirty() bool  { return n.buffer.Dirty() }
-func (n *Node) Raw() []byte  { return n.buffer.Raw() }
+func (n *Node) Count() int16    { return n.list.Count() }
+func (n *Node) Dirty() bool     { return n.buffer.Dirty() }
+func (n *Node) Raw() []byte     { return n.buffer.Raw() }
+func (n *Node) Validate() error { return n.header.validate() }
 
 // TODO: Test this
 func (n *Node) Release()  { n.buffer.Release() }
@@ -43,6 +44,10 @@ func (n *Node) Latch()    { n.buffer.Latch() }
 func (n *Node) Unlatch()  { n.buffer.Unlatch() }
 func (n *Node) RLatch()   { n.buffer.RLatch() }
 func (n *Node) RUnlatch() { n.buffer.RUnlatch() }
+
+func (n *Node) Init() {
+	n.header.init()
+}
 
 func (n *Node) Clear() {
 	n.buffer.Clear()
@@ -141,7 +146,6 @@ func (n Node) Child(index int16) ([]byte, bool) {
 	return d, true
 }
 
-// TODO: Should we return old version?
 func (n Node) ReplaceChild(index int16, data []byte) bool {
 	i, ok := n.list.Item(index)
 	if !ok {
