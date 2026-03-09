@@ -11,5 +11,5 @@ type Time struct {
 }
 
 func NewTime(t time.Time) Time {
-	return Time{raw.NewTime(t.Truncate(time.Microsecond).UTC())}
+	return Time{raw.NewTime(t)}
 }

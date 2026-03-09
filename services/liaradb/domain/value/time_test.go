@@ -11,7 +11,7 @@ func TestTime(t *testing.T) {
 	now := time.Now()
 	tm := NewTime(now)
 
-	value := now.Truncate(time.Microsecond).UTC()
+	value := now.UTC()
 	if v := tm.Value(); v != value {
 		t.Errorf("incorrect value: %v, expected: %v", v, value)
 	}
