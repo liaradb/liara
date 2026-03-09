@@ -60,10 +60,3 @@ func (t *Time) ReadData(data []byte) []byte {
 func (t Time) Equal(b Time) bool {
 	return t.baseTime.Equal(b.baseTime)
 }
-
-func (t *Time) ReadWrite() {
-	s := t.Unix()
-	n := int64(t.Nanosecond())
-
-	time.Unix(s, n)
-}
