@@ -358,6 +358,30 @@ func testNode_ChildrenRange(t *testing.T) {
 	}
 }
 
+func TestNode_Init(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_Init)
+}
+
+func testNode_Init(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 8)
+	b := createBuffer(t, s)
+
+	n := New(b)
+	if !n.IsPage() {
+		t.Error("should be page")
+	}
+
+	n.Init()
+	if !n.IsPage() {
+		t.Error("should be page")
+	}
+
+	b.Release()
+
+	synctest.Wait()
+}
+
 func TestNode_Clear(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testNode_Clear)
@@ -367,8 +391,9 @@ func testNode_Clear(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 8)
 	b := createBuffer(t, s)
 
-	base := []byte{5, 6, 7, 8, 9, 10, 0, 1}
+	base := []byte{0, 0, 0, 0, 0, 0, 0, 1}
 	empty := make([]byte, 8)
+	copy(empty, []byte("PAGE"))
 
 	data := slices.Clone(base)
 	if _, err := b.Write(data); err != nil {
@@ -380,9 +405,14 @@ func testNode_Clear(t *testing.T) {
 	}
 
 	n := New(b)
+	n.Init()
 
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+
+	if !n.IsPage() {
+		t.Error("should be page")
 	}
 
 	n.Clear()
@@ -397,6 +427,10 @@ func testNode_Clear(t *testing.T) {
 
 	if raw := n.Raw(); !slices.Equal(raw, empty) {
 		t.Errorf("incorrect data: %v, expected: %v", raw, empty)
+	}
+
+	if !n.IsPage() {
+		t.Error("should be page")
 	}
 
 	b.Release()

@@ -67,8 +67,8 @@ func (kv *KeyValue) getItem(ctx context.Context, tn tablename.TableName, rid lin
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return nil, err
+	if !n.IsPage() {
+		return nil, page.ErrNotPage
 	}
 
 	// TODO: Fix this type
@@ -112,8 +112,8 @@ func (kv *KeyValue) setCurrent(ctx context.Context, fn link.FileName, v []byte, 
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return link.RecordLocator{}, false, err
+	if !n.IsPage() {
+		return link.RecordLocator{}, false, page.ErrNotPage
 	}
 
 	rp, d, ok := n.Append(int16(len(v)), crc)
@@ -135,8 +135,6 @@ func (kv *KeyValue) setNext(ctx context.Context, fn link.FileName, v []byte, crc
 	defer b.Release()
 
 	n := node.New(b)
-	n.Init()
-
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil

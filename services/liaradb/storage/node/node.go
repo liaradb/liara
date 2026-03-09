@@ -25,6 +25,10 @@ func New(buffer *storage.Buffer) Node {
 	data := buffer.Raw()
 	header, data0 := newHeader(data)
 
+	if header.isEmpty() {
+		header.init()
+	}
+
 	return Node{
 		header:   header,
 		buffer:   buffer,
@@ -33,10 +37,10 @@ func New(buffer *storage.Buffer) Node {
 	}
 }
 
-func (n *Node) Count() int16    { return n.list.Count() }
-func (n *Node) Dirty() bool     { return n.buffer.Dirty() }
-func (n *Node) Raw() []byte     { return n.buffer.Raw() }
-func (n *Node) Validate() error { return n.header.validate() }
+func (n *Node) Count() int16 { return n.list.Count() }
+func (n *Node) Dirty() bool  { return n.buffer.Dirty() }
+func (n *Node) Raw() []byte  { return n.buffer.Raw() }
+func (n *Node) IsPage() bool { return n.header.isPage() }
 
 // TODO: Test this
 func (n *Node) Release()  { n.buffer.Release() }
@@ -51,6 +55,7 @@ func (n *Node) Init() {
 
 func (n *Node) Clear() {
 	n.buffer.Clear()
+	n.Init()
 	n.list.Reset()
 }
 

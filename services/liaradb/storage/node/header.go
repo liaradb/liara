@@ -40,6 +40,10 @@ func (h *header) setNext(o int16) {
 	h.next.Set(o)
 }
 
-func (h *header) validate() error {
-	return page.Magic(h.magic.Get()).Validate()
+func (h *header) isEmpty() bool {
+	return page.Magic(h.magic.Get()).IsEmpty()
+}
+
+func (h *header) isPage() bool {
+	return page.Magic(h.magic.Get()).IsPage()
 }

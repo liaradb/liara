@@ -46,6 +46,14 @@ func (m Magic) Validate() error {
 	}
 }
 
+func (m Magic) IsEmpty() bool {
+	return m == MagicEmpty
+}
+
+func (m Magic) IsPage() bool {
+	return m == MagicPage
+}
+
 func (m Magic) String() string {
 	data := make([]byte, 4)
 	binary.BigEndian.PutUint32(data, uint32(m))

@@ -91,8 +91,8 @@ func (l *EventLog) setCurrent(ctx context.Context, fn link.FileName, v []byte, c
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return link.RecordLocator{}, false, err
+	if !n.IsPage() {
+		return link.RecordLocator{}, false, page.ErrNotPage
 	}
 
 	rp, d, ok := n.Append(int16(len(v)), crc)
@@ -114,8 +114,6 @@ func (l *EventLog) setNext(ctx context.Context, fn link.FileName, v []byte, crc 
 	defer b.Release()
 
 	n := node.New(b)
-	n.Init()
-
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil
@@ -186,8 +184,8 @@ func (l *EventLog) getEventByRecordLocator(ctx context.Context, fn link.FileName
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return nil, err
+	if !n.IsPage() {
+		return nil, page.ErrNotPage
 	}
 
 	data, ok := n.Child(int16(rl.Position()))
@@ -279,10 +277,14 @@ func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID) (iter.
 		return nil, 0, err
 	}
 
+	n := node.New(b)
+	if !n.IsPage() {
+		return nil, 0, page.ErrNotPage
+	}
+
 	return func(yield func([]byte) bool) {
-		defer b.Release()
-		// TODO: Validate Magic
-		for c := range node.New(b).Children() {
+		defer n.Release()
+		for c := range n.Children() {
 			if !yield(c) {
 				return
 			}

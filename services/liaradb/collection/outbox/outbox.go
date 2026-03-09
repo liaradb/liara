@@ -75,8 +75,8 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return nil, err
+	if !n.IsPage() {
+		return nil, page.ErrNotPage
 	}
 
 	// TODO: Fix this type
@@ -131,8 +131,8 @@ func (o *Outbox) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc
 
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return link.RecordLocator{}, false, err
+	if !n.IsPage() {
+		return link.RecordLocator{}, false, page.ErrNotPage
 	}
 
 	rp, d, ok := n.Append(int16(len(v)), crc)
@@ -154,8 +154,6 @@ func (o *Outbox) setNext(ctx context.Context, fn link.FileName, v []byte, crc pa
 	defer b.Release()
 
 	n := node.New(b)
-	n.Init()
-
 	rp, d, ok := n.Append(int16(len(v)), crc)
 	if !ok {
 		return link.RecordLocator{}, false, nil
@@ -191,8 +189,8 @@ func (o *Outbox) Replace(
 	// TODO: Replace child
 	n := node.New(b)
 
-	if err := n.Validate(); err != nil {
-		return err
+	if n.IsPage() {
+		return page.ErrNotPage
 	}
 
 	v := make([]byte, entity.OutboxSize)
