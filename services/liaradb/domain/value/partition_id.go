@@ -10,4 +10,4 @@ func NewPartitionID(value int32) PartitionID {
 	return PartitionID{baseUint32(value)}
 }
 
-const PartitionIDSize = base.BaseUint32Size
+const PartitionIDSize = base.Uint32Size

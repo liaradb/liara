@@ -9,5 +9,5 @@ type Length struct {
 const LengthSize = 4
 
 func NewLength(size uint32) Length {
-	return Length{base.NewBaseUint32(size)}
+	return Length{base.NewUint32(size)}
 }

@@ -2,24 +2,24 @@ package base
 
 import "testing"
 
-func TestBaseUint32_String(t *testing.T) {
+func TestUint32_String(t *testing.T) {
 	t.Parallel()
 
 	for message, c := range map[string]struct {
 		skip  bool
-		value BaseUint32
+		value Uint32
 		want  string
 	}{
 		"should handle 0": {
-			value: NewBaseUint32(0),
+			value: NewUint32(0),
 			want:  "00000000",
 		},
 		"should handle 1": {
-			value: NewBaseUint32(1),
+			value: NewUint32(1),
 			want:  "00000001",
 		},
 		"should handle 2": {
-			value: NewBaseUint32(2),
+			value: NewUint32(2),
 			want:  "00000002",
 		},
 	} {
@@ -36,10 +36,10 @@ func TestBaseUint32_String(t *testing.T) {
 	}
 }
 
-func TestBaseUIn32__Remainder(t *testing.T) {
+func TestUIn32__Remainder(t *testing.T) {
 	t.Parallel()
 
-	b := NewBaseUint32(2)
+	b := NewUint32(2)
 
 	data := make([]byte, 8)
 	data0 := b.WriteData(data)
@@ -48,7 +48,7 @@ func TestBaseUIn32__Remainder(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	b0 := BaseUint32(0)
+	b0 := Uint32(0)
 	data1 := b0.ReadData(data)
 
 	if l := len(data1); l != 4 {

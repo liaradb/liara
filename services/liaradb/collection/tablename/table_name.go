@@ -50,6 +50,6 @@ func (tn *TableName) RequestLog() link.FileName {
 	return link.NewFileName(fmt.Sprintf("%v.rl", tn))
 }
 
-func (tn *TableName) Index(i base.BaseUint32, pid value.PartitionID) link.FileName {
+func (tn *TableName) Index(i base.Uint32, pid value.PartitionID) link.FileName {
 	return link.NewFileName(fmt.Sprintf("%v--%v--%v.idx", tn, i, pid))
 }
