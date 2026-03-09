@@ -30,6 +30,11 @@ func New(size int64) *Page {
 
 func NewFromSlice(data []byte) *Page {
 	header, data0 := newHeader(data)
+
+	if header.isEmpty() {
+		header.init()
+	}
+
 	return &Page{
 		header:   header,
 		data:     data,
@@ -40,9 +45,12 @@ func NewFromSlice(data []byte) *Page {
 
 func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
 	clear(p.data)
+	p.header.init()
 	p.list.Reset()
 	p.header.reset(pid, tlid, rl)
 }
+
+func (p *Page) IsPage() bool { return p.header.isPage() }
 
 func (p *Page) Append(data []byte) bool {
 	size := int16(len(data))

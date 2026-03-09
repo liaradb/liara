@@ -19,6 +19,7 @@ const (
 )
 
 type header struct {
+	magic           wrap.Int32
 	next            wrap.Int16
 	id              wrap.Int64
 	timeLineID      wrap.Int32
@@ -26,19 +27,23 @@ type header struct {
 }
 
 func newHeader(data []byte) (header, []byte) {
-	// TODO: Should this have a magic entry?
-	_, data0 := wrap.NewInt32(data) // Magic
+	magic, data0 := wrap.NewInt32(data)
 	next, data1 := wrap.NewInt16(data0)
 	id, data2 := wrap.NewInt64(data1)
 	tlid, data3 := wrap.NewInt32(data2)
 	lr, data4 := wrap.NewInt32(data3)
 
 	return header{
+		magic:           magic,
 		next:            next,
 		id:              id,
 		timeLineID:      tlid,
 		lengthRemaining: lr,
 	}, data4
+}
+
+func (h *header) init() {
+	h.magic.Set(int32(page.MagicPage))
 }
 
 func (h *header) reset(
@@ -73,4 +78,12 @@ func (h *header) TimeLineID() action.TimeLineID {
 
 func (h header) Size() int {
 	return headerSize
+}
+
+func (h *header) isEmpty() bool {
+	return page.Magic(h.magic.Get()).IsEmpty()
+}
+
+func (h *header) isPage() bool {
+	return page.Magic(h.magic.Get()).IsPage()
 }

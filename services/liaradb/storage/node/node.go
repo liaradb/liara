@@ -49,13 +49,9 @@ func (n *Node) Unlatch()  { n.buffer.Unlatch() }
 func (n *Node) RLatch()   { n.buffer.RLatch() }
 func (n *Node) RUnlatch() { n.buffer.RUnlatch() }
 
-func (n *Node) Init() {
-	n.header.init()
-}
-
 func (n *Node) Clear() {
 	n.buffer.Clear()
-	n.Init()
+	n.header.init()
 	n.list.Reset()
 }
 

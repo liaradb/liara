@@ -372,11 +372,6 @@ func testNode_Init(t *testing.T) {
 		t.Error("should be page")
 	}
 
-	n.Init()
-	if !n.IsPage() {
-		t.Error("should be page")
-	}
-
 	b.Release()
 
 	synctest.Wait()
@@ -405,7 +400,6 @@ func testNode_Clear(t *testing.T) {
 	}
 
 	n := New(b)
-	n.Init()
 
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
