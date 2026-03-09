@@ -7,6 +7,8 @@ import (
 )
 
 func TestTenant(t *testing.T) {
+	t.Parallel()
+
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)
@@ -25,6 +27,8 @@ func TestTenant(t *testing.T) {
 }
 
 func TestTenant_RestoreTenant(t *testing.T) {
+	t.Parallel()
+
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")
 	version := value.NewVersion(1)
@@ -44,6 +48,8 @@ func TestTenant_RestoreTenant(t *testing.T) {
 }
 
 func TestTenant_Rename(t *testing.T) {
+	t.Parallel()
+
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)
@@ -62,6 +68,8 @@ func TestTenant_Rename(t *testing.T) {
 }
 
 func TestTenant_ReadWrite(t *testing.T) {
+	t.Parallel()
+
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)

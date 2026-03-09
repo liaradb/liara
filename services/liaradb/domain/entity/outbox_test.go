@@ -7,6 +7,8 @@ import (
 )
 
 func TestOutbox(t *testing.T) {
+	t.Parallel()
+
 	oid := value.NewOutboxID()
 	pr := value.NewPartitionRange(
 		value.NewPartitionID(2),
@@ -28,6 +30,8 @@ func TestOutbox(t *testing.T) {
 }
 
 func TestOutbox_UpdateGlobalVersion(t *testing.T) {
+	t.Parallel()
+
 	oid := value.NewOutboxID()
 	pr := value.NewPartitionRange(
 		value.NewPartitionID(2),
@@ -49,6 +53,8 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 }
 
 func TestOutbox_ReadWrite(t *testing.T) {
+	t.Parallel()
+
 	o := RestoreOutbox(
 		value.NewOutboxID(),
 		value.NewPartitionRange(

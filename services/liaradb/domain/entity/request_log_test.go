@@ -8,6 +8,8 @@ import (
 )
 
 func TestRequestLog(t *testing.T) {
+	t.Parallel()
+
 	rlid := value.NewRequestID()
 	tm := value.NewTime(time.Now())
 	rl := NewRequestLog(rlid, tm)
@@ -22,6 +24,8 @@ func TestRequestLog(t *testing.T) {
 }
 
 func TestRequestLog_RestoreRequestLog(t *testing.T) {
+	t.Parallel()
+
 	rlid := value.NewRequestID()
 	tm := value.NewTime(time.Now())
 	rl := RestoreRequestLog(rlid, tm)
@@ -36,6 +40,8 @@ func TestRequestLog_RestoreRequestLog(t *testing.T) {
 }
 
 func TestRequestLog_ReadWrite(t *testing.T) {
+	t.Parallel()
+
 	rl := NewRequestLog(
 		value.NewRequestID(),
 		value.NewTime(time.Now()))
@@ -59,6 +65,8 @@ func TestRequestLog_ReadWrite(t *testing.T) {
 }
 
 func TestRequestLog_Compare(t *testing.T) {
+	t.Parallel()
+
 	pointer := &RequestLog{}
 	rid := value.NewRequestID()
 	tm := value.NewTime(time.Now())
