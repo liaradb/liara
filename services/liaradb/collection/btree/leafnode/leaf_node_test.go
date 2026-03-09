@@ -1,7 +1,6 @@
 package leafnode
 
 import (
-	"fmt"
 	"slices"
 	"testing"
 	"testing/synctest"
@@ -223,14 +222,7 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	for _, i := range order {
 		e := data[i]
 		if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
-			fmt.Println("a...")
-			for key, rid := range a {
-				fmt.Println(key, rid)
-			}
-			fmt.Println("b...")
-			for key, rid := range b {
-				fmt.Println(key, rid)
-			}
+			t.Errorf("should insert:\n%v\n%v", a, b)
 		}
 	}
 
