@@ -7,7 +7,6 @@ import (
 
 const HeaderSize = 4
 
-// TODO: Can we rename this Size?
 func StringSize[S ~string](s S) int {
 	return HeaderSize + len(s)
 }
