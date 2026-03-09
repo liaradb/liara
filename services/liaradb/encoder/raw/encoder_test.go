@@ -1,9 +1,11 @@
 package raw
 
 import (
+	"io"
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/util/testutil"
 )
 
@@ -75,9 +77,9 @@ func TestInt8(t *testing.T) {
 		value int8
 	}{
 		"should handle 0": {value: 0},
-		"should handle 1": {value: 0},
-		"should handle 2": {value: 0},
-		"should handle 3": {value: 0},
+		"should handle 1": {value: 1},
+		"should handle 2": {value: 2},
+		"should handle 3": {value: 3},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
@@ -107,6 +109,90 @@ func TestInt8(t *testing.T) {
 	}
 }
 
+func TestReadString__Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error on empty reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(0)
+
+		if err := ReadString(b, &s); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should return error on short reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(4)
+
+		if err := WriteInt32(b, int32(1)); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := b.Seek(0, io.SeekStart); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := ReadString(b, &s); err == nil {
+			t.Error("should return error")
+		}
+	})
+}
+
+func TestWriteString__Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error on empty reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(0)
+
+		if err := WriteString(b, s); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should return error on short reader", func(t *testing.T) {
+		var s string = "a"
+		b := buffer.New(4)
+
+		if err := WriteString(b, s); err == nil {
+			t.Error("should return error")
+		}
+	})
+}
+
+func TestReadInt8__Error(t *testing.T) {
+	var i int8
+	b := buffer.New(0)
+	if err := ReadInt8(b, &i); err == nil {
+		t.Error("should return error")
+	}
+}
+
+func TestReadInt16__Error(t *testing.T) {
+	var i int16
+	b := buffer.New(1)
+	if err := ReadInt16(b, &i); err == nil {
+		t.Error("should return error")
+	}
+}
+
+func TestReadInt32__Error(t *testing.T) {
+	var i int32
+	b := buffer.New(1)
+	if err := ReadInt32(b, &i); err == nil {
+		t.Error("should return error")
+	}
+}
+
+func TestReadInt64__Error(t *testing.T) {
+	var i int64
+	b := buffer.New(1)
+	if err := ReadInt64(b, &i); err == nil {
+		t.Error("should return error")
+	}
+}
+
 func TestInt16(t *testing.T) {
 	t.Parallel()
 
@@ -115,9 +201,9 @@ func TestInt16(t *testing.T) {
 		value int16
 	}{
 		"should handle 0": {value: 0},
-		"should handle 1": {value: 0},
-		"should handle 2": {value: 0},
-		"should handle 3": {value: 0},
+		"should handle 1": {value: 1},
+		"should handle 2": {value: 2},
+		"should handle 3": {value: 3},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
@@ -155,9 +241,9 @@ func TestInt32(t *testing.T) {
 		value int32
 	}{
 		"should handle 0": {value: 0},
-		"should handle 1": {value: 0},
-		"should handle 2": {value: 0},
-		"should handle 3": {value: 0},
+		"should handle 1": {value: 1},
+		"should handle 2": {value: 2},
+		"should handle 3": {value: 3},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
@@ -195,9 +281,9 @@ func TestInt64(t *testing.T) {
 		value int64
 	}{
 		"should handle 0": {value: 0},
-		"should handle 1": {value: 0},
-		"should handle 2": {value: 0},
-		"should handle 3": {value: 0},
+		"should handle 1": {value: 1},
+		"should handle 2": {value: 2},
+		"should handle 3": {value: 3},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
