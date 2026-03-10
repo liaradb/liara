@@ -19,7 +19,7 @@ func (t *Tenant) Version() value.Version { return t.version }
 func (t *Tenant) Name() value.TenantName { return t.name }
 
 func NewTenant(
-	id value.TenantID, // TODO: Is TenantID required?
+	id value.TenantID,
 	name value.TenantName,
 ) *Tenant {
 	return &Tenant{
