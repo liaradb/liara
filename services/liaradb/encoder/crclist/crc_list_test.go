@@ -268,7 +268,6 @@ func TestCRCList_ItemsRange(t *testing.T) {
 	}
 }
 
-// TODO: Should not affect items outside of range
 func TestCRCList_Insert(t *testing.T) {
 	t.Parallel()
 
@@ -343,6 +342,22 @@ func TestCRCList_Insert(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("should not insert beyond size", func(t *testing.T) {
+		t.Parallel()
+
+		l := New(make([]byte, 10))
+		for i, item := range []tuple{
+			{10, 60, page.RestoreCRC(int32(100))}} {
+			if _, ok := l.Insert(item.a, item.b, item.c, int16(i)); !ok {
+				t.Fatal("should insert")
+			}
+		}
+
+		if _, ok := l.Insert(20, 70, page.RestoreCRC(int32(200)), 0); ok {
+			t.Error("should not insert beyond size")
+		}
+	})
 }
 
 func TestCRCList_Reset(t *testing.T) {
