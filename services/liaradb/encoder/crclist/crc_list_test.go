@@ -199,6 +199,11 @@ func TestCRCList_ItemsReverse(t *testing.T) {
 		result = append(result, tuple{i.Offset, i.Size, i.CRC})
 	}
 
+	// Partial iteration
+	for range l.ItemsReverse() {
+		break
+	}
+
 	slices.Reverse(data)
 	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
@@ -259,6 +264,11 @@ func TestCRCList_ItemsRange(t *testing.T) {
 			result := make([]tuple, 0, len(c.want))
 			for i := range l.ItemsRange(c.start, c.end) {
 				result = append(result, tuple{i.Offset, i.Size, i.CRC})
+			}
+
+			// Partial iteration
+			for range l.ItemsRange(c.start, c.end) {
+				break
 			}
 
 			if !slices.Equal(result, c.want) {
@@ -335,6 +345,11 @@ func TestCRCList_Insert(t *testing.T) {
 			result := make([]tuple, 0, len(c.data))
 			for i := range l.Items() {
 				result = append(result, tuple{i.Offset, i.Size, i.CRC})
+			}
+
+			// Partial iteration
+			for range l.Items() {
+				break
 			}
 
 			if !slices.Equal(result, c.want) {
