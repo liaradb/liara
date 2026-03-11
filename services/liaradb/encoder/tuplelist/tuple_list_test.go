@@ -288,7 +288,6 @@ func TestTupleList_ItemsRange(t *testing.T) {
 	}
 }
 
-// TODO: Should not affect items outside of range
 func TestTupleList_Insert(t *testing.T) {
 	t.Parallel()
 
@@ -368,6 +367,22 @@ func TestTupleList_Insert(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("should not insert beyond size", func(t *testing.T) {
+		t.Parallel()
+
+		l := New(make([]byte, 6))
+		for i, item := range []tuple{
+			{10, 60}} {
+			if _, ok := l.Insert(item.a, item.b, int16(i)); !ok {
+				t.Fatal("should insert")
+			}
+		}
+
+		if _, ok := l.Insert(20, 70, 0); ok {
+			t.Error("should not insert beyond size")
+		}
+	})
 }
 
 func TestTupleList_Clear(t *testing.T) {
