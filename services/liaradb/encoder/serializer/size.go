@@ -1,4 +1,4 @@
-package raw
+package serializer
 
 type Sizer interface {
 	Size() int

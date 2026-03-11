@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 type Row struct {
@@ -50,7 +50,7 @@ func (r *Row) SetData(data value.Data) {
 }
 
 func (r *Row) Size() int {
-	return raw.Size(
+	return serializer.Size(
 		r.id,
 		r.version,
 		r.partitionID,
@@ -61,7 +61,7 @@ func (r *Row) Size() int {
 }
 
 func (r *Row) Write(w io.Writer) error {
-	return raw.WriteAll(w,
+	return serializer.WriteAll(w,
 		r.id,
 		r.version,
 		r.partitionID,
@@ -72,7 +72,7 @@ func (r *Row) Write(w io.Writer) error {
 }
 
 func (e *Row) Read(r io.Reader) error {
-	return raw.ReadAll(r,
+	return serializer.ReadAll(r,
 		&e.id,
 		&e.version,
 		&e.partitionID,

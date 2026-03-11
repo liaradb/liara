@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 type Event struct {
@@ -21,7 +21,7 @@ type Event struct {
 }
 
 func (e Event) Size() int {
-	return raw.Size(
+	return serializer.Size(
 		e.GlobalVersion,
 		e.ID,
 		e.AggregateName,
@@ -35,7 +35,7 @@ func (e Event) Size() int {
 }
 
 func (e Event) Write(w io.Writer) error {
-	return raw.WriteAll(w,
+	return serializer.WriteAll(w,
 		e.GlobalVersion,
 		e.ID,
 		e.AggregateName,
@@ -49,7 +49,7 @@ func (e Event) Write(w io.Writer) error {
 }
 
 func (e *Event) Read(r io.Reader) error {
-	return raw.ReadAll(r,
+	return serializer.ReadAll(r,
 		&e.GlobalVersion,
 		&e.ID,
 		&e.AggregateName,

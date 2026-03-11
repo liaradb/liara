@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 type Metadata struct {
@@ -34,7 +34,7 @@ func (e Metadata) ClientVersion() value.ClientVersion { return e.clientVersion }
 func (e Metadata) Time() value.Time                   { return e.time }
 
 func (e Metadata) Size() int {
-	return raw.Size(
+	return serializer.Size(
 		e.userID,
 		e.correlationID,
 		e.clientVersion,
@@ -42,7 +42,7 @@ func (e Metadata) Size() int {
 }
 
 func (e Metadata) Write(w io.Writer) error {
-	return raw.WriteAll(w,
+	return serializer.WriteAll(w,
 		e.userID,
 		e.correlationID,
 		e.clientVersion,
@@ -50,7 +50,7 @@ func (e Metadata) Write(w io.Writer) error {
 }
 
 func (e *Metadata) Read(r io.Reader) error {
-	return raw.ReadAll(r,
+	return serializer.ReadAll(r,
 		&e.userID,
 		&e.correlationID,
 		&e.clientVersion,

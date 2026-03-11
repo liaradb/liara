@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 type Record struct {
@@ -47,7 +47,7 @@ func (rc *Record) Data() []byte                         { return rc.data.Bytes()
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 
 func (rc *Record) Size() int {
-	return raw.Size(
+	return serializer.Size(
 		rc.logSequenceNumber,
 		rc.tenantID,
 		rc.transactionID,
