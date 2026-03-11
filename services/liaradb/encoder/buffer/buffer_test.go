@@ -483,6 +483,11 @@ func TestBuffer_Seek(t *testing.T) {
 			whence:   io.SeekStart,
 			err:      ErrUnderflow,
 			n:        initialPosition},
+		"should not seek to negative position from default": {
+			position: -1,
+			whence:   10,
+			err:      ErrUnderflow,
+			n:        initialPosition},
 		"should not seek to negative position from current": {
 			position: -11,
 			whence:   io.SeekCurrent,
