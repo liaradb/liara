@@ -82,6 +82,16 @@ func TestTupleList_Push(t *testing.T) {
 	}
 }
 
+func TestTupleList_Push__Error(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 0))
+
+	if _, ok := l.Push(1, 10); ok {
+		t.Error("should return error")
+	}
+}
+
 func TestTupleList_Pop(t *testing.T) {
 	t.Parallel()
 
@@ -130,6 +140,56 @@ func TestTupleList_Pop(t *testing.T) {
 	if _, _, ok := l.Pop(); ok {
 		t.Error("should not pop beyond empty")
 	}
+}
+
+func TestTupleList_Item(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 32))
+
+	data := []tuple{
+		{10, 60},
+		{20, 70},
+		{30, 80},
+		{40, 90},
+		{50, 100}}
+
+	for _, i := range data {
+		if _, ok := l.Push(i.a, i.b); !ok {
+			t.Error("should push")
+		}
+	}
+
+	result := make([]tuple, 0, len(data))
+	for i := range l.Count() {
+		if a, b, ok := l.Item(i); ok {
+			result = append(result, tuple{a, b})
+		}
+	}
+
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+}
+
+func TestTupleList_Item__BeyondSize(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should not get beyond size odd", func(t *testing.T) {
+		l := New(make([]byte, 1))
+
+		if _, _, ok := l.Item(0); ok {
+			t.Error("should not get beyond count")
+		}
+	})
+
+	t.Run("should not get beyond size even", func(t *testing.T) {
+		l := New(make([]byte, 3))
+
+		if _, _, ok := l.Item(0); ok {
+			t.Error("should not get beyond count")
+		}
+	})
 }
 
 func TestTupleList_Items(t *testing.T) {
@@ -216,6 +276,11 @@ func TestTupleList_ItemsRange(t *testing.T) {
 				result = append(result, tuple{a, b})
 			}
 
+			// Partial iteration
+			for range l.ItemsRange(c.start, c.end) {
+				break
+			}
+
 			if !slices.Equal(result, c.want) {
 				t.Errorf("incorrect result: %v, expected: %v", result, c.want)
 			}
@@ -291,6 +356,11 @@ func TestTupleList_Insert(t *testing.T) {
 			result := make([]tuple, 0, len(c.data))
 			for a, b := range l.Items() {
 				result = append(result, tuple{a, b})
+			}
+
+			// Partial iteration
+			for range l.Items() {
+				break
 			}
 
 			if !slices.Equal(result, c.want) {

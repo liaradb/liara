@@ -73,6 +73,16 @@ func TestList_Push(t *testing.T) {
 	}
 }
 
+func TestList_Push__Error(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 0))
+
+	if _, ok := l.Push(1); ok {
+		t.Error("should return error")
+	}
+}
+
 func TestList_Pop(t *testing.T) {
 	t.Parallel()
 
@@ -135,6 +145,11 @@ func TestList_Items(t *testing.T) {
 	result := make([]int16, 0, len(items))
 	for _, item := range l.Items() {
 		result = append(result, item)
+	}
+
+	// Partial iteration
+	for range l.Items() {
+		break
 	}
 
 	if !slices.Equal(result, items) {
