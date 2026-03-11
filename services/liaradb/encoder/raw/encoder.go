@@ -16,10 +16,8 @@ func Write(w io.Writer, value []byte) error {
 		return err
 	}
 
-	if n, err := w.Write(value); err != nil {
+	if _, err := w.Write(value); err != nil {
 		return err
-	} else if n < len(value) {
-		return io.ErrShortWrite
 	}
 
 	return nil
@@ -46,10 +44,8 @@ func WriteString[S ~string](w io.Writer, value S) error {
 		return err
 	}
 
-	if n, err := w.Write([]byte(value)); err != nil {
+	if _, err := w.Write([]byte(value)); err != nil {
 		return err
-	} else if n < len(value) {
-		return io.ErrShortWrite
 	}
 
 	return nil
@@ -155,10 +151,8 @@ func ReadInt64[T ~uint64 | ~int64](r io.Reader, v *T) error {
 }
 
 func readToSlice(r io.Reader, d []byte) error {
-	if n, err := r.Read(d); err != nil {
+	if _, err := r.Read(d); err != nil {
 		return err
-	} else if n < len(d) {
-		return io.ErrUnexpectedEOF
 	}
 
 	return nil

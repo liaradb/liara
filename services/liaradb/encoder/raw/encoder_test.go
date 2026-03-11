@@ -45,6 +45,46 @@ func TestByteEncoder(t *testing.T) {
 	}
 }
 
+func TestByteEncoder__Short(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return err on buffer too short for size", func(t *testing.T) {
+		b := buffer.New(1)
+
+		want := []byte{1, 2, 3, 4, 5}
+		if err := Write(b, want); err != io.ErrShortWrite {
+			t.Error("should return err")
+		}
+
+		if _, err := b.Seek(0, io.SeekStart); err != nil {
+			t.Fatal(err)
+		}
+
+		var result []byte
+		if err := Read(b, &result); err != io.EOF {
+			t.Error("should return err")
+		}
+	})
+
+	t.Run("should return err on buffer too short for value", func(t *testing.T) {
+		b := buffer.New(5)
+
+		want := []byte{1, 2, 3, 4, 5}
+		if err := Write(b, want); err != io.ErrShortWrite {
+			t.Error("should return err")
+		}
+
+		if _, err := b.Seek(0, io.SeekStart); err != nil {
+			t.Fatal(err)
+		}
+
+		var result []byte
+		if err := Read(b, &result); err != io.EOF {
+			t.Error("should return err")
+		}
+	})
+}
+
 func TestStringEncoder(t *testing.T) {
 	t.Parallel()
 
