@@ -34,7 +34,6 @@ func TestEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// TODO: Create another comparison
 	// Data comparison doesn't allow nil slice
 	if !reflect.DeepEqual(e, e2) {
 		t.Errorf("incorrect value: %v, expected: %v", e2, e)
