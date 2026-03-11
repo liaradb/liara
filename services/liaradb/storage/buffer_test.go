@@ -205,3 +205,60 @@ func TestBuffer_Seek(t *testing.T) {
 		})
 	}
 }
+
+func TestNode_Clear(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_Clear)
+}
+
+func testNode_Clear(t *testing.T) {
+	s := createStorage(t, 2, 8)
+	b := createBuffer(t, s)
+
+	base := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	empty := make([]byte, 8)
+
+	data := slices.Clone(base)
+	if _, err := b.Write(data); err != nil {
+		t.Fatal(err)
+	}
+
+	if !b.Dirty() {
+		t.Error("should be dirty")
+	}
+
+	if s := b.Status(); s != BufferStatusDirty {
+		t.Errorf("incorrect status: %v, expected: %v", s, BufferStatusDirty)
+	}
+
+	if !slices.Equal(data, base) {
+		t.Error("should not change data")
+	}
+
+	b.Clear()
+
+	if s := b.Status(); s != BufferStatusUninitialized {
+		t.Errorf("incorrect status: %v, expected: %v", s, BufferStatusUninitialized)
+	}
+
+	if !slices.Equal(data, base) {
+		t.Error("should not change data")
+	}
+
+	if raw := b.Raw(); !slices.Equal(raw, empty) {
+		t.Errorf("incorrect data: %v, expected: %v", raw, empty)
+	}
+
+	b.Release()
+
+	synctest.Wait()
+}
+
+func createBuffer(t *testing.T, s *Storage) *Buffer {
+	b, err := s.Request(t.Context(), link.BlockID{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return b
+}

@@ -30,6 +30,7 @@ func (b *Buffer) Pins() int             { return b.pins }
 func (b *Buffer) Size() int64           { return b.s.BufferSize() }
 func (b *Buffer) Raw() []byte           { return b.buffer.Bytes() }
 func (b *Buffer) Cursor() int64         { return b.buffer.Cursor() }
+func (b *Buffer) Status() BufferStatus  { return b.status }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }
@@ -98,13 +99,6 @@ func (b *Buffer) read(r io.ReaderAt) error {
 
 		// Clear the remainder of the buffer
 		b.buffer.ClearAfter(n)
-
-		// TODO: Test if page has been initialized
-		// if n == 0 {
-		// 	// TODO: Initialize page
-		// 	b.page.Reset(page.ZeroHeader{})
-		// 	return nil
-		// }
 	}
 
 	// TODO: Test this
@@ -136,7 +130,6 @@ func (b *Buffer) flushIfDirty() error {
 	return nil
 }
 
-// TODO: Test this
 func (b *Buffer) Clear() {
 	b.buffer.Clear()
 	b.status = BufferStatusUninitialized
