@@ -524,6 +524,10 @@ func TestBuffer_Seek(t *testing.T) {
 			if n != int64(c.n) {
 				t.Errorf("%v: incorrect n: %v, expected: %v", message, n, c.n)
 			}
+
+			if o := b.Cursor(); o != int64(c.n) {
+				t.Errorf("%v: incorrect cursor: %v, expected: %v", message, o, c.n)
+			}
 		})
 	}
 }

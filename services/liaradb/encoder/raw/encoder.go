@@ -34,6 +34,7 @@ func Read(r io.Reader, value *[]byte) error {
 		*value = make([]byte, l)
 	} else {
 		if v == nil {
+			// Create empty slice.
 			v = make([]byte, 0)
 		} else {
 			clear(v)

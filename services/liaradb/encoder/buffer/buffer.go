@@ -2,7 +2,7 @@ package buffer
 
 import "io"
 
-// TODO: Potentially use io.OffsetWriter
+// Implements Reader and Writer methods, backed by a fixed size slice.
 type Buffer struct {
 	data   []byte
 	cursor int64
@@ -46,6 +46,7 @@ func (b *Buffer) Reset(data []byte) {
 
 func (b *Buffer) Bytes() []byte { return b.data }
 func (b *Buffer) Length() int64 { return int64(len(b.data)) }
+func (b *Buffer) Cursor() int64 { return b.cursor }
 
 func (b *Buffer) Read(p []byte) (n int, err error) {
 	if b.cursor > int64(len(b.data)) {

@@ -29,6 +29,7 @@ func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int             { return b.pins }
 func (b *Buffer) Size() int64           { return b.s.BufferSize() }
 func (b *Buffer) Raw() []byte           { return b.buffer.Bytes() }
+func (b *Buffer) Cursor() int64         { return b.buffer.Cursor() }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }
@@ -46,9 +47,9 @@ func (b *Buffer) pin() {
 
 func (b *Buffer) unpin() bool {
 	b.pins--
-	// TODO: Do we need this?
 	if b.pins < 0 {
-		b.pins = 0
+		// This should never happen
+		panic("nevative pins")
 	}
 	return b.pins == 0
 }
@@ -145,7 +146,6 @@ func (b *Buffer) Read(p []byte) (int, error) {
 	return b.buffer.Read(p)
 }
 
-// TODO: Test this
 func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	return b.buffer.Seek(offset, whence)
 }
