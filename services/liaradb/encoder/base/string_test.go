@@ -6,6 +6,8 @@ import (
 )
 
 func TestString(t *testing.T) {
+	t.Parallel()
+
 	size := 32
 	n := String("name")
 	data := make([]byte, size)

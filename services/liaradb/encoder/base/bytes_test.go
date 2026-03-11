@@ -6,6 +6,8 @@ import (
 )
 
 func TestBytes(t *testing.T) {
+	t.Parallel()
+
 	size := 32
 	n := NewBytes([]byte("name"))
 	data := make([]byte, size)
