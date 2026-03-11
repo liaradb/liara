@@ -2,11 +2,13 @@ package outbox
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
 	"testing/synctest"
 
+	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -70,17 +72,15 @@ type item struct {
 }
 
 func createData() []item {
-	return []item{
-		{"1", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"2", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"3", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"4", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"5", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"6", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"7", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"8", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
-		{"9", entity.NewOutbox(value.NewOutboxID(), value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))},
+	count := 9
+	data := uuid.UUID{}
+	items := make([]item, 0, count)
+	for i := range count {
+		data[15] = byte(i) + 1
+		rid, _ := value.NewOutboxIDFromString(data.String())
+		items = append(items, item{fmt.Sprintf("%v", i+1), entity.NewOutbox(rid, value.NewPartitionRange(value.NewPartitionID(0), value.NewPartitionID(0)))})
 	}
+	return items
 }
 
 func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data []item) error {
