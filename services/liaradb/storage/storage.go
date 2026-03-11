@@ -12,7 +12,7 @@ import (
 )
 
 type Storage struct {
-	bufferSize int64 // TODO: Do we need this?
+	bufferSize int64
 	fs         file.FileSystem
 	dir        string
 	pinned     map[link.BlockID]*Buffer
