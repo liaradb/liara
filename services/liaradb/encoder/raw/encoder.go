@@ -23,20 +23,26 @@ func Write(w io.Writer, value []byte) error {
 	return nil
 }
 
-// TODO: Can we reuse value?
 func Read(r io.Reader, value *[]byte) error {
 	l, err := readLength(r)
 	if err != nil {
 		return err
 	}
 
-	b, err := readData(r, l)
-	if err != nil {
-		return err
+	v := *value
+	if l > uint32(len(v)) {
+		*value = make([]byte, l)
+	} else {
+		if v == nil {
+			v = make([]byte, 0)
+		} else {
+			clear(v)
+			v = v[:l]
+		}
+		*value = v
 	}
 
-	*value = b
-	return nil
+	return readData(r, *value)
 }
 
 func WriteString[S ~string](w io.Writer, value S) error {
@@ -57,8 +63,8 @@ func ReadString[S ~string](r io.Reader, s *S) error {
 		return err
 	}
 
-	b, err := readData(r, l)
-	if err != nil {
+	b := make([]byte, l)
+	if err := readData(r, b); err != nil {
 		return err
 	}
 
@@ -72,14 +78,9 @@ func readLength(r io.Reader) (uint32, error) {
 	return l, err
 }
 
-func readData(r io.Reader, l uint32) ([]byte, error) {
-	b := make([]byte, l)
-
-	if _, err := r.Read(b); err != nil {
-		return nil, err
-	}
-
-	return b, nil
+func readData(r io.Reader, b []byte) error {
+	_, err := r.Read(b)
+	return err
 }
 
 func WriteInt8[T ~uint8 | ~int8](w io.Writer, v T) error {
