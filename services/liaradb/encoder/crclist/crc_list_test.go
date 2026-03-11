@@ -438,3 +438,34 @@ func TestCRCList_Clear(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 }
+
+func TestCRCList_SetCRC(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 10))
+	if _, ok := l.Insert(10, 60, page.RestoreCRC(int32(100)), 0); !ok {
+		t.Fatal("should insert")
+	}
+
+	if item, ok := l.Item(0); !ok {
+		t.Fatal("should get item")
+	} else if item.Offset != 10 {
+		t.Errorf("incorrect offset: %v, expected: %v", item.Offset, 10)
+	} else if item.Size != 60 {
+		t.Errorf("incorrect size: %v, expected: %v", item.Size, 60)
+	} else if item.CRC != page.RestoreCRC(int32(100)) {
+		t.Errorf("incorrect crc: %v, expected: %v", item.CRC, page.RestoreCRC(int32(100)))
+	}
+
+	l.SetCRC(page.RestoreCRC(int32(200)), 0)
+
+	if item, ok := l.Item(0); !ok {
+		t.Fatal("should get item")
+	} else if item.Offset != 10 {
+		t.Errorf("incorrect offset: %v, expected: %v", item.Offset, 10)
+	} else if item.Size != 60 {
+		t.Errorf("incorrect size: %v, expected: %v", item.Size, 60)
+	} else if item.CRC != page.RestoreCRC(int32(200)) {
+		t.Errorf("incorrect crc: %v, expected: %v", item.CRC, page.RestoreCRC(int32(200)))
+	}
+}
