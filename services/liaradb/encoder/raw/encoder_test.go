@@ -24,25 +24,93 @@ func TestStringSize(t *testing.T) {
 func TestByteEncoder(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	t.Run("should read from nil slice", func(t *testing.T) {
+		r, w := testutil.NewReaderWriter()
 
-	want := []byte{1, 2, 3, 4, 5}
-	if err := Write(w, want); err != nil {
-		t.Fatal(err)
-	}
+		want := []byte{1, 2, 3, 4, 5}
+		if err := Write(w, want); err != nil {
+			t.Fatal(err)
+		}
 
-	if err := w.Flush(); err != nil {
-		t.Fatal(err)
-	}
+		if err := w.Flush(); err != nil {
+			t.Fatal(err)
+		}
 
-	var result []byte
-	if err := Read(r, &result); err != nil {
-		t.Fatal(err)
-	}
+		var result []byte
+		if err := Read(r, &result); err != nil {
+			t.Fatal(err)
+		}
 
-	if !slices.Equal(result, want) {
-		t.Errorf("incorrect value: %v, expected: %v", result, want)
-	}
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect value: %v, expected: %v", result, want)
+		}
+	})
+
+	t.Run("should read empty from nil slice", func(t *testing.T) {
+		r, w := testutil.NewReaderWriter()
+
+		want := []byte{}
+		if err := Write(w, want); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := w.Flush(); err != nil {
+			t.Fatal(err)
+		}
+
+		var result []byte
+		if err := Read(r, &result); err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect value: %v, expected: %v", result, want)
+		}
+	})
+
+	t.Run("should read from small slice", func(t *testing.T) {
+		r, w := testutil.NewReaderWriter()
+
+		want := []byte{1, 2, 3, 4, 5}
+		if err := Write(w, want); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := w.Flush(); err != nil {
+			t.Fatal(err)
+		}
+
+		result := make([]byte, 1)
+		if err := Read(r, &result); err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect value: %v, expected: %v", result, want)
+		}
+	})
+
+	t.Run("should read from sufficient slice", func(t *testing.T) {
+		r, w := testutil.NewReaderWriter()
+
+		want := []byte{1, 2, 3, 4, 5}
+		if err := Write(w, want); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := w.Flush(); err != nil {
+			t.Fatal(err)
+		}
+
+		result := make([]byte, 10)
+		if err := Read(r, &result); err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect value: %v, expected: %v", result, want)
+		}
+	})
 }
 
 func TestByteEncoder__Short(t *testing.T) {
