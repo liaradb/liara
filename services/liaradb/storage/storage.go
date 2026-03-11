@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"path"
 
 	"github.com/liaradb/liaradb/async"
@@ -290,18 +291,7 @@ func (s *Storage) flush(b *Buffer) error {
 }
 
 func (s *Storage) openFile(b *Buffer) (file.File, error) {
-	// TODO: Test this
-	fn := b.blockID.FileName()
-	f, err := s.fs.OpenFile(path.Join(s.dir, fn.String()))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := s.initHighwater(fn, f); err != nil {
-		return nil, err
-	}
-
-	return f, nil
+	return s.openHighwater(b.blockID.FileName())
 }
 
 func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
@@ -312,7 +302,7 @@ func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
 	}
 
 	if err := s.initHighwater(fn, f); err != nil {
-		return nil, err
+		return nil, errors.Join(err, f.Close())
 	}
 
 	return f, nil
