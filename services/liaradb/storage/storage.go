@@ -49,7 +49,6 @@ func (s *Storage) Count() int {
 }
 
 func (s *Storage) Run(ctx context.Context) error {
-	// TODO: Test this
 	if err := s.fs.MkDirAll(s.dir); err != nil {
 		return err
 	}
@@ -131,9 +130,6 @@ func (s *Storage) getUnpinned(bid link.BlockID) (*Buffer, bool) {
 	return b, ok
 }
 
-// TODO: Create second goroutine
-// One for loaded Buffers, one for non-loaded Buffers
-// This will allow loaded traffic to continue
 func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) (*Buffer, error) {
 	b, err := s.popAllocateOrWait(ctx)
 	if err != nil {
@@ -141,6 +137,9 @@ func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) 
 	}
 
 	// TODO: Don't load here.  Do this in separate goroutine.
+	// Create second goroutine
+	// One for loaded Buffers, one for non-loaded Buffers
+	// This will allow loaded traffic to continue
 	if err := b.load(bid, next); err != nil {
 		return nil, err
 	}

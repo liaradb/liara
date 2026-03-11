@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"io/fs"
 	"path"
 	"sync"
 	"testing/fstest"
@@ -21,7 +22,22 @@ func NewFileSystem(fsys fstest.MapFS) *FileSystem {
 }
 
 func (mfs *FileSystem) MkDirAll(name string) error {
-	// TODO: Implement this
+	mfs.mux.Lock()
+	defer mfs.mux.Unlock()
+
+	if mfs.MapFS == nil {
+		mfs.MapFS = make(fstest.MapFS)
+	}
+
+	_, err := mfs.MapFS.Stat(name)
+	if err == nil {
+		return nil
+	}
+
+	mfs.MapFS[name] = &fstest.MapFile{
+		Mode: fs.ModeDir,
+	}
+
 	return nil
 }
 

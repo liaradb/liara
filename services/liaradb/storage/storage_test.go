@@ -2,6 +2,9 @@ package storage
 
 import (
 	"context"
+	"errors"
+	"os"
+	"path"
 	"slices"
 	"testing"
 	"testing/synctest"
@@ -114,18 +117,27 @@ func testStorage_RequestBeforeRun(t *testing.T) {
 	}
 }
 
-func TestStorage_CancelRun(t *testing.T) {
+func TestStorage_Run(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testStorage_CancelRun)
+	synctest.Test(t, testStorage_Run)
 }
 
-func testStorage_CancelRun(t *testing.T) {
+func testStorage_Run(t *testing.T) {
 	fsys := filetesting.NewMockFileSystem(t, nil)
-	s := New(fsys, 2, 1024, t.TempDir())
+	dir := path.Join(t.TempDir(), "dir")
+	s := New(fsys, 2, 1024, dir)
+
+	if _, err := fsys.Stat(dir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("dir should not exist")
+	}
 
 	ctx, cancel := context.WithCancel(t.Context())
 	if err := s.Run(ctx); err != nil {
 		t.Fatal(err)
+	}
+
+	if _, err := fsys.Stat(dir); !errors.Is(err, os.ErrNotExist) {
+		t.Fatal("dir should not exist")
 	}
 
 	ctx2, cancel2 := context.WithTimeout(t.Context(), 1*time.Second)
