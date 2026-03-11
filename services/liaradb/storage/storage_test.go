@@ -97,6 +97,10 @@ func TestStorage_RequestBeforeRun(t *testing.T) {
 func testStorage_RequestBeforeRun(t *testing.T) {
 	s := Storage{}
 
+	if _, err := s.Highwater(t.Context(), link.NewFileName("")); err == nil {
+		t.Error("should return error")
+	}
+
 	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
 	}
@@ -488,6 +492,38 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 	}
 
 	b3.Release()
+
+	synctest.Wait()
+}
+
+func TestStorage_Highwater(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Highwater)
+}
+
+func testStorage_Highwater(t *testing.T) {
+	s := createStorage(t, 1, 16)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+
+	if h, err := s.Highwater(ctx, fn); err != nil {
+		t.Fatal(err)
+	} else if h != fn.BlockID(0) {
+		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.BlockID(0))
+	}
+
+	if b, err := s.RequestNext(ctx, fn); err != nil {
+		t.Fatal(err)
+	} else {
+		b.Release()
+	}
+
+	if h, err := s.Highwater(ctx, fn); err != nil {
+		t.Fatal(err)
+	} else if h != fn.BlockID(1) {
+		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.BlockID(1))
+	}
 
 	synctest.Wait()
 }
