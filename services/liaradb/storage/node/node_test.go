@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 	"testing/synctest"
+	"time"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -15,6 +16,39 @@ import (
 const (
 	testHeaderSize = 2 + headerSize
 )
+
+func TestNode_Latch(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testNode_Latch)
+}
+
+func testNode_Latch(t *testing.T) {
+	// b := Buffer{}
+	value := 0
+
+	go func() {
+		// b.Latch()
+		// defer b.Unlatch()
+		value0 := value
+		time.Sleep(1 * time.Second)
+		value = value0 + 1
+	}()
+
+	go func() {
+		// time.Sleep(1 * time.Second)
+		value1 := value
+		time.Sleep(1 * time.Second)
+		value = value1 + 1
+		// b.Latch()
+		// defer b.Unlatch()
+	}()
+
+	time.Sleep(10 * time.Second)
+	if value != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", value, 2)
+	}
+}
 
 func TestNode_Append(t *testing.T) {
 	t.Parallel()
@@ -308,6 +342,11 @@ func testNode_Children(t *testing.T) {
 		result = append(result, v)
 	}
 
+	// Partial iteration
+	for range n.Children() {
+		break
+	}
+
 	if !slices.EqualFunc(result, values, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, values)
 	}
@@ -351,6 +390,11 @@ func testNode_ChildrenRange(t *testing.T) {
 		}
 
 		result = append(result, v)
+	}
+
+	// Partial iteration
+	for range n.ChildrenRange(1, 4) {
+		break
 	}
 
 	want := [][]byte{

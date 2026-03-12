@@ -294,7 +294,6 @@ func (s *Storage) openFile(b *Buffer) (file.File, error) {
 }
 
 func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
-	// TODO: Test this
 	f, err := s.fs.OpenFile(path.Join(s.dir, fn.String()))
 	if err != nil {
 		return nil, err
