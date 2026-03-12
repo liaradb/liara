@@ -10,10 +10,10 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 func TestLog_Default(t *testing.T) {

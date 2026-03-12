@@ -9,8 +9,8 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 func TestReader_Iterate(t *testing.T) {

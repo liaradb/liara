@@ -5,8 +5,8 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {

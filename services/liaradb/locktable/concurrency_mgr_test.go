@@ -6,7 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestConcurrencyMgr_SLock(t *testing.T) {

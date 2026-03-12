@@ -10,7 +10,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestStringSize(t *testing.T) {

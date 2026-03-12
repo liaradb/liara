@@ -3,7 +3,7 @@ package record
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestLogData(t *testing.T) {

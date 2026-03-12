@@ -8,12 +8,12 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestManager(t *testing.T) {

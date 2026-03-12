@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestLeafNode_Child(t *testing.T) {

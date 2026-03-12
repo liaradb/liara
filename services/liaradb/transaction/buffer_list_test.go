@@ -4,9 +4,9 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 func TestBufferList(t *testing.T) {

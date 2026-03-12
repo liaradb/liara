@@ -13,13 +13,13 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/storagetesting"
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 const (

@@ -14,7 +14,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestEventLog_Append(t *testing.T) {

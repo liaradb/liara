@@ -8,8 +8,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/storagetesting"
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestKeyNode(t *testing.T) {

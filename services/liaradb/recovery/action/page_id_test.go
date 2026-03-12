@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testutil"
+	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestPageID_NewPageIDFromSize(t *testing.T) {

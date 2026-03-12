@@ -12,9 +12,9 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/file/filetesting"
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 // TODO: Where should this test be?

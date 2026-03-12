@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/storage/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestManager(t *testing.T) {
