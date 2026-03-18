@@ -430,3 +430,52 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 
 	return b
 }
+
+func TestNode_Clear(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_Clear)
+}
+
+func testNode_Clear(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	n := New(b)
+	values := [][]byte{
+		{1, 2},
+		{3, 4},
+		{5, 6},
+		{7, 8},
+		{9, 10}}
+
+	for _, v := range values {
+		_, b, ok := n.Append(itemSize * int16(len(v)))
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
+			t.Error(err)
+		}
+	}
+
+	n.Clear()
+
+	result := make([][]byte, 0, len(values))
+	for c := range n.Children() {
+		v := make([]byte, 2)
+		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+			t.Fatal(err)
+		}
+
+		result = append(result, v)
+	}
+
+	if l := len(result); l != 0 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 0)
+	}
+
+	n.Release()
+
+	synctest.Wait()
+}
