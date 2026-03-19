@@ -55,7 +55,6 @@ func (f *File) Stat() (os.FileInfo, error) {
 	}, nil
 }
 
-// TODO: Test this
 func (f *File) Read(b []byte) (n int, err error) {
 	return f.ReadAt(b, f.position)
 }
@@ -85,7 +84,6 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 	return
 }
 
-// TODO: Test this
 func (f *File) Write(b []byte) (n int, err error) {
 	return f.WriteAt(b, f.position)
 }
