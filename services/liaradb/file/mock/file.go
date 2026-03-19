@@ -3,6 +3,7 @@ package mock
 import (
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"slices"
 	"time"
@@ -19,7 +20,6 @@ type File struct {
 }
 
 var _ file.File = (*File)(nil)
-var ErrClosed = errors.New("file already closed")
 
 func NewMockFile(name string) *File {
 	return &File{
@@ -43,9 +43,8 @@ func (f *File) Close() error {
 }
 
 func (f *File) Stat() (os.FileInfo, error) {
-	// TODO: Is this correct?
 	if !f.isOpen {
-		return nil, ErrClosed
+		return nil, fs.ErrClosed
 	}
 
 	return &mockFileInfo{
@@ -61,7 +60,7 @@ func (f *File) Read(b []byte) (n int, err error) {
 
 func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 	if !f.isOpen {
-		return 0, ErrClosed
+		return 0, fs.ErrClosed
 	}
 
 	if off < 0 {
@@ -90,7 +89,7 @@ func (f *File) Write(b []byte) (n int, err error) {
 
 func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
 	if !f.isOpen {
-		return 0, ErrClosed
+		return 0, fs.ErrClosed
 	}
 
 	if off < 0 {
@@ -126,7 +125,7 @@ func (f *File) adjustSize(b []byte, off int64) bool {
 
 func (f *File) Seek(offset int64, whence int) (int64, error) {
 	if !f.isOpen {
-		return 0, ErrClosed
+		return 0, fs.ErrClosed
 	}
 
 	f.position = f.seekPosition(offset, whence)

@@ -2,7 +2,11 @@ package mock
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
+	"io/fs"
+	"os"
+	"path"
 	"slices"
 	"testing"
 )
@@ -114,5 +118,47 @@ func TestFile_Write(t *testing.T) {
 		t.Fatalf("incorrect position: %v, expected: %v", p, 3)
 	} else if !slices.Equal(result2, data1) {
 		t.Errorf("incorrect result: %v, expected: %v", result2, data1)
+	}
+}
+
+func TestFile_Stat__Closed(t *testing.T) {
+	f := NewMockFile("file")
+	f.Open()
+
+	_, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = f.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.Stat()
+	if !errors.Is(err, fs.ErrClosed) {
+		t.Fatal(err)
+	}
+}
+
+// This test is to verify matched behavior for mock file
+func TestFile_Stat__Closed_Verification(t *testing.T) {
+	dir := t.TempDir()
+	f, err := os.OpenFile(path.Join(dir, "file"), os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = f.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = f.Stat()
+	if !errors.Is(err, fs.ErrClosed) {
+		t.Fatal(err)
 	}
 }
