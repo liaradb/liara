@@ -42,12 +42,11 @@ func (n *Node) Dirty() bool  { return n.buffer.Dirty() }
 func (n *Node) Raw() []byte  { return n.buffer.Raw() }
 func (n *Node) IsPage() bool { return n.header.isPage() }
 
-// TODO: Test this
 func (n *Node) Release()  { n.buffer.Release() }
-func (n *Node) Latch()    { n.buffer.Latch() }
-func (n *Node) Unlatch()  { n.buffer.Unlatch() }
-func (n *Node) RLatch()   { n.buffer.RLatch() }
-func (n *Node) RUnlatch() { n.buffer.RUnlatch() }
+func (n *Node) latch()    { n.buffer.Latch() }
+func (n *Node) unlatch()  { n.buffer.Unlatch() }
+func (n *Node) rLatch()   { n.buffer.RLatch() }
+func (n *Node) rUnlatch() { n.buffer.RUnlatch() }
 
 func (n *Node) Clear() {
 	n.buffer.Clear()
@@ -60,8 +59,8 @@ func (n *Node) SetDirty() {
 }
 
 func (n *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
-	n.Latch()
-	defer n.Unlatch()
+	n.latch()
+	defer n.unlatch()
 
 	if !n.hasSpace(size) {
 		return 0, nil, false
@@ -85,8 +84,8 @@ func (n *Node) Append(size int16, crc page.CRC) (link.RecordPosition, []byte, bo
 }
 
 func (n *Node) Insert(size int16, index int16, crc page.CRC) (link.RecordPosition, []byte, bool) {
-	n.Latch()
-	defer n.Unlatch()
+	n.latch()
+	defer n.unlatch()
 
 	if !n.hasSpace(size) {
 		return 0, nil, false
@@ -119,17 +118,27 @@ func (n *Node) next() int16 {
 }
 
 func (n Node) Space() int16 {
+	n.rLatch()
+	defer n.rUnlatch()
+
+	return n.space()
+}
+
+func (n Node) space() int16 {
 	next := n.next()
 	size := n.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
 func (n Node) hasSpace(size int16) bool {
-	s := n.Space()
+	s := n.space()
 	return size <= s
 }
 
 func (n Node) Child(index int16) ([]byte, bool) {
+	n.rLatch()
+	defer n.rUnlatch()
+
 	i, ok := n.list.Item(index)
 	if !ok {
 		return nil, false
@@ -148,6 +157,9 @@ func (n Node) Child(index int16) ([]byte, bool) {
 }
 
 func (n Node) ReplaceChild(index int16, data []byte) bool {
+	n.latch()
+	defer n.unlatch()
+
 	i, ok := n.list.Item(index)
 	if !ok {
 		return false
@@ -171,6 +183,9 @@ func (n Node) ReplaceChild(index int16, data []byte) bool {
 
 func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
+		n.rLatch()
+		defer n.rUnlatch()
+
 		for i := range n.list.Items() {
 			b, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 			if !ok || !i.CRC.Compare(b) || !yield(b) {
@@ -182,6 +197,9 @@ func (n Node) Children() iter.Seq[[]byte] {
 
 func (n Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
+		n.rLatch()
+		defer n.rUnlatch()
+
 		for i := range n.list.ItemsRange(start, end) {
 			b, ok := n.byteList.Slice(int64(i.Offset), int64(i.Size))
 			if !ok || !i.CRC.Compare(b) || !yield(b) {
