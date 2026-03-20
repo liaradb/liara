@@ -218,6 +218,65 @@ func testNode_Insert(t *testing.T) {
 	}
 }
 
+func TestNode_ReplaceChild(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testNode_ReplaceChild)
+}
+
+func testNode_ReplaceChild(t *testing.T) {
+	const (
+		size int16 = 256
+		s0         = size - itemSize - testHeaderSize
+		s1         = s0 - itemSize - 16
+		s2         = s1 - itemSize - 16
+	)
+
+	s := storagetesting.CreateStorage(t, 2, 256)
+	b := createBuffer(t, s)
+
+	n := New(b)
+
+	v0 := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	v1 := []byte{6, 7, 8, 9, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+	if s := n.Space(); s != s0 {
+		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
+	}
+
+	i, b0, ok := n.Insert(16, 0, page.NewCRC(v0))
+	if !ok {
+		t.Fatal("should get a buffer")
+	} else if i != 0 {
+		t.Fatalf("incorrect index: %v, expected: %v", i, 0)
+	}
+
+	if s := n.Space(); s != s1 {
+		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
+	}
+
+	if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
+		t.Fatal(err)
+	}
+
+	if ok := n.ReplaceChild(0, v1); !ok {
+		t.Fatal("should get a buffer")
+	}
+
+	if s := n.Space(); s != s1 {
+		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
+	}
+
+	if r, ok := n.Child(0); !ok {
+		t.Error("should get child")
+	} else if !slices.Equal(r, v1) {
+		t.Errorf("incorrect result: %v, expected: %v", r, v1)
+	}
+
+	n.Release()
+
+	synctest.Wait()
+}
+
 func TestNode_Space(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testNode_Space)
