@@ -546,6 +546,17 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 		t.Errorf("incorrect position: %v, expected: %v", p, 1)
 	}
 
+	// Should be clear
+	for _, d := range b1.Raw() {
+		if d != 0 {
+			t.Errorf("incorrect value: %v, expected: %v", d, 0)
+		}
+	}
+
+	if s := b1.Status(); s != BufferStatusLoaded {
+		t.Errorf("incorrect status: %v, expected: %v", s, BufferStatusLoaded)
+	}
+
 	b1.Release()
 
 	b2, err := s.RequestNext(ctx, fn)
@@ -555,6 +566,17 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 
 	if p := b2.BlockID().Position().Value(); p != 2 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	}
+
+	// Should be clear
+	for _, d := range b2.Raw() {
+		if d != 0 {
+			t.Errorf("incorrect value: %v, expected: %v", d, 0)
+		}
+	}
+
+	if s := b2.Status(); s != BufferStatusLoaded {
+		t.Errorf("incorrect status: %v, expected: %v", s, BufferStatusLoaded)
 	}
 
 	b2.Release()

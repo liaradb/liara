@@ -74,7 +74,6 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 	b.status = BufferStatusLoading
 
 	if next {
-		// TODO: Test this
 		b.buffer.Clear()
 		b.status = BufferStatusLoaded
 		return nil
