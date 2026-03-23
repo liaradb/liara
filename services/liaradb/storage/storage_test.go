@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -373,10 +374,23 @@ func createStorage(t *testing.T, max int, bs int64) *Storage {
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
+func createStorageAndFileSystem(t *testing.T, max int, bs int64) (*Storage, file.FileSystem) {
+	t.Helper()
+
+	fsys := filetesting.NewMockFileSystem(t, nil)
+	return createStorageWithFileSystem(t, max, bs, fsys), fsys
+}
+
 func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem) *Storage {
 	t.Helper()
 
-	s := New(fsys, max, bs, t.TempDir())
+	dir := t.TempDir()
+	s := New(fsys, max, bs, dir)
+
+	if d := s.Dir(); d != dir {
+		t.Fatalf("incorrect dir: %v, expected: %v", d, dir)
+	}
+
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -398,7 +412,7 @@ func TestStorage_FlushAll(t *testing.T) {
 }
 
 func testStorage_FlushAll(t *testing.T) {
-	s := createStorage(t, 2, 16)
+	s, fsys := createStorageAndFileSystem(t, 3, 16)
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
@@ -424,6 +438,17 @@ func testStorage_FlushAll(t *testing.T) {
 
 	b1.Release()
 
+	b2, err := s.Request(ctx, fn.BlockID(2))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if b2.Dirty() {
+		t.Error("should not be dirty")
+	}
+
+	b2.Release()
+
 	synctest.Wait()
 
 	if err := s.FlushAll(); err != nil {
@@ -438,9 +463,27 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
+	if b2.Dirty() {
+		t.Error("should not be dirty")
+	}
+
 	b0.Release()
 
 	synctest.Wait()
+
+	f, err := fsys.OpenFile(path.Join(s.Dir(), fn.String()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mf, ok := f.(*mock.File)
+	if !ok {
+		t.Fatal("incorrect type")
+	}
+
+	if wc := mf.WriteCount(); wc != 2 {
+		t.Errorf("incorrect write count: %v, expected: %v", wc, 2)
+	}
 }
 
 func TestStorage_Request__AlreadyLoaded(t *testing.T) {

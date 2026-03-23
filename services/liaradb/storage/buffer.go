@@ -114,7 +114,6 @@ func (b *Buffer) offset() int64 {
 	return b.blockID.Offset(b.buffer.Length()).Value()
 }
 
-// TODO: Test this
 func (b *Buffer) flushIfDirty() error {
 	if !b.Dirty() {
 		return nil

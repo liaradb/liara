@@ -12,11 +12,13 @@ import (
 )
 
 type File struct {
-	name     string
-	data     []byte
-	position int64
-	modTime  time.Time
-	isOpen   bool
+	name       string
+	data       []byte
+	position   int64
+	modTime    time.Time
+	isOpen     bool
+	readCount  int
+	writeCount int
 }
 
 var _ file.File = (*File)(nil)
@@ -27,6 +29,9 @@ func NewMockFile(name string) *File {
 		modTime: time.Now(),
 	}
 }
+
+func (f *File) ReadCount() int  { return f.readCount }
+func (f *File) WriteCount() int { return f.writeCount }
 
 func (f *File) Open() {
 	f.isOpen = true
@@ -79,6 +84,7 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 	}
 
 	f.position = off + int64(len(b))
+	f.readCount++
 
 	return
 }
@@ -102,6 +108,7 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
 	f.modTime = time.Now()
 	f.adjustSize(b, off)
 	f.position = off + int64(len(b))
+	f.writeCount++
 
 	return copy(f.data[off:int(off)+len(b)], b), nil
 }

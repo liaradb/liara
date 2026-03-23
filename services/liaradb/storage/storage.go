@@ -39,6 +39,7 @@ func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 }
 
 func (s *Storage) BufferSize() int64 { return s.bufferSize }
+func (s *Storage) Dir() string       { return s.dir }
 
 func (s *Storage) CountPinned() int {
 	return len(s.pinned)
