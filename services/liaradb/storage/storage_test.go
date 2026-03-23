@@ -251,8 +251,13 @@ func testStorage_Flush(t *testing.T) {
 		t.Error("should be cancelled")
 	}
 
-	if _, err := b1.Write([]byte{1, 2}); err != nil {
+	data := []byte{1, 2}
+	if _, err := b1.Write(data); err != nil {
 		t.Fatal(err)
+	}
+
+	if !b1.Dirty() {
+		t.Fatal("should be dirty")
 	}
 
 	// Release Buffer 1
@@ -263,10 +268,13 @@ func testStorage_Flush(t *testing.T) {
 	defer cancel()
 
 	// Request Buffer 2 again - available
-	// TODO: How do we test that it flushed?
 	b3, err := s.Request(ctx2, bid2)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if b3.Dirty() {
+		t.Fatal("should have flushed")
 	}
 
 	synctest.Wait()
@@ -281,6 +289,20 @@ func testStorage_Flush(t *testing.T) {
 
 	b0.Release()
 	b3.Release()
+
+	// Request Buffer 1 again
+	b1, err = s.Request(ctx, bid1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result := make([]byte, 2)
+	_, err = b1.Read(result)
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+
+	b1.Release()
 
 	synctest.Wait()
 }
