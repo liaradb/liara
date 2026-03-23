@@ -366,7 +366,6 @@ func testStorage_Wait(t *testing.T) {
 	}
 }
 
-// TODO: Test with noPin true
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	t.Helper()
 
