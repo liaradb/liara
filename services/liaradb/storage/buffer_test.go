@@ -58,6 +58,10 @@ func testBuffer_ReadWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if c := b.Cursor(); c != 0 {
+		t.Errorf("incorrect cursor: %v, expected: %v", c, 0)
+	}
+
 	data := []byte{1, 2, 3}
 
 	if l, err := b.Write(data); err != nil {

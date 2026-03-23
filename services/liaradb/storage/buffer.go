@@ -101,7 +101,6 @@ func (b *Buffer) read(r io.ReaderAt) error {
 		b.buffer.ClearAfter(n)
 	}
 
-	// TODO: Test this
 	_, err = b.buffer.Seek(0, io.SeekStart)
 	return err
 }
@@ -115,12 +114,14 @@ func (b *Buffer) offset() int64 {
 	return b.blockID.Offset(b.buffer.Length()).Value()
 }
 
-// TODO: Do we need to latch?
 // TODO: Test this
 func (b *Buffer) flushIfDirty() error {
 	if !b.Dirty() {
 		return nil
 	}
+
+	b.RLatch()
+	defer b.RUnlatch()
 
 	if err := b.s.flush(b); err != nil {
 		return err
