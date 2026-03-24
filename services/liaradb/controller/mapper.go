@@ -28,7 +28,7 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 		ID:            dto.Id,
 		AggregateName: value.NewAggregateName(dto.AggregateName),
 		AggregateID:   value.NewAggregateID(dto.AggregateId),
-		Version:       value.NewVersion(uint64(dto.Version)),
+		Version:       value.NewVersion(dto.Version),
 		Name:          value.NewEventName(dto.Name),
 		Schema:        value.NewSchema(dto.Schema),
 		Data:          dto.Data,

@@ -283,8 +283,7 @@ func (t *Transaction) appendToEventLog(
 ) error {
 	tn := tablename.New(t.tid)
 	for _, item := range t.events {
-		// TODO: Fix unsigned int
-		k := key.NewKey2(item.e.AggregateID.Bytes(), int64(item.e.Version.Value()))
+		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
 
 		_, err := t.collection.EventLog.AppendEvent(ctx, tn, pid, k, buffer.NewFromSlice(item.data))
 		if err != nil {
