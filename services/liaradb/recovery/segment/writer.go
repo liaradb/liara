@@ -104,7 +104,6 @@ func (wr *Writer) Flush() error {
 	return wr.pageWriter.Write(wr.writer)
 }
 
-// TODO: Test this
 func (wr *Writer) Initialize(w io.WriterAt) {
 	wr.reset(w)
 
