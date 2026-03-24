@@ -78,7 +78,6 @@ func (wr *Writer) next(data []byte) error {
 	}
 
 	wr.pageID++
-	// TODO: Test this
 	if wr.pageID >= wr.segmentSize {
 		return raw.ErrInsufficientSpace
 	}

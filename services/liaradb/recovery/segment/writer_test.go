@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -106,8 +107,12 @@ func TestWriter_Flush(t *testing.T) {
 
 	t.Run("should return error if appending beyond maximum", func(t *testing.T) {
 		t.Parallel()
-		t.Skip()
-		// TODO: Test this
+
+		l := createWriterSmall(t)
+
+		if err := l.Append(rec); err != raw.ErrInsufficientSpace {
+			t.Error("should return error")
+		}
 	})
 
 	t.Run("should write after flushing", func(t *testing.T) {
@@ -142,6 +147,17 @@ func createWriter(t *testing.T) *Writer {
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
 	sw := NewWriter(256, 3)
+	sw.Initialize(f)
+	return sw
+}
+
+func createWriterSmall(t *testing.T) *Writer {
+	t.Helper()
+
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	f.Open()
+
+	sw := NewWriter(32, 1)
 	sw.Initialize(f)
 	return sw
 }
