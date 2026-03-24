@@ -23,11 +23,10 @@ func newReader(
 	}
 }
 
-// TODO: Test this
 // Iterate in reverse until record type.
 //
 // Then iterate forward entil end of log.
-func (rd *reader) Recover() (iter.Seq[*record.Record], error) {
+func (rd *reader) recover() (iter.Seq[*record.Record], error) {
 	rcs := list.New()
 
 	for f, err := range rd.sl.Reverse() {
@@ -56,7 +55,7 @@ func (rd *reader) Recover() (iter.Seq[*record.Record], error) {
 	return listToIterator[*record.Record](rcs), nil
 }
 
-func (rd *reader) Reverse() iter.Seq2[*record.Record, error] {
+func (rd *reader) reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range rd.sl.Reverse() {
 			if err != nil {
@@ -84,7 +83,7 @@ func (rd *reader) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (rd *reader) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+func (rd *reader) iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		for f, err := range rd.sl.IterateFromLSN(lsn) {
 			if err != nil {

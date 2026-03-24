@@ -194,7 +194,7 @@ func (l *Log) flush(lsn record.LogSequenceNumber) error {
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.reader.Iterate(lsn)
+	return l.reader.iterate(lsn)
 }
 
 func (l *Log) Open(ctx context.Context) error {
@@ -209,11 +209,11 @@ func (l *Log) Open(ctx context.Context) error {
 }
 
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	return l.reader.Recover()
+	return l.reader.recover()
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.reader.Reverse()
+	return l.reader.reverse()
 }
 
 func (l *Log) StartWriter() error {
