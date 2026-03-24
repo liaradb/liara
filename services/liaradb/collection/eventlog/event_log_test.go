@@ -132,6 +132,8 @@ func testEventLog_Find(t *testing.T) {
 	if !reflect.DeepEqual(e, records[2]) {
 		t.Errorf("incorrect event: %v, expected: %v", e, records[2])
 	}
+
+	synctest.Wait()
 }
 
 func TestEventLog_GetAggregate(t *testing.T) {
@@ -242,4 +244,6 @@ func testEventLog_AppendEvent(t *testing.T) {
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, records)
 	}
+
+	synctest.Wait()
 }
