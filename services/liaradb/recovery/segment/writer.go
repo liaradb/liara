@@ -50,7 +50,7 @@ func (wr *Writer) Append(rc *record.Record) error {
 		return err
 	}
 
-	return wr.append(data)
+	return wr.appendOrNext(data)
 }
 
 func (wr *Writer) recordToBytes(rc *record.Record) ([]byte, error) {
@@ -59,24 +59,16 @@ func (wr *Writer) recordToBytes(rc *record.Record) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: Don't clone
-	return bytes.Clone(wr.recordBuf.Bytes()), nil
-}
-
-func (wr *Writer) append(data []byte) error {
-	if err := wr.appendOrNext(data); err != nil {
-		return err
-	}
-
-	return nil
+	// We don't need to clone, as the data is copied
+	return wr.recordBuf.Bytes(), nil
 }
 
 func (wr *Writer) appendOrNext(data []byte) error {
-	if ok := wr.pageWriter.Append(data); !ok {
-		return wr.next(data)
+	if ok := wr.pageWriter.Append(data); ok {
+		return nil
 	}
 
-	return nil
+	return wr.next(data)
 }
 
 func (wr *Writer) next(data []byte) error {

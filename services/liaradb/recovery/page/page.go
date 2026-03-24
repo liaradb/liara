@@ -52,6 +52,7 @@ func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length)
 
 func (p *Page) IsPage() bool { return p.header.isPage() }
 
+// Copies data to Page
 func (p *Page) Append(data []byte) bool {
 	size := int16(len(data))
 	if !p.hasSpace(size) {
