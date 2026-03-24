@@ -35,8 +35,7 @@ func (sf *segmentFile) Close() error {
 	return nil
 }
 
-func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
-	// TODO: Test this
+func (sf *segmentFile) open(sn SegmentName) (file.File, error) {
 	if sf.isCurrentAndOpen(sn) {
 		return sf.file, nil
 	}
@@ -52,10 +51,11 @@ func (sf *segmentFile) Open(sn SegmentName) (file.File, error) {
 	return sf.file, nil
 }
 
-func (sf *segmentFile) Remove(sn SegmentName) error {
-	// TODO: Test this
+func (sf *segmentFile) remove(sn SegmentName) error {
 	if sf.isCurrent(sn) {
-		sf.Close()
+		if err := sf.Close(); err != nil {
+			return err
+		}
 	}
 
 	if err := sf.fsys.Remove(sf.path(sn)); err != nil {
