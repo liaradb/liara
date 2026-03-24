@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"io/fs"
 	"iter"
-	"slices"
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -201,6 +200,7 @@ func (l *List) Reverse() iter.Seq2[file.File, error] {
 	}
 }
 
+// files are assumed to be sorted
 func (*List) filesToNames(files []fs.DirEntry) *list.List {
 	names := make([]SegmentName, 0, len(files))
 	for _, f := range files {
@@ -208,10 +208,10 @@ func (*List) filesToNames(files []fs.DirEntry) *list.List {
 			names = append(names, ParseSegmentName(f.Name()))
 		}
 	}
-	// TODO: Do we need to sort?
-	slices.SortFunc(names, func(a, b SegmentName) int {
-		return int(a.ID() - b.ID())
-	})
+
+	// slices.SortFunc(names, func(a, b SegmentName) int {
+	// 	return int(a.ID() - b.ID())
+	// })
 
 	l := list.New()
 	for _, n := range names {
