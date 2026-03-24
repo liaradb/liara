@@ -222,8 +222,6 @@ func (*List) filesToNames(files []fs.DirEntry) *list.List {
 }
 
 func (l *List) getFiles() ([]fs.DirEntry, error) {
-	// TODO: Test this
-	// TODO: Do we need to run this?
 	if err := l.fsys.MkDirAll(l.dir); err != nil {
 		return nil, err
 	}

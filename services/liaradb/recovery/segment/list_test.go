@@ -2,6 +2,7 @@ package segment
 
 import (
 	"fmt"
+	"path"
 	"slices"
 	"testing"
 	"testing/fstest"
@@ -15,12 +16,31 @@ import (
 func TestList_Open(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
 	var count SegmentID = 10
+
+	t.Run("should handle no dir", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := createFiles(t, dir, 0, 0)
+		sl := NewList(fsys, dir)
+
+		if err := sl.Open(); err != nil {
+			t.Fatal(err)
+		}
+
+		names := sl.Names()
+
+		want := createNames(0, 0)
+		if !slices.Equal(want, names) {
+			t.Errorf("files do not match:\n\t%v,\nexpected:\n\t%v", names, want)
+		}
+	})
 
 	t.Run("should list segments", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := createFiles(t, 0, count)
+		fsys := createFiles(t, dir, 0, count)
 		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
@@ -38,7 +58,7 @@ func TestList_Open(t *testing.T) {
 	t.Run("should list segments in order", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := createFiles(t, 9998, count)
+		fsys := createFiles(t, dir, 9998, count)
 		sl := NewList(fsys, dir)
 
 		if err := sl.Open(); err != nil {
@@ -57,6 +77,8 @@ func TestList_Open(t *testing.T) {
 func TestList_OpenLatestSegment(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	for message, test := range map[string]struct {
 		result SegmentID
 		fsys   file.FileSystem
@@ -65,11 +87,11 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			fmt.Sprintf("%v/", dir): &fstest.MapFile{},
 		})},
 		"should handle one file": {1, mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		})},
 		"should handle multiple files": {2, mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})},
 	} {
 		t.Run(message, func(t *testing.T) {
@@ -99,9 +121,11 @@ func TestList_OpenLatestSegment(t *testing.T) {
 	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
+		dir := "log"
+
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -127,14 +151,16 @@ func TestList_OpenLatestSegment(t *testing.T) {
 func TestList_IterateFromLSN(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	sn0 := NewSegmentName(1, record.NewLogSequenceNumber(10))
 	sn1 := NewSegmentName(2, record.NewLogSequenceNumber(20))
 	sn2 := NewSegmentName(3, record.NewLogSequenceNumber(30))
 	names := []SegmentName{sn0, sn1, sn2}
 	fsys := mock.NewFileSystem(fstest.MapFS{
-		createPath(sn0): {},
-		createPath(sn1): {},
-		createPath(sn2): {},
+		createPath(dir, sn0): {},
+		createPath(dir, sn1): {},
+		createPath(dir, sn2): {},
 	})
 	sl := NewList(fsys, dir)
 
@@ -160,9 +186,11 @@ func TestList_IterateFromLSN(t *testing.T) {
 func TestList_OpenSegmentForLSN(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	fsys := mock.NewFileSystem(fstest.MapFS{
-		createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-		createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
 	sl := NewList(fsys, dir)
 
@@ -211,8 +239,8 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -234,10 +262,12 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 func TestList_OpenNextSegment(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	t.Run("should open next segment", func(t *testing.T) {
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -272,7 +302,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -294,11 +324,13 @@ func TestList_OpenNextSegment(t *testing.T) {
 func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	t.Run("should open segment", func(t *testing.T) {
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
-			createPath(NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -324,9 +356,9 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 		t.Parallel()
 
 		fsys := mock.NewFileSystem(fstest.MapFS{
-			createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-			createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
-			createPath(NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
 		})
 		sl := NewList(fsys, dir)
 
@@ -348,9 +380,11 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	fsys := mock.NewFileSystem(fstest.MapFS{
-		createPath(NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
-		createPath(NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
 	sl := NewList(fsys, dir)
 
@@ -375,15 +409,17 @@ func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 func TestList_Reverse(t *testing.T) {
 	t.Parallel()
 
+	dir := "log"
+
 	sn0 := NewSegmentName(1, record.NewLogSequenceNumber(10))
 	sn1 := NewSegmentName(2, record.NewLogSequenceNumber(20))
 	sn2 := NewSegmentName(3, record.NewLogSequenceNumber(30))
 	names := []SegmentName{sn0, sn1, sn2}
 	slices.Reverse(names)
 	fsys := mock.NewFileSystem(fstest.MapFS{
-		createPath(sn0): {},
-		createPath(sn1): {},
-		createPath(sn2): {},
+		createPath(dir, sn0): {},
+		createPath(dir, sn1): {},
+		createPath(dir, sn2): {},
 	})
 	sl := NewList(fsys, dir)
 
@@ -414,16 +450,14 @@ func createNames(start SegmentID, count SegmentID) []SegmentName {
 	return names
 }
 
-func createFiles(t *testing.T, start SegmentID, count SegmentID) *mock.FileSystem {
+func createFiles(t *testing.T, dir string, start SegmentID, count SegmentID) file.FileSystem {
 	fsys := filetesting.NewMockFileSystem(t, fstest.MapFS{})
 	for i := range count {
-		fsys.MapFS[createPath(NewSegmentName(start+i, record.NewLogSequenceNumber(0)))] = &fstest.MapFile{}
+		fsys.MapFS[createPath(dir, NewSegmentName(start+i, record.NewLogSequenceNumber(0)))] = &fstest.MapFile{}
 	}
 	return fsys
 }
 
-const dir = "log"
-
-func createPath(sn SegmentName) string {
-	return fmt.Sprintf("%v/%v", dir, sn)
+func createPath(dir string, sn SegmentName) string {
+	return path.Join(dir, sn.String())
 }
