@@ -22,7 +22,7 @@ func TestLog_Default(t *testing.T) {
 }
 
 func testLog_Default(t *testing.T) {
-	l := createLogStart(t, 3)
+	l := createLogStart(t, 320, 3)
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
 }
@@ -35,7 +35,7 @@ func TestLog_Append(t *testing.T) {
 func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 3)
+	l := createLogStart(t, 320, 3)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
@@ -63,7 +63,7 @@ func TestLog_Append__Large(t *testing.T) {
 func testLog_Append__Large(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 3)
+	l := createLogStart(t, 320, 3)
 	var data = make([]byte, 0, 1024)
 	for i := range 1024 {
 		data = append(data, byte(i%255))
@@ -92,7 +92,7 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should flush", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 3)
+		l := createLogStart(t, 320, 3)
 
 		tid := value.NewTenantID()
 
@@ -126,7 +126,7 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 3)
+		l := createLogStart(t, 320, 3)
 		tid := value.NewTenantID()
 
 		if _, err := l.Update(ctx,
@@ -159,7 +159,7 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should write to multiple pages", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 4)
+		l := createLogStart(t, 320, 4)
 		tid := value.NewTenantID()
 
 		count := 14
@@ -188,14 +188,25 @@ func TestLog_Flush(t *testing.T) {
 	})
 
 	runTest(t, "should return error if appending beyond maximum", func(t *testing.T) {
-		t.Skip()
-		// TODO: Test this
+		ctx := t.Context()
+
+		l := createLogStart(t, 32, 1)
+
+		if _, err := l.Update(ctx,
+			value.NewTenantID(),
+			record.NewTransactionID(2),
+			time.UnixMicro(1234567890),
+			data,
+			reverse,
+		); err != raw.ErrInsufficientSpace {
+			t.Fatal("should return error")
+		}
 	})
 
 	runTest(t, "should write after flushing", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 3)
+		l := createLogStart(t, 320, 3)
 		tid := value.NewTenantID()
 
 		lsn1, err := l.Update(ctx,
@@ -236,7 +247,7 @@ func TestLog_EmptyReader(t *testing.T) {
 }
 
 func testLog_EmptyReader(t *testing.T) {
-	l := createLog(t, 2)
+	l := createLog(t, 320, 2)
 
 	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != segment.ErrNoSegmentFile {
@@ -253,7 +264,7 @@ func TestLog_Iterate(t *testing.T) {
 func testLog_Iterate(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 2)
+	l := createLogStart(t, 320, 2)
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
@@ -507,7 +518,7 @@ func TestLog_Reverse(t *testing.T) {
 func testLog_Reverse(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 2)
+	l := createLogStart(t, 320, 2)
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
@@ -550,10 +561,10 @@ func testLog_Reverse(t *testing.T) {
 	}
 }
 
-func createLogStart(t *testing.T, segmentSize action.PageID) *Log {
+func createLogStart(t *testing.T, pageSize int64, segmentSize action.PageID) *Log {
 	t.Helper()
 
-	l := createLog(t, segmentSize)
+	l := createLog(t, pageSize, segmentSize)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
@@ -561,11 +572,11 @@ func createLogStart(t *testing.T, segmentSize action.PageID) *Log {
 	return l
 }
 
-func createLog(t *testing.T, segmentSize action.PageID) *Log {
+func createLog(t *testing.T, pageSize int64, segmentSize action.PageID) *Log {
 	t.Helper()
 
 	fsys, dir := createFiles(t)
-	l := NewLog(320, segmentSize, fsys, dir)
+	l := NewLog(pageSize, segmentSize, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}
