@@ -54,14 +54,20 @@ func TestPartitionRange_ReadWrite(t *testing.T) {
 	pr := NewPartitionRange(NewPartitionID(2), NewPartitionID(3))
 
 	data := make([]byte, 12)
-	data0 := pr.WriteData(data)
+	data0, ok := pr.WriteData(data)
+	if !ok {
+		t.Error("unable to write")
+	}
 
 	if l := len(data0); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
 	pr2 := NewPartitionRange(NewPartitionID(0), NewPartitionID(0))
-	data1 := pr2.ReadData(data)
+	data1, ok := pr2.ReadData(data)
+	if !ok {
+		t.Error("unable to read")
+	}
 
 	if l := len(data1); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
