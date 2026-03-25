@@ -67,7 +67,6 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 	return nil, nil, true
 }
 
-// TODO: Test this
 func (ln *LeafNode) Fill(
 	leftID link.FilePosition,
 	rightID link.FilePosition,
