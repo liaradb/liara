@@ -67,13 +67,23 @@ func (k Key) LessEqual(o any) bool {
 	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.LessEqual(b.B))
 }
 
-func (k Key) Write(data []byte) {
-	data0 := scan.SetInt64(data, k.B.Value())
+func (k Key) Write(data []byte) bool {
+	data0, ok := scan.SetInt64(data, k.B.Value())
+	if !ok {
+		return false
+	}
+
 	copy(data0, k.A.Value())
+	return true
 }
 
-func (k *Key) Read(data []byte) {
-	b, data0 := scan.Int64(data)
+func (k *Key) Read(data []byte) bool {
+	b, data0, ok := scan.Int64(data)
+	if !ok {
+		return false
+	}
+
 	k.B = intKey(b)
 	k.A = stringKey(data0)
+	return true
 }

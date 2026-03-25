@@ -46,16 +46,28 @@ func (t *Time) Read(r io.Reader) error {
 	return nil
 }
 
-func (t *Time) WriteData(data []byte) []byte {
-	data0 := scan.SetInt64(data, t.baseTime.Unix())
+func (t *Time) WriteData(data []byte) ([]byte, bool) {
+	data0, ok := scan.SetInt64(data, t.baseTime.Unix())
+	if !ok {
+		return nil, false
+	}
+
 	return scan.SetInt64(data0, int64(t.baseTime.Nanosecond()))
 }
 
-func (t *Time) ReadData(data []byte) []byte {
-	s, data0 := scan.Int64(data)
-	n, data1 := scan.Int64(data0)
+func (t *Time) ReadData(data []byte) ([]byte, bool) {
+	s, data0, ok := scan.Int64(data)
+	if !ok {
+		return nil, false
+	}
+
+	n, data1, ok := scan.Int64(data0)
+	if !ok {
+		return nil, false
+	}
+
 	t.baseTime = time.Unix(s, n).UTC()
-	return data1
+	return data1, true
 }
 
 func (t Time) Equal(b Time) bool {

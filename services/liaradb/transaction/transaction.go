@@ -338,7 +338,7 @@ func (t *Transaction) InsertOutbox(
 
 	// TODO: We are doing this twice
 	data := make([]byte, entity.OutboxSize)
-	_ = e.Write(data)
+	_, _ = e.Write(data)
 
 	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
@@ -367,13 +367,13 @@ func (t *Transaction) UpdateOutbox(
 
 	// TODO: This is inefficient
 	prev := make([]byte, entity.OutboxSize)
-	_ = o.Write(prev)
+	_, _ = o.Write(prev)
 
 	o.UpdateGlobalVersion(v)
 
 	// TODO: We are doing this twice
 	data := make([]byte, entity.OutboxSize)
-	_ = o.Write(data)
+	_, _ = o.Write(data)
 
 	lsn, err := t.log.Update(ctx, t.tid, t.id, now, data, prev)
 	if err != nil {

@@ -47,14 +47,22 @@ func (t *Tenant) Rename(name value.TenantName) error {
 	return nil
 }
 
-func (t *Tenant) Write(data []byte) []byte {
+func (t *Tenant) Write(data []byte) ([]byte, bool) {
 	data0 := t.id.WriteData(data)
-	data1 := t.version.WriteData(data0)
-	return t.name.WriteData(data1)
+	data1, ok := t.version.WriteData(data0)
+	if !ok {
+		return nil, false
+	}
+
+	return t.name.WriteData(data1), true
 }
 
-func (t *Tenant) Read(data []byte) []byte {
+func (t *Tenant) Read(data []byte) ([]byte, bool) {
 	data0 := t.id.ReadData(data)
-	data1 := t.version.ReadData(data0)
-	return t.name.ReadData(data1)
+	data1, ok := t.version.ReadData(data0)
+	if !ok {
+		return nil, false
+	}
+
+	return t.name.ReadData(data1), true
 }

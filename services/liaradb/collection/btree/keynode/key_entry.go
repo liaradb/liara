@@ -23,9 +23,13 @@ func newKeyEntry(key key.Key, block link.FilePosition) keyEntry {
 
 func (ke keyEntry) Size() int { return ke.key.Size() + link.FilePositionSize }
 
-func (ke keyEntry) Write(data []byte) {
-	data0 := scan.SetInt64(data, ke.block.Value())
-	ke.key.Write(data0)
+func (ke keyEntry) Write(data []byte) bool {
+	data0, ok := scan.SetInt64(data, ke.block.Value())
+	if !ok {
+		return false
+	}
+
+	return ke.key.Write(data0)
 }
 
 func (ke *keyEntry) Read(data []byte) bool {
@@ -33,8 +37,11 @@ func (ke *keyEntry) Read(data []byte) bool {
 		return false
 	}
 
-	block, data0 := scan.Int64(data)
+	block, data0, ok := scan.Int64(data)
+	if !ok {
+		return false
+	}
+
 	ke.block = link.FilePosition(block)
-	ke.key.Read(data0)
-	return true
+	return ke.key.Read(data0)
 }

@@ -44,14 +44,22 @@ func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 	o.globalVersion = v
 }
 
-func (o *Outbox) Write(data []byte) []byte {
-	data0 := o.globalVersion.WriteData(data)
+func (o *Outbox) Write(data []byte) ([]byte, bool) {
+	data0, ok := o.globalVersion.WriteData(data)
+	if !ok {
+		return nil, false
+	}
+
 	data1 := o.partitionRange.WriteData(data0)
-	return o.id.WriteData(data1)
+	return o.id.WriteData(data1), true
 }
 
-func (o *Outbox) Read(data []byte) []byte {
-	data0 := o.globalVersion.ReadData(data)
+func (o *Outbox) Read(data []byte) ([]byte, bool) {
+	data0, ok := o.globalVersion.ReadData(data)
+	if !ok {
+		return nil, false
+	}
+
 	data1 := o.partitionRange.ReadData(data0)
-	return o.id.ReadData(data1)
+	return o.id.ReadData(data1), true
 }

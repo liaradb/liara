@@ -2,6 +2,7 @@ package recovery
 
 import (
 	"context"
+	"io"
 	"iter"
 	"time"
 
@@ -221,7 +222,10 @@ func (l *Log) StartWriter() error {
 }
 
 func (l *Log) FlushCheckpoint(now time.Time, txids []record.TransactionID) (record.LogSequenceNumber, error) {
-	data := l.txIDsToData(txids)
+	data, ok := l.txIDsToData(txids)
+	if !ok {
+		return record.LogSequenceNumber{}, io.EOF
+	}
 
 	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, data, nil)
 	if err != nil {
@@ -235,13 +239,16 @@ func (l *Log) FlushCheckpoint(now time.Time, txids []record.TransactionID) (reco
 	return lsn, err
 }
 
-func (*Log) txIDsToData(txids []record.TransactionID) []byte {
+func (*Log) txIDsToData(txids []record.TransactionID) ([]byte, bool) {
 	data := make([]byte, len(txids)*record.TransactionIDSize)
 
 	data0 := data
+	ok := true
 	for _, txid := range txids {
-		data0 = txid.WriteData(data0)
+		if data0, ok = txid.WriteData(data0); !ok {
+			return nil, false
+		}
 	}
 
-	return data
+	return data, true
 }

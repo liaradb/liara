@@ -86,7 +86,7 @@ func (o *Tenant) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 
 	// TODO: Should we clone?
 	e := &entity.Tenant{}
-	_ = e.Read(d)
+	_, _ = e.Read(d)
 	return e, nil
 }
 
@@ -101,7 +101,7 @@ func (o *Tenant) Set(
 	k := key.NewKey(tid.Bytes())
 
 	v := make([]byte, entity.TenantSize)
-	_ = e.Write(v)
+	_, _ = e.Write(v)
 	crc := page.NewCRC(v)
 
 	rid, ok, err := o.setCurrent(ctx, fn, v, crc)
@@ -193,7 +193,7 @@ func (o *Tenant) Replace(
 	}
 
 	v := make([]byte, entity.TenantSize)
-	_ = e.Write(v)
+	_, _ = e.Write(v)
 	if !n.ReplaceChild(int16(rid.Position()), v) {
 		return btree.ErrNoUpdate
 	}

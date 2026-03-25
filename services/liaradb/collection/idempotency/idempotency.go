@@ -89,7 +89,7 @@ func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid l
 
 	// TODO: Should we clone?
 	e := &entity.RequestLog{}
-	_ = e.Read(d)
+	_, _ = e.Read(d)
 	return e, nil
 }
 
@@ -104,7 +104,7 @@ func (i *Idempotency) Set(
 	k := key.NewKey(rqid.Bytes())
 
 	v := make([]byte, entity.RequestLogSize)
-	_ = e.Write(v)
+	_, _ = e.Write(v)
 	crc := page.NewCRC(v)
 
 	rid, ok, err := i.setCurrent(ctx, fn, v, crc)

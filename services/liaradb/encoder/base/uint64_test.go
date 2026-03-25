@@ -42,14 +42,20 @@ func TestUIn64__Remainder(t *testing.T) {
 	b := NewUint64(2)
 
 	data := make([]byte, 16)
-	data0 := b.WriteData(data)
+	data0, ok := b.WriteData(data)
+	if !ok {
+		t.Error("unable to write")
+	}
 
 	if l := len(data0); l != 8 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
 	b0 := Uint64(0)
-	data1 := b0.ReadData(data)
+	data1, ok := b0.ReadData(data)
+	if !ok {
+		t.Error("unable to read")
+	}
 
 	if l := len(data1); l != 8 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)

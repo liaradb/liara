@@ -87,7 +87,7 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 
 	// TODO: Should we clone?
 	e := &entity.Outbox{}
-	_ = e.Read(d)
+	_, _ = e.Read(d)
 	return e, nil
 }
 
@@ -102,7 +102,7 @@ func (o *Outbox) Set(
 	k := key.NewKey(oid.Bytes())
 
 	v := make([]byte, entity.OutboxSize)
-	_ = e.Write(v)
+	_, _ = e.Write(v)
 	crc := page.NewCRC(v)
 
 	rid, ok, err := o.setCurrent(ctx, fn, v, crc)
@@ -194,7 +194,7 @@ func (o *Outbox) Replace(
 	}
 
 	v := make([]byte, entity.OutboxSize)
-	_ = e.Write(v)
+	_, _ = e.Write(v)
 	if !n.ReplaceChild(int16(rid.Position()), v) {
 		return btree.ErrNoUpdate
 	}
