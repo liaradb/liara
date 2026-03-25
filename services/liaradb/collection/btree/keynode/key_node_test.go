@@ -159,6 +159,35 @@ func TestKeyNode(t *testing.T) {
 			t.Errorf("incorrect level: %v, expected: %v", l, 1)
 		}
 	})
+
+	testutil.Run(t, "should replace", func(t *testing.T) {
+		s := storagetesting.CreateStorage(t, 2, 256)
+		b := createBuffer(t, s)
+		defer b.Release()
+
+		bp := node.New(b)
+		kn := New(bp)
+
+		data := []keyEntry{
+			{key.NewKey([]byte("b")), 1},
+			{key.NewKey([]byte("c")), 2},
+			{key.NewKey([]byte("d")), 3},
+		}
+
+		kn.Replace(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			for _, ke := range data {
+				if !yield(ke.Key(), ke.Block()) {
+					return
+				}
+			}
+		})
+
+		testKeyNodeChildren(t, kn, data)
+
+		if l := kn.Level(); l != 1 {
+			t.Errorf("incorrect level: %v, expected: %v", l, 1)
+		}
+	})
 }
 
 // Insert in mixed order

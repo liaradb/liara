@@ -136,9 +136,9 @@ func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
 	return k
 }
 
-// TODO: Test this
-// TODO: Find a faster way
 func (kn *KeyNode) Replace(l byte, entries Iterator) {
+	// TODO: Find a faster way
+	// This is reading from and writing to the same KeyNode
 	cache := make([]keyEntry, 0, kn.mid())
 	for key, block := range entries {
 		cache = append(cache, newKeyEntry(key, block))
