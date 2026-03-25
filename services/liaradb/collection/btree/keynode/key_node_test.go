@@ -3,6 +3,7 @@ package keynode
 import (
 	"slices"
 	"testing"
+	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
@@ -37,6 +38,21 @@ func TestKeyNode(t *testing.T) {
 
 		data := testKeyNodeInsertData(t, kn)
 		testKeyNodeChildren(t, kn, data)
+	})
+
+	t.Run("should get child", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
+
+			bp := node.New(b)
+			kn := New(bp)
+
+			data := testKeyNodeInsertData(t, kn)
+			testKeyNodeChild(t, kn, data)
+		})
 	})
 
 	testutil.Run(t, "should search items", func(t *testing.T) {
@@ -162,6 +178,25 @@ func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []keyEntry {
 	}
 
 	return data
+}
+
+// Verify items are in order
+func testKeyNodeChild(t *testing.T, kn *KeyNode, data []keyEntry) {
+	result := make([]keyEntry, 0, len(data))
+	for i := range kn.Count() {
+		key, block, ok := kn.Child(i)
+		if ok {
+			result = append(result, newKeyEntry(key, block))
+		}
+	}
+
+	if _, _, ok := kn.Child(kn.Count()); ok {
+		t.Error("should not get beyond count")
+	}
+
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
 }
 
 // Verify items are in order

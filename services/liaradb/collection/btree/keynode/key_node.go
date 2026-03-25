@@ -185,7 +185,6 @@ func (kn *KeyNode) Children() Iterator {
 	}
 }
 
-// TODO: Test this
 func (kn *KeyNode) Child(i int16) (key.Key, link.FilePosition, bool) {
 	b, ok := kn.node.Child(i)
 	if !ok {
@@ -193,7 +192,10 @@ func (kn *KeyNode) Child(i int16) (key.Key, link.FilePosition, bool) {
 	}
 
 	ke := keyEntry{}
-	ke.Read(b)
+	if !ke.Read(b) {
+		return key.Key{}, 0, false
+	}
+
 	return ke.Key(), ke.Block(), true
 }
 
@@ -239,9 +241,8 @@ func (kn *KeyNode) searchIndex(k key.Key) int16 {
 	return i
 }
 
-func (kn *KeyNode) Level() byte {
-	return kn.node.Level()
-}
+func (kn *KeyNode) Level() byte  { return kn.node.Level() }
+func (kn *KeyNode) Count() int16 { return kn.node.Count() }
 
 // TODO: Test this
 func (kn *KeyNode) Release()  { kn.node.Release() }

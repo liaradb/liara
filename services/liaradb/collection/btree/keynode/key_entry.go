@@ -28,8 +28,13 @@ func (ke keyEntry) Write(data []byte) {
 	ke.key.Write(data0)
 }
 
-func (ke *keyEntry) Read(data []byte) {
+func (ke *keyEntry) Read(data []byte) bool {
+	if len(data) < 8 {
+		return false
+	}
+
 	block, data0 := scan.Int64(data)
 	ke.block = link.FilePosition(block)
 	ke.key.Read(data0)
+	return true
 }
