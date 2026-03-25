@@ -42,12 +42,7 @@ func (sr *Reader) iterateFrom(pid action.PageID, r io.ReaderAt) iter.Seq2[*recor
 			}
 
 			for rc, err := range it {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				if !yield(rc, nil) {
+				if !yield(rc, err) || err != nil {
 					return
 				}
 			}
@@ -68,12 +63,7 @@ func (sr *Reader) reverseFrom(pid action.PageID, r io.ReaderAt) iter.Seq2[*recor
 			}
 
 			for rc, err := range it {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				if !yield(rc, nil) {
+				if !yield(rc, nil) || err != nil {
 					return
 				}
 			}
@@ -107,7 +97,6 @@ func (sr *Reader) readReverse(pid action.PageID, r io.ReaderAt) iter.Seq2[iter.S
 			sec := io.NewSectionReader(r, sr.position(pid-i), sr.pageSize)
 			it, err := sr.pageReader.Reverse(sec)
 			if err != nil {
-				// TODO: Is this correct?
 				if err != io.EOF {
 					yield(nil, err)
 				}
