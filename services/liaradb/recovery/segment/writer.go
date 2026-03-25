@@ -95,17 +95,9 @@ func (wr *Writer) Flush() error {
 	return wr.pageWriter.Write(wr.writer)
 }
 
-func (wr *Writer) Initialize(w io.WriterAt) {
-	wr.reset(w)
-
-	wr.pageID = 0
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-}
-
-// TODO: Test this
 func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 	if size == 0 {
-		wr.Initialize(rw)
+		wr.initialize(rw)
 		return nil
 	}
 
@@ -114,6 +106,13 @@ func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 	wr.pageID = action.NewActivePageIDFromSize(size, wr.pageSize)
 	return wr.pageWriter.Read(
 		io.NewSectionReader(rw, wr.pageID.Position(wr.pageSize), wr.pageSize))
+}
+
+func (wr *Writer) initialize(w io.WriterAt) {
+	wr.reset(w)
+
+	wr.pageID = 0
+	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 }
 
 func (wr *Writer) reset(w io.WriterAt) {

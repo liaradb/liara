@@ -2,6 +2,7 @@ package record
 
 import (
 	"io"
+	"slices"
 
 	"github.com/liaradb/liaradb/encoder/raw"
 )
@@ -23,3 +24,7 @@ func (ld *LogData) Length() int             { return len(ld.data) }
 func (ld *LogData) Size() int               { return raw.HeaderSize + len(ld.data) }
 func (ld *LogData) Write(w io.Writer) error { return raw.Write(w, ld.data) }
 func (ld *LogData) Read(r io.Reader) error  { return raw.Read(r, &ld.data) }
+
+func (ld *LogData) Compare(b *LogData) bool {
+	return slices.Equal(ld.data, b.data)
+}

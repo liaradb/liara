@@ -120,3 +120,17 @@ func (rc *Record) Read(r io.Reader) error {
 
 	return nil
 }
+
+func (rc *Record) Compare(b *Record) bool {
+	if rc == b {
+		return true
+	}
+
+	return rc.logSequenceNumber == b.logSequenceNumber &&
+		rc.tenantID == b.tenantID &&
+		rc.transactionID == b.transactionID &&
+		rc.time.Equal(b.time) &&
+		rc.action == b.action &&
+		rc.data.Compare(&b.data) &&
+		rc.reverse.Compare(&b.reverse)
+}
