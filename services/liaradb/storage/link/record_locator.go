@@ -1,9 +1,5 @@
 package link
 
-import (
-	"github.com/liaradb/liaradb/encoder/scan"
-)
-
 const RecordLocatorSize = 8 + 1
 
 type RecordLocator struct {
@@ -23,27 +19,19 @@ func (i RecordLocator) Position() int8      { return i.position.Value() }
 func (i RecordLocator) Size() int           { return RecordLocatorSize }
 
 func (le RecordLocator) Write(data []byte) ([]byte, bool) {
-	data0, ok := scan.SetInt64(data, le.block.Value())
+	data0, ok := le.block.WriteData(data)
 	if !ok {
 		return nil, false
 	}
 
-	return scan.SetInt8(data0, le.position.Value())
+	return le.position.WriteData(data0)
 }
 
 func (le *RecordLocator) Read(data []byte) ([]byte, bool) {
-	block, data0, ok := scan.Int64(data)
+	data0, ok := le.block.ReadData(data)
 	if !ok {
 		return nil, false
 	}
 
-	position, data1, ok := scan.Int8(data0)
-	if !ok {
-		return nil, false
-	}
-
-	le.block = FilePosition(block)
-	le.position = RecordPosition(position)
-
-	return data1, true
+	return le.position.ReadData(data0)
 }

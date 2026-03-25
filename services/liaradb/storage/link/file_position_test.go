@@ -38,7 +38,39 @@ func TestFilePosition(t *testing.T) {
 	}
 }
 
+func TestFilePosition_ReadDataWriteData(t *testing.T) {
+	t.Parallel()
+
+	fp := FilePosition(1)
+
+	data := make([]byte, 12)
+	data0, ok := fp.WriteData(data)
+	if !ok {
+		t.Error("unable to write")
+	}
+
+	if l := len(data0); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	fp0 := FilePosition(0)
+	data1, ok := fp0.ReadData(data)
+	if !ok {
+		t.Error("unable to read")
+	}
+
+	if l := len(data1); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	if fp0 != fp {
+		t.Errorf("incorrect value: %v, expected: %v", fp0, fp)
+	}
+}
+
 func TestFilePosition_Offset(t *testing.T) {
+	t.Parallel()
+
 	var p FilePosition = 123
 	want := page.Offset(2 * 123)
 	if o := p.Offset(2); o != want {

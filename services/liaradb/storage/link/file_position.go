@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/scan"
 )
 
 type FilePosition int64
@@ -26,4 +27,18 @@ func (p FilePosition) Write(w io.Writer) error {
 
 func (p *FilePosition) Read(r io.Reader) error {
 	return raw.ReadInt64(r, p)
+}
+
+func (p FilePosition) WriteData(data []byte) ([]byte, bool) {
+	return scan.SetInt64(data, p.Value())
+}
+
+func (p *FilePosition) ReadData(data []byte) ([]byte, bool) {
+	block, data0, ok := scan.Int64(data)
+	if !ok {
+		return nil, false
+	}
+
+	*p = FilePosition(block)
+	return data0, true
 }
