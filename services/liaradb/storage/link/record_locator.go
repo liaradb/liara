@@ -28,9 +28,7 @@ func (le RecordLocator) Write(data []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	data1 := scan.SetInt8(data0, le.position.Value())
-
-	return data1, true
+	return scan.SetInt8(data0, le.position.Value())
 }
 
 func (le *RecordLocator) Read(data []byte) ([]byte, bool) {
@@ -39,7 +37,10 @@ func (le *RecordLocator) Read(data []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	position, data1 := scan.Int8(data0)
+	position, data1, ok := scan.Int8(data0)
+	if !ok {
+		return nil, false
+	}
 
 	le.block = FilePosition(block)
 	le.position = RecordPosition(position)
