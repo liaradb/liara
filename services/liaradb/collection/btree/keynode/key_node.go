@@ -119,7 +119,6 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 	}
 }
 
-// TODO: Test this
 func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
 	var k key.Key
 	first := true
