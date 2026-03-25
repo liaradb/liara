@@ -15,8 +15,8 @@ func TestRecordLocator_Defaults(t *testing.T) {
 		t.Errorf("incorrect position: %v, expected: %v", p, 0)
 	}
 
-	if s := id.Size(); s != 9 {
-		t.Errorf("incorrect size: %v, expected: %v", s, 9)
+	if s := id.Size(); s != 10 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 10)
 	}
 }
 

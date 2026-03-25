@@ -39,7 +39,7 @@ func TestRecordPosition_ReadDataWriteData(t *testing.T) {
 
 	rp := RecordPosition(1)
 
-	data := make([]byte, 5)
+	data := make([]byte, 6)
 	data0, ok := rp.WriteData(data)
 	if !ok {
 		t.Error("unable to write")

@@ -81,8 +81,7 @@ func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid l
 		return nil, page.ErrNotPage
 	}
 
-	// TODO: Fix this type
-	d, ok := n.Child(int16(rid.Position()))
+	d, ok := n.Child(rid.Position())
 	if !ok {
 		return nil, btree.ErrNotFound
 	}

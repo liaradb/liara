@@ -1,6 +1,6 @@
 package link
 
-const RecordLocatorSize = 8 + 1
+const RecordLocatorSize = FilePositionSize + RecordPositionSize
 
 type RecordLocator struct {
 	block    FilePosition
@@ -15,7 +15,7 @@ func NewRecordLocator(block FilePosition, position RecordPosition) RecordLocator
 }
 
 func (i RecordLocator) Block() FilePosition { return i.block }
-func (i RecordLocator) Position() int8      { return i.position.Value() }
+func (i RecordLocator) Position() int16     { return i.position.Value() }
 func (i RecordLocator) Size() int           { return RecordLocatorSize }
 
 func (le RecordLocator) Write(data []byte) ([]byte, bool) {
