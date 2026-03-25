@@ -86,7 +86,6 @@ func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid l
 		return nil, btree.ErrNotFound
 	}
 
-	// TODO: Should we clone?
 	e := &entity.RequestLog{}
 	_, _ = e.Read(d)
 	return e, nil

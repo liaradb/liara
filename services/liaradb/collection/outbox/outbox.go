@@ -84,7 +84,6 @@ func (o *Outbox) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 		return nil, btree.ErrNotFound
 	}
 
-	// TODO: Should we clone?
 	e := &entity.Outbox{}
 	_, _ = e.Read(d)
 	return e, nil
