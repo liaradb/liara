@@ -76,7 +76,6 @@ func (kv *KeyValue) getItem(ctx context.Context, tn tablename.TableName, rid lin
 		return nil, btree.ErrNotFound
 	}
 
-	// TODO: Should we clone?
 	return slices.Clone(d), nil
 }
 
