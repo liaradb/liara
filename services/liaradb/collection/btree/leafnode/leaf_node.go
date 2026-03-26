@@ -97,7 +97,6 @@ func (ln *LeafNode) Fill(
 	return k
 }
 
-// TODO: Test this
 // TODO: Find a faster way
 func (ln *LeafNode) Replace(rightID link.FilePosition, entries Iterator) {
 	cache := make([]leafEntry, 0, ln.mid())

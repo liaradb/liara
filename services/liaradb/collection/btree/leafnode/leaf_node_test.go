@@ -60,6 +60,56 @@ func testLeafNode_Fill(t *testing.T) {
 	}
 }
 
+func TestLeafNode_Replace(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLeafNode_Replace)
+}
+
+func testLeafNode_Replace(t *testing.T) {
+	s := storagetesting.CreateStorage(t, 2, 256)
+	b := createBuffer(t, s)
+	defer b.Release()
+
+	p := node.New(b)
+	ln := New(p)
+
+	ln.SetLeftID(1)
+
+	data := []leafEntry{
+		newLeafEntry(
+			key.NewKey([]byte("abcde")),
+			link.NewRecordLocator(1, 2)),
+		newLeafEntry(
+			key.NewKey([]byte("fghij")),
+			link.NewRecordLocator(3, 4)),
+	}
+
+	ln.Replace(2, func(yield func(key.Key, link.RecordLocator) bool) {
+		for _, le := range data {
+			if !yield(le.Key(), le.RecordID()) {
+				return
+			}
+		}
+	})
+
+	result := make([]leafEntry, 0, len(data))
+	for key, rl := range ln.Children() {
+		result = append(result, newLeafEntry(key, rl))
+	}
+
+	if !slices.Equal(result, data) {
+		t.Errorf("incorrect result: %v, expected: %v", result, data)
+	}
+
+	if l := ln.LeftID(); l != 1 {
+		t.Errorf("incorrect left id: %v, expected: %v", l, 1)
+	}
+
+	if r := ln.RightID(); r != 2 {
+		t.Errorf("incorrect left id: %v, expected: %v", r, 2)
+	}
+}
+
 func TestLeafNode_Child(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testLeafNode_Child)
