@@ -29,13 +29,21 @@ func (ln *LeafNode) RightID() link.FilePosition {
 }
 
 func (ln *LeafNode) SetLeftID(block link.FilePosition) {
-	ln.node.SetLowID(block)
+	ln.setLeftID(block)
 	ln.node.SetDirty()
 }
 
+func (ln *LeafNode) setLeftID(block link.FilePosition) {
+	ln.node.SetLowID(block)
+}
+
 func (ln *LeafNode) SetRightID(block link.FilePosition) {
-	ln.node.SetHighID(block)
+	ln.setRightID(block)
 	ln.node.SetDirty()
+}
+
+func (ln *LeafNode) setRightID(block link.FilePosition) {
+	ln.node.SetHighID(block)
 }
 
 func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) (int16, bool) {
@@ -83,9 +91,8 @@ func (ln *LeafNode) Fill(
 		_, _ = ln.Append(key, rid)
 	}
 
-	// TODO: We are duplicating set dirty calls
-	ln.SetLeftID(leftID)
-	ln.SetRightID(rightID)
+	ln.setLeftID(leftID)
+	ln.setRightID(rightID)
 	ln.node.SetDirty()
 	return k
 }
@@ -107,9 +114,8 @@ func (ln *LeafNode) Replace(rightID link.FilePosition, entries Iterator) {
 		_, _ = ln.Append(e.key, e.recordID)
 	}
 
-	// TODO: We are duplicating set dirty calls
-	ln.SetLeftID(leftID)
-	ln.SetRightID(rightID)
+	ln.setLeftID(leftID)
+	ln.setRightID(rightID)
 	ln.node.SetDirty()
 }
 
