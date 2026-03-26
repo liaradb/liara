@@ -3,6 +3,7 @@ package transaction
 import (
 	"context"
 	"errors"
+	"io"
 	"iter"
 	"time"
 
@@ -329,9 +330,11 @@ func (t *Transaction) InsertOutbox(
 		return err
 	}
 
-	// TODO: We are doing this twice
 	data := make([]byte, entity.OutboxSize)
-	_, _ = e.Write(data)
+	_, ok := e.Write(data)
+	if !ok {
+		return io.ErrUnexpectedEOF
+	}
 
 	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
@@ -358,15 +361,19 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	// TODO: This is inefficient
 	prev := make([]byte, entity.OutboxSize)
-	_, _ = o.Write(prev)
+	_, ok := o.Write(prev)
+	if !ok {
+		return io.ErrUnexpectedEOF
+	}
 
 	o.UpdateGlobalVersion(v)
 
-	// TODO: We are doing this twice
 	data := make([]byte, entity.OutboxSize)
-	_, _ = o.Write(data)
+	_, ok = o.Write(data)
+	if !ok {
+		return io.ErrUnexpectedEOF
+	}
 
 	lsn, err := t.log.Update(ctx, t.tid, t.id, now, data, prev)
 	if err != nil {
