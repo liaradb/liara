@@ -155,7 +155,6 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 	kn.node.SetDirty()
 }
 
-// TODO: Test this
 func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
 	// This should always have a child
 	// TODO: Will this always be the lower key?
@@ -163,10 +162,12 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, b
 
 	kn.node.Clear()
 
+	// Point original key to first block
 	if _, ok := kn.append(key0, block0); !ok {
 		return false
 	}
 
+	// Point new key to second block
 	_, ok := kn.append(key1, block1)
 	kn.node.SetLevel(l)
 	kn.node.SetDirty()

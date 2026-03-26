@@ -28,6 +28,47 @@ func TestKeyNode(t *testing.T) {
 		testKeyNodeChildren(t, kn, data)
 	})
 
+	t.Run("should replace root", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
+
+			bp := node.New(b)
+			kn := New(bp)
+
+			data := []keyEntry{
+				{key.NewKey([]byte("key1")), link.FilePosition(1)},
+				{key.NewKey([]byte("key2")), link.FilePosition(2)},
+				{key.NewKey([]byte("key3")), link.FilePosition(3)},
+			}
+
+			for _, item := range data {
+				if _, _, ok := kn.Insert(item.key, item.block); !ok {
+					t.Error("should insert")
+				}
+			}
+
+			testKeyNodeChildren(t, kn, data)
+
+			want := []keyEntry{
+				{key.NewKey([]byte("key1")), link.FilePosition(10)},
+				{key.NewKey([]byte("key11")), link.FilePosition(11)},
+			}
+
+			if ok := kn.ReplaceRoot(1, want[0].block, want[1].key, want[1].block); !ok {
+				t.Error("should replace")
+			}
+
+			testKeyNodeChildren(t, kn, want)
+
+			if l := kn.Level(); l != 1 {
+				t.Errorf("incorrect level: %v, expected: %v", l, 1)
+			}
+		})
+	})
+
 	testutil.Run(t, "should iterate in order", func(t *testing.T) {
 		s := storagetesting.CreateStorage(t, 2, 256)
 		b := createBuffer(t, s)
