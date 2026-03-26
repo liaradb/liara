@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -193,11 +194,11 @@ func (l *EventLog) getEventByRecordLocator(ctx context.Context, fn link.FileName
 		return nil, btree.ErrNotFound
 	}
 
-	// TODO: Optimize this
-	buf := bytes.NewBuffer(data)
+	var buf buffer.Buffer
+	buf.Reset(data)
 
 	var e entity.Event
-	if err := e.Read(buf); err != nil {
+	if err := e.Read(&buf); err != nil {
 		return nil, err
 	}
 
@@ -206,14 +207,15 @@ func (l *EventLog) getEventByRecordLocator(ctx context.Context, fn link.FileName
 
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
+		buf := buffer.NewFromSlice(nil)
+
 		for i, err := range l.items(ctx, tn, pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			// TODO: Optimize this
-			buf := bytes.NewBuffer(i)
+			buf.Reset(i)
 
 			var e entity.Event
 			if err := e.Read(buf); err != nil {
