@@ -214,12 +214,8 @@ func (esc *EventSourceController) GetOutbox(
 		return nil, err
 	}
 
-	// TODO: How do we specify partition?
-	pid := value.NewPartitionID(0)
-
 	result, err := esc.eventService.GetOutbox(ctx,
 		tid,
-		pid,
 		oid)
 	if err != nil {
 		return nil, err
@@ -247,12 +243,8 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 		return nil, err
 	}
 
-	// TODO: How do we specify partition?
-	pid := value.NewPartitionID(0)
-
 	if err := esc.eventService.UpdateOutboxPosition(ctx,
 		tid,
-		pid,
 		oid,
 		value.NewGlobalVersion(uint64(request.GlobalVersion))); err != nil {
 		return nil, err

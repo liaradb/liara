@@ -120,7 +120,7 @@ func testManager_ActiveTestManager_Active(t *testing.T) {
 		t.Errorf("should include: %v", tx0.ID())
 	}
 
-	if err := Run(ctx, tx0, value.PartitionID{}, time.Now(), func() error {
+	if err := Run(ctx, tx0, time.Now(), func() error {
 		return nil
 	}); err != nil {
 		t.Fatal(err)

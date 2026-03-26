@@ -192,11 +192,10 @@ func (t *Transaction) SetValue(
 func Run(
 	ctx context.Context,
 	t *Transaction,
-	pid value.PartitionID,
-	now time.Time, // TODO: How should this be specified?
+	now time.Time,
 	f func() error,
 ) error {
-	_, err := t.run(ctx, pid, now, func() (any, error) {
+	_, err := t.run(ctx, now, func() (any, error) {
 		return struct{}{}, f()
 	})
 	if err != nil {
@@ -209,11 +208,10 @@ func Run(
 func RunResult[R any](
 	ctx context.Context,
 	t *Transaction,
-	pid value.PartitionID,
-	now time.Time, // TODO: How should this be specified?
+	now time.Time,
 	f func() (R, error),
 ) (R, error) {
-	r, err := t.run(ctx, pid, now, func() (any, error) {
+	r, err := t.run(ctx, now, func() (any, error) {
 		return f()
 	})
 	if err != nil {
@@ -226,8 +224,7 @@ func RunResult[R any](
 
 func (t *Transaction) run(
 	ctx context.Context,
-	pid value.PartitionID,
-	now time.Time, // TODO: How should this be specified?
+	now time.Time,
 	f func() (any, error),
 ) (any, error) {
 	lsn, err := t.log.Start(ctx, t.tid, t.id, now)
@@ -247,7 +244,7 @@ func (t *Transaction) run(
 		return nil, t.rollback(ctx, now)
 	}
 
-	return r, t.commit(ctx, pid, now)
+	return r, t.commit(ctx, now)
 }
 
 func (t *Transaction) release() {
@@ -258,7 +255,6 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
-	pid value.PartitionID,
 	now time.Time,
 ) error {
 	lsn, err := t.log.Commit(ctx, t.tid, t.id, now)
@@ -270,22 +266,19 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.appendToEventLog(ctx, pid); err != nil {
+	if err := t.appendToEventLog(ctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (t *Transaction) appendToEventLog(
-	ctx context.Context,
-	pid value.PartitionID,
-) error {
+func (t *Transaction) appendToEventLog(ctx context.Context) error {
 	tn := tablename.New(t.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
 
-		_, err := t.collection.EventLog.AppendEvent(ctx, tn, pid, k, buffer.NewFromSlice(item.data))
+		_, err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, buffer.NewFromSlice(item.data))
 		if err != nil {
 			return err
 		}

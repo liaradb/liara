@@ -71,14 +71,13 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
 	tm := time.UnixMicro(1234567890)
-	pid := value.NewPartitionID(2)
 
 	tx, err := m.Next(ctx, tid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, tx, pid, tm, func() error {
+	if err := Run(ctx, tx, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -92,7 +91,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, tx, pid, tm, func() error {
+	if err := Run(ctx, tx, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -184,7 +183,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, pid, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
