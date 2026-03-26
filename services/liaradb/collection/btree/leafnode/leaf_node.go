@@ -129,12 +129,13 @@ func (ln *LeafNode) mid() int16 {
 }
 
 func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
+	// Iterate the first half
 	if i >= mid {
 		return ln.childrenRange(0, mid)
 	}
 
-	// TODO: Simplify this
 	return func(yield func(key.Key, link.RecordLocator) bool) {
+		// i is 0
 		if i == 0 {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -149,6 +150,7 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 
 			j++
 
+			// i is greater than 0
 			if i == j {
 				if !yield(le.Key(), le.RecordID()) {
 					return
@@ -159,13 +161,14 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 }
 
 func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
+	// Iterate the second half
 	if i < mid {
 		return ln.childrenRange(mid, -1)
 	}
 
-	// TODO: Simplify this
 	return func(yield func(key.Key, link.RecordLocator) bool) {
 		k := i - mid
+		// k is 0
 		if k == 0 {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -180,6 +183,7 @@ func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 
 			j++
 
+			// k is greater than 0
 			if k == j {
 				if !yield(le.Key(), le.RecordID()) {
 					return
