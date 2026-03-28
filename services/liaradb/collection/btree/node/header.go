@@ -20,7 +20,6 @@ const (
 		nextSize
 )
 
-// TODO: Should we store HighKey?
 type header struct {
 	magic  wrap.Int32
 	level  wrap.Byte
