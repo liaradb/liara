@@ -184,7 +184,6 @@ func (o *Outbox) Replace(
 
 	defer b.Release()
 
-	// TODO: Replace child
 	n := node.New(b)
 
 	if n.IsPage() {
@@ -192,7 +191,10 @@ func (o *Outbox) Replace(
 	}
 
 	v := make([]byte, entity.OutboxSize)
-	_, _ = e.Write(v)
+	if _, ok := e.Write(v); !ok {
+		return btree.ErrNoUpdate
+	}
+
 	if !n.ReplaceChild(int16(rid.Position()), v) {
 		return btree.ErrNoUpdate
 	}
