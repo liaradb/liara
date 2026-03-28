@@ -419,7 +419,7 @@ func (t *Transaction) InsertRequestID(
 	rqid value.RequestID,
 	now value.Time,
 ) error {
-	return t.collection.Idempotency.Set(ctx, tn, rqid, entity.NewRequestLog(rqid, now))
+	return t.collection.Idempotency.Set(ctx, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
 }
 
 func (t *Transaction) TestRequestID(
@@ -427,5 +427,5 @@ func (t *Transaction) TestRequestID(
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	return t.collection.Idempotency.Test(ctx, tn, rqid)
+	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }

@@ -2,34 +2,28 @@ package idempotency
 
 import (
 	"context"
-	"errors"
 	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/node"
 )
 
 type Idempotency struct {
-	s *storage.Storage
-	c *btree.Cursor
+	fc *fixed.FixedCollection
 }
 
 func New(storage *storage.Storage, cursor *btree.Cursor) *Idempotency {
 	return &Idempotency{
-		s: storage,
-		c: cursor,
+		fc: fixed.New(storage, cursor),
 	}
 }
 
-// TODO: Use io.Reader?
 func (i *Idempotency) Get(
 	ctx context.Context,
 	tn tablename.TableName,
@@ -37,13 +31,17 @@ func (i *Idempotency) Get(
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	fnIdx := tn.Index(0, pid)
-	rid, err := i.c.Search(ctx, fnIdx, k)
+	data, err := i.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), pid, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.getItem(ctx, tn, rid)
+	e := &entity.RequestLog{}
+	if _, ok := e.Read(data); !ok {
+		return nil, io.EOF
+	}
+
+	return e, nil
 }
 
 func (i *Idempotency) List(
@@ -52,137 +50,47 @@ func (i *Idempotency) List(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		fnIdx := tn.Index(0, pid)
-		for rid, err := range i.c.All(ctx, fnIdx, 0, 0) {
+		for data, err := range i.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			i, err := i.getItem(ctx, tn, rid)
-			if !yield(i, err) {
+			e := &entity.RequestLog{}
+			if _, ok := e.Read(data); !ok {
+				yield(nil, io.EOF)
+				return
+			}
+
+			if !yield(e, nil) {
 				return
 			}
 		}
 	}
 }
 
-func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid link.RecordLocator) (*entity.RequestLog, error) {
-	bid := tn.RequestLog().BlockID(rid.Block())
-	b, err := i.s.Request(ctx, bid)
-	if err != nil {
-		return nil, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-
-	if !n.IsPage() {
-		return nil, page.ErrNotPage
-	}
-
-	d, ok := n.Child(rid.Position())
-	if !ok {
-		return nil, btree.ErrNotFound
-	}
-
-	e := &entity.RequestLog{}
-	if _, ok := e.Read(d); !ok {
-		return nil, io.EOF
-	}
-
-	return e, nil
-}
-
-// TODO: Use io.Writer?
 func (i *Idempotency) Set(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	rqid value.RequestID,
 	e *entity.RequestLog,
 ) error {
-	fn := tn.RequestLog()
-	k := key.NewKey(rqid.Bytes())
-
 	v := make([]byte, entity.RequestLogSize)
 	if _, ok := e.Write(v); !ok {
 		return io.EOF
 	}
 
-	crc := page.NewCRC(v)
-
-	rid, ok, err := i.setCurrent(ctx, fn, v, crc)
-	if err != nil {
-		return err
-	} else if !ok {
-		rid, ok, err = i.setNext(ctx, fn, v, crc)
-		if err != nil {
-			return err
-		} else if !ok {
-			return btree.ErrNoInsert
-		}
-	}
-
-	fnIdx := tn.Index(0, value.NewPartitionID(0))
-	return i.c.Insert(ctx, fnIdx, k, rid)
-}
-
-func (i *Idempotency) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := i.s.RequestCurrent(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-	if !n.IsPage() {
-		return link.RecordLocator{}, false, page.ErrNotPage
-	}
-
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
-}
-
-func (i *Idempotency) setNext(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := i.s.RequestNext(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+	k := key.NewKey(rqid.Bytes())
+	return i.fc.Set(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (i *Idempotency) Test(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	rqid value.RequestID,
 ) (bool, error) {
-	_, err := i.Get(ctx, tn, value.PartitionID{}, rqid)
-	if errors.Is(err, btree.ErrNotFound) {
-		return true, nil
-	}
-
-	if err == nil {
-		return false, btree.ErrExists
-	}
-
-	return false, err
+	k := key.NewKey(rqid.Bytes())
+	return i.fc.Test(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 }

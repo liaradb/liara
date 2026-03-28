@@ -33,7 +33,7 @@ func testIdempotency(t *testing.T) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +57,7 @@ func testRequestLog__LargeBuffer(t *testing.T) {
 
 	data := createData()
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,9 +84,9 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, o *Idempotency, n tablename.TableName, data []item) error {
+func insertData(ctx context.Context, o *Idempotency, n tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
+		if err := o.Set(ctx, n, pid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
