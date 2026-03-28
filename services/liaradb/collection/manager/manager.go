@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/storage"
@@ -24,8 +25,8 @@ func New(kv *keyvalue.KeyValue) *Manager {
 	}
 }
 
-func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
-	d, err := m.kv.Get(ctx, m.tn, k)
+func (m *Manager) Get(ctx context.Context, pid value.PartitionID, k key.Key) (int64, error) {
+	d, err := m.kv.Get(ctx, m.tn, pid, k)
 	if err != nil {
 		return 0, err
 	}
@@ -35,15 +36,15 @@ func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
 	return i, raw.ReadInt64(b, &i)
 }
 
-func (m *Manager) Insert(ctx context.Context, k key.Key, i int64) error {
+func (m *Manager) Insert(ctx context.Context, pid value.PartitionID, k key.Key, i int64) error {
 	b := buffer.New(8)
 	raw.WriteInt64(b, i)
-	return m.kv.Set(ctx, m.tn, k, b.Bytes())
+	return m.kv.Set(ctx, m.tn, pid, k, b.Bytes())
 }
 
-func (m *Manager) List(ctx context.Context) ([]int64, error) {
+func (m *Manager) List(ctx context.Context, pid value.PartitionID) ([]int64, error) {
 	result := make([]int64, 0)
-	for d, err := range m.kv.List(ctx, m.tn) {
+	for d, err := range m.kv.List(ctx, m.tn, pid) {
 		if err != nil {
 			return nil, err
 		}

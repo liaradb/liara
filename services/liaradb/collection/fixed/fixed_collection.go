@@ -14,15 +14,16 @@ import (
 	"github.com/liaradb/liaradb/storage/node"
 )
 
+// TODO: Create latching
 type FixedCollection struct {
 	s *storage.Storage
 	c *btree.Cursor
 }
 
-func New(storage *storage.Storage, cursor *btree.Cursor) *FixedCollection {
+func New(s *storage.Storage, c *btree.Cursor) *FixedCollection {
 	return &FixedCollection{
-		s: storage,
-		c: cursor,
+		s: s,
+		c: c,
 	}
 }
 

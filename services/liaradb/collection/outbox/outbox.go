@@ -18,9 +18,9 @@ type Outbox struct {
 	fc *fixed.FixedCollection
 }
 
-func New(storage *storage.Storage, cursor *btree.Cursor) *Outbox {
+func New(s *storage.Storage, c *btree.Cursor) *Outbox {
 	return &Outbox{
-		fc: fixed.New(storage, cursor),
+		fc: fixed.New(s, c),
 	}
 }
 

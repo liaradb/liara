@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -38,14 +39,15 @@ func TestKeyValue(t *testing.T) {
 
 				s := storagetesting.CreateStorage(t, 8, 84)
 				kv := New(s, btree.NewCursor(s))
-				n := tablename.NewFromString("testfile")
+				tn := tablename.NewFromString("testfile")
+				pid := value.NewPartitionID(0)
 
-				if err := insertData(ctx, kv, n, c.data); err != nil {
+				if err := insertData(ctx, kv, tn, pid, c.data); err != nil {
 					t.Fatal(err)
 				}
 
-				testGet(ctx, t, kv, n, c.data)
-				testList(ctx, t, c.data, kv, n)
+				testGet(ctx, t, kv, tn, pid, c.data)
+				testList(ctx, t, c.data, kv, tn, pid)
 
 				synctest.Wait()
 			})
@@ -62,16 +64,17 @@ func testKeyValue__LargeBuffer(t *testing.T) {
 	ctx := t.Context()
 	s := storagetesting.CreateStorage(t, 2, 256)
 	kv := New(s, btree.NewCursor(s))
-	n := tablename.NewFromString("testfile")
+	tn := tablename.NewFromString("testfile")
+	pid := value.NewPartitionID(0)
 
 	data := createData()
 
-	if err := insertData(ctx, kv, n, data); err != nil {
+	if err := insertData(ctx, kv, tn, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, kv, n, data)
-	testList(ctx, t, data, kv, n)
+	testGet(ctx, t, kv, tn, pid, data)
+	testList(ctx, t, data, kv, tn, pid)
 
 	synctest.Wait()
 }
@@ -101,9 +104,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data []item) error {
+func insertData(ctx context.Context, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := kv.Set(ctx, n, key.NewKey([]byte(i.key)), i.value); err != nil {
+		if err := kv.Set(ctx, tn, pid, key.NewKey([]byte(i.key)), i.value); err != nil {
 			return err
 		}
 		synctest.Wait()
@@ -111,9 +114,9 @@ func insertData(ctx context.Context, kv *KeyValue, n tablename.TableName, data [
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableName, data []item) {
+func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, key.NewKey([]byte(i.key)))
+		value, err := kv.Get(ctx, tn, pid, key.NewKey([]byte(i.key)))
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -126,8 +129,8 @@ func testGet(ctx context.Context, t *testing.T, kv *KeyValue, n tablename.TableN
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, n tablename.TableName) {
-	result, err := getListValues(ctx, data, kv, n)
+func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn tablename.TableName, pid value.PartitionID) {
+	result, err := getListValues(ctx, data, kv, tn, pid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,10 +141,10 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, n ta
 	}
 }
 
-func getListValues(ctx context.Context, data []item, kv *KeyValue, n tablename.TableName) ([]string, error) {
+func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName, pid value.PartitionID) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
-	for value, err := range kv.List(ctx, n) {
+	for value, err := range kv.List(ctx, tn, pid) {
 		if err != nil {
 			return nil, err
 		}

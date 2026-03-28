@@ -18,9 +18,9 @@ type Idempotency struct {
 	fc *fixed.FixedCollection
 }
 
-func New(storage *storage.Storage, cursor *btree.Cursor) *Idempotency {
+func New(s *storage.Storage, c *btree.Cursor) *Idempotency {
 	return &Idempotency{
-		fc: fixed.New(storage, cursor),
+		fc: fixed.New(s, c),
 	}
 }
 

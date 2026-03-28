@@ -18,9 +18,9 @@ type Tenant struct {
 	fc *fixed.FixedCollection
 }
 
-func New(storage *storage.Storage, cursor *btree.Cursor) *Tenant {
+func New(s *storage.Storage, c *btree.Cursor) *Tenant {
 	return &Tenant{
-		fc: fixed.New(storage, cursor),
+		fc: fixed.New(s, c),
 	}
 }
 

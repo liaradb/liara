@@ -83,9 +83,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, o *Tenant, n tablename.TableName, pid value.PartitionID, data []item) error {
+func insertData(ctx context.Context, o *Tenant, tn tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, n, pid, i.value.ID(), i.value); err != nil {
+		if err := o.Set(ctx, tn, pid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
