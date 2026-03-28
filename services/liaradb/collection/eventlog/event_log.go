@@ -1,11 +1,8 @@
 package eventlog
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -23,54 +20,40 @@ import (
 // TODO: Create latching
 type EventLog struct {
 	storage *storage.Storage
-	buffer  *bytes.Buffer
-	reader  *bufio.Reader
 	cursor  *btree.Cursor
 }
 
 func New(storage *storage.Storage, cursor *btree.Cursor) *EventLog {
-	buffer := bytes.NewBuffer(nil)
-	reader := bufio.NewReader(buffer)
 	return &EventLog{
 		storage: storage,
-		buffer:  buffer,
-		reader:  reader,
 		cursor:  cursor,
 	}
 }
 
 func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value.PartitionID, e *entity.Event) (link.RecordLocator, error) {
-	if err := e.Write(l.buffer); err != nil {
+	b := buffer.New(l.storage.BufferSize())
+	if err := e.Write(b); err != nil {
 		return link.RecordLocator{}, err
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
-	rid, err := l.AppendEvent(ctx, tn, pid, k, l.reader)
+	rid, err := l.AppendEvent(ctx, tn, pid, k, b.Bytes()[:b.Cursor()])
 	if err != nil {
 		return link.RecordLocator{}, err
 	}
 
-	l.buffer.Reset()
 	return rid, nil
 }
 
-func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, rd io.Reader) (link.RecordLocator, error) {
-	// TODO: Find a better way to get this
-	data := make([]byte, l.storage.BufferSize())
-	c, err := rd.Read(data)
-	if err != nil && err != io.EOF {
-		return link.RecordLocator{}, err
-	}
-
-	v := data[:c]
-	crc := page.NewCRC(v)
+func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, data []byte) (link.RecordLocator, error) {
+	crc := page.NewCRC(data)
 	fn := tn.EventLog(pid)
 
-	rid, ok, err := l.setCurrent(ctx, fn, v, crc)
+	rid, ok, err := l.setCurrent(ctx, fn, data, crc)
 	if err != nil {
 		return link.RecordLocator{}, err
 	} else if !ok {
-		rid, ok, err = l.setNext(ctx, fn, v, crc)
+		rid, ok, err = l.setNext(ctx, fn, data, crc)
 		if err != nil {
 			return link.RecordLocator{}, err
 		} else if !ok {

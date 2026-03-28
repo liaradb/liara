@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -301,8 +300,7 @@ func (t *Transaction) appendToEventLog(ctx context.Context) error {
 	tn := tablename.New(t.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-
-		_, err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, buffer.NewFromSlice(item.data))
+		_, err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, item.data)
 		if err != nil {
 			return err
 		}
