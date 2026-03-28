@@ -33,7 +33,7 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := l.Flush(ctx, tx.LogSequenceNumber()); err != nil {
+	if err := l.Flush(ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,7 +43,7 @@ func testTransaction_Insert(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if lsn := tx.LogSequenceNumber(); lsn != rc.LogSequenceNumber() {
+		if lsn := l.HighWater(); lsn != rc.LogSequenceNumber() {
 			t.Errorf("lsn does not match: %v, expected: %v", lsn, rc.LogSequenceNumber())
 		}
 

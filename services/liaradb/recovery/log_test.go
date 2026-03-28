@@ -96,7 +96,7 @@ func TestLog_Flush(t *testing.T) {
 
 		tid := value.NewTenantID()
 
-		lsn1, err := l.Update(ctx,
+		_, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
@@ -105,6 +105,8 @@ func TestLog_Flush(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+
+		testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
 		if _, err = l.Update(ctx,
 			tid,
@@ -116,11 +118,13 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := l.Flush(ctx, lsn1); err != nil {
+		testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
+
+		if err := l.Flush(ctx); err != nil {
 			t.Error(err)
 		}
 
-		testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2))
+		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 	})
 
 	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
@@ -149,7 +153,7 @@ func TestLog_Flush(t *testing.T) {
 			t.Error(err)
 		}
 
-		if err := l.Flush(ctx, record.NewLogSequenceNumber(10)); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Error(err)
 		}
 
@@ -164,10 +168,8 @@ func TestLog_Flush(t *testing.T) {
 
 		count := 14
 
-		var lsn record.LogSequenceNumber
-		var err error
 		for range count {
-			if lsn, err = l.Update(ctx,
+			if _, err := l.Update(ctx,
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
@@ -178,7 +180,7 @@ func TestLog_Flush(t *testing.T) {
 			}
 		}
 
-		if err := l.Flush(ctx, lsn); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Fatal(err)
 		}
 
@@ -209,31 +211,29 @@ func TestLog_Flush(t *testing.T) {
 		l := createLogStart(t, 320, 3)
 		tid := value.NewTenantID()
 
-		lsn1, err := l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
 			data,
-			reverse)
-		if err != nil {
+			reverse); err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(ctx, lsn1); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Error(err)
 		}
 
-		lsn2, err := l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			record.NewTransactionID(2),
 			time.UnixMicro(1234567890),
 			data,
-			reverse)
-		if err != nil {
+			reverse); err != nil {
 			t.Error(err)
 		}
 
-		if err := l.Flush(ctx, lsn2); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Error(err)
 		}
 
@@ -268,21 +268,18 @@ func testLog_Iterate(t *testing.T) {
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
-	var lsn record.LogSequenceNumber
-	var err error
 	for _, rec := range records {
-		lsn, err = l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			rec.TransactionID(),
 			rec.Time(),
 			rec.Data(),
-			rec.Reverse())
-		if err != nil {
+			rec.Reverse()); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	if err = l.Flush(ctx, lsn); err != nil {
+	if err := l.Flush(ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -326,31 +323,29 @@ func TestLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lsn1, err := l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			r0.TransactionID(),
 			r0.Time(),
 			r0.Data(),
-			r0.Reverse())
-		if err != nil {
+			r0.Reverse()); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(ctx, lsn1); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Fatal(err)
 		}
 
-		lsn2, err := l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			r1.TransactionID(),
 			r1.Time(),
 			r1.Data(),
-			r1.Reverse())
-		if err != nil {
+			r1.Reverse()); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(ctx, lsn2); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Fatal(err)
 		}
 
@@ -415,21 +410,18 @@ func TestLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		var lsn record.LogSequenceNumber
-		var err error
 		for _, rec := range records1 {
-			lsn, err = l.Update(ctx,
+			if _, err := l.Update(ctx,
 				tid,
 				rec.TransactionID(),
 				rec.Time(),
 				rec.Data(),
-				rec.Reverse())
-			if err != nil {
+				rec.Reverse()); err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		if err = l.Flush(ctx, lsn); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Fatal(err)
 		}
 
@@ -467,21 +459,18 @@ func TestLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		var lsn record.LogSequenceNumber
-		var err error
 		for _, rec := range records2 {
-			lsn, err = l.Update(ctx,
+			if _, err := l.Update(ctx,
 				tid,
 				rec.TransactionID(),
 				rec.Time(),
 				rec.Data(),
-				rec.Reverse())
-			if err != nil {
+				rec.Reverse()); err != nil {
 				t.Fatal(err)
 			}
 		}
 
-		if err := l.Flush(ctx, lsn); err != nil {
+		if err := l.Flush(ctx); err != nil {
 			t.Fatal(err)
 		}
 
@@ -522,21 +511,18 @@ func testLog_Reverse(t *testing.T) {
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
-	var lsn record.LogSequenceNumber
-	var err error
 	for _, rec := range records {
-		lsn, err = l.Update(ctx,
+		if _, err := l.Update(ctx,
 			tid,
 			rec.TransactionID(),
 			rec.Time(),
 			rec.Data(),
-			rec.Reverse())
-		if err != nil {
+			rec.Reverse()); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	if err = l.Flush(ctx, lsn); err != nil {
+	if err := l.Flush(ctx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -613,6 +599,8 @@ func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*recor
 }
 
 func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
+	t.Helper()
+
 	if h := l.HighWater(); h != hw {
 		t.Errorf("incorrect high water: %v, expected: %v", h, hw)
 	}

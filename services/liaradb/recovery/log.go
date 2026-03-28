@@ -21,11 +21,11 @@ type Log struct {
 	highWater  record.LogSequenceNumber
 	lowWater   record.LogSequenceNumber
 	appendReqs async.Handler[appendValue, record.LogSequenceNumber]
-	flushReqs  async.CommandHandler[record.LogSequenceNumber]
+	flushReqs  async.CommandHandler[struct{}]
 	cancel     context.CancelFunc
 }
 
-type flushRequest = async.Command[record.LogSequenceNumber]
+type flushRequest = async.Command[struct{}]
 
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 
@@ -174,21 +174,21 @@ func (l *Log) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) Flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	return l.flushReqs.Send(ctx, lsn)
+func (l *Log) Flush(ctx context.Context) error {
+	return l.flushReqs.Send(ctx, struct{}{})
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
-	err := l.flush(r.Value())
+	err := l.flush()
 	r.Reply(err)
 }
 
-func (l *Log) flush(lsn record.LogSequenceNumber) error {
+func (l *Log) flush() error {
 	if err := l.writer.Flush(); err != nil {
 		return err
 	}
 
-	l.lowWater = record.NewLogSequenceNumber(min(lsn.Value(), l.highWater.Value()))
+	l.lowWater = l.highWater
 	return nil
 }
 

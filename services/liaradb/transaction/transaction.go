@@ -24,7 +24,6 @@ import (
 type Transaction struct {
 	id             record.TransactionID
 	tid            value.TenantID
-	lsn            record.LogSequenceNumber
 	log            *recovery.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[action.ItemID]
@@ -67,10 +66,7 @@ func newTransaction(
 	}
 }
 
-func (t *Transaction) ID() record.TransactionID                    { return t.id }
-func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
-
-func (t *Transaction) setLSN(lsn record.LogSequenceNumber) { t.lsn = lsn }
+func (t *Transaction) ID() record.TransactionID { return t.id }
 
 func (t *Transaction) GetAggregate(
 	ctx context.Context,
@@ -140,7 +136,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
@@ -150,7 +146,6 @@ func (t *Transaction) Insert(
 		data: data,
 	})
 
-	t.setLSN(lsn)
 	return nil
 }
 
@@ -178,7 +173,7 @@ func (t *Transaction) SetValue(
 	// 	return err
 	// }
 
-	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
@@ -188,7 +183,6 @@ func (t *Transaction) SetValue(
 		data: data,
 	})
 
-	t.setLSN(lsn)
 	return nil
 }
 
@@ -230,14 +224,12 @@ func (t *Transaction) run(
 	now time.Time,
 	f func() (any, error),
 ) (any, error) {
-	lsn, err := t.log.Start(ctx, t.tid, t.id, now)
+	_, err := t.log.Start(ctx, t.tid, t.id, now)
 	if err != nil {
 		return nil, err
 	}
 
 	defer t.release()
-
-	t.setLSN(lsn)
 
 	r, err := f()
 	if err != nil {
@@ -261,12 +253,12 @@ func (t *Transaction) commit(
 	ctx context.Context,
 	now time.Time,
 ) error {
-	lsn, err := t.log.Commit(ctx, t.tid, t.id, now)
+	_, err := t.log.Commit(ctx, t.tid, t.id, now)
 	if err != nil {
 		return err
 	}
 
-	if err := t.flush(ctx, lsn); err != nil {
+	if err := t.flush(ctx); err != nil {
 		return err
 	}
 
@@ -292,22 +284,20 @@ func (t *Transaction) appendToEventLog(ctx context.Context) error {
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	lsn, err := t.log.Rollback(ctx, t.tid, t.id, now)
+	_, err := t.log.Rollback(ctx, t.tid, t.id, now)
 	if err != nil {
 		return err
 	}
 
-	if err := t.flush(ctx, lsn); err != nil {
+	if err := t.flush(ctx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	t.setLSN(lsn)
-	// TODO: Is this correct?
-	return t.log.Flush(ctx, lsn)
+func (t *Transaction) flush(ctx context.Context) error {
+	return t.log.Flush(ctx)
 }
 
 func (t *Transaction) GetOutbox(
@@ -339,12 +329,11 @@ func (t *Transaction) InsertOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	lsn, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
 	if err != nil {
 		return err
 	}
 
-	t.setLSN(lsn)
 	return t.collection.Outbox.Set(ctx, tn, oid, e)
 }
 
@@ -378,12 +367,11 @@ func (t *Transaction) UpdateOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	lsn, err := t.log.Update(ctx, t.tid, t.id, now, data, prev)
+	_, err = t.log.Update(ctx, t.tid, t.id, now, data, prev)
 	if err != nil {
 		return err
 	}
 
-	t.setLSN(lsn)
 	return t.collection.Outbox.Replace(ctx, tn, oid, o)
 }
 
