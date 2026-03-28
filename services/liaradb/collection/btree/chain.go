@@ -22,7 +22,6 @@ func (c *chain) append(v any) {
 	c.l.PushFront(v)
 }
 
-// TODO: Should this be exposed?
 func (c *chain) setReleased(i byte) {
 	c.released = i
 }

@@ -11,17 +11,6 @@ import (
 )
 
 // TODO: Test latching
-// TODO: Test this
-// {message: "should insert",
-// 	items: newItemsAscending(2), fanout: 3, height: 1, skip: false},
-// {message: "should split leaf nodes",
-// 	items: newItemsAscending(4), fanout: 3, height: 2, skip: false},
-// {message: "should split key nodes",
-// 	items: newItemsAscending(9), fanout: 3, height: 3, skip: false},
-// {message: "should insert in any order",
-// 	items: newItemsReversed(9), fanout: 3, height: 3, skip: true},
-// {message: "should handle repeated items",
-// 	items: newItems(1, 2, 2, 3), fanout: 3, height: 1, skip: true},
 
 func TestCursor_GetRoot_Default(t *testing.T) {
 	t.Parallel()
@@ -45,18 +34,6 @@ func TestCursor_Insert__Root(t *testing.T) {
 	synctest.Test(t, testCursor_Insert__Root)
 }
 
-type leafEntry struct {
-	key      key.Key
-	recordID link.RecordLocator
-}
-
-func newLeafEntry(key key.Key, recordID link.RecordLocator) leafEntry {
-	return leafEntry{
-		key:      key,
-		recordID: recordID,
-	}
-}
-
 func testCursor_Insert__Root(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
@@ -78,7 +55,6 @@ func testCursor_Insert__Root(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Error(err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
@@ -88,6 +64,12 @@ func testCursor_Insert__Root(t *testing.T) {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
+
+	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
+		t.Error(err)
+	} else if l != 0 {
+		t.Errorf("incorrect level: %v, expected: %v", l, 0)
+	}
 }
 
 func TestCursor_Insert__RootSplit(t *testing.T) {
@@ -96,13 +78,6 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	// TODO: Why does this use so many buffers?
-	//                            [7]
-	//               .............   .........
-	//         [3        5]                 [9]
-	//     ....   ......   ....          ...   ..
-	// [1   2]   [3   4]   [5   6]   [7   8]   [9]
-
 	s := storagetesting.CreateStorage(t, 8, 72)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
@@ -113,7 +88,6 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
@@ -122,6 +96,12 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
+	}
+
+	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
+		t.Error(err)
+	} else if l <= 2 {
+		t.Errorf("incorrect level: %v, expected: %v", "> 2", l)
 	}
 }
 
@@ -141,7 +121,6 @@ func testCursor_Insert__Reverse(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	for _, e := range data {
@@ -182,7 +161,6 @@ func testCursor_Insert__Random(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(i, e.key, err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	for _, i := range order {
@@ -247,7 +225,6 @@ func testCursor_SearchRange(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	wantAll := make([]link.RecordLocator, 0, len(data))
@@ -309,7 +286,6 @@ func testCursor_All(t *testing.T) {
 		if err := NewCursor(s).Insert(ctx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
-		// TODO: Need to flush to disk
 	}
 
 	wantAll := make([]link.RecordLocator, 0, len(data))
@@ -386,6 +362,18 @@ func reorderData(order []int, data []leafEntry) []leafEntry {
 	})
 
 	return data
+}
+
+type leafEntry struct {
+	key      key.Key
+	recordID link.RecordLocator
+}
+
+func newLeafEntry(key key.Key, recordID link.RecordLocator) leafEntry {
+	return leafEntry{
+		key:      key,
+		recordID: recordID,
+	}
 }
 
 func createData() []leafEntry {
