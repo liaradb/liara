@@ -329,18 +329,20 @@ func (t *Transaction) flush(ctx context.Context) error {
 func (t *Transaction) GetOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
 		return nil, err
 	}
 
-	return t.collection.Outbox.Get(ctx, tn, oid)
+	return t.collection.Outbox.Get(ctx, tn, pid, oid)
 }
 
 func (t *Transaction) InsertOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	now time.Time,
 	oid value.OutboxID,
 	e *entity.Outbox,
@@ -360,12 +362,13 @@ func (t *Transaction) InsertOutbox(
 		return err
 	}
 
-	return t.collection.Outbox.Set(ctx, tn, oid, e)
+	return t.collection.Outbox.Set(ctx, tn, pid, oid, e)
 }
 
 func (t *Transaction) UpdateOutbox(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 	now time.Time,
 	oid value.OutboxID,
 	v value.GlobalVersion,
@@ -374,7 +377,7 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	o, err := t.collection.Outbox.Get(ctx, tn, oid)
+	o, err := t.collection.Outbox.Get(ctx, tn, pid, oid)
 	if err != nil {
 		return err
 	}
@@ -398,19 +401,20 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	return t.collection.Outbox.Replace(ctx, tn, oid, o)
+	return t.collection.Outbox.Replace(ctx, tn, pid, oid, o)
 }
 
 func (t *Transaction) ListOutboxes(
 	ctx context.Context,
 	tn tablename.TableName,
+	pid value.PartitionID,
 ) iter.Seq2[*entity.Outbox, error] {
 	// TODO: How do we lock this query?
 	// if err := t.concurrencyMgr.SLock(ctx, action.ItemID(oid.String())); err != nil {
 	// 	return nil, err
 	// }
 
-	return t.collection.Outbox.List(ctx, tn, value.NewPartitionID(0))
+	return t.collection.Outbox.List(ctx, tn, pid)
 }
 
 func (t *Transaction) InsertRequestID(

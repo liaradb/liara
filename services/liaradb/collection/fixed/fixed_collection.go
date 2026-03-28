@@ -153,6 +153,41 @@ func (fc *FixedCollection) setNext(ctx context.Context, fn link.FileName, v []by
 	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
 }
 
+// TODO: Use io.Writer?
+func (fc *FixedCollection) Replace(
+	ctx context.Context,
+	fn link.FileName,
+	fnIdx link.FileName,
+	pid value.PartitionID,
+	k key.Key,
+	v []byte,
+) error {
+	rid, err := fc.c.Search(ctx, fnIdx, k)
+	if err != nil {
+		return err
+	}
+
+	bid := fn.BlockID(rid.Block())
+	b, err := fc.s.Request(ctx, bid)
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	n := node.New(b)
+
+	if n.IsPage() {
+		return page.ErrNotPage
+	}
+
+	if !n.ReplaceChild(int16(rid.Position()), v) {
+		return btree.ErrNoUpdate
+	}
+
+	return nil
+}
+
 func (fc *FixedCollection) Test(
 	ctx context.Context,
 	fn link.FileName,

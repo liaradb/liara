@@ -32,11 +32,11 @@ func testOutbox(t *testing.T) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
+	testGet(ctx, t, o, n, pid, data)
 	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
@@ -56,11 +56,11 @@ func testOutbox__LargeBuffer(t *testing.T) {
 
 	data := createData()
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
+	testGet(ctx, t, o, n, pid, data)
 	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
@@ -83,9 +83,9 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, o *Outbox, n tablename.TableName, data []item) error {
+func insertData(ctx context.Context, o *Outbox, n tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
+		if err := o.Set(ctx, n, pid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -97,10 +97,11 @@ func testGet(
 	t *testing.T,
 	kv *Outbox,
 	n tablename.TableName,
+	pid value.PartitionID,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, i.value.ID())
+		value, err := kv.Get(ctx, n, pid, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}

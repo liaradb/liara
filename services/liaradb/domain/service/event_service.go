@@ -214,7 +214,7 @@ func (es *EventService) GetByOutbox(
 	}
 
 	tn := tablename.New(tid)
-	o, err := tx.GetOutbox(ctx, tn, outboxID)
+	o, err := tx.GetOutbox(ctx, tn, value.NewPartitionID(0), outboxID)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -238,7 +238,7 @@ func (es *EventService) CreateOutbox(
 		tn := tablename.New(tid)
 		oid := value.NewOutboxID()
 		outbox := entity.NewOutbox(oid, partitionRange)
-		if err := tx.InsertOutbox(ctx, tn, now, oid, outbox); err != nil {
+		if err := tx.InsertOutbox(ctx, tn, partitionRange.Low(), now, oid, outbox); err != nil {
 			return value.OutboxID{}, err
 		}
 		return oid, nil
@@ -257,7 +257,7 @@ func (es *EventService) GetOutbox(
 
 	return transaction.RunResult(ctx, tx, time.Now(), func() (*entity.Outbox, error) {
 		tn := tablename.New(tid)
-		return tx.GetOutbox(ctx, tn, outboxID)
+		return tx.GetOutbox(ctx, tn, value.NewPartitionID(0), outboxID)
 	})
 }
 
@@ -275,7 +275,7 @@ func (es *EventService) UpdateOutboxPosition(
 	now := time.Now()
 	return transaction.Run(ctx, tx, now, func() error {
 		tn := tablename.New(tid)
-		return tx.UpdateOutbox(ctx, tn, now, outboxID, globalVersion)
+		return tx.UpdateOutbox(ctx, tn, value.NewPartitionID(0), now, outboxID, globalVersion)
 	})
 }
 
@@ -289,5 +289,5 @@ func (es *EventService) ListOutboxes(
 	}
 
 	tn := tablename.New(tid)
-	return tx.ListOutboxes(ctx, tn)
+	return tx.ListOutboxes(ctx, tn, value.NewPartitionID(0))
 }
