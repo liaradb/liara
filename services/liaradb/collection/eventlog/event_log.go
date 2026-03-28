@@ -54,7 +54,6 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 	return rid, nil
 }
 
-// TODO: Should this be multiple BlockIDs?
 func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, rd io.Reader) (link.RecordLocator, error) {
 	// TODO: Find a better way to get this
 	data := make([]byte, l.storage.BufferSize())

@@ -18,7 +18,6 @@ import (
 )
 
 // TODO: Where should this test be?
-// TODO: Why does this take so long?
 func TestEventLog_Recovery(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testRecovery)
