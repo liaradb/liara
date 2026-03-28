@@ -147,26 +147,13 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		tn := tablename.New(tid)
-		tx, err := es.txManager.Next(ctx, tid)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
-
-		for e, err := range tx.GetAggregate(ctx, tn, partitionID, id) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			// TODO: Move this to another layer
-			if e.AggregateName == name && !yield(e, nil) {
-				return
-			}
-		}
+	tn := tablename.New(tid)
+	tx, err := es.txManager.Next(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Event](err)
 	}
+
+	return tx.GetAggregateByIDAndName(ctx, tn, partitionID, id, name)
 }
 
 func (es *EventService) GetAfterGlobalVersion(
