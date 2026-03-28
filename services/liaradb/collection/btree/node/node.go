@@ -24,6 +24,10 @@ func New(buffer *storage.Buffer) Node {
 	data := buffer.Raw()
 	header, data0 := newHeader(data)
 
+	if header.isEmpty() {
+		header.init()
+	}
+
 	return Node{
 		header:   header,
 		buffer:   buffer,
@@ -33,40 +37,43 @@ func New(buffer *storage.Buffer) Node {
 	}
 }
 
-func (p *Node) Clear() {
-	p.buffer.Clear()
-	p.list.Clear()
+func (n *Node) Clear() {
+	n.buffer.Clear()
+	n.list.Clear()
+	n.header.init()
 }
+
+func (n *Node) IsPage() bool { return n.header.isPage() }
 
 // TODO: Test this
-func (p *Node) Release()  { p.buffer.Release() }
-func (p *Node) Latch()    { p.buffer.Latch() }
-func (p *Node) Unlatch()  { p.buffer.Unlatch() }
-func (p *Node) RLatch()   { p.buffer.RLatch() }
-func (p *Node) RUnlatch() { p.buffer.RUnlatch() }
+func (n *Node) Release()  { n.buffer.Release() }
+func (n *Node) Latch()    { n.buffer.Latch() }
+func (n *Node) Unlatch()  { n.buffer.Unlatch() }
+func (n *Node) RLatch()   { n.buffer.RLatch() }
+func (n *Node) RUnlatch() { n.buffer.RUnlatch() }
 
-func (p *Node) SetDirty() {
-	p.buffer.SetDirty()
+func (n *Node) SetDirty() {
+	n.buffer.SetDirty()
 }
 
-func (p *Node) SetLevel(l byte) {
-	p.header.setLevel(l)
+func (n *Node) SetLevel(l byte) {
+	n.header.setLevel(l)
 }
 
-func (p *Node) Append(size int16) (int16, []byte, bool) {
-	if !p.hasSpace(size) {
+func (n *Node) Append(size int16) (int16, []byte, bool) {
+	if !n.hasSpace(size) {
 		return 0, nil, false
 	}
 
-	offset := p.next() - size
-	i, ok := p.list.Push(offset, size)
+	offset := n.next() - size
+	i, ok := n.list.Push(offset, size)
 	if !ok {
 		return 0, nil, false
 	}
 
-	p.header.setNext(offset)
+	n.header.setNext(offset)
 
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -74,20 +81,20 @@ func (p *Node) Append(size int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p *Node) Insert(size int16, index int16) (int16, []byte, bool) {
-	if !p.hasSpace(size) {
+func (n *Node) Insert(size int16, index int16) (int16, []byte, bool) {
+	if !n.hasSpace(size) {
 		return 0, nil, false
 	}
 
-	offset := p.next() - size
-	i, ok := p.list.Insert(offset, size, index)
+	offset := n.next() - size
+	i, ok := n.list.Insert(offset, size, index)
 	if !ok {
 		return 0, nil, false
 	}
 
-	p.header.setNext(offset)
+	n.header.setNext(offset)
 
-	b, ok := p.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.byteList.Slice(int64(offset), int64(size))
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -95,47 +102,47 @@ func (p *Node) Insert(size int16, index int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-func (p Node) Length() int16 {
-	return int16(len(p.data))
+func (n Node) Length() int16 {
+	return int16(len(n.data))
 }
 
-func (p Node) Count() int16 {
-	return p.list.Count()
+func (n Node) Count() int16 {
+	return n.list.Count()
 }
 
-func (p *Node) next() int16 {
-	size := p.list.Count()
+func (n *Node) next() int16 {
+	size := n.list.Count()
 	if size == 0 {
-		return int16(p.list.Length())
+		return int16(n.list.Length())
 	} else {
-		return p.header.Next()
+		return n.header.Next()
 	}
 }
 
-func (p Node) Space() int16 {
-	next := p.next()
-	size := p.list.Size()
+func (n Node) Space() int16 {
+	next := n.next()
+	size := n.list.Size()
 	return max(next-size-itemSize, 0)
 }
 
-func (p Node) hasSpace(size int16) bool {
-	s := p.Space()
+func (n Node) hasSpace(size int16) bool {
+	s := n.Space()
 	return size <= s
 }
 
-func (p Node) Child(index int16) ([]byte, bool) {
-	offset, size, ok := p.list.Item(index)
+func (n Node) Child(index int16) ([]byte, bool) {
+	offset, size, ok := n.list.Item(index)
 	if !ok {
 		return nil, false
 	}
 
-	return p.byteList.Slice(int64(offset), int64(size))
+	return n.byteList.Slice(int64(offset), int64(size))
 }
 
-func (p Node) Children() iter.Seq[[]byte] {
+func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for offset, size := range p.list.Items() {
-			b, ok := p.byteList.Slice(int64(offset), int64(size))
+		for offset, size := range n.list.Items() {
+			b, ok := n.byteList.Slice(int64(offset), int64(size))
 			if !ok || !yield(b) {
 				return
 			}
@@ -143,10 +150,10 @@ func (p Node) Children() iter.Seq[[]byte] {
 	}
 }
 
-func (p Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (n Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for offset, size := range p.list.ItemsRange(start, end) {
-			b, ok := p.byteList.Slice(int64(offset), int64(size))
+		for offset, size := range n.list.ItemsRange(start, end) {
+			b, ok := n.byteList.Slice(int64(offset), int64(size))
 			if !ok || !yield(b) {
 				return
 			}

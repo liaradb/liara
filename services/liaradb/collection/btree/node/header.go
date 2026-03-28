@@ -22,6 +22,7 @@ const (
 
 // TODO: Should we store HighKey?
 type header struct {
+	magic  wrap.Int32
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
@@ -29,19 +30,23 @@ type header struct {
 }
 
 func newHeader(data []byte) (header, []byte) {
-	// TODO: Should this have a magic entry?
-	_, data0 := wrap.NewInt32(data) // Magic
+	magic, data0 := wrap.NewInt32(data)
 	level, data1 := wrap.NewByte(data0)
 	highID, data2 := wrap.NewInt64(data1)
 	lowID, data3 := wrap.NewInt64(data2)
 	next, data4 := wrap.NewInt16(data3)
 
 	return header{
+		magic:  magic,
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
 		next:   next,
 	}, data4
+}
+
+func (h *header) init() {
+	h.magic.Set(int32(page.MagicPage))
 }
 
 func (h *header) Level() byte {
@@ -74,4 +79,12 @@ func (h *header) SetLowID(o link.FilePosition) {
 
 func (h *header) setNext(o int16) {
 	h.next.Set(o)
+}
+
+func (h *header) isEmpty() bool {
+	return page.Magic(h.magic.Get()).IsEmpty()
+}
+
+func (h *header) isPage() bool {
+	return page.Magic(h.magic.Get()).IsPage()
 }

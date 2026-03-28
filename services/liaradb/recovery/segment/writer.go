@@ -22,7 +22,7 @@ type Writer struct {
 	timeLineID  action.TimeLineID
 	writer      io.WriterAt
 	recordBuf   *bytes.Buffer
-	pageWriter  *page.Page
+	page        *page.Page
 }
 
 type readWriterAt interface {
@@ -38,7 +38,7 @@ func NewWriter(
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
 		recordBuf:   bytes.NewBuffer(nil),
-		pageWriter:  page.New(pageSize),
+		page:        page.New(pageSize),
 	}
 }
 
@@ -64,7 +64,7 @@ func (wr *Writer) recordToBytes(rc *record.Record) ([]byte, error) {
 }
 
 func (wr *Writer) appendOrNext(data []byte) error {
-	if ok := wr.pageWriter.Append(data); ok {
+	if ok := wr.page.Append(data); ok {
 		return nil
 	}
 
@@ -83,8 +83,8 @@ func (wr *Writer) next(data []byte) error {
 	}
 
 	// TODO: Verify that record can fit at all before initializing
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-	if ok := wr.pageWriter.Append(data); !ok {
+	wr.page.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
+	if ok := wr.page.Append(data); !ok {
 		return raw.ErrInsufficientSpace
 	}
 
@@ -92,7 +92,7 @@ func (wr *Writer) next(data []byte) error {
 }
 
 func (wr *Writer) Flush() error {
-	return wr.pageWriter.Write(wr.writer)
+	return wr.page.Write(wr.writer)
 }
 
 func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
@@ -104,7 +104,7 @@ func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 	wr.reset(rw)
 
 	wr.pageID = action.NewActivePageIDFromSize(size, wr.pageSize)
-	return wr.pageWriter.Read(
+	return wr.page.Read(
 		io.NewSectionReader(rw, wr.pageID.Position(wr.pageSize), wr.pageSize))
 }
 
@@ -112,7 +112,7 @@ func (wr *Writer) initialize(w io.WriterAt) {
 	wr.reset(w)
 
 	wr.pageID = 0
-	wr.pageWriter.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
+	wr.page.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 }
 
 func (wr *Writer) reset(w io.WriterAt) {
