@@ -34,7 +34,7 @@ type Application struct {
 	collections *collection.Collections
 	txManager   *transaction.Manager
 	log         *recovery.Log
-	lockTable   *locktable.LockTable[action.ItemID] // TODO: Is this ID type correct?
+	lockTable   *locktable.LockTable[action.ItemID]
 }
 
 func New(conf configuration) *Application {
