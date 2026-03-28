@@ -32,7 +32,6 @@ func (fc *FixedCollection) Get(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,
-	pid value.PartitionID,
 	k key.Key,
 ) ([]byte, error) {
 	rid, err := fc.c.Search(ctx, fnIdx, k)
@@ -191,11 +190,10 @@ func (fc *FixedCollection) Replace(
 
 func (fc *FixedCollection) Test(
 	ctx context.Context,
-	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
 ) (bool, error) {
-	_, err := fc.Get(ctx, fn, fnIdx, value.PartitionID{}, k)
+	_, err := fc.c.Search(ctx, fnIdx, k)
 	if errors.Is(err, btree.ErrNotFound) {
 		return true, nil
 	}

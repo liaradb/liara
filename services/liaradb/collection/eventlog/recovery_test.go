@@ -85,7 +85,7 @@ func write(
 	}
 
 	for _, r := range events {
-		if _, err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -56,7 +56,7 @@ func testEventLog_Append(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if _, err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -118,7 +118,7 @@ func testEventLog_Find(t *testing.T) {
 	}}
 
 	for _, r := range records {
-		if _, err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -179,7 +179,7 @@ func testEventLog_GetAggregate(t *testing.T) {
 
 	pid := value.NewPartitionID(0)
 	for _, r := range records {
-		if _, err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -225,7 +225,7 @@ func testEventLog_AppendEvent(t *testing.T) {
 
 	for i, r := range records {
 		k := key.NewKey2([]byte(""), int64(i))
-		if _, err := el.AppendEvent(ctx, tn, pid, k, r); err != nil {
+		if err := el.AppendEvent(ctx, tn, pid, k, r); err != nil {
 			t.Fatal(err)
 		}
 	}

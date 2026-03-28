@@ -39,7 +39,7 @@ func testFixedCollection(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, fc, fn, fnIdx, pid, data)
+	testGet(ctx, t, fc, fn, fnIdx, data)
 	testList(ctx, t, data, fc, fn, fnIdx, pid)
 
 	synctest.Wait()
@@ -64,7 +64,7 @@ func testRequestLog__LargeBuffer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, fc, fn, fnIdx, pid, data)
+	testGet(ctx, t, fc, fn, fnIdx, data)
 	testList(ctx, t, data, fc, fn, fnIdx, pid)
 
 	synctest.Wait()
@@ -109,12 +109,11 @@ func testGet(
 	fc *FixedCollection,
 	fn link.FileName,
 	fnIdx link.FileName,
-	pid value.PartitionID,
 	data []item,
 ) {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := fc.Get(ctx, fn, fnIdx, pid, k)
+		value, err := fc.Get(ctx, fn, fnIdx, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}

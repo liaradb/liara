@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -19,92 +20,31 @@ import (
 
 // TODO: Create latching
 type EventLog struct {
+	fc      *fixed.FixedCollection
 	storage *storage.Storage
 	cursor  *btree.Cursor
 }
 
-func New(storage *storage.Storage, cursor *btree.Cursor) *EventLog {
+func New(s *storage.Storage, c *btree.Cursor) *EventLog {
 	return &EventLog{
-		storage: storage,
-		cursor:  cursor,
+		fc:      fixed.New(s, c),
+		storage: s,
+		cursor:  c,
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value.PartitionID, e *entity.Event) (link.RecordLocator, error) {
+func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value.PartitionID, e *entity.Event) error {
 	b := buffer.New(l.storage.BufferSize())
 	if err := e.Write(b); err != nil {
-		return link.RecordLocator{}, err
+		return err
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
-	rid, err := l.AppendEvent(ctx, tn, pid, k, b.Bytes()[:b.Cursor()])
-	if err != nil {
-		return link.RecordLocator{}, err
-	}
-
-	return rid, nil
+	return l.AppendEvent(ctx, tn, pid, k, b.Bytes()[:b.Cursor()])
 }
 
-func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, data []byte) (link.RecordLocator, error) {
-	crc := page.NewCRC(data)
-	fn := tn.EventLog(pid)
-
-	rid, ok, err := l.setCurrent(ctx, fn, data, crc)
-	if err != nil {
-		return link.RecordLocator{}, err
-	} else if !ok {
-		rid, ok, err = l.setNext(ctx, fn, data, crc)
-		if err != nil {
-			return link.RecordLocator{}, err
-		} else if !ok {
-			return link.RecordLocator{}, btree.ErrNoInsert
-		}
-	}
-
-	return rid, l.cursor.Insert(ctx, tn.Index(0, pid), k, rid)
-}
-
-func (l *EventLog) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := l.storage.RequestCurrent(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-
-	if !n.IsPage() {
-		return link.RecordLocator{}, false, page.ErrNotPage
-	}
-
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
-}
-
-func (l *EventLog) setNext(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := l.storage.RequestNext(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, data []byte) error {
+	return l.fc.Set(ctx, tn.EventLog(pid), tn.Index(0, pid), k, data)
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {

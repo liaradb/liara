@@ -28,7 +28,7 @@ func (kv *KeyValue) Get(
 	pid value.PartitionID,
 	k key.Key,
 ) ([]byte, error) {
-	return kv.fc.Get(ctx, tn.KeyValue(pid), tn.Index(0, pid), pid, k)
+	return kv.fc.Get(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
 }
 
 func (kv *KeyValue) List(

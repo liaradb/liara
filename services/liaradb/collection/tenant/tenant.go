@@ -31,7 +31,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	data, err := t.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), pid, k)
+	data, err := t.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}

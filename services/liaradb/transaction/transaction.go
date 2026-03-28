@@ -300,7 +300,7 @@ func (t *Transaction) appendToEventLog(ctx context.Context) error {
 	tn := tablename.New(t.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		_, err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, item.data)
+		err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, item.data)
 		if err != nil {
 			return err
 		}

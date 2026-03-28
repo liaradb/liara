@@ -153,8 +153,7 @@ func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error 
 
 	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
 	tn := tablename.New(r.TenantID())
-	_, err := a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
-	return err
+	return a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
 }
 
 func (a *Application) listen(ctx context.Context) {

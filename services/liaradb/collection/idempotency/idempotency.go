@@ -31,7 +31,7 @@ func (i *Idempotency) Get(
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	data, err := i.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), pid, k)
+	data, err := i.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}
@@ -92,5 +92,5 @@ func (i *Idempotency) Test(
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	return i.fc.Test(ctx, tn.Index(0, pid), k)
 }
