@@ -25,16 +25,17 @@ func testTenant(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 5, 296)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
+	pid := value.NewPartitionID(0)
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, n, pid, data)
+	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
 }
@@ -49,15 +50,16 @@ func testTenant__LargeBuffer(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 1024)
 	o := New(s, btree.NewCursor(s))
 	n := tablename.NewFromString("testfile")
+	pid := value.NewPartitionID(0)
 
 	data := createData()
 
-	if err := insertData(ctx, o, n, data); err != nil {
+	if err := insertData(ctx, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, n, pid, data)
+	testList(ctx, t, data, o, n, pid)
 
 	synctest.Wait()
 }
@@ -81,9 +83,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, o *Tenant, n tablename.TableName, data []item) error {
+func insertData(ctx context.Context, o *Tenant, n tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, n, i.value.ID(), i.value); err != nil {
+		if err := o.Set(ctx, n, pid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -95,10 +97,11 @@ func testGet(
 	t *testing.T,
 	kv *Tenant,
 	n tablename.TableName,
+	pid value.PartitionID,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, i.value.ID())
+		value, err := kv.Get(ctx, n, pid, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -115,8 +118,9 @@ func testList(
 	data []item,
 	o *Tenant,
 	n tablename.TableName,
+	pid value.PartitionID,
 ) {
-	result, err := getListValues(ctx, data, o, n)
+	result, err := getListValues(ctx, data, o, n, pid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,10 +136,11 @@ func getListValues(
 	data []item,
 	o *Tenant,
 	n tablename.TableName,
+	pid value.PartitionID,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n) {
+	for value, err := range o.List(ctx, n, pid) {
 		if err != nil {
 			return nil, err
 		}

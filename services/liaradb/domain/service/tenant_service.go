@@ -31,7 +31,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
 
-	if err := ts.tc.Set(ctx, tablename.Tenant, tid, tnt); err != nil {
+	if err := ts.tc.Set(ctx, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
 		return value.TenantID{}, err
 	}
 
@@ -94,7 +94,7 @@ type RenameTenantCommand struct {
 
 // TODO: Create transaction
 func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) error {
-	tnt, err := ts.tc.Get(ctx, tablename.Tenant, cmd.TenantID)
+	tnt, err := ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) er
 		return err
 	}
 
-	return ts.tc.Replace(ctx, tablename.Tenant, cmd.TenantID, tnt)
+	return ts.tc.Replace(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
 	// t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
 	// if err != nil {
 	// 	return err
@@ -118,10 +118,10 @@ func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) er
 
 // TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	return ts.tc.Get(ctx, tablename.Tenant, tenantID)
+	return ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), tenantID)
 }
 
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	return ts.tc.List(ctx, tablename.Tenant)
+	return ts.tc.List(ctx, tablename.Tenant, value.NewPartitionID(0))
 }
