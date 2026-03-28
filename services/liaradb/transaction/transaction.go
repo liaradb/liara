@@ -139,6 +139,29 @@ func (t *Transaction) Events(
 	}
 }
 
+func (t *Transaction) EventsAfterGlobalVersion(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+	version value.GlobalVersion,
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		// Should we lock?
+		// if err := t.concurrencyMgr.SLock(ctx, action.ItemID(id.String())); err != nil {
+		// 	yield(nil, err)
+		// 	return
+		// }
+
+		// defer t.release()
+
+		for e, err := range t.collection.EventLog.EventsAfterGlobalVersion(ctx, tn, pid, version) {
+			if !yield(e, err) {
+				return
+			}
+		}
+	}
+}
+
 func (t *Transaction) Insert(
 	ctx context.Context,
 	tn tablename.TableName,

@@ -152,6 +152,41 @@ func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value
 	}
 }
 
+func (l *EventLog) EventsAfterGlobalVersion(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+	version value.GlobalVersion,
+) iter.Seq2[*entity.Event, error] {
+	return func(yield func(*entity.Event, error) bool) {
+		buf := buffer.NewFromSlice(nil)
+
+		for i, err := range l.items(ctx, tn, pid) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			buf.Reset(i)
+
+			var e entity.Event
+			if err := e.Read(buf); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			// TODO: Use Index to skip
+			if e.GlobalVersion.Value() < version.Value() {
+				continue
+			}
+
+			if !yield(&e, nil) {
+				return
+			}
+		}
+	}
+}
+
 func (l *EventLog) items(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for n, err := range l.Iterate(ctx, tn, pid) {

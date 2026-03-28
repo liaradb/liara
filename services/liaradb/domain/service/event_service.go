@@ -178,15 +178,10 @@ func (es *EventService) GetAfterGlobalVersion(
 		count := 0
 		if err := transaction.Run(ctx, tx, now, func() error {
 			tn := tablename.New(tid)
-			for e, err := range tx.Events(ctx, tn, partitionRange.Low()) {
+			for e, err := range tx.EventsAfterGlobalVersion(ctx, tn, partitionRange.Low(), version) {
 				if err != nil {
 					yield(nil, err)
 					return err
-				}
-
-				// TODO: Use Index to skip
-				if e.GlobalVersion.Value() < version.Value() {
-					continue
 				}
 
 				count++
