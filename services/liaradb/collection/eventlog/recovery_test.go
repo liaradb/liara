@@ -17,7 +17,6 @@ import (
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
-// TODO: Where should this test be?
 func TestEventLog_Recovery(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testRecovery)
