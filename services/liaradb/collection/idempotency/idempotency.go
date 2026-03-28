@@ -3,6 +3,7 @@ package idempotency
 import (
 	"context"
 	"errors"
+	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -87,7 +88,10 @@ func (i *Idempotency) getItem(ctx context.Context, tn tablename.TableName, rid l
 	}
 
 	e := &entity.RequestLog{}
-	_, _ = e.Read(d)
+	if _, ok := e.Read(d); !ok {
+		return nil, io.EOF
+	}
+
 	return e, nil
 }
 
@@ -102,7 +106,10 @@ func (i *Idempotency) Set(
 	k := key.NewKey(rqid.Bytes())
 
 	v := make([]byte, entity.RequestLogSize)
-	_, _ = e.Write(v)
+	if _, ok := e.Write(v); !ok {
+		return io.EOF
+	}
+
 	crc := page.NewCRC(v)
 
 	rid, ok, err := i.setCurrent(ctx, fn, v, crc)

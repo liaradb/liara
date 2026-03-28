@@ -2,6 +2,7 @@ package tenant
 
 import (
 	"context"
+	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -84,7 +85,10 @@ func (o *Tenant) getItem(ctx context.Context, tn tablename.TableName, rid link.R
 	}
 
 	e := &entity.Tenant{}
-	_, _ = e.Read(d)
+	if _, ok := e.Read(d); !ok {
+		return nil, io.EOF
+	}
+
 	return e, nil
 }
 
@@ -99,7 +103,10 @@ func (o *Tenant) Set(
 	k := key.NewKey(tid.Bytes())
 
 	v := make([]byte, entity.TenantSize)
-	_, _ = e.Write(v)
+	if _, ok := e.Write(v); !ok {
+		return io.EOF
+	}
+
 	crc := page.NewCRC(v)
 
 	rid, ok, err := o.setCurrent(ctx, fn, v, crc)
