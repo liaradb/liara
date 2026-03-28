@@ -70,6 +70,8 @@ func newTransaction(
 func (t *Transaction) ID() record.TransactionID                    { return t.id }
 func (t *Transaction) LogSequenceNumber() record.LogSequenceNumber { return t.lsn }
 
+func (t *Transaction) setLSN(lsn record.LogSequenceNumber) { t.lsn = lsn }
+
 func (t *Transaction) GetAggregate(
 	ctx context.Context,
 	tn tablename.TableName,
@@ -148,7 +150,7 @@ func (t *Transaction) Insert(
 		data: data,
 	})
 
-	t.lsn = lsn
+	t.setLSN(lsn)
 	return nil
 }
 
@@ -186,7 +188,7 @@ func (t *Transaction) SetValue(
 		data: data,
 	})
 
-	t.lsn = lsn
+	t.setLSN(lsn)
 	return nil
 }
 
@@ -233,8 +235,9 @@ func (t *Transaction) run(
 		return nil, err
 	}
 
-	t.lsn = lsn
 	defer t.release()
+
+	t.setLSN(lsn)
 
 	r, err := f()
 	if err != nil {
@@ -302,7 +305,7 @@ func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
 }
 
 func (t *Transaction) flush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	t.lsn = lsn
+	t.setLSN(lsn)
 	// TODO: Is this correct?
 	return t.log.Flush(ctx, lsn)
 }
@@ -341,7 +344,7 @@ func (t *Transaction) InsertOutbox(
 		return err
 	}
 
-	t.lsn = lsn
+	t.setLSN(lsn)
 	return t.collection.Outbox.Set(ctx, tn, oid, e)
 }
 
@@ -380,7 +383,7 @@ func (t *Transaction) UpdateOutbox(
 		return err
 	}
 
-	t.lsn = lsn
+	t.setLSN(lsn)
 	return t.collection.Outbox.Replace(ctx, tn, oid, o)
 }
 

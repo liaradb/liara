@@ -45,7 +45,7 @@ func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceN
 	return wr.sw.Append(rc)
 }
 
-func (wr *writer) Flush(lsn record.LogSequenceNumber) error {
+func (wr *writer) Flush() error {
 	return wr.sw.Flush()
 }
 

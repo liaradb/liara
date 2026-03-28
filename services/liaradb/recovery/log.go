@@ -184,13 +184,11 @@ func (l *Log) flushRequest(r *flushRequest) {
 }
 
 func (l *Log) flush(lsn record.LogSequenceNumber) error {
-	if err := l.writer.Flush(lsn); err != nil {
+	if err := l.writer.Flush(); err != nil {
 		return err
 	}
 
-	// TODO: Is this correct?
-	lsn = record.NewLogSequenceNumber(min(lsn.Value(), l.highWater.Value()))
-	l.lowWater = lsn
+	l.lowWater = record.NewLogSequenceNumber(min(lsn.Value(), l.highWater.Value()))
 	return nil
 }
 
@@ -232,7 +230,7 @@ func (l *Log) FlushCheckpoint(now time.Time, txids []record.TransactionID) (reco
 		return record.LogSequenceNumber{}, err
 	}
 
-	if err := l.writer.Flush(lsn); err != nil {
+	if err := l.writer.Flush(); err != nil {
 		return record.LogSequenceNumber{}, err
 	}
 
