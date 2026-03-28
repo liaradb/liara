@@ -289,6 +289,8 @@ func testCursor_SearchRange(t *testing.T) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
 	}
+
+	synctest.Wait()
 }
 
 func TestCursor_All(t *testing.T) {
