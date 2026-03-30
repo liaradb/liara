@@ -7,11 +7,11 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/node"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/node"
 )
 
 // TODO: Create latching
