@@ -10,12 +10,12 @@ import (
 
 func eventToDto(e *entity.Event) *pb.Event {
 	return &pb.Event{
-		GlobalVersion: int64(e.GlobalVersion.Value()),
+		GlobalVersion: e.GlobalVersion.Value(),
 		Id:            e.ID.String(),
 		AggregateName: e.AggregateName.String(),
 		AggregateId:   e.AggregateID.String(),
-		Version:       int64(e.Version.Value()),
-		PartitionId:   int32(e.PartitionID.Value()),
+		Version:       e.Version.Value(),
+		PartitionId:   e.PartitionID.Value(),
 		Name:          e.Name.String(),
 		Schema:        e.Schema.String(),
 		Metadata:      metadataToDto(e.Metadata),

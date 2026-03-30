@@ -17,6 +17,7 @@ func NewUint32(value uint32) Uint32 {
 }
 
 func (b Uint32) Value() uint32  { return uint32(b) }
+func (b Uint32) Signed() int32  { return int32(b) }
 func (b Uint32) Size() int      { return Uint32Size }
 func (b Uint32) String() string { return fmt.Sprintf("%08x", b.Value()) }
 

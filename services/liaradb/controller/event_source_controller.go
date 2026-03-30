@@ -136,7 +136,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		tid,
-		value.NewGlobalVersion(uint64(request.GlobalVersion)),
+		value.NewGlobalVersion(request.GlobalVersion),
 		dtoToPartitionRange(request.Low, request.High),
 		value.Limit(request.Limit)) {
 		if err != nil {
@@ -223,9 +223,9 @@ func (esc *EventSourceController) GetOutbox(
 	low, high := result.PartitionRange().All()
 
 	return &pb.GetOutboxResponse{
-		GlobalVersion: int64(result.GlobalVersion().Value()),
-		Low:           int32(low.Value()),
-		High:          int32(high.Value()),
+		GlobalVersion: result.GlobalVersion().Value(),
+		Low:           low.Value(),
+		High:          high.Value(),
 	}, nil
 }
 
@@ -246,7 +246,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	if err := esc.eventService.UpdateOutboxPosition(ctx,
 		tid,
 		oid,
-		value.NewGlobalVersion(uint64(request.GlobalVersion))); err != nil {
+		value.NewGlobalVersion(request.GlobalVersion)); err != nil {
 		return nil, err
 	}
 
@@ -327,12 +327,11 @@ func (esc *EventSourceController) ListOutboxes(request *pb.ListOutboxesRequest, 
 			return err
 		}
 
-		// TODO: Fix these unsigned types
 		stream.Send(&pb.Outbox{
 			OutboxId:      t.ID().String(),
-			GlobalVersion: int64(t.GlobalVersion().Value()),
-			Low:           int32(t.PartitionRange().Low().Value()),
-			High:          int32(t.PartitionRange().High().Value()),
+			GlobalVersion: t.GlobalVersion().Value(),
+			Low:           t.PartitionRange().Low().Value(),
+			High:          t.PartitionRange().High().Value(),
 		})
 	}
 	return nil

@@ -11,3 +11,5 @@ func NewPartitionID(value int32) PartitionID {
 }
 
 const PartitionIDSize = base.Uint32Size
+
+func (p PartitionID) Value() int32 { return p.Signed() }
