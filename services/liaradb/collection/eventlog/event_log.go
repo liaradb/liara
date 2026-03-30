@@ -39,7 +39,7 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 		return err
 	}
 
-	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
+	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 	return l.AppendEvent(ctx, tn, pid, k, b.Bytes()[:b.Cursor()])
 }
 

@@ -173,7 +173,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	k := key.NewKey2(e.AggregateID.Bytes(), int64(e.Version.Value()))
+	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 	// Verify this AggregateID and Version is unique in this transaction
 	if t.keys.Includes(k) {
 		return btree.ErrExists
@@ -210,7 +210,7 @@ func (t *Transaction) SetValue(
 		return err
 	}
 
-	// k := key.NewKey2(r.ID().Bytes(), int64(r.Version().Value()))
+	// k := key.NewKey2(r.ID().Bytes(), r.Version().Value())
 	// // Verify this AggregateID and Version is unique in this transaction
 	// if t.keys.Includes(k) {
 	// 	return btree.ErrExists
