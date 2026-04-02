@@ -15,6 +15,9 @@ type Storage struct {
 }
 
 func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
+	t.Helper()
+	t.Parallel()
+
 	synctest.Test(t, func(t *testing.T) {
 		fsys := filetesting.NewMockFileSystem(t, nil)
 		s := CreateStorageWithFileSystem(t, max, bs, fsys)
