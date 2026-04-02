@@ -23,10 +23,18 @@ func (c *Cursor) Release() {
 	}
 }
 
+func (c *Cursor) Reader() io.Reader {
+	readers := make([]io.Reader, 0, len(c.buffers))
+	for _, b := range c.buffers {
+		readers = append(readers, buffer.NewFromSlice(b.Raw()))
+	}
+	return newMultiReader(readers...)
+}
+
 func (c *Cursor) Writer() io.Writer {
-	writers := make([]io.Writer, len(c.buffers))
+	writers := make([]io.Writer, 0, len(c.buffers))
 	for _, b := range c.buffers {
 		writers = append(writers, buffer.NewFromSlice(b.Raw()))
 	}
-	return io.MultiWriter(writers...)
+	return newMultiWriter(writers...)
 }

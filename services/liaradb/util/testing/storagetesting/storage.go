@@ -9,6 +9,31 @@ import (
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
+type Storage struct {
+	Storage *storage.Storage
+	FSys    file.FileSystem
+}
+
+func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
+	synctest.Test(t, func(t *testing.T) {
+		fsys := filetesting.NewMockFileSystem(t, nil)
+		s := CreateStorageWithFileSystem(t, max, bs, fsys)
+
+		t.Cleanup(func() {
+			if p := s.CountPinned(); p != 0 {
+				t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
+			}
+		})
+
+		f(t, Storage{
+			Storage: s,
+			FSys:    fsys,
+		})
+
+		synctest.Wait()
+	})
+}
+
 func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	t.Helper()
 
