@@ -19,14 +19,16 @@ type File struct {
 	isOpen     bool
 	readCount  int
 	writeCount int
+	delay      time.Duration
 }
 
 var _ file.File = (*File)(nil)
 
-func NewMockFile(name string) *File {
+func NewMockFile(name string, delay time.Duration) *File {
 	return &File{
 		name:    name,
 		modTime: time.Now(),
+		delay:   delay,
 	}
 }
 
@@ -79,6 +81,10 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 		err = io.EOF
 	}
 
+	if f.delay != 0 {
+		time.Sleep(f.delay)
+	}
+
 	if off <= int64(len(f.data)) {
 		n = copy(b, f.data[off:])
 	}
@@ -103,6 +109,10 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
 			Op:   "writeat",
 			Path: f.name,
 			Err:  errors.New("negative offset")}
+	}
+
+	if f.delay != 0 {
+		time.Sleep(f.delay)
 	}
 
 	f.modTime = time.Now()

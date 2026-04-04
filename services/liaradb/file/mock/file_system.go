@@ -5,19 +5,28 @@ import (
 	"path"
 	"sync"
 	"testing/fstest"
+	"time"
 
 	"github.com/liaradb/liaradb/file"
 )
 
 type FileSystem struct {
 	fstest.MapFS
-	dirs map[string]map[string]*File
-	mux  sync.Mutex
+	dirs  map[string]map[string]*File
+	mux   sync.Mutex
+	delay time.Duration
 }
 
 func NewFileSystem(fsys fstest.MapFS) *FileSystem {
 	return &FileSystem{
 		MapFS: fsys,
+	}
+}
+
+func NewFileSystemDelay(fsys fstest.MapFS, delay time.Duration) *FileSystem {
+	return &FileSystem{
+		MapFS: fsys,
+		delay: delay,
 	}
 }
 
@@ -62,7 +71,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	base := path.Base(name)
 	m, ok := d[base]
 	if !ok {
-		m = NewMockFile(name)
+		m = NewMockFile(name, mfs.delay)
 		f, ok := mfs.MapFS[dir]
 		if ok {
 			m.data = f.Data

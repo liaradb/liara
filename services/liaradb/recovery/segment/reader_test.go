@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"slices"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
@@ -15,7 +16,10 @@ import (
 
 func TestReader_Iterate(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testReader_Iterate)
+}
 
+func testReader_Iterate(t *testing.T) {
 	f, lr, sw := createReaderWriter(t)
 
 	var count = record.NewLogSequenceNumber(10)
@@ -49,7 +53,10 @@ func TestReader_Iterate(t *testing.T) {
 
 func TestReader_Reverse(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testReader_Reverse)
+}
 
+func testReader_Reverse(t *testing.T) {
 	f, sr, sw := createReaderWriter(t)
 
 	var count = record.NewLogSequenceNumber(10)

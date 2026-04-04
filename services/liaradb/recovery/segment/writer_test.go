@@ -5,6 +5,7 @@ import (
 	"path"
 	"slices"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
@@ -16,7 +17,10 @@ import (
 
 func TestWriter_Append(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testWriter_Append)
+}
 
+func testWriter_Append(t *testing.T) {
 	sw := createWriter(t)
 	tid := value.NewTenantID()
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -37,7 +41,10 @@ func TestWriter_Append(t *testing.T) {
 
 func TestWriter_SeekTail(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testWriter_SeekTail)
+}
 
+func testWriter_SeekTail(t *testing.T) {
 	f := createFile(t)
 	sw := createWriterFromFile(t, f)
 	tid := value.NewTenantID()
@@ -113,99 +120,104 @@ func TestWriter_Flush(t *testing.T) {
 
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			sw := createWriter(t)
 
-		sw := createWriter(t)
+			if err := sw.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := sw.Append(rec); err != nil {
-			t.Error(err)
-		}
+			if err := sw.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := sw.Append(rec); err != nil {
-			t.Error(err)
-		}
-
-		if err := sw.Flush(); err != nil {
-			t.Error(err)
-		}
+			if err := sw.Flush(); err != nil {
+				t.Error(err)
+			}
+		})
 	})
 
 	t.Run("should not flush beyond HighWater", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			sw := createWriter(t)
 
-		sw := createWriter(t)
+			if err := sw.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := sw.Append(rec); err != nil {
-			t.Error(err)
-		}
+			if err := sw.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := sw.Append(rec); err != nil {
-			t.Error(err)
-		}
-
-		if err := sw.Flush(); err != nil {
-			t.Error(err)
-		}
+			if err := sw.Flush(); err != nil {
+				t.Error(err)
+			}
+		})
 	})
 
 	t.Run("should write to multiple pages", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			l := createWriter(t)
 
-		l := createWriter(t)
+			count := 10
 
-		count := 10
+			for range count - 1 {
+				if err := l.Append(rec); err != nil {
+					t.Fatal(err)
+				}
+			}
 
-		for range count - 1 {
-			if err := l.Append(rec); err != nil {
+			if err := l.Flush(); err != nil {
 				t.Fatal(err)
 			}
-		}
 
-		if err := l.Flush(); err != nil {
-			t.Fatal(err)
-		}
-
-		if p := l.PageID(); p != 2 {
-			t.Errorf("incorrect value: %v, expected: %v", p, 2)
-		}
+			if p := l.PageID(); p != 2 {
+				t.Errorf("incorrect value: %v, expected: %v", p, 2)
+			}
+		})
 	})
 
 	t.Run("should return error if appending beyond maximum", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			l := createWriterSmall(t)
 
-		l := createWriterSmall(t)
-
-		if err := l.Append(rec); err != raw.ErrInsufficientSpace {
-			t.Error("should return error")
-		}
+			if err := l.Append(rec); err != raw.ErrInsufficientSpace {
+				t.Error("should return error")
+			}
+		})
 	})
 
 	t.Run("should write after flushing", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			l := createWriter(t)
 
-		l := createWriter(t)
+			if err := l.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := l.Append(rec); err != nil {
-			t.Error(err)
-		}
+			if err := l.Flush(); err != nil {
+				t.Error(err)
+			}
 
-		if err := l.Flush(); err != nil {
-			t.Error(err)
-		}
+			if err := l.Append(rec); err != nil {
+				t.Error(err)
+			}
 
-		if err := l.Append(rec); err != nil {
-			t.Error(err)
-		}
-
-		if err := l.Flush(); err != nil {
-			t.Error(err)
-		}
+			if err := l.Flush(); err != nil {
+				t.Error(err)
+			}
+		})
 	})
 }
 
 func createWriter(t *testing.T) *Writer {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
@@ -221,7 +233,7 @@ func createWriter(t *testing.T) *Writer {
 func createWriterSmall(t *testing.T) *Writer {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 
 	sw := NewWriter(32, 1)
@@ -232,7 +244,7 @@ func createWriterSmall(t *testing.T) *Writer {
 func createFile(t *testing.T) file.File {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"))
+	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 	return f
 }

@@ -305,6 +305,10 @@ func testLog_Iterate(t *testing.T) {
 
 func TestLog_Recover(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_Recover)
+}
+
+func testLog_Recover(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles(t)
@@ -388,6 +392,10 @@ func TestLog_Recover(t *testing.T) {
 
 func TestLog_RecoverMany(t *testing.T) {
 	t.Parallel()
+	synctest.Test(t, testLog_RecoverMany)
+}
+
+func testLog_RecoverMany(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles(t)

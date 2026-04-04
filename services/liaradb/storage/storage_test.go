@@ -326,8 +326,6 @@ func testStorage_Wait(t *testing.T) {
 			return
 		}
 
-		b.status = BufferStatusDirty
-
 		b.Release()
 	}()
 
@@ -337,8 +335,6 @@ func testStorage_Wait(t *testing.T) {
 			t.Error(err)
 			return
 		}
-
-		b.status = BufferStatusDirty
 
 		b.Release()
 	}()
@@ -350,7 +346,38 @@ func testStorage_Wait(t *testing.T) {
 			return
 		}
 
-		b.status = BufferStatusDirty
+		b.Release()
+	}()
+
+	synctest.Wait()
+
+	if c := s.Count(); c != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+
+	if c := s.CountPinned(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+}
+
+func TestStorage_Wait__NoLeak(t *testing.T) {
+	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testStorage_Wait__NoLeak)
+}
+
+func testStorage_Wait__NoLeak(t *testing.T) {
+	s := createStorageDelay(t, 1, 16, 1*time.Second)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+
+	go func() {
+		b, err := s.Request(ctx, fn.BlockID(0))
+		if err != nil {
+			t.Error(err)
+			return
+		}
 
 		b.Release()
 	}()
@@ -370,6 +397,13 @@ func createStorage(t *testing.T, max int, bs int64) *Storage {
 	t.Helper()
 
 	fsys := filetesting.NewMockFileSystem(t, nil)
+	return createStorageWithFileSystem(t, max, bs, fsys)
+}
+
+func createStorageDelay(t *testing.T, max int, bs int64, delay time.Duration) *Storage {
+	t.Helper()
+
+	fsys := filetesting.NewMockFileSystemDelay(t, nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 

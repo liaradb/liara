@@ -14,7 +14,7 @@ import (
 func TestFile(t *testing.T) {
 	t.Parallel()
 
-	f := NewMockFile("file")
+	f := NewMockFile("file", 0)
 	f.Open()
 
 	wb := make([]byte, 8)
@@ -57,7 +57,7 @@ func TestFile(t *testing.T) {
 func TestFile_Write(t *testing.T) {
 	t.Parallel()
 
-	f := NewMockFile("file")
+	f := NewMockFile("file", 0)
 	f.Open()
 
 	data0 := []byte{1, 2}
@@ -122,7 +122,7 @@ func TestFile_Write(t *testing.T) {
 }
 
 func TestFile_Stat__Closed(t *testing.T) {
-	f := NewMockFile("file")
+	f := NewMockFile("file", 0)
 	f.Open()
 
 	_, err := f.Stat()
