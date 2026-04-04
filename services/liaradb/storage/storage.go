@@ -87,6 +87,7 @@ func (s *Storage) requestBuffer(r *bufferRequest) {
 		r.Reply(nil, err)
 	} else {
 		b, err := s.getBuffer(r.Context(), bid, r.Value().isNext())
+		// TODO: This will leak if we have a buffer, but the request is cancelled
 		r.Reply(b, err)
 	}
 }
