@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"slices"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -319,7 +320,9 @@ func testStorage_Wait(t *testing.T) {
 
 	fn := link.NewFileName("testfile")
 
-	go func() {
+	wg := sync.WaitGroup{}
+
+	wg.Go(func() {
 		b, err := s.Request(ctx, fn.BlockID(0))
 		if err != nil {
 			t.Error(err)
@@ -327,9 +330,9 @@ func testStorage_Wait(t *testing.T) {
 		}
 
 		b.Release()
-	}()
+	})
 
-	go func() {
+	wg.Go(func() {
 		b, err := s.Request(ctx, fn.BlockID(1))
 		if err != nil {
 			t.Error(err)
@@ -337,9 +340,9 @@ func testStorage_Wait(t *testing.T) {
 		}
 
 		b.Release()
-	}()
+	})
 
-	go func() {
+	wg.Go(func() {
 		b, err := s.Request(ctx, fn.BlockID(2))
 		if err != nil {
 			t.Error(err)
@@ -347,8 +350,9 @@ func testStorage_Wait(t *testing.T) {
 		}
 
 		b.Release()
-	}()
+	})
 
+	wg.Wait()
 	synctest.Wait()
 
 	if c := s.Count(); c != 1 {
@@ -362,7 +366,6 @@ func testStorage_Wait(t *testing.T) {
 
 func TestStorage_Wait__NoLeak(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testStorage_Wait__NoLeak)
 }
 
@@ -372,7 +375,9 @@ func testStorage_Wait__NoLeak(t *testing.T) {
 
 	fn := link.NewFileName("testfile")
 
-	go func() {
+	wg := sync.WaitGroup{}
+
+	wg.Go(func() {
 		b, err := s.Request(ctx, fn.BlockID(0))
 		if err != nil {
 			t.Error(err)
@@ -380,8 +385,9 @@ func testStorage_Wait__NoLeak(t *testing.T) {
 		}
 
 		b.Release()
-	}()
+	})
 
+	wg.Wait()
 	synctest.Wait()
 
 	if c := s.Count(); c != 1 {
