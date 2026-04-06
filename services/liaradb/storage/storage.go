@@ -87,7 +87,6 @@ func (s *Storage) requestBuffer(r *bufferRequest) {
 		r.Reply(nil, err)
 	} else {
 		b, err := s.getBuffer(r.Context(), bid, r.Value().isNext())
-		// TODO: This will leak if we have a buffer, but the request is cancelled
 		r.Reply(b, err)
 	}
 }
@@ -247,7 +246,15 @@ func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, newBufferByIDQuery(bid))
+	return s.bufferReqs.SendOrCancel(ctx, newBufferByIDQuery(bid), func(b *Buffer, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// This will leak if we have a buffer, but the request is cancelled
+		b.Release()
+		return nil
+	})
 }
 
 // External thread
@@ -256,7 +263,15 @@ func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, newCurrentBufferQuery(fn))
+	return s.bufferReqs.SendOrCancel(ctx, newCurrentBufferQuery(fn), func(b *Buffer, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// This will leak if we have a buffer, but the request is cancelled
+		b.Release()
+		return nil
+	})
 }
 
 // External thread
@@ -265,7 +280,15 @@ func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, e
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.Send(ctx, newNextBufferQuery(fn))
+	return s.bufferReqs.SendOrCancel(ctx, newNextBufferQuery(fn), func(b *Buffer, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// This will leak if we have a buffer, but the request is cancelled
+		b.Release()
+		return nil
+	})
 }
 
 // External thread

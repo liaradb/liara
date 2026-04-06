@@ -5,7 +5,17 @@ import "context"
 type Handler[T any, U any] chan *Request[T, U]
 
 func (h Handler[T, U]) Send(ctx context.Context, t T) (U, error) {
-	r := newRequest[T, U](ctx, t)
+	r := newRequest[T, U](ctx, t, nil)
+	if !h.send(ctx, r) {
+		var u U
+		return u, context.Canceled
+	}
+
+	return r.wait(ctx)
+}
+
+func (h Handler[T, U]) SendOrCancel(ctx context.Context, t T, onCancel func(U, error) error) (U, error) {
+	r := newRequest(ctx, t, onCancel)
 	if !h.send(ctx, r) {
 		var u U
 		return u, context.Canceled
