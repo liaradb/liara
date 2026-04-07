@@ -1,15 +1,12 @@
 package async
 
-import (
-	"context"
-	"errors"
-)
+import "context"
 
 type Request[T any, U any] struct {
 	ctx      context.Context
 	value    T
 	response chan response[T, U]
-	onCancel func(U, error) error
+	onCancel func(U, error)
 }
 
 type response[T any, U any] struct {
@@ -17,7 +14,7 @@ type response[T any, U any] struct {
 	err   error
 }
 
-func newRequest[T any, U any](ctx context.Context, value T, onCancel func(U, error) error) *Request[T, U] {
+func newRequest[T any, U any](ctx context.Context, value T, onCancel func(U, error)) *Request[T, U] {
 	return &Request[T, U]{
 		ctx:      ctx,
 		value:    value,
@@ -29,15 +26,10 @@ func newRequest[T any, U any](ctx context.Context, value T, onCancel func(U, err
 func (r *Request[T, U]) Context() context.Context { return r.ctx }
 func (r *Request[T, U]) Value() T                 { return r.value }
 
-func (r *Request[T, U]) Reply(value U, err error) error {
-	select {
-	case r.response <- response[T, U]{
+func (r *Request[T, U]) Reply(value U, err error) {
+	r.response <- response[T, U]{
 		value: value,
-		err:   err}:
-		return nil
-	case <-r.ctx.Done():
-		return errors.Join(context.Canceled, r.onCancel(value, err))
-	}
+		err:   err}
 }
 
 func (r *Request[T, U]) wait(ctx context.Context) (U, error) {
@@ -45,14 +37,15 @@ func (r *Request[T, U]) wait(ctx context.Context) (U, error) {
 	case res := <-r.response:
 		return res.value, res.err
 	case <-ctx.Done():
-		var v U
-
-		if len(r.response) > 0 && r.onCancel != nil {
-			res := <-r.response
-			err := r.onCancel(res.value, res.err)
-			return v, errors.Join(context.Canceled, err)
+		if r.onCancel != nil {
+			go r.drain()
 		}
-
+		var v U
 		return v, context.Canceled
 	}
+}
+
+func (r *Request[T, U]) drain() {
+	res := <-r.response
+	r.onCancel(res.value, res.err)
 }

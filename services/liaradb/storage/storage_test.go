@@ -364,10 +364,8 @@ func testStorage_Wait(t *testing.T) {
 	}
 }
 
-// TODO: Fix channel select
 func TestStorage_Wait__NoLeak(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testStorage_Wait__NoLeak)
 }
 

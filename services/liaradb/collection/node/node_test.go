@@ -17,11 +17,10 @@ const (
 )
 
 func TestNode_Append(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Append)
+	storagetesting.SyncTest(t, 2, 256, testNode_Append)
 }
 
-func testNode_Append(t *testing.T) {
+func testNode_Append(t *testing.T, st storagetesting.Storage) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -29,7 +28,7 @@ func testNode_Append(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := storagetesting.CreateStorage(t, 2, 256)
+	s := st.Storage
 	b := createBuffer(t, s)
 
 	n := New(b)
@@ -102,11 +101,10 @@ func testNode_Append(t *testing.T) {
 }
 
 func TestNode_Insert(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Insert)
+	storagetesting.SyncTest(t, 2, 256, testNode_Insert)
 }
 
-func testNode_Insert(t *testing.T) {
+func testNode_Insert(t *testing.T, st storagetesting.Storage) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -114,7 +112,7 @@ func testNode_Insert(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := storagetesting.CreateStorage(t, 2, 256)
+	s := st.Storage
 	b := createBuffer(t, s)
 
 	n := New(b)
