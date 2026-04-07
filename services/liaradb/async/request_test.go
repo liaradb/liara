@@ -71,6 +71,47 @@ func testRequest_Send__Canceled(t *testing.T) {
 	}
 }
 
+func TestRequest_SendOrCancel__Canceled(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testRequest_Send__CanceledOrCancel)
+}
+
+func testRequest_Send__CanceledOrCancel(t *testing.T) {
+	h := make(Handler[string, int])
+	var errValue = errors.New("error value")
+	ctx, cancel := context.WithCancel(t.Context())
+
+	go func() {
+		if r, ok := h.Listen(t.Context()); ok {
+			cancel()
+			r.Reply(2, errValue)
+		}
+	}()
+
+	v, err := h.SendOrCancel(ctx, "a", func(v int, err error) {
+		if v != 2 {
+			t.Errorf("incorrect result: %v, expected: %v", v, 2)
+		}
+		if !errors.Is(err, errValue) {
+			t.Errorf("incorrect error: %v, expected: %v", err, errValue)
+		}
+	})
+	if errors.Is(err, context.Canceled) {
+		if v != 0 {
+			t.Errorf("incorrect result: %v, expected: %v", v, 0)
+		}
+	} else if errors.Is(err, errValue) {
+		// It is possible that we got a value
+		if v != 2 {
+			t.Errorf("incorrect result: %v, expected: %v", v, 2)
+		}
+	} else {
+		t.Error("should return error")
+	}
+
+	synctest.Wait()
+}
+
 func TestRequest__Wait__Canceled(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testRequest__Wait__Canceled)
