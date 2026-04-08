@@ -155,15 +155,15 @@ func testStorage_Run(t *testing.T) {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
+	b.Release()
+
+	synctest.Wait()
+
 	cancel()
 
 	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
 		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position())
 	}
-
-	b.Release()
-
-	synctest.Wait()
 }
 
 func TestStorage_Pinned(t *testing.T) {
