@@ -242,39 +242,25 @@ func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID
 
 // External thread
 func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error) {
-	if s.bufferReqs == nil {
-		return nil, ErrNotInitialized
-	}
-
-	return s.bufferReqs.SendOrCancel(ctx, newBufferByIDQuery(bid), func(b *Buffer, err error) {
-		if err == nil {
-			// This will leak if we have a buffer, but the request is cancelled
-			b.Release()
-		}
-	})
+	return s.request(ctx, newBufferByIDQuery(bid))
 }
 
 // External thread
 func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	if s.bufferReqs == nil {
-		return nil, ErrNotInitialized
-	}
-
-	return s.bufferReqs.SendOrCancel(ctx, newCurrentBufferQuery(fn), func(b *Buffer, err error) {
-		if err == nil {
-			// This will leak if we have a buffer, but the request is cancelled
-			b.Release()
-		}
-	})
+	return s.request(ctx, newCurrentBufferQuery(fn))
 }
 
 // External thread
 func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
+	return s.request(ctx, newNextBufferQuery(fn))
+}
+
+func (s *Storage) request(ctx context.Context, q bufferQuery) (*Buffer, error) {
 	if s.bufferReqs == nil {
 		return nil, ErrNotInitialized
 	}
 
-	return s.bufferReqs.SendOrCancel(ctx, newNextBufferQuery(fn), func(b *Buffer, err error) {
+	return s.bufferReqs.SendOrCancel(ctx, q, func(b *Buffer, err error) {
 		if err == nil {
 			// This will leak if we have a buffer, but the request is cancelled
 			b.Release()
