@@ -14,21 +14,33 @@ type FileSystem struct {
 	fstest.MapFS
 	dirs  map[string]map[string]*File
 	mux   sync.Mutex
+	lock  chan struct{}
 	delay time.Duration
 }
 
 func NewFileSystem(fsys fstest.MapFS) *FileSystem {
+	lock := make(chan struct{})
+	close(lock)
+
 	return &FileSystem{
 		MapFS: fsys,
+		lock:  lock,
 	}
 }
 
 func NewFileSystemDelay(fsys fstest.MapFS, delay time.Duration) *FileSystem {
+	lock := make(chan struct{})
+	close(lock)
+
 	return &FileSystem{
 		MapFS: fsys,
+		lock:  lock,
 		delay: delay,
 	}
 }
+
+func (mfs *FileSystem) Lock()   { mfs.lock = make(chan struct{}) }
+func (mfs *FileSystem) UnLock() { close(mfs.lock) }
 
 func (mfs *FileSystem) MkDirAll(name string) error {
 	mfs.mux.Lock()
@@ -53,6 +65,8 @@ func (mfs *FileSystem) MkDirAll(name string) error {
 func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	mfs.mux.Lock()
 	defer mfs.mux.Unlock()
+
+	<-mfs.lock
 
 	if mfs.MapFS == nil {
 		mfs.MapFS = make(fstest.MapFS)
@@ -91,6 +105,11 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	}
 
 	m.Open()
+
+	if mfs.delay != 0 {
+		time.Sleep(mfs.delay)
+	}
+
 	return m, nil
 }
 

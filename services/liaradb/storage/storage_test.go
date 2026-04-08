@@ -263,7 +263,6 @@ func testStorage_Flush(t *testing.T) {
 	}
 
 	// Release Buffer 1
-	// TODO: Prove this is non-blocking
 	b1.Release()
 
 	ctx2, cancel = context.WithTimeout(ctx, 1*time.Second)
@@ -414,10 +413,10 @@ func createStorageDelay(t *testing.T, max int, bs int64, delay time.Duration) *S
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageAndFileSystem(t *testing.T, max int, bs int64) (*Storage, file.FileSystem) {
+func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *mock.FileSystem) {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.NewMockFileSystemDelay(t, nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys), fsys
 }
 
@@ -452,7 +451,7 @@ func TestStorage_FlushAll(t *testing.T) {
 }
 
 func testStorage_FlushAll(t *testing.T) {
-	s, fsys := createStorageAndFileSystem(t, 3, 16)
+	s, fsys := createStorageAndFileSystem(t, 3, 16, 0)
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
@@ -664,5 +663,70 @@ func testStorage_Highwater(t *testing.T) {
 		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.BlockID(1))
 	}
 
+	synctest.Wait()
+}
+
+func TestStorage_Release__NonBlocking(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Release__NonBlocking)
+}
+
+func testStorage_Release__NonBlocking(t *testing.T) {
+	s, fsys := createStorageAndFileSystem(t, 2, 16, 1*time.Second)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+
+	wg := sync.WaitGroup{}
+
+	step0 := make(chan struct{})
+	step1 := make(chan struct{})
+
+	// If blocking, forces waits
+	// Request Block 0 -> success
+	// Request Block 1 -> success
+	// Lock FileSystem
+	// Request Highwater -> waiting, blocks releases
+	// Release Block 0 -> waiting
+	// Release Block 1 -> waiting
+	// Unlock FileSystem
+	// Complete Highwater
+	// Complete Release Block 0
+	// Complete Release Block 1
+
+	wg.Go(func() {
+		b0, err := s.Request(ctx, fn.BlockID(0))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		b1, err := s.Request(ctx, fn.BlockID(1))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		close(step0)
+		<-step1
+
+		time.Sleep(2 * time.Second)
+
+		b0.Release()
+		b1.Release()
+		fsys.UnLock()
+	})
+
+	wg.Go(func() {
+		<-step0
+
+		fsys.Lock()
+		close(step1)
+
+		_, err := s.Highwater(ctx, fn)
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	wg.Wait()
 	synctest.Wait()
 }

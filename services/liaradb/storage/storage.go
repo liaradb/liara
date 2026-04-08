@@ -283,6 +283,7 @@ func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, e
 }
 
 // External thread
+// This is non-blocking as channel is the size of the total buffer count
 func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
