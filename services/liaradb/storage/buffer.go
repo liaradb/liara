@@ -59,23 +59,36 @@ func (b *Buffer) Release() {
 	b.s.release(b)
 }
 
+// Load from file system
+//   - blockID will always be changing
+//   - status is dirty only if already loaded
 func (b *Buffer) load(bid link.BlockID, next bool) error {
-	// blockID will always be changing
-	// status is dirty only if already loaded
-	if b.status == BufferStatusDirty {
-		if err := b.s.flush(b); err != nil {
-			return err
-		}
-
-		b.status = BufferStatusLoaded
+	if err := b.flushIfDirtyBeforeLoad(); err != nil {
+		return err
 	}
 
 	b.blockID = bid
 	b.status = BufferStatusLoading
 
+	if err := b.clearOrLoad(next); err != nil {
+		return err
+	}
+
+	b.status = BufferStatusLoaded
+	return nil
+}
+
+func (b *Buffer) flushIfDirtyBeforeLoad() error {
+	if !b.Dirty() {
+		return nil
+	}
+
+	return b.s.flush(b)
+}
+
+func (b *Buffer) clearOrLoad(next bool) error {
 	if next {
 		b.buffer.Clear()
-		b.status = BufferStatusLoaded
 		return nil
 	}
 
@@ -84,7 +97,6 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 		return err
 	}
 
-	b.status = BufferStatusLoaded
 	return nil
 }
 
