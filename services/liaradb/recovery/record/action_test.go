@@ -44,6 +44,9 @@ func TestAction_String(t *testing.T) {
 		"should handle checkpoint": {
 			action: ActionCheckpoint,
 			result: "Checkpoint"},
+		"should handle start": {
+			action: ActionStart,
+			result: "Start"},
 		"should handle commit": {
 			action: ActionCommit,
 			result: "Commit"},
