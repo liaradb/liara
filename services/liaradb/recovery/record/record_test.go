@@ -70,6 +70,63 @@ func TestRecord_Write(t *testing.T) {
 	testutil.GetterArray(t, rc2.Reverse, reverse, "Reverse")
 }
 
+func TestRecord_Compare(t *testing.T) {
+	t.Parallel()
+
+	lsn := NewLogSequenceNumber(1)
+	tid := value.NewTenantID()
+	txid := NewTransactionID(2)
+	now := time.UnixMicro(1234567890)
+	action := ActionInsert
+	data := []byte("abcde")
+	reverse := []byte("fghij")
+
+	pointer := &Record{}
+
+	for message, c := range map[string]struct {
+		skip  bool
+		a     *Record
+		b     *Record
+		equal bool
+	}{
+		"should equal zero": {
+			a:     &Record{},
+			b:     &Record{},
+			equal: true,
+		},
+		"should equal pointer": {
+			a:     pointer,
+			b:     pointer,
+			equal: true,
+		},
+		"should equal same values": {
+			a:     New(lsn, tid, txid, now, action, data, reverse),
+			b:     New(lsn, tid, txid, now, action, data, reverse),
+			equal: true,
+		},
+		"should not equal different values": {
+			a:     New(lsn, tid, txid, now, action, data, reverse),
+			b:     New(lsn, value.NewTenantID(), txid, now, action, data, reverse),
+			equal: false,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			if c.a.Compare(c.b) != c.equal {
+				if c.equal {
+					t.Error("should equal")
+				} else {
+					t.Error("should not equal")
+				}
+			}
+		})
+	}
+}
+
 func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
 	buffer := bytes.NewBuffer(nil)
 	return bufio.NewReader(buffer), buffer
