@@ -58,67 +58,25 @@ func (rc *Record) Size() int {
 }
 
 func (rc *Record) Write(w io.Writer) error {
-	if err := rc.logSequenceNumber.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.tenantID.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.transactionID.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.time.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.action.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.data.Write(w); err != nil {
-		return err
-	}
-
-	if err := rc.reverse.Write(w); err != nil {
-		return err
-	}
-
-	return nil
+	return serializer.WriteAll(w,
+		rc.logSequenceNumber,
+		rc.tenantID,
+		rc.transactionID,
+		rc.time,
+		rc.action,
+		&rc.data,
+		&rc.reverse)
 }
 
 func (rc *Record) Read(r io.Reader) error {
-	if err := rc.logSequenceNumber.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.tenantID.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.transactionID.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.time.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.action.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.data.Read(r); err != nil {
-		return err
-	}
-
-	if err := rc.reverse.Read(r); err != nil {
-		return err
-	}
-
-	return nil
+	return serializer.ReadAll(r,
+		&rc.logSequenceNumber,
+		&rc.tenantID,
+		&rc.transactionID,
+		&rc.time,
+		&rc.action,
+		&rc.data,
+		&rc.reverse)
 }
 
 func (rc *Record) Compare(b *Record) bool {
