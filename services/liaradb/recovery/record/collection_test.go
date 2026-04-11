@@ -2,6 +2,16 @@ package record
 
 import "testing"
 
+func TestCollection_Size(t *testing.T) {
+	t.Parallel()
+
+	var c Collection
+
+	if s := c.Size(); s != 2 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 2)
+	}
+}
+
 func TestCollection_String(t *testing.T) {
 	t.Parallel()
 
