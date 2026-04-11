@@ -47,6 +47,10 @@ func TestPageID_NewPageIDFromSize(t *testing.T) {
 			if id != c.id {
 				t.Errorf("%v: incorrect id: %v, expected: %v", message, id, c.id)
 			}
+
+			if v := id.Value(); v != uint64(c.id) {
+				t.Errorf("incorrect value: %v, expected: %v", v, uint64(c.id))
+			}
 		})
 	}
 }

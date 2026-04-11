@@ -29,4 +29,9 @@ func TestTimeLineID(t *testing.T) {
 	if tlid != tlid2 {
 		t.Errorf("incorrect value: %v, expected: %v", tlid2, tlid)
 	}
+
+	var want uint32 = 123456
+	if v := tlid.Value(); v != want {
+		t.Errorf("incorrect value: %v, expected: %v", v, want)
+	}
 }
