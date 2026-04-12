@@ -122,23 +122,10 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File,
 			return
 		}
 
-		for {
-			if e == nil {
+		for sn := range iterate[SegmentName](e) {
+			if f, err := l.sf.open(sn); !yield(f, err) {
 				return
 			}
-
-			sn := e.Value.(SegmentName)
-			f, err := l.sf.open(sn)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(f, nil) {
-				return
-			}
-
-			e = e.Next()
 		}
 	}
 }
@@ -187,13 +174,7 @@ func (l *List) Reverse() iter.Seq2[file.File, error] {
 		}
 
 		for sn := range l.reverse() {
-			f, err := l.sf.open(sn)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(f, nil) {
+			if f, err := l.sf.open(sn); !yield(f, err) {
 				return
 			}
 		}
@@ -272,19 +253,22 @@ func (l *List) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *lis
 	return SegmentName{}, nil, false
 }
 
-func (l *List) iterate() iter.Seq2[SegmentName, *list.Element] {
-	return func(yield func(SegmentName, *list.Element) bool) {
-		if l.names == nil {
-			return
-		}
+func (l *List) iterate() iter.Seq[SegmentName] {
+	if l.names == nil {
+		return iterate[SegmentName](nil)
+	}
 
-		e := l.names.Front()
+	return iterate[SegmentName](l.names.Front())
+}
+
+func iterate[T any](e *list.Element) iter.Seq[T] {
+	return func(yield func(T) bool) {
 		for {
 			if e == nil {
 				return
 			}
 
-			if !yield(e.Value.(SegmentName), e) {
+			if t := e.Value.(T); !yield(t) {
 				return
 			}
 
