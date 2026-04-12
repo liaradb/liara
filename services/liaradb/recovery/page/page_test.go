@@ -439,7 +439,7 @@ func createRecord() (*record.Record, []byte, error) {
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := record.NewTransactionID(2)
-	now := time.UnixMicro(1234567890)
+	now := record.NewTime(time.UnixMicro(1234567890))
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -478,7 +478,7 @@ func createReaderWriter(t *testing.T) (file.File, *Page) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	return f, New(256)
+	return f, New(264)
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
@@ -488,7 +488,14 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionInsert, data, reverse))
+		records = append(records, record.New(
+			record.NewLogSequenceNumber(i),
+			tid,
+			record.NewTransactionID(2),
+			record.NewTime(time.UnixMicro(1234567890)),
+			record.ActionInsert,
+			data,
+			reverse))
 	}
 	return records, count.Decrement()
 }

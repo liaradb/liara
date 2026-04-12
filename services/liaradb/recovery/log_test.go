@@ -163,7 +163,7 @@ func TestLog_Flush(t *testing.T) {
 	runTest(t, "should write to multiple pages", func(t *testing.T) {
 		ctx := t.Context()
 
-		l := createLogStart(t, 320, 4)
+		l := createLogStart(t, 344, 4)
 		tid := value.NewTenantID()
 
 		count := 14
@@ -272,7 +272,7 @@ func testLog_Iterate(t *testing.T) {
 		if _, err := l.Update(ctx,
 			tid,
 			rec.TransactionID(),
-			rec.Time(),
+			rec.Time().Value(),
 			rec.Data(),
 			rec.Reverse()); err != nil {
 			t.Fatal(err)
@@ -330,7 +330,7 @@ func testLog_Recover(t *testing.T) {
 		if _, err := l.Update(ctx,
 			tid,
 			r0.TransactionID(),
-			r0.Time(),
+			r0.Time().Value(),
 			r0.Data(),
 			r0.Reverse()); err != nil {
 			t.Fatal(err)
@@ -343,7 +343,7 @@ func testLog_Recover(t *testing.T) {
 		if _, err := l.Update(ctx,
 			tid,
 			r1.TransactionID(),
-			r1.Time(),
+			r1.Time().Value(),
 			r1.Data(),
 			r1.Reverse()); err != nil {
 			t.Fatal(err)
@@ -422,7 +422,7 @@ func testLog_RecoverMany(t *testing.T) {
 			if _, err := l.Update(ctx,
 				tid,
 				rec.TransactionID(),
-				rec.Time(),
+				rec.Time().Value(),
 				rec.Data(),
 				rec.Reverse()); err != nil {
 				t.Fatal(err)
@@ -471,7 +471,7 @@ func testLog_RecoverMany(t *testing.T) {
 			if _, err := l.Update(ctx,
 				tid,
 				rec.TransactionID(),
-				rec.Time(),
+				rec.Time().Value(),
 				rec.Data(),
 				rec.Reverse()); err != nil {
 				t.Fatal(err)
@@ -523,7 +523,7 @@ func testLog_Reverse(t *testing.T) {
 		if _, err := l.Update(ctx,
 			tid,
 			rec.TransactionID(),
-			rec.Time(),
+			rec.Time().Value(),
 			rec.Data(),
 			rec.Reverse()); err != nil {
 			t.Fatal(err)
@@ -601,7 +601,14 @@ func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*recor
 
 	records := make([]*record.Record, 0, count.Value())
 	for i := range count.Value() {
-		records = append(records, record.New(record.NewLogSequenceNumber(i+1), tid, record.NewTransactionID(2), time.UnixMicro(1234567890), record.ActionUpdate, data, reverse))
+		records = append(records, record.New(
+			record.NewLogSequenceNumber(i+1),
+			tid,
+			record.NewTransactionID(2),
+			record.NewTime(time.UnixMicro(1234567890)),
+			record.ActionUpdate,
+			data,
+			reverse))
 	}
 	return records, count.Decrement()
 }

@@ -16,7 +16,7 @@ func TestRecord(t *testing.T) {
 	lsn := NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := time.UnixMicro(1234567890)
+	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
@@ -38,7 +38,7 @@ func TestRecord_Write(t *testing.T) {
 	lsn := NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := time.UnixMicro(1234567890)
+	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
@@ -76,7 +76,7 @@ func TestRecord_Compare(t *testing.T) {
 	lsn := NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := time.UnixMicro(1234567890)
+	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")

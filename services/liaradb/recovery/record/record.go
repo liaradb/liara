@@ -2,7 +2,6 @@ package record
 
 import (
 	"io"
-	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
@@ -22,7 +21,7 @@ func New(
 	lsn LogSequenceNumber,
 	tid value.TenantID,
 	txid TransactionID,
-	time time.Time,
+	time Time,
 	action Action,
 	data []byte,
 	reverse []byte,
@@ -31,7 +30,7 @@ func New(
 		logSequenceNumber: lsn,
 		tenantID:          tid,
 		transactionID:     txid,
-		time:              NewTime(time),
+		time:              time,
 		action:            action,
 		data:              LogData{data},
 		reverse:           LogData{reverse},
@@ -41,7 +40,7 @@ func New(
 func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TenantID() value.TenantID             { return rc.tenantID }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
-func (rc *Record) Time() time.Time                      { return rc.time.Time }
+func (rc *Record) Time() Time                           { return rc.time }
 func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }

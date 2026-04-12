@@ -105,7 +105,7 @@ func (l *Log) append(
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
-	rc := record.New(h, tid, txid, time, action, data, reverse)
+	rc := record.New(h, tid, txid, record.NewTime(time), action, data, reverse)
 	if err := l.writer.Append(rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
@@ -141,7 +141,10 @@ func (l *Log) Rollback(
 	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, nil, nil)
 }
 
-func (l *Log) Checkpoint(ctx context.Context, now time.Time) (record.LogSequenceNumber, error) {
+func (l *Log) Checkpoint(
+	ctx context.Context,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
 	return l.appendRecord(ctx, value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
 }
 
@@ -219,7 +222,10 @@ func (l *Log) StartWriter() error {
 	return l.writer.Start()
 }
 
-func (l *Log) FlushCheckpoint(now time.Time, txids []record.TransactionID) (record.LogSequenceNumber, error) {
+func (l *Log) FlushCheckpoint(
+	now time.Time,
+	txids []record.TransactionID,
+) (record.LogSequenceNumber, error) {
 	data, ok := l.txIDsToData(txids)
 	if !ok {
 		return record.LogSequenceNumber{}, io.EOF

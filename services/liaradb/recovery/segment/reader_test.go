@@ -102,9 +102,9 @@ func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(256, 4)
+	sw := NewWriter(264, 4)
 	sw.SeekTail(0, f)
-	return f, NewReader(256), sw
+	return f, NewReader(264), sw
 }
 
 func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
@@ -118,7 +118,7 @@ func createRecords(count record.LogSequenceNumber) ([]*record.Record, record.Log
 			record.NewLogSequenceNumber(i),
 			tid,
 			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
+			record.NewTime(time.UnixMicro(1234567890)),
 			record.ActionInsert,
 			data,
 			reverse))

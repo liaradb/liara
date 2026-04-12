@@ -29,7 +29,7 @@ func testWriter_Append(t *testing.T) {
 		record.NewLogSequenceNumber(1),
 		tid,
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		record.NewTime(time.UnixMicro(1234567890)),
 		record.ActionInsert,
 		data,
 		reverse)
@@ -54,7 +54,7 @@ func testWriter_SeekTail(t *testing.T) {
 		record.NewLogSequenceNumber(1),
 		tid,
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		record.NewTime(time.UnixMicro(1234567890)),
 		record.ActionInsert,
 		data,
 		reverse)
@@ -113,7 +113,7 @@ func TestWriter_Flush(t *testing.T) {
 		record.NewLogSequenceNumber(1),
 		tid,
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		record.NewTime(time.UnixMicro(1234567890)),
 		record.ActionInsert,
 		data,
 		reverse)
@@ -222,7 +222,7 @@ func createWriter(t *testing.T) *Writer {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(256, 3)
+	sw := NewWriter(264, 3)
 	if err := sw.SeekTail(0, f); err != nil {
 		t.Fatal(err)
 	}
