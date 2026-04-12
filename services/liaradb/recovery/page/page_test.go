@@ -2,6 +2,7 @@ package page
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"path"
 	"reflect"
@@ -421,6 +422,44 @@ func testNode_ChildrenRange(t *testing.T) {
 
 	if !slices.EqualFunc(result, want, slices.Equal) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
+}
+
+type errReader struct {
+}
+
+func (tr *errReader) Read([]byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (tr *errReader) Seek(int64, int) (int64, error) {
+	return 0, io.EOF
+}
+
+func TestPage_Read__Empty(t *testing.T) {
+	t.Parallel()
+
+	p := New(128)
+	if err := p.Read(&errReader{}); !errors.Is(err, io.EOF) {
+		t.Error("should return an error")
+	}
+}
+
+func TestPage_Iterate__Empty(t *testing.T) {
+	t.Parallel()
+
+	p := New(128)
+	if _, err := p.Iterate(&errReader{}); !errors.Is(err, io.EOF) {
+		t.Error("should return an error")
+	}
+}
+
+func TestPage_Reverse__Empty(t *testing.T) {
+	t.Parallel()
+
+	p := New(128)
+	if _, err := p.Reverse(&errReader{}); !errors.Is(err, io.EOF) {
+		t.Error("should return an error")
 	}
 }
 
