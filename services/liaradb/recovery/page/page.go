@@ -107,8 +107,7 @@ func (p *Page) Write(w io.WriterAt) error {
 }
 
 func (p *Page) Read(r io.ReadSeeker) error {
-	_, err := r.Read(p.data)
-	if err != nil {
+	if _, err := r.Read(p.data); err != nil {
 		return err
 	}
 
@@ -142,12 +141,7 @@ func (p *Page) records() iter.Seq2[*record.Record, error] {
 		for i := range p.Items() {
 			b.Reset(i)
 			rc := &record.Record{}
-			if err := rc.Read(b); err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(rc, nil) {
+			if err := rc.Read(b); !yield(rc, err) || err != nil {
 				return
 			}
 		}
@@ -160,12 +154,7 @@ func (p *Page) reverse() iter.Seq2[*record.Record, error] {
 		for i := range p.ItemsReverse() {
 			b.Reset(i)
 			rc := &record.Record{}
-			if err := rc.Read(b); err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(rc, nil) {
+			if err := rc.Read(b); !yield(rc, err) || err != nil {
 				return
 			}
 		}
@@ -178,23 +167,13 @@ func (p *Page) Child(index int16) ([]byte, bool) {
 		return nil, false
 	}
 
-	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
-	if !ok {
-		return nil, false
-	}
-
-	if !i.CRC.Compare(d) {
-		return nil, false
-	}
-
-	return d, true
+	return p.child(i)
 }
 
 func (p *Page) Items() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.Items() {
-			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
-			if !ok || !i.CRC.Compare(b) || !yield(b) {
+			if b, ok := p.child(i); !ok || !yield(b) {
 				return
 			}
 		}
@@ -204,8 +183,7 @@ func (p *Page) Items() iter.Seq[[]byte] {
 func (p *Page) ItemsReverse() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.ItemsReverse() {
-			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
-			if !ok || !i.CRC.Compare(b) || !yield(b) {
+			if b, ok := p.child(i); !ok || !yield(b) {
 				return
 			}
 		}
@@ -215,10 +193,14 @@ func (p *Page) ItemsReverse() iter.Seq[[]byte] {
 func (p *Page) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for i := range p.list.ItemsRange(start, end) {
-			b, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
-			if !ok || !i.CRC.Compare(b) || !yield(b) {
+			if b, ok := p.child(i); !ok || !yield(b) {
 				return
 			}
 		}
 	}
+}
+
+func (p *Page) child(i crclist.CRCItem) ([]byte, bool) {
+	d, ok := p.byteList.Slice(int64(i.Offset), int64(i.Size))
+	return d, ok && i.CRC.Compare(d)
 }
