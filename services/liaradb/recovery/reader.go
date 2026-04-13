@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/util/listiter"
 )
 
 type reader struct {
@@ -45,14 +46,14 @@ func (rd *reader) recover() (iter.Seq[*record.Record], error) {
 			}
 
 			if rc.Action() == record.ActionCheckpoint {
-				return listToIterator[*record.Record](rcs), nil
+				return listiter.Reverse[*record.Record](rcs), nil
 			}
 
 			rcs.PushBack(rc)
 		}
 	}
 
-	return listToIterator[*record.Record](rcs), nil
+	return listiter.Reverse[*record.Record](rcs), nil
 }
 
 func (rd *reader) reverse() iter.Seq2[*record.Record, error] {
@@ -70,12 +71,7 @@ func (rd *reader) reverse() iter.Seq2[*record.Record, error] {
 			}
 
 			for rc, err := range rd.sr.Reverse(stat.Size(), f) {
-				if err != nil {
-					yield(nil, err)
-					return
-				}
-
-				if !yield(rc, nil) {
+				if !yield(rc, err) || err != nil {
 					return
 				}
 			}
@@ -92,24 +88,9 @@ func (rd *reader) iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record
 			}
 
 			for rc, err := range rd.sr.Iterate(f) {
-				if err != nil {
-					yield(nil, err)
+				if !yield(rc, err) || err != nil {
 					return
 				}
-
-				if !yield(rc, nil) {
-					return
-				}
-			}
-		}
-	}
-}
-
-func listToIterator[T any](l *list.List) iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for e := l.Back(); e != nil; e = e.Prev() {
-			if !yield(e.Value.(T)) {
-				return
 			}
 		}
 	}
