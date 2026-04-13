@@ -224,7 +224,7 @@ func (l *Log) StartWriter() error {
 
 func (l *Log) FlushCheckpoint(
 	now time.Time,
-	txids []record.TransactionID,
+	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	data, ok := l.txIDsToData(txids)
 	if !ok {
