@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"iter"
 
+	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/listiter"
@@ -35,25 +36,35 @@ func (rd *reader) recover() (iter.Seq[*record.Record], error) {
 			return nil, err
 		}
 
-		stat, err := f.Stat()
-		if err != nil {
+		if done, err := rd.recoverSegment(rcs, f); err != nil {
 			return nil, err
-		}
-
-		for rc, err := range rd.sr.Reverse(stat.Size(), f) {
-			if err != nil {
-				return nil, err
-			}
-
-			if rc.Action() == record.ActionCheckpoint {
-				return listiter.Reverse[*record.Record](rcs), nil
-			}
-
-			rcs.PushBack(rc)
+		} else if done {
+			break
 		}
 	}
 
 	return listiter.Reverse[*record.Record](rcs), nil
+}
+
+func (rd *reader) recoverSegment(rcs *list.List, f file.File) (bool, error) {
+	stat, err := f.Stat()
+	if err != nil {
+		return false, err
+	}
+
+	for rc, err := range rd.sr.Reverse(stat.Size(), f) {
+		if err != nil {
+			return false, err
+		}
+
+		if rc.IsCheckpoint() {
+			return true, nil
+		}
+
+		rcs.PushBack(rc)
+	}
+
+	return false, nil
 }
 
 func (rd *reader) reverse() iter.Seq2[*record.Record, error] {

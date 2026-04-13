@@ -44,6 +44,7 @@ func (rc *Record) Time() Time                           { return rc.time }
 func (rc *Record) Action() Action                       { return rc.action }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
+func (rc *Record) IsCheckpoint() bool                   { return rc.action == ActionCheckpoint }
 
 func (rc *Record) Size() int {
 	return serializer.Size(
