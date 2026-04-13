@@ -20,18 +20,16 @@ func newSegmentFile(fsys file.FileSystem, dir string) *segmentFile {
 	}
 }
 
-func (sf *segmentFile) SegmentName() SegmentName { return sf.sn }
-func (sf *segmentFile) File() file.File          { return sf.file }
-
 func (sf *segmentFile) Close() error {
 	if !sf.isOpen() {
 		return nil
 	}
 
-	if err := sf.closeFile(); err != nil {
+	if err := sf.file.Close(); err != nil {
 		return err
 	}
 
+	sf.file = nil
 	return nil
 }
 
@@ -62,15 +60,6 @@ func (sf *segmentFile) remove(sn SegmentName) error {
 		return err
 	}
 
-	return nil
-}
-
-func (sf *segmentFile) closeFile() error {
-	if err := sf.file.Close(); err != nil {
-		return err
-	}
-
-	sf.file = nil
 	return nil
 }
 

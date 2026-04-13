@@ -375,6 +375,22 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Error("previous file should be closed")
 		}
 	})
+
+	t.Run("should not open invalid segment", func(t *testing.T) {
+		t.Parallel()
+
+		fsys := mock.NewFileSystem(fstest.MapFS{
+			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
+			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
+			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
+		})
+		sl := NewList(fsys, dir)
+
+		_, _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(10))
+		if err == nil {
+			t.Error("should not open file")
+		}
+	})
 }
 
 func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
