@@ -89,86 +89,13 @@ func TestLog_Flush(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	runTest(t, "should flush", func(t *testing.T) {
-		ctx := t.Context()
+	t.Run("should flush", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			ctx := t.Context()
+			l := createLogStart(t, 320, 3)
+			tid := value.NewTenantID()
 
-		l := createLogStart(t, 320, 3)
-
-		tid := value.NewTenantID()
-
-		_, err := l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse)
-		if err != nil {
-			t.Error(err)
-		}
-
-		testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
-
-		if _, err = l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse,
-		); err != nil {
-			t.Error(err)
-		}
-
-		testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
-
-		if err := l.Flush(ctx); err != nil {
-			t.Error(err)
-		}
-
-		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
-	})
-
-	runTest(t, "should not flush beyond HighWater", func(t *testing.T) {
-		ctx := t.Context()
-
-		l := createLogStart(t, 320, 3)
-		tid := value.NewTenantID()
-
-		if _, err := l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse,
-		); err != nil {
-			t.Error(err)
-		}
-
-		if _, err := l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse,
-		); err != nil {
-			t.Error(err)
-		}
-
-		if err := l.Flush(ctx); err != nil {
-			t.Error(err)
-		}
-
-		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
-	})
-
-	runTest(t, "should write to multiple pages", func(t *testing.T) {
-		ctx := t.Context()
-
-		l := createLogStart(t, 344, 4)
-		tid := value.NewTenantID()
-
-		count := 14
-
-		for range count {
 			if _, err := l.Update(ctx,
 				tid,
 				record.NewTransactionID(2),
@@ -176,68 +103,150 @@ func TestLog_Flush(t *testing.T) {
 				data,
 				reverse,
 			); err != nil {
+				t.Error(err)
+			}
+
+			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+			if _, err := l.Update(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != nil {
+				t.Error(err)
+			}
+
+			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
+
+			if err := l.Flush(ctx); err != nil {
+				t.Error(err)
+			}
+
+			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+		})
+	})
+
+	t.Run("should not flush beyond HighWater", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			ctx := t.Context()
+			l := createLogStart(t, 320, 3)
+			tid := value.NewTenantID()
+
+			if _, err := l.Update(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != nil {
+				t.Error(err)
+			}
+
+			if _, err := l.Update(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != nil {
+				t.Error(err)
+			}
+
+			if err := l.Flush(ctx); err != nil {
+				t.Error(err)
+			}
+
+			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+		})
+	})
+
+	t.Run("should write to multiple pages", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			ctx := t.Context()
+			l := createLogStart(t, 344, 4)
+			tid := value.NewTenantID()
+			count := 14
+			for range count {
+				if _, err := l.Update(ctx,
+					tid,
+					record.NewTransactionID(2),
+					time.UnixMicro(1234567890),
+					data,
+					reverse,
+				); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			if err := l.Flush(ctx); err != nil {
 				t.Fatal(err)
 			}
-		}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Fatal(err)
-		}
-
-		if p := l.PageID(); p != 3 {
-			t.Errorf("incorrect value: %v, expected: %v", p, 3)
-		}
+			if p := l.PageID(); p != 3 {
+				t.Errorf("incorrect value: %v, expected: %v", p, 3)
+			}
+		})
 	})
 
-	runTest(t, "should return error if appending beyond maximum", func(t *testing.T) {
-		ctx := t.Context()
+	t.Run("should return error if appending beyond maximum", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			ctx := t.Context()
+			l := createLogStart(t, 32, 1)
 
-		l := createLogStart(t, 32, 1)
-
-		if _, err := l.Update(ctx,
-			value.NewTenantID(),
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse,
-		); err != raw.ErrInsufficientSpace {
-			t.Fatal("should return error")
-		}
+			if _, err := l.Update(ctx,
+				value.NewTenantID(),
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != raw.ErrInsufficientSpace {
+				t.Fatal("should return error")
+			}
+		})
 	})
 
-	runTest(t, "should write after flushing", func(t *testing.T) {
-		ctx := t.Context()
+	t.Run("should write after flushing", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			ctx := t.Context()
+			l := createLogStart(t, 320, 3)
+			tid := value.NewTenantID()
 
-		l := createLogStart(t, 320, 3)
-		tid := value.NewTenantID()
+			if _, err := l.Update(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != nil {
+				t.Error(err)
+			}
 
-		if _, err := l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse); err != nil {
-			t.Error(err)
-		}
+			if err := l.Flush(ctx); err != nil {
+				t.Error(err)
+			}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Error(err)
-		}
+			if _, err := l.Update(ctx,
+				tid,
+				record.NewTransactionID(2),
+				time.UnixMicro(1234567890),
+				data,
+				reverse,
+			); err != nil {
+				t.Error(err)
+			}
 
-		if _, err := l.Update(ctx,
-			tid,
-			record.NewTransactionID(2),
-			time.UnixMicro(1234567890),
-			data,
-			reverse); err != nil {
-			t.Error(err)
-		}
+			if err := l.Flush(ctx); err != nil {
+				t.Error(err)
+			}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Error(err)
-		}
-
-		testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+		})
 	})
 }
 
@@ -274,7 +283,8 @@ func testLog_Iterate(t *testing.T) {
 			rec.TransactionID(),
 			rec.Time().Value(),
 			rec.Data(),
-			rec.Reverse()); err != nil {
+			rec.Reverse(),
+		); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -332,7 +342,8 @@ func testLog_Recover(t *testing.T) {
 			r0.TransactionID(),
 			r0.Time().Value(),
 			r0.Data(),
-			r0.Reverse()); err != nil {
+			r0.Reverse(),
+		); err != nil {
 			t.Fatal(err)
 		}
 
@@ -345,7 +356,8 @@ func testLog_Recover(t *testing.T) {
 			r1.TransactionID(),
 			r1.Time().Value(),
 			r1.Data(),
-			r1.Reverse()); err != nil {
+			r1.Reverse(),
+		); err != nil {
 			t.Fatal(err)
 		}
 
@@ -424,7 +436,8 @@ func testLog_RecoverMany(t *testing.T) {
 				rec.TransactionID(),
 				rec.Time().Value(),
 				rec.Data(),
-				rec.Reverse()); err != nil {
+				rec.Reverse(),
+			); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -525,7 +538,8 @@ func testLog_Reverse(t *testing.T) {
 			rec.TransactionID(),
 			rec.Time().Value(),
 			rec.Data(),
-			rec.Reverse()); err != nil {
+			rec.Reverse(),
+		); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -623,8 +637,4 @@ func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
 	if l := l.LowWater(); l != lw {
 		t.Errorf("incorrect low water: %v, expected: %v", l, lw)
 	}
-}
-
-func runTest(t *testing.T, message string, f func(t *testing.T)) bool {
-	return t.Run(message, func(t *testing.T) { t.Parallel(); synctest.Test(t, f) })
 }
