@@ -2,7 +2,6 @@ package recovery
 
 import (
 	"context"
-	"io"
 	"iter"
 	"time"
 
@@ -219,11 +218,7 @@ func (l *Log) FlushCheckpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	data, ok := l.txIDsToData(txids)
-	if !ok {
-		return record.LogSequenceNumber{}, io.EOF
-	}
-
+	data := l.txIDsToData(txids)
 	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, data, nil)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
@@ -233,19 +228,17 @@ func (l *Log) FlushCheckpoint(
 		return record.LogSequenceNumber{}, err
 	}
 
-	return lsn, err
+	return lsn, nil
 }
 
-func (*Log) txIDsToData(txids []record.TransactionID) ([]byte, bool) {
+func (*Log) txIDsToData(txids []record.TransactionID) []byte {
 	data := make([]byte, len(txids)*record.TransactionIDSize)
 
 	data0 := data
-	ok := true
 	for _, txid := range txids {
-		if data0, ok = txid.WriteData(data0); !ok {
-			return nil, false
-		}
+		// There will always be enough space
+		data0, _ = txid.WriteData(data0)
 	}
 
-	return data, true
+	return data
 }
