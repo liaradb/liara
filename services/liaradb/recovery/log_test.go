@@ -250,13 +250,61 @@ func TestLog_Flush(t *testing.T) {
 	})
 }
 
+func TestLog_FlushCheckpoint(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_FlushCheckpoint)
+}
+
+func testLog_FlushCheckpoint(t *testing.T) {
+	ctx := t.Context()
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+	tid := value.NewTenantID()
+
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
+	if _, err := l.Update(ctx,
+		tid,
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		data,
+		reverse,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	now := time.UnixMicro(1234567891)
+	txid := record.NewTransactionID(1)
+
+	_, err := l.FlushCheckpoint(now, txid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	l1 := createLogAllStart(t, 320, 3, fsys, dir)
+	it, err := l1.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for range it {
+		count++
+	}
+
+	if count != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 2)
+	}
+}
+
 func TestLog_EmptyReader(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testLog_EmptyReader)
 }
 
 func testLog_EmptyReader(t *testing.T) {
-	l := createLog(t, 320, 2)
+	l := createLogStart(t, 320, 2)
 
 	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != segment.ErrNoSegmentFile {
@@ -569,10 +617,255 @@ func testLog_Reverse(t *testing.T) {
 	}
 }
 
-func createLogStart(t *testing.T, pageSize int64, segmentSize action.PageID) *Log {
+func TestLog_Commit(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_Commit)
+}
+
+func testLog_Commit(t *testing.T) {
+	ctx := t.Context()
+
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+
+	if lsn, err := l.Commit(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(1) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	}
+
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+	if err := l.Flush(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+
+	it, err := l2.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for r := range it {
+		count++
+		if a := r.Action(); a != record.ActionCommit {
+			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
+		}
+	}
+
+	if count != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	}
+}
+
+func TestLog_Insert(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_Insert)
+}
+
+func testLog_Insert(t *testing.T) {
+	ctx := t.Context()
+
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+	var data = []byte{0, 1, 2, 3, 4, 5}
+
+	if lsn, err := l.Insert(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		data,
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(1) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	}
+
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+	if err := l.Flush(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+
+	it, err := l2.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for r := range it {
+		count++
+		if a := r.Action(); a != record.ActionInsert {
+			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
+		}
+	}
+
+	if count != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	}
+}
+
+func TestLog_Rollback(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_Rollback)
+}
+
+func testLog_Rollback(t *testing.T) {
+	ctx := t.Context()
+
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+
+	if lsn, err := l.Rollback(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(1) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	}
+
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+	if err := l.Flush(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+
+	it, err := l2.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for r := range it {
+		count++
+		if a := r.Action(); a != record.ActionRollback {
+			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionRollback)
+		}
+	}
+
+	if count != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	}
+}
+
+func TestLog_Start(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_Start)
+}
+
+func testLog_Start(t *testing.T) {
+	ctx := t.Context()
+
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+
+	if lsn, err := l.Start(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(1) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	}
+
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+	if err := l.Flush(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+
+	it, err := l2.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for r := range it {
+		count++
+		if a := r.Action(); a != record.ActionStart {
+			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionStart)
+		}
+	}
+
+	if count != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	}
+}
+
+func TestLog_Update(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testLog_Update)
+}
+
+func testLog_Update(t *testing.T) {
+	ctx := t.Context()
+
+	fsys, dir := createFiles(t)
+	l := createLogAllStart(t, 320, 3, fsys, dir)
+	var data = []byte{0, 1, 2, 3, 4, 5}
+	var reverse = []byte{6, 7, 8, 9, 10, 11}
+
+	if lsn, err := l.Update(ctx,
+		value.NewTenantID(),
+		record.NewTransactionID(2),
+		time.UnixMicro(1234567890),
+		data,
+		reverse,
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(1) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	}
+
+	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+
+	if err := l.Flush(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+
+	it, err := l2.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count := 0
+	for r := range it {
+		count++
+		if a := r.Action(); a != record.ActionUpdate {
+			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionUpdate)
+		}
+	}
+
+	if count != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	}
+}
+
+func createLogStart(t *testing.T,
+	pageSize int64,
+	segmentSize action.PageID,
+) *Log {
 	t.Helper()
 
-	l := createLog(t, pageSize, segmentSize)
+	fsys, dir := createFiles(t)
+	l := createLog(t, pageSize, segmentSize, fsys, dir)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
@@ -580,10 +873,30 @@ func createLogStart(t *testing.T, pageSize int64, segmentSize action.PageID) *Lo
 	return l
 }
 
-func createLog(t *testing.T, pageSize int64, segmentSize action.PageID) *Log {
+func createLogAllStart(t *testing.T,
+	pageSize int64,
+	segmentSize action.PageID,
+	fsys file.FileSystem,
+	dir string,
+) *Log {
 	t.Helper()
 
-	fsys, dir := createFiles(t)
+	l := createLog(t, pageSize, segmentSize, fsys, dir)
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
+	return l
+}
+
+func createLog(t *testing.T,
+	pageSize int64,
+	segmentSize action.PageID,
+	fsys file.FileSystem,
+	dir string,
+) *Log {
+	t.Helper()
+
 	l := NewLog(pageSize, segmentSize, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)

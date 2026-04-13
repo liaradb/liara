@@ -141,13 +141,6 @@ func (l *Log) Rollback(
 	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, nil, nil)
 }
 
-func (l *Log) Checkpoint(
-	ctx context.Context,
-	now time.Time,
-) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, nil, nil)
-}
-
 func (l *Log) Insert(
 	ctx context.Context,
 	tid value.TenantID,
