@@ -30,6 +30,7 @@ func TestRecord(t *testing.T) {
 	testutil.Getter(t, rc.Action, action, "Action")
 	testutil.GetterArray(t, rc.Data, data, "Data")
 	testutil.GetterArray(t, rc.Reverse, reverse, "Reverse")
+	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
 }
 
 func TestRecord_Write(t *testing.T) {
@@ -68,6 +69,7 @@ func TestRecord_Write(t *testing.T) {
 	testutil.Getter(t, rc.Action, action, "Action")
 	testutil.GetterArray(t, rc2.Data, data, "Data")
 	testutil.GetterArray(t, rc2.Reverse, reverse, "Reverse")
+	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
 }
 
 func TestRecord_Compare(t *testing.T) {
