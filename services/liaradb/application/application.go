@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"path"
 	"time"
@@ -10,19 +9,16 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
+	"github.com/liaradb/liaradb/application/replay"
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
-	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/service"
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
@@ -116,63 +112,8 @@ func (a *Application) run(ctx context.Context) error {
 }
 
 func (a *Application) recover(ctx context.Context) error {
-	it, err := a.log.Recover()
-	if err != nil {
-		return err
-	}
-
-	for r := range it {
-		if err := a.recoverRecord(ctx, r); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (a *Application) recoverRecord(ctx context.Context, r *record.Record) error {
-	switch r.Action() {
-	case record.ActionCheckpoint:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	case record.ActionCommit:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	case record.ActionInsert:
-		return a.recoverInsert(ctx, r)
-	case record.ActionRemove:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	case record.ActionRollback:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	case record.ActionUpdate:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	default:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
-	}
-}
-
-func (a *Application) recoverInsert(ctx context.Context, r *record.Record) error {
-	switch r.Collection() {
-	case record.CollectionEvent:
-		return a.recoverEvent(ctx, r)
-	default:
-		return nil
-	}
-}
-
-func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error {
-	var e entity.Event
-	if err := e.Read(buffer.NewFromSlice(r.Data())); err != nil {
-		return err
-	}
-
-	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
-	tn := tablename.New(r.TenantID())
-	return a.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+	r := replay.NewReplay(a.collections, a.log)
+	return r.Recover(ctx)
 }
 
 func (a *Application) listen(ctx context.Context) {
