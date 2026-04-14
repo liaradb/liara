@@ -16,6 +16,7 @@ const (
 	CollectionOutbox  Collection = 3
 	CollectionEvent   Collection = 4
 	CollectionValue   Collection = 5
+	CollectionGraph   Collection = 6
 )
 
 func (c Collection) Size() int { return CollectionSize }
@@ -40,6 +41,8 @@ func (c Collection) String() string {
 		return "event"
 	case CollectionValue:
 		return "value"
+	case CollectionGraph:
+		return "graph"
 	default:
 		return ""
 	}

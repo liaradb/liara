@@ -37,6 +37,9 @@ func TestCollection_String(t *testing.T) {
 		"should handle value": {
 			collection: CollectionValue,
 			result:     "value"},
+		"should handle graph": {
+			collection: CollectionGraph,
+			result:     "graph"},
 	} {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
