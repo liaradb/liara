@@ -1,5 +1,11 @@
 package record
 
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/encoder/raw"
+)
+
 type Collection uint16
 
 const CollectionSize = 2
@@ -13,6 +19,14 @@ const (
 )
 
 func (c Collection) Size() int { return CollectionSize }
+
+func (a Collection) Write(w io.Writer) error {
+	return raw.WriteInt16(w, a)
+}
+
+func (a *Collection) Read(r io.Reader) error {
+	return raw.ReadInt16(r, a)
+}
 
 func (c Collection) String() string {
 	switch c {

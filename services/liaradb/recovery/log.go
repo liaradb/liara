@@ -29,12 +29,13 @@ type flushRequest = async.Command[struct{}]
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 
 type appendValue struct {
-	tid     value.TenantID
-	txid    record.TransactionID
-	time    time.Time
-	action  record.Action
-	data    []byte
-	reverse []byte
+	tid        value.TenantID
+	txid       record.TransactionID
+	time       time.Time
+	action     record.Action
+	collection record.Collection
+	data       []byte
+	reverse    []byte
 }
 
 func NewLog(
@@ -76,22 +77,24 @@ func (l *Log) appendRecord(
 	txid record.TransactionID,
 	time time.Time,
 	action record.Action,
+	collection record.Collection,
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	return l.appendReqs.Send(ctx, appendValue{
-		tid:     tid,
-		txid:    txid,
-		time:    time,
-		action:  action,
-		data:    data,
-		reverse: reverse,
+		tid:        tid,
+		txid:       txid,
+		time:       time,
+		action:     action,
+		collection: collection,
+		data:       data,
+		reverse:    reverse,
 	})
 }
 
 func (l *Log) appendRequest(r *appendRequest) {
 	v := r.Value()
-	lsn, err := l.append(v.tid, v.txid, v.time, v.action, v.data, v.reverse)
+	lsn, err := l.append(v.tid, v.txid, v.time, v.action, v.collection, v.data, v.reverse)
 	r.Reply(lsn, err)
 }
 
@@ -100,11 +103,12 @@ func (l *Log) append(
 	txid record.TransactionID,
 	time time.Time,
 	action record.Action,
+	collection record.Collection,
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
-	rc := record.New(h, tid, txid, record.NewTime(time), action, data, reverse)
+	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
 	if err := l.writer.Append(rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
@@ -119,7 +123,7 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, nil, nil)
+	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
 }
 
 func (l *Log) Commit(
@@ -128,7 +132,7 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionCommit, nil, nil)
+	return l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
 }
 
 func (l *Log) Rollback(
@@ -137,7 +141,7 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, nil, nil)
+	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
 }
 
 func (l *Log) Insert(
@@ -145,9 +149,10 @@ func (l *Log) Insert(
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
+	collection record.Collection,
 	data []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, data, nil)
+	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
 }
 
 func (l *Log) Update(
@@ -155,10 +160,11 @@ func (l *Log) Update(
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
+	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, data, prev)
+	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
 }
 
 func (l *Log) Close() error {
@@ -219,7 +225,7 @@ func (l *Log) FlushCheckpoint(
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	data := l.txIDsToData(txids)
-	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, data, nil)
+	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, record.CollectionSystem, data, nil)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}

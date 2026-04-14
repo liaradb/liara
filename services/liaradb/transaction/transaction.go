@@ -186,7 +186,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionEvent, data)
 	if err != nil {
 		return err
 	}
@@ -223,7 +223,7 @@ func (t *Transaction) SetValue(
 	// 	return err
 	// }
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionValue, data)
 	if err != nil {
 		return err
 	}
@@ -380,7 +380,7 @@ func (t *Transaction) InsertOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, data)
+	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionOutbox, data)
 	if err != nil {
 		return err
 	}
@@ -419,7 +419,7 @@ func (t *Transaction) UpdateOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	_, err = t.log.Update(ctx, t.tid, t.id, now, data, prev)
+	_, err = t.log.Update(ctx, t.tid, t.id, now, record.CollectionOutbox, data, prev)
 	if err != nil {
 		return err
 	}

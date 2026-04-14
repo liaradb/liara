@@ -13,6 +13,7 @@ type Record struct {
 	transactionID     TransactionID
 	time              Time
 	action            Action
+	collection        Collection
 	data              LogData
 	reverse           LogData
 }
@@ -23,6 +24,7 @@ func New(
 	txid TransactionID,
 	time Time,
 	action Action,
+	collection Collection,
 	data []byte,
 	reverse []byte,
 ) *Record {
@@ -32,6 +34,7 @@ func New(
 		transactionID:     txid,
 		time:              time,
 		action:            action,
+		collection:        collection,
 		data:              LogData{data},
 		reverse:           LogData{reverse},
 	}
@@ -42,6 +45,7 @@ func (rc *Record) TenantID() value.TenantID             { return rc.tenantID }
 func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
 func (rc *Record) Time() Time                           { return rc.time }
 func (rc *Record) Action() Action                       { return rc.action }
+func (rc *Record) Collection() Collection               { return rc.collection }
 func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
 func (rc *Record) IsCheckpoint() bool                   { return rc.action == ActionCheckpoint }
@@ -53,6 +57,7 @@ func (rc *Record) Size() int {
 		rc.transactionID,
 		rc.time,
 		rc.action,
+		rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -64,6 +69,7 @@ func (rc *Record) Write(w io.Writer) error {
 		rc.transactionID,
 		rc.time,
 		rc.action,
+		rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -75,6 +81,7 @@ func (rc *Record) Read(r io.Reader) error {
 		&rc.transactionID,
 		&rc.time,
 		&rc.action,
+		&rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -89,6 +96,7 @@ func (rc *Record) Compare(b *Record) bool {
 		rc.transactionID == b.transactionID &&
 		rc.time.Equal(b.time) &&
 		rc.action == b.action &&
+		rc.collection == b.collection &&
 		rc.data.Compare(&b.data) &&
 		rc.reverse.Compare(&b.reverse)
 }

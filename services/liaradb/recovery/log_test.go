@@ -43,6 +43,7 @@ func testLog_Append(t *testing.T) {
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
+		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -74,6 +75,7 @@ func testLog_Append__Large(t *testing.T) {
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
+		record.CollectionValue,
 		data,
 		reverse,
 	); err != raw.ErrInsufficientSpace {
@@ -100,6 +102,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -112,6 +115,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -139,6 +143,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -149,6 +154,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -167,7 +173,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 344, 4)
+			l := createLogStart(t, 352, 4)
 			tid := value.NewTenantID()
 			count := 14
 			for range count {
@@ -175,6 +181,7 @@ func TestLog_Flush(t *testing.T) {
 					tid,
 					record.NewTransactionID(2),
 					time.UnixMicro(1234567890),
+					record.CollectionValue,
 					data,
 					reverse,
 				); err != nil {
@@ -202,6 +209,7 @@ func TestLog_Flush(t *testing.T) {
 				value.NewTenantID(),
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != raw.ErrInsufficientSpace {
@@ -221,6 +229,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -235,6 +244,7 @@ func TestLog_Flush(t *testing.T) {
 				tid,
 				record.NewTransactionID(2),
 				time.UnixMicro(1234567890),
+				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -268,6 +278,7 @@ func testLog_FlushCheckpoint(t *testing.T) {
 		tid,
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
+		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -330,6 +341,7 @@ func testLog_Iterate(t *testing.T) {
 			tid,
 			rec.TransactionID(),
 			rec.Time().Value(),
+			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {
@@ -389,6 +401,7 @@ func testLog_Recover(t *testing.T) {
 			tid,
 			r0.TransactionID(),
 			r0.Time().Value(),
+			r0.Collection(),
 			r0.Data(),
 			r0.Reverse(),
 		); err != nil {
@@ -403,6 +416,7 @@ func testLog_Recover(t *testing.T) {
 			tid,
 			r1.TransactionID(),
 			r1.Time().Value(),
+			r1.Collection(),
 			r1.Data(),
 			r1.Reverse(),
 		); err != nil {
@@ -483,6 +497,7 @@ func testLog_RecoverMany(t *testing.T) {
 				tid,
 				rec.TransactionID(),
 				rec.Time().Value(),
+				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
 			); err != nil {
@@ -533,8 +548,10 @@ func testLog_RecoverMany(t *testing.T) {
 				tid,
 				rec.TransactionID(),
 				rec.Time().Value(),
+				rec.Collection(),
 				rec.Data(),
-				rec.Reverse()); err != nil {
+				rec.Reverse(),
+			); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -585,6 +602,7 @@ func testLog_Reverse(t *testing.T) {
 			tid,
 			rec.TransactionID(),
 			rec.Time().Value(),
+			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {
@@ -680,6 +698,7 @@ func testLog_Insert(t *testing.T) {
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
+		record.CollectionEvent,
 		data,
 	); err != nil {
 		t.Error(err)
@@ -824,6 +843,7 @@ func testLog_Update(t *testing.T) {
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		time.UnixMicro(1234567890),
+		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -934,6 +954,7 @@ func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*recor
 			record.NewTransactionID(2),
 			record.NewTime(time.UnixMicro(1234567890)),
 			record.ActionUpdate,
+			record.CollectionValue,
 			data,
 			reverse))
 	}

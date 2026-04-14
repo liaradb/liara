@@ -18,16 +18,18 @@ func TestRecord(t *testing.T) {
 	txid := NewTransactionID(2)
 	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
+	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(lsn, tid, txid, now, action, data, reverse)
+	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
 
 	testutil.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
 	testutil.Getter(t, rc.TenantID, tid, "TenantID")
 	testutil.Getter(t, rc.TransactionID, txid, "TransactionID")
 	testutil.Getter(t, rc.Time, now, "Time")
 	testutil.Getter(t, rc.Action, action, "Action")
+	testutil.Getter(t, rc.Collection, collection, "Collection")
 	testutil.GetterArray(t, rc.Data, data, "Data")
 	testutil.GetterArray(t, rc.Reverse, reverse, "Reverse")
 	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
@@ -41,10 +43,11 @@ func TestRecord_Write(t *testing.T) {
 	txid := NewTransactionID(2)
 	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
+	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(lsn, tid, txid, now, action, data, reverse)
+	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
 
 	r, w := newReaderWriter()
 
@@ -67,6 +70,7 @@ func TestRecord_Write(t *testing.T) {
 	testutil.Getter(t, rc2.TransactionID, txid, "TransactionID")
 	testutil.Getter(t, rc.Time, now, "Time")
 	testutil.Getter(t, rc.Action, action, "Action")
+	testutil.Getter(t, rc.Collection, collection, "Collection")
 	testutil.GetterArray(t, rc2.Data, data, "Data")
 	testutil.GetterArray(t, rc2.Reverse, reverse, "Reverse")
 	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
@@ -80,6 +84,7 @@ func TestRecord_Compare(t *testing.T) {
 	txid := NewTransactionID(2)
 	now := NewTime(time.UnixMicro(1234567890))
 	action := ActionInsert
+	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -102,13 +107,13 @@ func TestRecord_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should equal same values": {
-			a:     New(lsn, tid, txid, now, action, data, reverse),
-			b:     New(lsn, tid, txid, now, action, data, reverse),
+			a:     New(lsn, tid, txid, now, action, collection, data, reverse),
+			b:     New(lsn, tid, txid, now, action, collection, data, reverse),
 			equal: true,
 		},
 		"should not equal different values": {
-			a:     New(lsn, tid, txid, now, action, data, reverse),
-			b:     New(lsn, value.NewTenantID(), txid, now, action, data, reverse),
+			a:     New(lsn, tid, txid, now, action, collection, data, reverse),
+			b:     New(lsn, value.NewTenantID(), txid, now, action, collection, data, reverse),
 			equal: false,
 		},
 	} {
