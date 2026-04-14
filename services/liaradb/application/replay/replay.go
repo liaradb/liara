@@ -45,26 +45,30 @@ func (re *Replay) Recover(ctx context.Context) error {
 func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	switch r.Action() {
 	case record.ActionCheckpoint:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return re.recoverCheckpoint(ctx, r)
 	case record.ActionCommit:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return re.recoverCommit(ctx, r)
 	case record.ActionInsert:
 		return re.recoverInsert(ctx, r)
 	case record.ActionRemove:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return re.recoverRemove(ctx, r)
 	case record.ActionRollback:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return re.recoverRollback(ctx, r)
 	case record.ActionUpdate:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return re.recoverUpdate(ctx, r)
 	default:
-		fmt.Printf("recover: %v\n", r.Action())
-		return nil
+		return ErrActionUnknown
 	}
+}
+
+func (re *Replay) recoverCheckpoint(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverCommit(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	return nil
 }
 
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
@@ -72,6 +76,7 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 	case record.CollectionEvent:
 		return re.recoverEvent(ctx, r)
 	default:
+		fmt.Printf("recover: %v\n", r.Action())
 		return nil
 	}
 }
@@ -85,4 +90,22 @@ func (re *Replay) recoverEvent(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
 	tn := tablename.New(r.TenantID())
 	return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+}
+
+func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverRollback(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
+	switch r.Collection() {
+	default:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	}
 }
