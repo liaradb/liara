@@ -122,27 +122,46 @@ func (a *Application) recover(ctx context.Context) error {
 	}
 
 	for r := range it {
-		switch r.Action() {
-		case record.ActionCheckpoint:
-			fmt.Printf("recover: %v\n", r.Action())
-		case record.ActionCommit:
-			fmt.Printf("recover: %v\n", r.Action())
-		case record.ActionInsert:
-			if err := a.recoverEvent(ctx, r); err != nil {
-				return err
-			}
-		case record.ActionRemove:
-			fmt.Printf("recover: %v\n", r.Action())
-		case record.ActionRollback:
-			fmt.Printf("recover: %v\n", r.Action())
-		case record.ActionUpdate:
-			fmt.Printf("recover: %v\n", r.Action())
-		default:
-			fmt.Printf("recover: %v\n", r.Action())
+		if err := a.recoverRecord(ctx, r); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+func (a *Application) recoverRecord(ctx context.Context, r *record.Record) error {
+	switch r.Action() {
+	case record.ActionCheckpoint:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	case record.ActionCommit:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	case record.ActionInsert:
+		return a.recoverInsert(ctx, r)
+	case record.ActionRemove:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	case record.ActionRollback:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	case record.ActionUpdate:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	default:
+		fmt.Printf("recover: %v\n", r.Action())
+		return nil
+	}
+}
+
+func (a *Application) recoverInsert(ctx context.Context, r *record.Record) error {
+	switch r.Collection() {
+	case record.CollectionEvent:
+		return a.recoverEvent(ctx, r)
+	default:
+		return nil
+	}
 }
 
 func (a *Application) recoverEvent(ctx context.Context, r *record.Record) error {
