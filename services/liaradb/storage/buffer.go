@@ -77,24 +77,55 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 	oldBid := b.blockID
 	b.blockID = bid
 
-	// TODO: What do we do if this has an error?
-	// Move loading into sync.Once.
-	// This will allow loaded traffic to continue
-	b.createLoad(func() error {
-		if err := b.flushIfDirtyBeforeLoad(w, oldBid); err != nil {
+	b.initLoader(w, r, oldBid, next)
+
+	return nil
+}
+
+// Move loading into sync.Once.
+// This will allow loaded traffic to continue
+func (b *Buffer) initLoader(
+	w io.WriterAt,
+	r io.ReaderAt,
+	oldBid link.BlockID,
+	next bool,
+) {
+	b.loader = sync.OnceValue(b.createLoader(w, r, oldBid, next))
+}
+
+func (b *Buffer) createLoader(
+	w io.WriterAt,
+	r io.ReaderAt,
+	oldBid link.BlockID,
+	next bool,
+) func() error {
+	return func() error {
+		if err := b.flushAndLoad(w, r, oldBid, next); err != nil {
+			b.initLoader(w, r, oldBid, next)
 			return err
 		}
 
-		b.status = BufferStatusLoading
-
-		if err := b.clearOrLoad(next, r); err != nil {
-			return err
-		}
-
-		b.status = BufferStatusLoaded
 		return nil
-	})
+	}
+}
 
+func (b *Buffer) flushAndLoad(
+	w io.WriterAt,
+	r io.ReaderAt,
+	oldBid link.BlockID,
+	next bool,
+) error {
+	if err := b.flushIfDirtyBeforeLoad(w, oldBid); err != nil {
+		return err
+	}
+
+	b.status = BufferStatusLoading
+
+	if err := b.clearOrLoad(next, r); err != nil {
+		return err
+	}
+
+	b.status = BufferStatusLoaded
 	return nil
 }
 
@@ -118,10 +149,6 @@ func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt) error {
 	}
 
 	return nil
-}
-
-func (b *Buffer) createLoad(once func() error) {
-	b.loader = sync.OnceValue(once)
 }
 
 func (b *Buffer) loadOnce() error {
