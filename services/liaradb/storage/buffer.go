@@ -74,16 +74,17 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 		return err
 	}
 
-	if err := b.flushIfDirtyBeforeLoad(w); err != nil {
-		return err
-	}
-
+	oldBid := b.blockID
 	b.blockID = bid
 
 	// TODO: What do we do if this has an error?
 	// Move loading into sync.Once.
 	// This will allow loaded traffic to continue
 	b.createLoad(func() error {
+		if err := b.flushIfDirtyBeforeLoad(w, oldBid); err != nil {
+			return err
+		}
+
 		b.status = BufferStatusLoading
 
 		if err := b.clearOrLoad(next, r); err != nil {
@@ -97,12 +98,12 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 	return nil
 }
 
-func (b *Buffer) flushIfDirtyBeforeLoad(w io.WriterAt) error {
+func (b *Buffer) flushIfDirtyBeforeLoad(w io.WriterAt, bid link.BlockID) error {
 	if !b.Dirty() {
 		return nil
 	}
 
-	return b.write(w)
+	return b.flush(w, bid)
 }
 
 func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt) error {
@@ -143,13 +144,17 @@ func (b *Buffer) read(r io.ReaderAt) error {
 	return err
 }
 
-func (b *Buffer) write(w io.WriterAt) error {
-	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
+func (b *Buffer) flush(w io.WriterAt, bid link.BlockID) error {
+	_, err := w.WriteAt(b.buffer.Bytes(), b.offsetAtBID(bid))
 	return err
 }
 
 func (b *Buffer) offset() int64 {
-	return b.blockID.Offset(b.buffer.Length()).Value()
+	return b.offsetAtBID(b.blockID)
+}
+
+func (b *Buffer) offsetAtBID(bid link.BlockID) int64 {
+	return bid.Offset(b.buffer.Length()).Value()
 }
 
 func (b *Buffer) flushIfDirty() error {
@@ -160,7 +165,12 @@ func (b *Buffer) flushIfDirty() error {
 	b.RLatch()
 	defer b.RUnlatch()
 
-	if err := b.s.flush(b); err != nil {
+	f, err := b.s.openFile(b.blockID)
+	if err != nil {
+		return err
+	}
+
+	if err := b.flush(f, b.blockID); err != nil {
 		return err
 	}
 

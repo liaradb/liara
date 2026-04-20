@@ -285,15 +285,6 @@ func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
 
-func (s *Storage) flush(b *Buffer) error {
-	f, err := s.openFile(b.BlockID())
-	if err != nil {
-		return err
-	}
-
-	return b.write(f)
-}
-
 func (s *Storage) openFile(bid link.BlockID) (file.File, error) {
 	return s.openHighwater(bid.FileName())
 }
