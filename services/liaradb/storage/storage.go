@@ -242,17 +242,32 @@ func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID
 
 // External thread
 func (s *Storage) Request(ctx context.Context, bid link.BlockID) (*Buffer, error) {
-	return s.request(ctx, newBufferByIDQuery(bid))
+	b, err := s.request(ctx, newBufferByIDQuery(bid))
+	if err != nil {
+		return nil, err
+	}
+
+	return b, b.loadOnce()
 }
 
 // External thread
 func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	return s.request(ctx, newCurrentBufferQuery(fn))
+	b, err := s.request(ctx, newCurrentBufferQuery(fn))
+	if err != nil {
+		return nil, err
+	}
+
+	return b, b.loadOnce()
 }
 
 // External thread
 func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	return s.request(ctx, newNextBufferQuery(fn))
+	b, err := s.request(ctx, newNextBufferQuery(fn))
+	if err != nil {
+		return nil, err
+	}
+
+	return b, b.loadOnce()
 }
 
 func (s *Storage) request(ctx context.Context, q bufferQuery) (*Buffer, error) {
@@ -274,17 +289,8 @@ func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
 
-func (s *Storage) load(b *Buffer) error {
-	f, err := s.openFile(b)
-	if err != nil {
-		return err
-	}
-
-	return b.read(f)
-}
-
 func (s *Storage) flush(b *Buffer) error {
-	f, err := s.openFile(b)
+	f, err := s.openFile(b.BlockID())
 	if err != nil {
 		return err
 	}
@@ -292,8 +298,8 @@ func (s *Storage) flush(b *Buffer) error {
 	return b.write(f)
 }
 
-func (s *Storage) openFile(b *Buffer) (file.File, error) {
-	return s.openHighwater(b.blockID.FileName())
+func (s *Storage) openFile(bid link.BlockID) (file.File, error) {
+	return s.openHighwater(bid.FileName())
 }
 
 func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {

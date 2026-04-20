@@ -15,6 +15,7 @@ type Buffer struct {
 	s       *Storage
 	pins    int
 	mux     sync.RWMutex
+	loader  func() error
 }
 
 func newBuffer(s *Storage) *Buffer {
@@ -63,41 +64,64 @@ func (b *Buffer) Release() {
 //   - blockID will always be changing
 //   - status is dirty only if already loaded
 func (b *Buffer) load(bid link.BlockID, next bool) error {
-	if err := b.flushIfDirtyBeforeLoad(); err != nil {
+	w, err := b.s.openFile(b.blockID)
+	if err != nil {
+		return err
+	}
+
+	r, err := b.s.openFile(bid)
+	if err != nil {
+		return err
+	}
+
+	if err := b.flushIfDirtyBeforeLoad(w); err != nil {
 		return err
 	}
 
 	b.blockID = bid
 	b.status = BufferStatusLoading
 
-	if err := b.clearOrLoad(next); err != nil {
+	if err := b.clearOrLoad(next, r); err != nil {
 		return err
 	}
 
 	b.status = BufferStatusLoaded
+
+	b.createLoad(func() error {
+		return nil
+	})
+
 	return nil
 }
 
-func (b *Buffer) flushIfDirtyBeforeLoad() error {
+func (b *Buffer) flushIfDirtyBeforeLoad(w io.WriterAt) error {
 	if !b.Dirty() {
 		return nil
 	}
 
-	return b.s.flush(b)
+	return b.write(w)
 }
 
-func (b *Buffer) clearOrLoad(next bool) error {
+func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt) error {
 	if next {
 		b.buffer.Clear()
 		return nil
 	}
 
-	if err := b.s.load(b); err != nil {
+	if err := b.read(r); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
 
 	return nil
+}
+
+func (b *Buffer) createLoad(once func() error) {
+	b.loader = sync.OnceValue(once)
+}
+
+func (b *Buffer) loadOnce() error {
+	return b.loader()
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
