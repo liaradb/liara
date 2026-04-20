@@ -10,6 +10,7 @@ import (
 
 type Buffer struct {
 	blockID link.BlockID
+	oldBID  link.BlockID
 	buffer  *buffer.Buffer
 	status  BufferStatus
 	s       *Storage
@@ -64,29 +65,24 @@ func (b *Buffer) Release() {
 //   - blockID will always be changing
 //   - status is dirty only if already loaded
 func (b *Buffer) load(bid link.BlockID, next bool) {
-	oldBid := b.blockID
 	b.blockID = bid
-	b.initLoader(bid, oldBid, next)
+	b.initLoader(next)
 }
 
 // Move loading into sync.Once.
 // This will allow loaded traffic to continue
 func (b *Buffer) initLoader(
-	newBID link.BlockID,
-	oldBID link.BlockID,
 	next bool,
 ) {
-	b.loader = sync.OnceValue(b.createLoader(newBID, oldBID, next))
+	b.loader = sync.OnceValue(b.createLoader(next))
 }
 
 func (b *Buffer) createLoader(
-	newBID link.BlockID,
-	oldBID link.BlockID,
 	next bool,
 ) func() error {
 	return func() error {
-		if err := b.flushAndLoad(newBID, oldBID, next); err != nil {
-			b.initLoader(newBID, oldBID, next)
+		if err := b.flushAndLoad(next); err != nil {
+			b.initLoader(next)
 			return err
 		}
 
@@ -95,27 +91,17 @@ func (b *Buffer) createLoader(
 }
 
 func (b *Buffer) flushAndLoad(
-	newBID link.BlockID,
-	oldBID link.BlockID,
 	next bool,
 ) error {
-	w, err := b.s.openFile(oldBID)
-	if err != nil {
+	if err := b.flushIfDirtyBeforeLoad(); err != nil {
 		return err
 	}
 
-	r, err := b.s.openFile(newBID)
-	if err != nil {
-		return err
-	}
-
-	if err := b.flushIfDirtyBeforeLoad(w, oldBID); err != nil {
-		return err
-	}
-
+	// Only change oldBID after it has flushed
+	b.oldBID = b.blockID
 	b.status = BufferStatusLoading
 
-	if err := b.clearOrLoad(next, r, newBID); err != nil {
+	if err := b.clearOrLoad(next); err != nil {
 		return err
 	}
 
@@ -123,21 +109,31 @@ func (b *Buffer) flushAndLoad(
 	return nil
 }
 
-func (b *Buffer) flushIfDirtyBeforeLoad(w io.WriterAt, bid link.BlockID) error {
+func (b *Buffer) flushIfDirtyBeforeLoad() error {
 	if !b.Dirty() {
 		return nil
 	}
 
-	return b.flush(w, bid)
+	w, err := b.s.openFile(b.oldBID)
+	if err != nil {
+		return err
+	}
+
+	return b.flushOld(w)
 }
 
-func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt, bid link.BlockID) error {
+func (b *Buffer) clearOrLoad(next bool) error {
 	if next {
 		b.buffer.Clear()
 		return nil
 	}
 
-	if err := b.read(r, bid); err != nil {
+	r, err := b.s.openFile(b.blockID)
+	if err != nil {
+		return err
+	}
+
+	if err := b.read(r); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
@@ -149,8 +145,8 @@ func (b *Buffer) loadOnce() error {
 	return b.loader()
 }
 
-func (b *Buffer) read(r io.ReaderAt, bid link.BlockID) error {
-	n, err := r.ReadAt(b.buffer.Bytes(), b.offsetAtBID(bid))
+func (b *Buffer) read(r io.ReaderAt) error {
+	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
 	if err != nil {
 		// Ignore EOF
 		if err != io.EOF {
@@ -163,15 +159,6 @@ func (b *Buffer) read(r io.ReaderAt, bid link.BlockID) error {
 
 	_, err = b.buffer.Seek(0, io.SeekStart)
 	return err
-}
-
-func (b *Buffer) flush(w io.WriterAt, bid link.BlockID) error {
-	_, err := w.WriteAt(b.buffer.Bytes(), b.offsetAtBID(bid))
-	return err
-}
-
-func (b *Buffer) offsetAtBID(bid link.BlockID) int64 {
-	return bid.Offset(b.buffer.Length()).Value()
 }
 
 func (b *Buffer) flushIfDirty() error {
@@ -187,12 +174,30 @@ func (b *Buffer) flushIfDirty() error {
 		return err
 	}
 
-	if err := b.flush(f, b.blockID); err != nil {
+	if err := b.flush(f); err != nil {
 		return err
 	}
 
 	b.status = BufferStatusLoaded
 	return nil
+}
+
+func (b *Buffer) flush(w io.WriterAt) error {
+	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
+	return err
+}
+
+func (b *Buffer) flushOld(w io.WriterAt) error {
+	_, err := w.WriteAt(b.buffer.Bytes(), b.offsetOld())
+	return err
+}
+
+func (b *Buffer) offset() int64 {
+	return b.blockID.Offset(b.buffer.Length()).Value()
+}
+
+func (b *Buffer) offsetOld() int64 {
+	return b.oldBID.Offset(b.buffer.Length()).Value()
 }
 
 func (b *Buffer) Clear() {
