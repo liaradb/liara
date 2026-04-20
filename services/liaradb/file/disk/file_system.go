@@ -4,12 +4,14 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"sync"
 
 	"github.com/liaradb/liaradb/file"
 )
 
 type FileSystem struct {
 	files map[string]*File
+	mux   sync.RWMutex
 }
 
 func (fs *FileSystem) Close() error {
@@ -29,6 +31,9 @@ func (fs *FileSystem) MkDirAll(name string) error {
 }
 
 func (fs *FileSystem) OpenFile(name string) (file.File, error) {
+	fs.mux.Lock()
+	defer fs.mux.Unlock()
+
 	df, ok := fs.files[name]
 	if ok {
 		return df, nil
@@ -51,6 +56,9 @@ func (fs *FileSystem) OpenFile(name string) (file.File, error) {
 }
 
 func (fs *FileSystem) CloseFile(name string) error {
+	fs.mux.Lock()
+	defer fs.mux.Unlock()
+
 	f, ok := fs.files[name]
 	if !ok {
 		return nil
@@ -65,9 +73,16 @@ func (fs *FileSystem) CloseFile(name string) error {
 }
 
 func (fs *FileSystem) Count() int {
+	fs.mux.RLock()
+	defer fs.mux.RUnlock()
+
 	return len(fs.files)
 }
 
 func (fs *FileSystem) Remove(name string) error {
+	if err := fs.CloseFile(name); err != nil {
+		return err
+	}
+
 	return os.Remove(name)
 }
