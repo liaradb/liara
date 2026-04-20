@@ -63,45 +63,30 @@ func (b *Buffer) Release() {
 // Load from file system
 //   - blockID will always be changing
 //   - status is dirty only if already loaded
-func (b *Buffer) load(bid link.BlockID, next bool) error {
-	w, err := b.s.openFile(b.blockID)
-	if err != nil {
-		return err
-	}
-
-	r, err := b.s.openFile(bid)
-	if err != nil {
-		return err
-	}
-
+func (b *Buffer) load(bid link.BlockID, next bool) {
 	oldBid := b.blockID
 	b.blockID = bid
-
-	b.initLoader(w, r, oldBid, next)
-
-	return nil
+	b.initLoader(bid, oldBid, next)
 }
 
 // Move loading into sync.Once.
 // This will allow loaded traffic to continue
 func (b *Buffer) initLoader(
-	w io.WriterAt,
-	r io.ReaderAt,
-	oldBid link.BlockID,
+	newBID link.BlockID,
+	oldBID link.BlockID,
 	next bool,
 ) {
-	b.loader = sync.OnceValue(b.createLoader(w, r, oldBid, next))
+	b.loader = sync.OnceValue(b.createLoader(newBID, oldBID, next))
 }
 
 func (b *Buffer) createLoader(
-	w io.WriterAt,
-	r io.ReaderAt,
-	oldBid link.BlockID,
+	newBID link.BlockID,
+	oldBID link.BlockID,
 	next bool,
 ) func() error {
 	return func() error {
-		if err := b.flushAndLoad(w, r, oldBid, next); err != nil {
-			b.initLoader(w, r, oldBid, next)
+		if err := b.flushAndLoad(newBID, oldBID, next); err != nil {
+			b.initLoader(newBID, oldBID, next)
 			return err
 		}
 
@@ -110,18 +95,27 @@ func (b *Buffer) createLoader(
 }
 
 func (b *Buffer) flushAndLoad(
-	w io.WriterAt,
-	r io.ReaderAt,
-	oldBid link.BlockID,
+	newBID link.BlockID,
+	oldBID link.BlockID,
 	next bool,
 ) error {
-	if err := b.flushIfDirtyBeforeLoad(w, oldBid); err != nil {
+	w, err := b.s.openFile(oldBID)
+	if err != nil {
+		return err
+	}
+
+	r, err := b.s.openFile(newBID)
+	if err != nil {
+		return err
+	}
+
+	if err := b.flushIfDirtyBeforeLoad(w, oldBID); err != nil {
 		return err
 	}
 
 	b.status = BufferStatusLoading
 
-	if err := b.clearOrLoad(next, r); err != nil {
+	if err := b.clearOrLoad(next, r, newBID); err != nil {
 		return err
 	}
 
@@ -137,13 +131,13 @@ func (b *Buffer) flushIfDirtyBeforeLoad(w io.WriterAt, bid link.BlockID) error {
 	return b.flush(w, bid)
 }
 
-func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt) error {
+func (b *Buffer) clearOrLoad(next bool, r io.ReaderAt, bid link.BlockID) error {
 	if next {
 		b.buffer.Clear()
 		return nil
 	}
 
-	if err := b.read(r); err != nil {
+	if err := b.read(r, bid); err != nil {
 		b.status = BufferStatusCorrupt
 		return err
 	}
@@ -155,8 +149,8 @@ func (b *Buffer) loadOnce() error {
 	return b.loader()
 }
 
-func (b *Buffer) read(r io.ReaderAt) error {
-	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
+func (b *Buffer) read(r io.ReaderAt, bid link.BlockID) error {
+	n, err := r.ReadAt(b.buffer.Bytes(), b.offsetAtBID(bid))
 	if err != nil {
 		// Ignore EOF
 		if err != io.EOF {
@@ -174,10 +168,6 @@ func (b *Buffer) read(r io.ReaderAt) error {
 func (b *Buffer) flush(w io.WriterAt, bid link.BlockID) error {
 	_, err := w.WriteAt(b.buffer.Bytes(), b.offsetAtBID(bid))
 	return err
-}
-
-func (b *Buffer) offset() int64 {
-	return b.offsetAtBID(b.blockID)
 }
 
 func (b *Buffer) offsetAtBID(bid link.BlockID) int64 {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"path"
+	"sync"
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
@@ -22,6 +23,7 @@ type Storage struct {
 	returns    chan *Buffer
 	max        int
 	highWater  map[link.FileName]link.FilePosition
+	hwMux      sync.RWMutex
 }
 
 func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
@@ -72,14 +74,6 @@ func (s *Storage) run(ctx context.Context) {
 			return
 		}
 	}
-}
-
-func (s *Storage) incrementHighWater(fn link.FileName) {
-	s.highWater[fn]++
-}
-
-func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
-	return fn.BlockID(s.highWater[fn])
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
@@ -137,10 +131,7 @@ func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) 
 		return nil, err
 	}
 
-	if err := b.load(bid, next); err != nil {
-		return nil, err
-	}
-
+	b.load(bid, next)
 	b.pin()
 	s.pinned[b.blockID] = b
 
@@ -303,6 +294,9 @@ func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
 }
 
 func (s *Storage) initHighwater(fn link.FileName, f file.File) error {
+	s.hwMux.Lock()
+	defer s.hwMux.Unlock()
+
 	if _, ok := s.highWater[fn]; ok {
 		return nil
 	}
@@ -316,6 +310,20 @@ func (s *Storage) initHighwater(fn link.FileName, f file.File) error {
 	s.highWater[fn] = link.FilePosition(size / s.bufferSize)
 
 	return nil
+}
+
+func (s *Storage) incrementHighWater(fn link.FileName) {
+	s.hwMux.Lock()
+	defer s.hwMux.Unlock()
+
+	s.highWater[fn]++
+}
+
+func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
+	s.hwMux.RLock()
+	defer s.hwMux.RUnlock()
+
+	return fn.BlockID(s.highWater[fn])
 }
 
 func (s *Storage) FlushAll() error {
