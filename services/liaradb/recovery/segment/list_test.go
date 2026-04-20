@@ -8,9 +8,9 @@ import (
 	"testing/fstest"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
+	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func TestList_Open(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file/disk"
-	"github.com/liaradb/liaradb/file/mock"
+	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func NewDiskFileSystem(t *testing.T) *disk.FileSystem {

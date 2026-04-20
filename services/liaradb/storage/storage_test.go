@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
+	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func TestStorage(t *testing.T) {

@@ -11,8 +11,8 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/mock"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func TestWriter_Append(t *testing.T) {
