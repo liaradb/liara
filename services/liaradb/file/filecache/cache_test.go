@@ -1,11 +1,11 @@
-package disk
+package filecache
 
 import (
 	"path"
 	"testing"
 )
 
-func TestFileSystem(t *testing.T) {
+func TestCache(t *testing.T) {
 	t.Parallel()
 
 	p := path.Join(t.TempDir(), "file")
@@ -44,7 +44,7 @@ func TestFileSystem(t *testing.T) {
 	}
 }
 
-func TestFileSystem_CloseFile(t *testing.T) {
+func TestCache_CloseFile(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should close", func(t *testing.T) {

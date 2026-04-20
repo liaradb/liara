@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/liaradb/liaradb/application"
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -32,7 +32,7 @@ func run() error {
 	}
 
 	segmentSize := 1024
-	fsys := disk.New()
+	fsys := filecache.New()
 
 	log := recovery.NewLog(
 		int64(conf.BlockSize),

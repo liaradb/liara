@@ -15,7 +15,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -37,7 +37,7 @@ func New(conf configuration) *Application {
 	segmentSize := 1024
 	inSize := 100
 
-	fsys := disk.New()
+	fsys := filecache.New()
 
 	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
 	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))

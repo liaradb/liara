@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -412,7 +413,7 @@ func createStorageDelay(t *testing.T, max int, bs int64, delay time.Duration) *S
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *file.Cache) {
+func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *filecache.Cache) {
 	t.Helper()
 
 	fsys := filetesting.NewCacheDelay(nil, delay)
@@ -514,7 +515,7 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mf, ok := f.(*file.CacheFile).File.(*filetesting.File)
+	mf, ok := f.(*filecache.File).File.(*filetesting.File)
 	if !ok {
 		t.Fatal("incorrect type")
 	}

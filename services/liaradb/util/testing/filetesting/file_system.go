@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/filecache"
 )
 
 type FileSystem struct {
@@ -18,8 +19,8 @@ type FileSystem struct {
 	delay time.Duration
 }
 
-func New(fsys fstest.MapFS) *file.Cache {
-	return file.NewCache(newFileSystem(fsys))
+func New(fsys fstest.MapFS) *filecache.Cache {
+	return filecache.NewWithFileSystem(newFileSystem(fsys))
 }
 
 func newFileSystem(fsys fstest.MapFS) *FileSystem {
@@ -32,8 +33,8 @@ func newFileSystem(fsys fstest.MapFS) *FileSystem {
 	}
 }
 
-func NewCacheDelay(fsys fstest.MapFS, delay time.Duration) *file.Cache {
-	return file.NewCache(newFileSystemDelay(fsys, delay))
+func NewCacheDelay(fsys fstest.MapFS, delay time.Duration) *filecache.Cache {
+	return filecache.NewWithFileSystem(newFileSystemDelay(fsys, delay))
 }
 
 func newFileSystemDelay(fsys fstest.MapFS, delay time.Duration) *FileSystem {

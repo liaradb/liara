@@ -8,6 +8,7 @@ import (
 	"testing/fstest"
 
 	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -141,7 +142,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.CacheFile).IsOpen() {
+		if f.(*filecache.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -252,7 +253,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.CacheFile).IsOpen() {
+		if f.(*filecache.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -314,7 +315,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.CacheFile).IsOpen() {
+		if f.(*filecache.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -370,7 +371,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.CacheFile).IsOpen() {
+		if f.(*filecache.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
