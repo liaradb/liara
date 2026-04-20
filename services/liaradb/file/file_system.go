@@ -21,8 +21,13 @@ type File interface {
 	io.WriterAt
 	io.Seeker
 	Close
+	Stat
 }
 
 type Close interface {
 	Close() error
+}
+
+type Stat interface {
+	Stat() (fs.FileInfo, error)
 }

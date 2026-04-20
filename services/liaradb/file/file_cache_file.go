@@ -26,7 +26,7 @@ func (f *FileCacheFile) closeFile() error {
 }
 
 func (f *FileCacheFile) Stat() (fs.FileInfo, error) {
-	return f.fsys.Stat(f.name)
+	return f.File.Stat()
 }
 
 func (f *FileCacheFile) IsOpen() bool {

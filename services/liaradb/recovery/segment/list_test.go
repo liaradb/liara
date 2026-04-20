@@ -142,7 +142,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*mock.File).IsOpen() {
+		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -171,7 +171,7 @@ func TestList_IterateFromLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		m, _ := f.(*mock.File).Stat()
+		m, _ := f.Stat()
 		n = append(n, ParseSegmentName(m.Name()))
 		c++
 	}
@@ -253,7 +253,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*mock.File).IsOpen() {
+		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -315,7 +315,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*mock.File).IsOpen() {
+		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -371,7 +371,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*mock.File).IsOpen() {
+		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -446,7 +446,7 @@ func TestList_Reverse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		m, _ := f.(*mock.File).Stat()
+		m, _ := f.Stat()
 		n = append(n, ParseSegmentName(m.Name()))
 		c++
 	}

@@ -7,5 +7,5 @@ import (
 )
 
 func NewFileSystem(fsys fstest.MapFS) file.FileSystem {
-	return newFileSystem(fsys)
+	return file.NewFileSystem(newFileSystem(fsys))
 }
