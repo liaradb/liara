@@ -11,7 +11,7 @@ import (
 )
 
 func NewDiskFileSystem(t *testing.T) file.FileSystem {
-	fsys := disk.NewFileSystem(&disk.DiskFileSystem{})
+	fsys := disk.NewFileSystem()
 	t.Cleanup(func() {
 		if err := fsys.Close(); err != nil {
 			t.Error(err)

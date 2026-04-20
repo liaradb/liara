@@ -10,6 +10,10 @@ import (
 type DiskFileSystem struct {
 }
 
+func NewFileSystem() *file.FileCache {
+	return file.NewFileSystem(&DiskFileSystem{})
+}
+
 func (fs *DiskFileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 	return os.ReadDir(name)
 }
