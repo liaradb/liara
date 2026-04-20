@@ -10,6 +10,7 @@ type FileSystem interface {
 	OpenFile(name string) (File, error)
 	Remove(name string) error
 	ReadDir(name string) ([]fs.DirEntry, error)
+	Stat(name string) (fs.FileInfo, error)
 }
 
 type File interface {

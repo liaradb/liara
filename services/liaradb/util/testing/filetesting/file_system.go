@@ -5,12 +5,13 @@ import (
 	"testing/fstest"
 	"time"
 
+	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/disk"
 	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
-func NewDiskFileSystem(t *testing.T) *disk.FileSystem {
-	fsys := &disk.FileSystem{}
+func NewDiskFileSystem(t *testing.T) file.FileSystem {
+	fsys := disk.NewFileSystem(&disk.DiskFileSystem{})
 	t.Cleanup(func() {
 		if err := fsys.Close(); err != nil {
 			t.Error(err)

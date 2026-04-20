@@ -32,7 +32,7 @@ func run() error {
 	}
 
 	segmentSize := 1024
-	fsys := &disk.FileSystem{}
+	fsys := disk.NewFileSystem(&disk.DiskFileSystem{})
 
 	log := recovery.NewLog(
 		int64(conf.BlockSize),

@@ -1,22 +1,32 @@
-package file
+package disk
 
 import (
 	"errors"
 	"io/fs"
 	"sync"
+
+	"github.com/liaradb/liaradb/file"
 )
 
-type FileSsytemCache struct {
-	files map[string]*file
+type FileSystem struct {
+	files map[string]*File
 	mux   sync.RWMutex
-	fsys  FileSystem
+	fsys  file.FileSystem
 }
 
-func (fsc *FileSsytemCache) MkDirAll(name string) error {
+func NewFileSystem(
+	fsys file.FileSystem,
+) *FileSystem {
+	return &FileSystem{
+		fsys: fsys,
+	}
+}
+
+func (fsc *FileSystem) MkDirAll(name string) error {
 	return fsc.fsys.MkDirAll(name)
 }
 
-func (fsc *FileSsytemCache) OpenFile(name string) (File, error) {
+func (fsc *FileSystem) OpenFile(name string) (file.File, error) {
 	fsc.mux.Lock()
 	defer fsc.mux.Unlock()
 
@@ -31,9 +41,9 @@ func (fsc *FileSsytemCache) OpenFile(name string) (File, error) {
 	}
 
 	if fsc.files == nil {
-		fsc.files = map[string]*file{}
+		fsc.files = map[string]*File{}
 	}
-	df = &file{
+	df = &File{
 		File: f,
 		name: name,
 		fsys: fsc}
@@ -41,11 +51,15 @@ func (fsc *FileSsytemCache) OpenFile(name string) (File, error) {
 	return df, nil
 }
 
-func (fsc *FileSsytemCache) ReadDir(name string) ([]fs.DirEntry, error) {
+func (fsc *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 	return fsc.fsys.ReadDir(name)
 }
 
-func (fsc *FileSsytemCache) Remove(name string) error {
+func (fsc *FileSystem) Stat(name string) (fs.FileInfo, error) {
+	return fsc.fsys.Stat(name)
+}
+
+func (fsc *FileSystem) Remove(name string) error {
 	if err := fsc.CloseFile(name); err != nil {
 		return err
 	}
@@ -53,14 +67,14 @@ func (fsc *FileSsytemCache) Remove(name string) error {
 	return fsc.fsys.Remove(name)
 }
 
-func (fsc *FileSsytemCache) Count() int {
+func (fsc *FileSystem) Count() int {
 	fsc.mux.RLock()
 	defer fsc.mux.RUnlock()
 
 	return len(fsc.files)
 }
 
-func (fsc *FileSsytemCache) Close() error {
+func (fsc *FileSystem) Close() error {
 	errs := make([]error, 0, len(fsc.files))
 	for n := range fsc.files {
 		errs = append(errs, fsc.CloseFile(n))
@@ -68,7 +82,7 @@ func (fsc *FileSsytemCache) Close() error {
 	return errors.Join(errs...)
 }
 
-func (fsc *FileSsytemCache) CloseFile(name string) error {
+func (fsc *FileSystem) CloseFile(name string) error {
 	fsc.mux.Lock()
 	defer fsc.mux.Unlock()
 
@@ -77,7 +91,7 @@ func (fsc *FileSsytemCache) CloseFile(name string) error {
 		return nil
 	}
 
-	if err := f.Close(); err != nil {
+	if err := f.closeFile(); err != nil {
 		return err
 	}
 
