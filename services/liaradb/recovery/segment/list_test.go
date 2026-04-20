@@ -467,11 +467,11 @@ func createNames(start SegmentID, count SegmentID) []SegmentName {
 }
 
 func createFiles(t *testing.T, dir string, start SegmentID, count SegmentID) file.FileSystem {
-	fsys := filetesting.NewMockFileSystem(t, fstest.MapFS{})
+	mapfs := fstest.MapFS{}
 	for i := range count {
-		fsys.MapFS[createPath(dir, NewSegmentName(start+i, record.NewLogSequenceNumber(0)))] = &fstest.MapFile{}
+		mapfs[createPath(dir, NewSegmentName(start+i, record.NewLogSequenceNumber(0)))] = &fstest.MapFile{}
 	}
-	return fsys
+	return filetesting.NewMockFileSystem(t, mapfs)
 }
 
 func createPath(dir string, sn SegmentName) string {

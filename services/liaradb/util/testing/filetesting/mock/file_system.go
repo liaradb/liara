@@ -18,7 +18,7 @@ type FileSystem struct {
 	delay time.Duration
 }
 
-func NewFileSystem(fsys fstest.MapFS) *FileSystem {
+func newFileSystem(fsys fstest.MapFS) *FileSystem {
 	lock := make(chan struct{})
 	close(lock)
 
@@ -88,8 +88,8 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		m = NewMockFile(name, mfs.delay)
 		f, ok := mfs.MapFS[dir]
 		if ok {
-			m.data = f.Data
-			m.modTime = f.ModTime
+			m.Data = f.Data
+			m.ModTime = f.ModTime
 		}
 		d[base] = m
 	} else {
@@ -97,10 +97,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		d[base] = m.clone()
 	}
 
-	mfs.MapFS[name] = &fstest.MapFile{
-		Data:    m.data,
-		ModTime: m.modTime,
-	}
+	mfs.MapFS[name] = &m.MapFile
 
 	m.Open()
 

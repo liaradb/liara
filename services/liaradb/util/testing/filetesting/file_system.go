@@ -20,7 +20,7 @@ func NewDiskFileSystem(t *testing.T) file.FileSystem {
 	return fsys
 }
 
-func NewMockFileSystem(t *testing.T, fsys fstest.MapFS) *mock.FileSystem {
+func NewMockFileSystem(t *testing.T, fsys fstest.MapFS) file.FileSystem {
 	return mock.NewFileSystem(fsys)
 }
 

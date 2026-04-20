@@ -12,9 +12,9 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
-	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func TestEventLog_Recovery(t *testing.T) {
@@ -67,7 +67,7 @@ func testRecovery(t *testing.T) {
 func write(
 	t *testing.T,
 	baseCtx context.Context,
-	fsys *mock.FileSystem,
+	fsys file.FileSystem,
 	max int,
 	bs int64,
 	dir string,
@@ -100,7 +100,7 @@ func write(
 func recover(
 	t *testing.T,
 	ctx context.Context,
-	fsys *mock.FileSystem,
+	fsys file.FileSystem,
 	max int,
 	bs int64,
 	dir string,
