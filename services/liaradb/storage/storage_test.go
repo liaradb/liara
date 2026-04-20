@@ -38,7 +38,7 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect block id: %v, expected: %v", i, bid0)
 	}
 
-	if p := b.blockID.Position(); p != 1 {
+	if p := b.BlockID().Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
@@ -72,7 +72,7 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect block id: %v, expected: %v", i, bid1)
 	}
 
-	if p := b0.blockID.Position(); p != 2 {
+	if p := b0.BlockID().Position(); p != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 
@@ -107,15 +107,15 @@ func testStorage_RequestBeforeRun(t *testing.T) {
 	}
 
 	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
 	}
 
 	if b, err := s.RequestCurrent(t.Context(), link.NewFileName("")); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
 	}
 
 	if b, err := s.RequestNext(t.Context(), link.NewFileName("")); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.blockID.Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
 	}
 }
 
@@ -151,7 +151,7 @@ func testStorage_Run(t *testing.T) {
 		t.Error(err)
 	}
 
-	if p := b.blockID.Position(); p != 1 {
+	if p := b.BlockID().Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
@@ -162,7 +162,7 @@ func testStorage_Run(t *testing.T) {
 	cancel()
 
 	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.blockID.Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.BlockID().Position())
 	}
 }
 

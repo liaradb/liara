@@ -120,7 +120,7 @@ func (s *Storage) getUnpinned(bid link.BlockID) (*Buffer, bool) {
 	b, ok := s.unpinned.Remove(bid)
 	if ok {
 		b.pin()
-		s.pinned[b.blockID] = b
+		s.pinned[b.BlockID()] = b
 	}
 	return b, ok
 }
@@ -133,7 +133,7 @@ func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) 
 
 	b.load(bid, next)
 	b.pin()
-	s.pinned[b.blockID] = b
+	s.pinned[b.BlockID()] = b
 
 	return b, nil
 }
@@ -191,7 +191,7 @@ func (s *Storage) getReturn(ctx context.Context) (*Buffer, error) {
 
 func (s *Storage) unpinAfterRelease(b *Buffer) bool {
 	if b.unpin() {
-		delete(s.pinned, b.blockID)
+		delete(s.pinned, b.BlockID())
 		return true
 	}
 	return false
@@ -215,8 +215,8 @@ func (s *Storage) returnBuffer(b *Buffer) {
 }
 
 func (s *Storage) moveToUnpinned(b *Buffer) {
-	delete(s.pinned, b.blockID)
-	s.unpinned.Push(b.blockID, b)
+	delete(s.pinned, b.BlockID())
+	s.unpinned.Push(b.BlockID(), b)
 }
 
 func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.BlockID, error) {
