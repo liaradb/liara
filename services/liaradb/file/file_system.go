@@ -19,4 +19,9 @@ type File interface {
 	io.Writer
 	io.WriterAt
 	io.Seeker
+	Close
+}
+
+type Close interface {
+	Close() error
 }
