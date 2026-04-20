@@ -137,10 +137,6 @@ func (s *Storage) getUnloaded(ctx context.Context, bid link.BlockID, next bool) 
 		return nil, err
 	}
 
-	// TODO: Don't load here.  Do this in separate goroutine.
-	// Create second goroutine
-	// One for loaded Buffers, one for non-loaded Buffers
-	// This will allow loaded traffic to continue
 	if err := b.load(bid, next); err != nil {
 		return nil, err
 	}

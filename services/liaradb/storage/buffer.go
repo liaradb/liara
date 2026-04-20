@@ -79,15 +79,18 @@ func (b *Buffer) load(bid link.BlockID, next bool) error {
 	}
 
 	b.blockID = bid
-	b.status = BufferStatusLoading
 
-	if err := b.clearOrLoad(next, r); err != nil {
-		return err
-	}
-
-	b.status = BufferStatusLoaded
-
+	// TODO: What do we do if this has an error?
+	// Move loading into sync.Once.
+	// This will allow loaded traffic to continue
 	b.createLoad(func() error {
+		b.status = BufferStatusLoading
+
+		if err := b.clearOrLoad(next, r); err != nil {
+			return err
+		}
+
+		b.status = BufferStatusLoaded
 		return nil
 	})
 
