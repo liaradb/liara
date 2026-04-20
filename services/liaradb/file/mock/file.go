@@ -12,9 +12,13 @@ import (
 )
 
 type File struct {
+	*fileInner
+	position int64
+}
+
+type fileInner struct {
 	name       string
 	data       []byte
-	position   int64
 	modTime    time.Time
 	isOpen     bool
 	readCount  int
@@ -26,9 +30,17 @@ var _ file.File = (*File)(nil)
 
 func NewMockFile(name string, delay time.Duration) *File {
 	return &File{
-		name:    name,
-		modTime: time.Now(),
-		delay:   delay,
+		fileInner: &fileInner{
+			name:    name,
+			modTime: time.Now(),
+			delay:   delay,
+		},
+	}
+}
+
+func (f *File) clone() *File {
+	return &File{
+		fileInner: f.fileInner,
 	}
 }
 

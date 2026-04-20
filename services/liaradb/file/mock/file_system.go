@@ -94,9 +94,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 		d[base] = m
 	} else {
 		// Clone
-		var m2 File = *m
-		m = &m2
-		d[base] = m
+		d[base] = m.clone()
 	}
 
 	mfs.MapFS[name] = &fstest.MapFile{
