@@ -97,7 +97,7 @@ func testReader_Reverse(t *testing.T) {
 func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))

@@ -1,4 +1,4 @@
-package mock
+package filetesting
 
 import (
 	"encoding/binary"

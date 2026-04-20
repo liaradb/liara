@@ -12,7 +12,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
 func TestWriter_Append(t *testing.T) {
@@ -220,7 +220,7 @@ func TestWriter_Flush(t *testing.T) {
 func createWriter(t *testing.T) *Writer {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
+	f := filetesting.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
@@ -236,7 +236,7 @@ func createWriter(t *testing.T) *Writer {
 func createWriterSmall(t *testing.T) *Writer {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
+	f := filetesting.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 
 	sw := NewWriter(32, 1)
@@ -247,7 +247,7 @@ func createWriterSmall(t *testing.T) *Writer {
 func createFile(t *testing.T) file.File {
 	t.Helper()
 
-	f := mock.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
+	f := filetesting.NewMockFile(path.Join(t.TempDir(), "logfile"), 0)
 	f.Open()
 	return f
 }

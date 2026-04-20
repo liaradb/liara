@@ -51,7 +51,7 @@ func testManager(t *testing.T) {
 func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	t.Helper()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
 	lt := createLockTable(t)
@@ -89,9 +89,9 @@ func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
 	return lt
 }
 
-func createFiles(t *testing.T) (file.FileSystem, string) {
+func createFiles() (file.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
-	return filetesting.NewMockFileSystem(t, nil), "."
+	return filetesting.New(nil), "."
 }
 
 func TestManager_Active(t *testing.T) {

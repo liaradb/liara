@@ -19,7 +19,7 @@ func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		fsys := filetesting.NewMockFileSystem(t, nil)
+		fsys := filetesting.New(nil)
 		s := CreateStorageWithFileSystem(t, max, bs, fsys)
 
 		t.Cleanup(func() {
@@ -40,7 +40,7 @@ func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
 func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	return CreateStorageWithFileSystem(t, max, bs, fsys)
 }
 

@@ -267,7 +267,7 @@ func TestLog_FlushCheckpoint(t *testing.T) {
 
 func testLog_FlushCheckpoint(t *testing.T) {
 	ctx := t.Context()
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 	tid := value.NewTenantID()
 
@@ -381,7 +381,7 @@ func TestLog_Recover(t *testing.T) {
 func testLog_Recover(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	tid := value.NewTenantID()
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(2))
 	r0 := records[0]
@@ -472,7 +472,7 @@ func TestLog_RecoverMany(t *testing.T) {
 func testLog_RecoverMany(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	tid := value.NewTenantID()
 
 	var aCount1 = record.NewLogSequenceNumber(1)
@@ -643,7 +643,7 @@ func TestLog_Commit(t *testing.T) {
 func testLog_Commit(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 
 	if lsn, err := l.Commit(ctx,
@@ -690,7 +690,7 @@ func TestLog_Insert(t *testing.T) {
 func testLog_Insert(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 
@@ -740,7 +740,7 @@ func TestLog_Rollback(t *testing.T) {
 func testLog_Rollback(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 
 	if lsn, err := l.Rollback(ctx,
@@ -787,7 +787,7 @@ func TestLog_Start(t *testing.T) {
 func testLog_Start(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 
 	if lsn, err := l.Start(ctx,
@@ -834,7 +834,7 @@ func TestLog_Update(t *testing.T) {
 func testLog_Update(t *testing.T) {
 	ctx := t.Context()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, fsys, dir)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
@@ -884,7 +884,7 @@ func createLogStart(t *testing.T,
 ) *Log {
 	t.Helper()
 
-	fsys, dir := createFiles(t)
+	fsys, dir := createFiles()
 	l := createLog(t, pageSize, segmentSize, fsys, dir)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
@@ -937,9 +937,9 @@ func cleanupLog(t *testing.T, l *Log) {
 	})
 }
 
-func createFiles(t *testing.T) (file.FileSystem, string) {
+func createFiles() (file.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
-	return filetesting.NewMockFileSystem(t, nil), "."
+	return filetesting.New(nil), "."
 }
 
 func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {

@@ -30,7 +30,7 @@ const (
 func TestPage(t *testing.T) {
 	t.Parallel()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	pid, tlid, rem, p := createWriter()
 
@@ -49,7 +49,7 @@ func TestPage(t *testing.T) {
 func TestPage_Append(t *testing.T) {
 	t.Parallel()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	pid, tlid, rem, p := createWriter()
 
@@ -512,7 +512,7 @@ func testPage(
 func createReaderWriter(t *testing.T) (file.File, *Page) {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	f, _ := fsys.OpenFile(path.Join(t.TempDir(), "logfile"))
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))

@@ -14,7 +14,6 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
-	"github.com/liaradb/liaradb/util/testing/filetesting/mock"
 )
 
 func TestStorage(t *testing.T) {
@@ -125,7 +124,7 @@ func TestStorage_Run(t *testing.T) {
 }
 
 func testStorage_Run(t *testing.T) {
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	dir := path.Join(t.TempDir(), "dir")
 	s := New(fsys, 2, 1024, dir)
 
@@ -402,21 +401,21 @@ func testStorage_Wait__NoLeak(t *testing.T) {
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
 func createStorageDelay(t *testing.T, max int, bs int64, delay time.Duration) *Storage {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystemDelay(t, nil, delay)
+	fsys := filetesting.NewCacheDelay(nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *mock.FileSystem) {
+func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *file.Cache) {
 	t.Helper()
 
-	fsys := filetesting.NewMockFileSystemDelay(t, nil, delay)
+	fsys := filetesting.NewCacheDelay(nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys), fsys
 }
 
@@ -515,7 +514,7 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mf, ok := f.(*mock.File)
+	mf, ok := f.(*file.CacheFile).File.(*filetesting.File)
 	if !ok {
 		t.Fatal("incorrect type")
 	}
@@ -712,13 +711,13 @@ func testStorage_Release__NonBlocking(t *testing.T) {
 
 		b0.Release()
 		b1.Release()
-		fsys.UnLock()
+		fsys.FSYS().(*filetesting.FileSystem).UnLock()
 	})
 
 	wg.Go(func() {
 		<-step0
 
-		fsys.Lock()
+		fsys.FSYS().(*filetesting.FileSystem).Lock()
 		close(step1)
 
 		_, err := s.Highwater(ctx, fn)

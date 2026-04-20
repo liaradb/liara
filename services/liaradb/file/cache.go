@@ -20,6 +20,8 @@ func NewCache(
 	}
 }
 
+func (fsc *Cache) FSYS() FileSystem { return fsc.fsys }
+
 func (fsc *Cache) MkDirAll(name string) error {
 	return fsc.fsys.MkDirAll(name)
 }

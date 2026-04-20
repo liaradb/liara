@@ -25,7 +25,7 @@ func TestEventLog_Recovery(t *testing.T) {
 func testRecovery(t *testing.T) {
 	ctx := t.Context()
 
-	fsys := filetesting.NewMockFileSystem(t, nil)
+	fsys := filetesting.New(nil)
 	dir := t.TempDir()
 	tn := tablename.NewFromString(path.Join(dir, "testfile"))
 	pid := value.NewPartitionID(0)
