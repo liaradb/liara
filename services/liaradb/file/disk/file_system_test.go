@@ -9,7 +9,7 @@ func TestFileSystem(t *testing.T) {
 	t.Parallel()
 
 	p := path.Join(t.TempDir(), "file")
-	fs := NewFileSystem()
+	fs := New()
 
 	if c := fs.Count(); c != 0 {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
@@ -51,7 +51,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		t.Parallel()
 
 		p := path.Join(t.TempDir(), "file")
-		fs := NewFileSystem()
+		fs := New()
 		if f, err := fs.OpenFile(p); err != nil {
 			t.Error(err)
 		} else if f == nil {
@@ -67,7 +67,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		t.Parallel()
 
 		p := path.Join(t.TempDir(), "file")
-		fs := NewFileSystem()
+		fs := New()
 
 		f, err := fs.OpenFile(p)
 		if err != nil {
@@ -84,7 +84,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 	t.Run("Should noop if file not opened", func(t *testing.T) {
 		t.Parallel()
 
-		fs := NewFileSystem()
+		fs := New()
 
 		if err := fs.CloseFile("other"); err != nil {
 			t.Error(err)
@@ -95,7 +95,7 @@ func TestFileSystem_CloseFile(t *testing.T) {
 		t.Parallel()
 
 		p := path.Join(t.TempDir(), "file")
-		fs := NewFileSystem()
+		fs := New()
 
 		f, err := fs.OpenFile(p)
 		if err != nil {

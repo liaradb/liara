@@ -7,29 +7,29 @@ import (
 	"github.com/liaradb/liaradb/file"
 )
 
-type DiskFileSystem struct {
+type FileSystem struct {
 }
 
-func NewFileSystem() *file.FileCache {
-	return file.NewFileSystem(&DiskFileSystem{})
+func New() *file.Cache {
+	return file.NewCache(&FileSystem{})
 }
 
-func (fs *DiskFileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
+func (fs *FileSystem) ReadDir(name string) ([]fs.DirEntry, error) {
 	return os.ReadDir(name)
 }
 
-func (fs *DiskFileSystem) MkDirAll(name string) error {
+func (fs *FileSystem) MkDirAll(name string) error {
 	return os.MkdirAll(name, 0750)
 }
 
-func (fs *DiskFileSystem) OpenFile(name string) (file.File, error) {
+func (fs *FileSystem) OpenFile(name string) (file.File, error) {
 	return os.OpenFile(name, os.O_RDWR|os.O_CREATE, 0644)
 }
 
-func (fs *DiskFileSystem) Remove(name string) error {
+func (fs *FileSystem) Remove(name string) error {
 	return os.Remove(name)
 }
 
-func (fs *DiskFileSystem) Stat(name string) (fs.FileInfo, error) {
+func (fs *FileSystem) Stat(name string) (fs.FileInfo, error) {
 	return os.Stat(name)
 }

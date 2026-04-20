@@ -6,25 +6,25 @@ import (
 	"sync"
 )
 
-type FileCache struct {
-	files map[string]*FileCacheFile
+type Cache struct {
+	files map[string]*CacheFile
 	mux   sync.RWMutex
 	fsys  FileSystem
 }
 
-func NewFileSystem(
+func NewCache(
 	fsys FileSystem,
-) *FileCache {
-	return &FileCache{
+) *Cache {
+	return &Cache{
 		fsys: fsys,
 	}
 }
 
-func (fsc *FileCache) MkDirAll(name string) error {
+func (fsc *Cache) MkDirAll(name string) error {
 	return fsc.fsys.MkDirAll(name)
 }
 
-func (fsc *FileCache) OpenFile(name string) (File, error) {
+func (fsc *Cache) OpenFile(name string) (File, error) {
 	fsc.mux.Lock()
 	defer fsc.mux.Unlock()
 
@@ -39,9 +39,9 @@ func (fsc *FileCache) OpenFile(name string) (File, error) {
 	}
 
 	if fsc.files == nil {
-		fsc.files = map[string]*FileCacheFile{}
+		fsc.files = map[string]*CacheFile{}
 	}
-	df = &FileCacheFile{
+	df = &CacheFile{
 		File: f,
 		name: name,
 		fsys: fsc}
@@ -49,15 +49,15 @@ func (fsc *FileCache) OpenFile(name string) (File, error) {
 	return df, nil
 }
 
-func (fsc *FileCache) ReadDir(name string) ([]fs.DirEntry, error) {
+func (fsc *Cache) ReadDir(name string) ([]fs.DirEntry, error) {
 	return fsc.fsys.ReadDir(name)
 }
 
-func (fsc *FileCache) Stat(name string) (fs.FileInfo, error) {
+func (fsc *Cache) Stat(name string) (fs.FileInfo, error) {
 	return fsc.fsys.Stat(name)
 }
 
-func (fsc *FileCache) Remove(name string) error {
+func (fsc *Cache) Remove(name string) error {
 	if err := fsc.CloseFile(name); err != nil {
 		return err
 	}
@@ -65,14 +65,14 @@ func (fsc *FileCache) Remove(name string) error {
 	return fsc.fsys.Remove(name)
 }
 
-func (fsc *FileCache) Count() int {
+func (fsc *Cache) Count() int {
 	fsc.mux.RLock()
 	defer fsc.mux.RUnlock()
 
 	return len(fsc.files)
 }
 
-func (fsc *FileCache) Close() error {
+func (fsc *Cache) Close() error {
 	errs := make([]error, 0, len(fsc.files))
 	for n := range fsc.files {
 		errs = append(errs, fsc.CloseFile(n))
@@ -80,7 +80,7 @@ func (fsc *FileCache) Close() error {
 	return errors.Join(errs...)
 }
 
-func (fsc *FileCache) CloseFile(name string) error {
+func (fsc *Cache) CloseFile(name string) error {
 	fsc.mux.Lock()
 	defer fsc.mux.Unlock()
 

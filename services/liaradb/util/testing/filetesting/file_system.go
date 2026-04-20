@@ -11,7 +11,7 @@ import (
 )
 
 func NewDiskFileSystem(t *testing.T) file.FileSystem {
-	fsys := disk.NewFileSystem()
+	fsys := disk.New()
 	t.Cleanup(func() {
 		if err := fsys.Close(); err != nil {
 			t.Error(err)
@@ -21,7 +21,7 @@ func NewDiskFileSystem(t *testing.T) file.FileSystem {
 }
 
 func NewMockFileSystem(t *testing.T, fsys fstest.MapFS) file.FileSystem {
-	return mock.NewFileSystem(fsys)
+	return mock.New(fsys)
 }
 
 func NewMockFileSystemDelay(t *testing.T, fsys fstest.MapFS, delay time.Duration) *mock.FileSystem {

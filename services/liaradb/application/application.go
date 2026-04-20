@@ -37,7 +37,7 @@ func New(conf configuration) *Application {
 	segmentSize := 1024
 	inSize := 100
 
-	fsys := disk.NewFileSystem()
+	fsys := disk.New()
 
 	s := storage.New(fsys, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
 	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))

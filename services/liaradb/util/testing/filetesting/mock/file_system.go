@@ -18,6 +18,10 @@ type FileSystem struct {
 	delay time.Duration
 }
 
+func New(fsys fstest.MapFS) *file.Cache {
+	return file.NewCache(newFileSystem(fsys))
+}
+
 func newFileSystem(fsys fstest.MapFS) *FileSystem {
 	lock := make(chan struct{})
 	close(lock)

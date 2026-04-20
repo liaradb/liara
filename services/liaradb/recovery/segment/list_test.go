@@ -83,13 +83,13 @@ func TestList_OpenLatestSegment(t *testing.T) {
 		result SegmentID
 		fsys   file.FileSystem
 	}{
-		"should handle no files": {0, mock.NewFileSystem(fstest.MapFS{
+		"should handle no files": {0, mock.New(fstest.MapFS{
 			fmt.Sprintf("%v/", dir): &fstest.MapFile{},
 		})},
-		"should handle one file": {1, mock.NewFileSystem(fstest.MapFS{
+		"should handle one file": {1, mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		})},
-		"should handle multiple files": {2, mock.NewFileSystem(fstest.MapFS{
+		"should handle multiple files": {2, mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})},
@@ -123,7 +123,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 
 		dir := "log"
 
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
@@ -142,7 +142,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
+		if f.(*file.CacheFile).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -157,7 +157,7 @@ func TestList_IterateFromLSN(t *testing.T) {
 	sn1 := NewSegmentName(2, record.NewLogSequenceNumber(20))
 	sn2 := NewSegmentName(3, record.NewLogSequenceNumber(30))
 	names := []SegmentName{sn0, sn1, sn2}
-	fsys := mock.NewFileSystem(fstest.MapFS{
+	fsys := mock.New(fstest.MapFS{
 		createPath(dir, sn0): {},
 		createPath(dir, sn1): {},
 		createPath(dir, sn2): {},
@@ -188,7 +188,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 
 	dir := "log"
 
-	fsys := mock.NewFileSystem(fstest.MapFS{
+	fsys := mock.New(fstest.MapFS{
 		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
@@ -238,7 +238,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
@@ -253,7 +253,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
+		if f.(*file.CacheFile).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -265,7 +265,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 	dir := "log"
 
 	t.Run("should open next segment", func(t *testing.T) {
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
@@ -301,7 +301,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		})
 		sl := NewList(fsys, dir)
@@ -315,7 +315,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
+		if f.(*file.CacheFile).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -327,7 +327,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 	dir := "log"
 
 	t.Run("should open segment", func(t *testing.T) {
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
@@ -355,7 +355,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 	t.Run("should close previous file", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
@@ -371,7 +371,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*file.FileCacheFile).File.(*mock.File).IsOpen() {
+		if f.(*file.CacheFile).IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -379,7 +379,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 	t.Run("should not open invalid segment", func(t *testing.T) {
 		t.Parallel()
 
-		fsys := mock.NewFileSystem(fstest.MapFS{
+		fsys := mock.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
@@ -398,7 +398,7 @@ func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 
 	dir := "log"
 
-	fsys := mock.NewFileSystem(fstest.MapFS{
+	fsys := mock.New(fstest.MapFS{
 		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
@@ -432,7 +432,7 @@ func TestList_Reverse(t *testing.T) {
 	sn2 := NewSegmentName(3, record.NewLogSequenceNumber(30))
 	names := []SegmentName{sn0, sn1, sn2}
 	slices.Reverse(names)
-	fsys := mock.NewFileSystem(fstest.MapFS{
+	fsys := mock.New(fstest.MapFS{
 		createPath(dir, sn0): {},
 		createPath(dir, sn1): {},
 		createPath(dir, sn2): {},
