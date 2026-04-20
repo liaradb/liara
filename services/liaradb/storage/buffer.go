@@ -114,12 +114,7 @@ func (b *Buffer) flushIfDirtyBeforeLoad() error {
 		return nil
 	}
 
-	w, err := b.s.openFile(b.oldBID)
-	if err != nil {
-		return err
-	}
-
-	return b.flushOld(w)
+	return b.flush()
 }
 
 func (b *Buffer) clearOrLoad(next bool) error {
@@ -169,12 +164,7 @@ func (b *Buffer) flushIfDirty() error {
 	b.RLatch()
 	defer b.RUnlatch()
 
-	f, err := b.s.openFile(b.blockID)
-	if err != nil {
-		return err
-	}
-
-	if err := b.flush(f); err != nil {
+	if err := b.flush(); err != nil {
 		return err
 	}
 
@@ -182,13 +172,13 @@ func (b *Buffer) flushIfDirty() error {
 	return nil
 }
 
-func (b *Buffer) flush(w io.WriterAt) error {
-	_, err := w.WriteAt(b.buffer.Bytes(), b.offset())
-	return err
-}
+func (b *Buffer) flush() error {
+	w, err := b.s.openFile(b.oldBID)
+	if err != nil {
+		return err
+	}
 
-func (b *Buffer) flushOld(w io.WriterAt) error {
-	_, err := w.WriteAt(b.buffer.Bytes(), b.offsetOld())
+	_, err = w.WriteAt(b.buffer.Bytes(), b.offsetOld())
 	return err
 }
 
