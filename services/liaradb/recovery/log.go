@@ -132,7 +132,12 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
+	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
+	if err != nil {
+		return lsn, err
+	}
+
+	return lsn, l.Flush(ctx)
 }
 
 func (l *Log) Rollback(
@@ -141,7 +146,12 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
+	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
+	if err != nil {
+		return lsn, err
+	}
+
+	return lsn, l.Flush(ctx)
 }
 
 func (l *Log) Insert(

@@ -656,11 +656,7 @@ func testLog_Commit(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
-
-	if err := l.Flush(t.Context()); err != nil {
-		t.Fatal(err)
-	}
+	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
 
 	l2 := createLogAllStart(t, 320, 3, fsys, dir)
 
@@ -753,11 +749,7 @@ func testLog_Rollback(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
-
-	if err := l.Flush(t.Context()); err != nil {
-		t.Fatal(err)
-	}
+	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
 
 	l2 := createLogAllStart(t, 320, 3, fsys, dir)
 

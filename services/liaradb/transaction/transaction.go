@@ -308,10 +308,6 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.flush(ctx); err != nil {
-		return err
-	}
-
 	if err := t.appendToEventLog(ctx); err != nil {
 		return err
 	}
@@ -338,15 +334,7 @@ func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
 		return err
 	}
 
-	if err := t.flush(ctx); err != nil {
-		return err
-	}
-
 	return nil
-}
-
-func (t *Transaction) flush(ctx context.Context) error {
-	return t.log.Flush(ctx)
 }
 
 func (t *Transaction) GetOutbox(

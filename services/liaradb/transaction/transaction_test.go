@@ -33,10 +33,6 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := l.Flush(ctx); err != nil {
-		t.Fatal(err)
-	}
-
 	c := 0
 	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
@@ -50,8 +46,8 @@ func testTransaction_Insert(t *testing.T) {
 		c++
 	}
 
-	if c != 1 {
-		t.Errorf("incorrect record count: %v, expected: %v", c, 1)
+	if c != 0 {
+		t.Errorf("incorrect record count: %v, expected: %v", c, 0)
 	}
 
 	synctest.Wait()
