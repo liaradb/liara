@@ -27,17 +27,25 @@ clean-data:
 
 .PHONY: cover
 cover:
-	go test -cover ./...
+	@echo "Test coverage"
+	@go test -cover ./...
+
+.PHONY: cover-file
+cover-file:
+	@go test -coverprofile=cover.out ./...
 
 .PHONY: report
-report:
-	go test -coverprofile=cover.out ./...
-	go tool cover -html=cover.out
+report: cover-file
+	@go tool cover -html=cover.out
+
+.PHONY: total
+total: cover-file
+	@COVERAGE=$$(go tool cover -func=cover.out | grep total | grep -Eo '[0-9]+\.[0-9]\%+'); \
+	echo "Coverage: $$COVERAGE"
 
 .PHONY: report-file
-report-file:
-	go test -coverprofile=cover.out ./...
-	go tool cover -html=cover.out -o cover.html
+report-file: cover-file total
+	@go tool cover -html=cover.out -o cover.html
 
 .PHONY: doc
 doc:
