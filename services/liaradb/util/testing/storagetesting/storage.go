@@ -6,6 +6,8 @@ import (
 
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/queue"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -47,7 +49,7 @@ func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
 func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem) *storage.Storage {
 	t.Helper()
 
-	s := storage.New(fsys, max, bs, t.TempDir())
+	s := storage.New(fsys, &queue.MapQueue[link.BlockID, *storage.Buffer]{}, max, bs, t.TempDir())
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

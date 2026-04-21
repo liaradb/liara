@@ -14,6 +14,7 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/queue"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -127,7 +128,7 @@ func TestStorage_Run(t *testing.T) {
 func testStorage_Run(t *testing.T) {
 	fsys := filetesting.New(nil)
 	dir := path.Join(t.TempDir(), "dir")
-	s := New(fsys, 2, 1024, dir)
+	s := New(fsys, &queue.MapQueue[link.BlockID, *Buffer]{}, 2, 1024, dir)
 
 	if _, err := fsys.Stat(dir); !errors.Is(err, os.ErrNotExist) {
 		t.Fatal("dir should not exist")
@@ -424,7 +425,7 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.File
 	t.Helper()
 
 	dir := t.TempDir()
-	s := New(fsys, max, bs, dir)
+	s := New(fsys, &queue.MapQueue[link.BlockID, *Buffer]{}, max, bs, dir)
 
 	if d := s.Dir(); d != dir {
 		t.Fatalf("incorrect dir: %v, expected: %v", d, dir)

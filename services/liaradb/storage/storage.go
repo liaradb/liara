@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/queue"
 )
 
 type Storage struct {
@@ -17,7 +16,7 @@ type Storage struct {
 	fs         file.FileSystem
 	dir        string
 	pinned     map[link.BlockID]*Buffer
-	unpinned   queue.MapQueue[link.BlockID, *Buffer]
+	unpinned   FreePool[link.BlockID, *Buffer]
 	bufferReqs async.Handler[bufferQuery, *Buffer]
 	highWReqs  async.Handler[link.FileName, link.BlockID]
 	returns    chan *Buffer
@@ -26,7 +25,7 @@ type Storage struct {
 	hwMux      sync.RWMutex
 }
 
-func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
+func New(fs file.FileSystem, unpinned FreePool[link.BlockID, *Buffer], max int, bs int64, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,
@@ -35,6 +34,7 @@ func New(fs file.FileSystem, max int, bs int64, dir string) *Storage {
 		highWReqs:  make(async.Handler[link.FileName, link.BlockID]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[link.BlockID]*Buffer, max),
+		unpinned:   unpinned,
 		max:        max,
 		highWater:  make(map[link.FileName]link.FilePosition),
 	}
