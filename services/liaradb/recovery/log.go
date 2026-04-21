@@ -13,6 +13,10 @@ import (
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
+const (
+	interval = 10 * time.Second
+)
+
 type Log struct {
 	sl         *segment.List
 	reader     *reader
@@ -59,12 +63,17 @@ func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) PageID() action.PageID               { return l.writer.PageID() }
 
 func (l *Log) run(ctx context.Context) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case r := <-l.appendReqs:
 			l.appendRequest(r)
+		case <-ticker.C:
+			// l.flushRequest(&flushRequest{})
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
 		}
