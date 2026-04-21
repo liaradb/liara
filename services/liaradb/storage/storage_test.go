@@ -14,7 +14,7 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/file/filecache"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/util/queue"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 

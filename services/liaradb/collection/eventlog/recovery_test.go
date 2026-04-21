@@ -14,8 +14,7 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -77,7 +76,7 @@ func write(
 	pid value.PartitionID,
 	events []*entity.Event,
 ) {
-	s := storage.New(fsys, &queue.MapQueue[link.BlockID, *storage.Buffer]{}, max, bs, dir)
+	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(baseCtx)
@@ -110,7 +109,7 @@ func recover(
 	pid value.PartitionID,
 	events []*entity.Event,
 ) {
-	s := storage.New(fsys, &queue.MapQueue[link.BlockID, *storage.Buffer]{}, max, bs, dir)
+	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(ctx)

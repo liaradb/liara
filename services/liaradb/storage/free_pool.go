@@ -1,11 +1,15 @@
 package storage
 
-import "iter"
+import (
+	"iter"
 
-type FreePool[K comparable, V any] interface {
+	"github.com/liaradb/liaradb/storage/link"
+)
+
+type FreePool interface {
 	Count() int
-	Iterate() iter.Seq[V]
-	Pop() (V, bool)
-	Push(k K, v V)
-	Remove(k K) (V, bool)
+	Iterate() iter.Seq[*Buffer]
+	Pop() (*Buffer, bool)
+	Push(k link.BlockID, v *Buffer)
+	Remove(k link.BlockID) (*Buffer, bool)
 }

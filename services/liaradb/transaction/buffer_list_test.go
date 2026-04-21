@@ -6,7 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -17,7 +17,7 @@ func TestBufferList(t *testing.T) {
 
 func testBufferList(t *testing.T) {
 	fsys := filetesting.New(nil)
-	s := storage.New(fsys, &queue.MapQueue[link.BlockID, *storage.Buffer]{}, 2, 1024, t.TempDir())
+	s := storage.New(fsys, lrupool.New(), 2, 1024, t.TempDir())
 	bl := NewBufferList(s)
 
 	ctx := t.Context()

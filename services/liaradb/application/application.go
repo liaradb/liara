@@ -20,8 +20,7 @@ import (
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/storage/queue"
+	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
 	"google.golang.org/grpc"
 )
@@ -41,7 +40,7 @@ func New(conf configuration) *Application {
 
 	fsys := filecache.New()
 
-	s := storage.New(fsys, &queue.MapQueue[link.BlockID, *storage.Buffer]{}, conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
+	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
 	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), fsys, path.Join(conf.Directory, "log"))
 	lt := locktable.New[action.ItemID](inSize)
 

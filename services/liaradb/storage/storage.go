@@ -16,7 +16,7 @@ type Storage struct {
 	fs         file.FileSystem
 	dir        string
 	pinned     map[link.BlockID]*Buffer
-	unpinned   FreePool[link.BlockID, *Buffer]
+	unpinned   FreePool
 	bufferReqs async.Handler[bufferQuery, *Buffer]
 	highWReqs  async.Handler[link.FileName, link.BlockID]
 	returns    chan *Buffer
@@ -25,7 +25,7 @@ type Storage struct {
 	hwMux      sync.RWMutex
 }
 
-func New(fs file.FileSystem, unpinned FreePool[link.BlockID, *Buffer], max int, bs int64, dir string) *Storage {
+func New(fs file.FileSystem, unpinned FreePool, max int, bs int64, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,
