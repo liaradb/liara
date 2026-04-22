@@ -19,12 +19,16 @@ func TestEventSourceController__Outbox(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = esc.GetOutbox(t.Context(), &liara.GetOutboxRequest{
+	o, err := esc.GetOutbox(t.Context(), &liara.GetOutboxRequest{
 		OutboxId: res0.OutboxId,
 		TenantId: tid,
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if o.GlobalVersion != 0 {
+		t.Errorf("incorrect global version: %v, expected: %v", o.GlobalVersion, 0)
 	}
 
 	listReq := &liara.ListOutboxesRequest{
@@ -42,5 +46,25 @@ func TestEventSourceController__Outbox(t *testing.T) {
 
 	if len(result) != 1 {
 		t.Errorf("incorrect length: %v, expected: %v", len(result), 1)
+	}
+
+	o, err = esc.GetOutbox(t.Context(), &liara.GetOutboxRequest{
+		OutboxId: res0.OutboxId,
+		TenantId: tid,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := esc.UpdateOutboxPosition(t.Context(), &liara.UpdateOutboxPositionRequest{
+		TenantId:      tid,
+		OutboxId:      res0.OutboxId,
+		GlobalVersion: 10,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if o.GlobalVersion != 0 {
+		t.Errorf("incorrect global version: %v, expected: %v", o.GlobalVersion, 10)
 	}
 }

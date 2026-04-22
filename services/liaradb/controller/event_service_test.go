@@ -69,7 +69,13 @@ func (es *testEventService) TestIdempotency(ctx context.Context, tid value.Tenan
 }
 
 func (es *testEventService) UpdateOutboxPosition(ctx context.Context, tid value.TenantID, outboxID value.OutboxID, globalVersion value.GlobalVersion) error {
-	panic("unimplemented")
+	o, ok := es.outboxes[outboxID]
+	if !ok {
+		return baseerror.ErrNotFound
+	}
+
+	o.UpdateGlobalVersion(globalVersion)
+	return nil
 }
 
 var _ EventService = (*testEventService)(nil)
