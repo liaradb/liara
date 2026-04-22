@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func eventToDto(e *entity.Event) *pb.Event {
+func eventToDTO(e *entity.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: e.GlobalVersion.Value(),
 		Id:            e.ID.String(),
@@ -71,4 +71,40 @@ func dtoToPartitionRange(low int32, high int32) value.PartitionRange {
 	return value.NewPartitionRange(
 		value.NewPartitionID(low),
 		value.NewPartitionID(high))
+}
+
+func outboxToDTO(o *entity.Outbox) *pb.Outbox {
+	low, high := o.PartitionRange().All()
+
+	return &pb.Outbox{
+		OutboxId:      o.ID().String(),
+		GlobalVersion: o.GlobalVersion().Value(),
+		Low:           low.Value(),
+		High:          high.Value(),
+	}
+}
+
+func outboxToResponse(result *entity.Outbox) *pb.GetOutboxResponse {
+	low, high := result.PartitionRange().All()
+
+	return &pb.GetOutboxResponse{
+		GlobalVersion: result.GlobalVersion().Value(),
+		Low:           low.Value(),
+		High:          high.Value(),
+	}
+}
+
+func tenantToDTO(t *entity.Tenant) *pb.Tenant {
+	return &pb.Tenant{
+		TenantId: t.ID().String(),
+		Name:     t.Name().String(),
+	}
+}
+
+func mapSlice[T any, U any](slice []T, mapper func(T) U) []U {
+	result := make([]U, 0, len(slice))
+	for _, item := range slice {
+		result = append(result, mapper(item))
+	}
+	return result
 }

@@ -10,13 +10,13 @@ import (
 
 type EventSourceController struct {
 	pb.UnimplementedEventSourceServiceServer
-	eventService  *service.EventService
-	tenantService *service.TenantService
+	eventService  EventService
+	tenantService TenantService
 }
 
 func NewEventSourceController(
-	eventService *service.EventService,
-	tenantService *service.TenantService,
+	eventService EventService,
+	tenantService TenantService,
 ) *EventSourceController {
 	return &EventSourceController{
 		eventService:  eventService,
@@ -93,7 +93,7 @@ func (esc *EventSourceController) Get(
 			return err
 		}
 
-		if err := stream.Send(eventToDto(row)); err != nil {
+		if err := stream.Send(eventToDTO(row)); err != nil {
 			return err
 		}
 	}
@@ -118,7 +118,7 @@ func (esc *EventSourceController) GetByAggregateIDAndName(
 			return err
 		}
 
-		if err := stream.Send(eventToDto(row)); err != nil {
+		if err := stream.Send(eventToDTO(row)); err != nil {
 			return err
 		}
 	}
@@ -143,7 +143,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 			return err
 		}
 
-		if err := stream.Send(eventToDto(row)); err != nil {
+		if err := stream.Send(eventToDTO(row)); err != nil {
 			return err
 		}
 	}
@@ -172,7 +172,7 @@ func (esc *EventSourceController) GetByOutbox(
 			return err
 		}
 
-		if err := stream.Send(eventToDto(row)); err != nil {
+		if err := stream.Send(eventToDTO(row)); err != nil {
 			return err
 		}
 	}
@@ -220,13 +220,8 @@ func (esc *EventSourceController) GetOutbox(
 	if err != nil {
 		return nil, err
 	}
-	low, high := result.PartitionRange().All()
 
-	return &pb.GetOutboxResponse{
-		GlobalVersion: result.GlobalVersion().Value(),
-		Low:           low.Value(),
-		High:          high.Value(),
-	}, nil
+	return outboxToResponse(result), nil
 }
 
 func (esc *EventSourceController) UpdateOutboxPosition(
@@ -309,10 +304,7 @@ func (esc *EventSourceController) GetTenant(ctx context.Context, request *pb.Get
 	}
 
 	return &pb.GetTenantResponse{
-		Tenant: &pb.Tenant{
-			TenantId: t.ID().String(),
-			Name:     t.Name().String(),
-		},
+		Tenant: tenantToDTO(t),
 	}, nil
 }
 
@@ -322,17 +314,14 @@ func (esc *EventSourceController) ListOutboxes(request *pb.ListOutboxesRequest, 
 		return err
 	}
 
-	for t, err := range esc.eventService.ListOutboxes(stream.Context(), tid) {
+	for o, err := range esc.eventService.ListOutboxes(stream.Context(), tid) {
 		if err != nil {
 			return err
 		}
 
-		stream.Send(&pb.Outbox{
-			OutboxId:      t.ID().String(),
-			GlobalVersion: t.GlobalVersion().Value(),
-			Low:           t.PartitionRange().Low().Value(),
-			High:          t.PartitionRange().High().Value(),
-		})
+		if err := stream.Send(outboxToDTO(o)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -343,18 +332,9 @@ func (esc *EventSourceController) ListTenants(request *pb.ListTenantsRequest, st
 			return err
 		}
 
-		stream.Send(&pb.Tenant{
-			TenantId: t.ID().String(),
-			Name:     t.Name().String(),
-		})
+		if err := stream.Send(tenantToDTO(t)); err != nil {
+			return err
+		}
 	}
 	return nil
-}
-
-func mapSlice[T any, U any](slice []T, mapper func(T) U) []U {
-	result := make([]U, 0, len(slice))
-	for _, item := range slice {
-		result = append(result, mapper(item))
-	}
-	return result
 }
