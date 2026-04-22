@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestTransactionID(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var tid = NewTransactionID(123456)
 	if err := tid.Write(w); err != nil {

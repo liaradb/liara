@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestPageID_NewPageIDFromSize(t *testing.T) {
@@ -142,7 +142,7 @@ func TestPageID_Size(t *testing.T) {
 func TestPageID_Write(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var pid PageID = 123456
 	if err := pid.Write(w); err != nil {

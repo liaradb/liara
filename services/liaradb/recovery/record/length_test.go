@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestLength(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var l Length = NewLength(5)
 	if err := l.Write(w); err != nil {

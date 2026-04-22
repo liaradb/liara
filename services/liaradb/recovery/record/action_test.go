@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestAction(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var a Action = ActionCheckpoint
 	if err := a.Write(w); err != nil {

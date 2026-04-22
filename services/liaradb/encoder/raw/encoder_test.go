@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestStringSize(t *testing.T) {
@@ -25,7 +25,7 @@ func TestByteEncoder(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should read from nil slice", func(t *testing.T) {
-		r, w := testutil.NewReaderWriter()
+		r, w := iotesting.NewReaderWriter()
 
 		want := []byte{1, 2, 3, 4, 5}
 		if err := Write(w, want); err != nil {
@@ -47,7 +47,7 @@ func TestByteEncoder(t *testing.T) {
 	})
 
 	t.Run("should read empty from nil slice", func(t *testing.T) {
-		r, w := testutil.NewReaderWriter()
+		r, w := iotesting.NewReaderWriter()
 
 		want := []byte{}
 		if err := Write(w, want); err != nil {
@@ -69,7 +69,7 @@ func TestByteEncoder(t *testing.T) {
 	})
 
 	t.Run("should read from small slice", func(t *testing.T) {
-		r, w := testutil.NewReaderWriter()
+		r, w := iotesting.NewReaderWriter()
 
 		want := []byte{1, 2, 3, 4, 5}
 		if err := Write(w, want); err != nil {
@@ -91,7 +91,7 @@ func TestByteEncoder(t *testing.T) {
 	})
 
 	t.Run("should read from sufficient slice", func(t *testing.T) {
-		r, w := testutil.NewReaderWriter()
+		r, w := iotesting.NewReaderWriter()
 
 		want := []byte{1, 2, 3, 4, 5}
 		if err := Write(w, want); err != nil {
@@ -156,7 +156,7 @@ func TestByteEncoder__Short(t *testing.T) {
 func TestStringEncoder(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	want := "abcde"
 	if err := WriteString(w, want); err != nil {
@@ -195,7 +195,7 @@ func TestInt8(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := testutil.NewReaderWriter()
+			r, w := iotesting.NewReaderWriter()
 			var want, result int8 = c.value, 0
 
 			if err := WriteInt8(w, want); err != nil {
@@ -319,7 +319,7 @@ func TestInt16(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := testutil.NewReaderWriter()
+			r, w := iotesting.NewReaderWriter()
 			var want, result int16 = c.value, 0
 
 			if err := WriteInt16(w, want); err != nil {
@@ -359,7 +359,7 @@ func TestInt32(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := testutil.NewReaderWriter()
+			r, w := iotesting.NewReaderWriter()
 			var want, result int32 = c.value, 0
 
 			if err := WriteInt32(w, want); err != nil {
@@ -399,7 +399,7 @@ func TestInt64(t *testing.T) {
 				t.Skip()
 			}
 
-			r, w := testutil.NewReaderWriter()
+			r, w := iotesting.NewReaderWriter()
 			var want, result int64 = c.value, 0
 
 			if err := WriteInt64(w, want); err != nil {

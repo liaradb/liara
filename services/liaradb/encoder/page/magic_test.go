@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestMagic(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var m Magic = MagicPage
 	if err := m.Write(w); err != nil {

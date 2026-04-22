@@ -4,13 +4,13 @@ import (
 	"io"
 	"testing"
 
-	"github.com/liaradb/liaradb/util/testing/testutil"
+	"github.com/liaradb/liaradb/util/testing/iotesting"
 )
 
 func TestCRC(t *testing.T) {
 	t.Parallel()
 
-	r, w := testutil.NewReaderWriter()
+	r, w := iotesting.NewReaderWriter()
 
 	var c CRC = NewCRC([]byte{1, 2, 3, 4, 5})
 	if err := c.Write(w); err != nil {
