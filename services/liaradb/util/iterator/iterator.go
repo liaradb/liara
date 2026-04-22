@@ -1,4 +1,4 @@
-package listiter
+package iterator
 
 import (
 	"container/list"

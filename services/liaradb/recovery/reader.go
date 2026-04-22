@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/file"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/util/listiter"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type reader struct {
@@ -43,7 +43,7 @@ func (rd *reader) recover() (iter.Seq[*record.Record], error) {
 		}
 	}
 
-	return listiter.Reverse[*record.Record](rcs), nil
+	return iterator.Reverse[*record.Record](rcs), nil
 }
 
 func (rd *reader) recoverSegment(rcs *list.List, f file.File) (bool, error) {
