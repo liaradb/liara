@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/liaradb/liaradb/util/set"
+	"github.com/liaradb/liara/modules/orchestrator/set"
 )
 
 type runner struct {
