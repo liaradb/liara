@@ -15,6 +15,7 @@ type Buffer struct {
 	status  BufferStatus
 	s       *Storage
 	pins    int
+	reads   uint
 	mux     sync.RWMutex
 	loader  func() error
 }
@@ -29,6 +30,7 @@ func newBuffer(s *Storage) *Buffer {
 func (b *Buffer) BlockID() link.BlockID { return b.blockID }
 func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int             { return b.pins }
+func (b *Buffer) Reads() uint           { return b.reads }
 func (b *Buffer) Size() int64           { return b.s.BufferSize() }
 func (b *Buffer) Raw() []byte           { return b.buffer.Bytes() }
 func (b *Buffer) Cursor() int64         { return b.buffer.Cursor() }
@@ -46,6 +48,7 @@ func (b *Buffer) SetDirty() { b.status = BufferStatusDirty }
 
 func (b *Buffer) pin() {
 	b.pins++
+	b.reads++
 }
 
 func (b *Buffer) unpin() bool {
@@ -66,6 +69,7 @@ func (b *Buffer) Release() {
 //   - status is dirty only if already loaded
 func (b *Buffer) load(bid link.BlockID, next bool) {
 	b.blockID = bid
+	b.reads = 0
 	b.initLoader(next)
 }
 

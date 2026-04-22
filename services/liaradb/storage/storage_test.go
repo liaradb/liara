@@ -47,6 +47,10 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
+	if r := b.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
 	if s := b.Size(); s != 16 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 16)
 	}
@@ -81,6 +85,10 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
+	if r := b.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
 	b.Release()
 	b0.Release()
 
@@ -90,8 +98,16 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
 	}
 
+	if r := b.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
 	if p := b0.Pins(); p != 0 {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
+
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
 	}
 }
 
@@ -270,12 +286,12 @@ func testStorage_Flush(t *testing.T) {
 	defer cancel()
 
 	// Request Buffer 2 again - available
-	b3, err := s.Request(ctx2, bid2)
+	b2, err := s.Request(ctx2, bid2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if b3.Dirty() {
+	if b2.Dirty() {
 		t.Fatal("should have flushed")
 	}
 
@@ -290,7 +306,7 @@ func testStorage_Flush(t *testing.T) {
 	}
 
 	b0.Release()
-	b3.Release()
+	b2.Release()
 
 	// Request Buffer 1 again
 	b1, err = s.Request(ctx, bid1)
@@ -396,6 +412,58 @@ func testStorage_Wait__NoLeak(t *testing.T) {
 	})
 
 	wg.Wait()
+
+	synctest.Wait()
+}
+
+func TestStorage_Reads(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Reads)
+}
+
+func testStorage_Reads(t *testing.T) {
+	s := createStorage(t, 1, 32)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+	bid0 := fn.BlockID(0)
+	bid1 := fn.BlockID(1)
+
+	// Request Buffer 0
+	b0, err := s.Request(ctx, bid0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
+	b0.Release()
+
+	// Request Buffer 0 again
+	b0, err = s.Request(ctx, bid0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r := b0.Reads(); r != 2 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 2)
+	}
+
+	b0.Release()
+
+	// Request Buffer 1
+	b1, err := s.Request(ctx, bid1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r := b1.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
+	b1.Release()
 
 	synctest.Wait()
 }

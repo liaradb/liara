@@ -111,6 +111,14 @@ func testBuffer_Clone(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if r := b0.Reads(); r != 2 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 2)
+	}
+
+	if r := b1.Reads(); r != 2 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 2)
+	}
+
 	if _, err := b0.Write([]byte{1, 2, 3}); err != nil {
 		t.Fatal(err)
 	}

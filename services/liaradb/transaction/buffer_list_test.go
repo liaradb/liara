@@ -38,6 +38,10 @@ func testBufferList(t *testing.T) {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
 
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
 	b1, err := bl.Pin(ctx, fn.BlockID(2))
 	if err != nil {
 		t.Fatal(err)
@@ -48,6 +52,9 @@ func testBufferList(t *testing.T) {
 	if p := b1.Pins(); p != 1 {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
 	}
+	if r := b1.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
 
 	bl.Release()
 
@@ -55,7 +62,13 @@ func testBufferList(t *testing.T) {
 	if p := b0.Pins(); p != 0 {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
 	}
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
 	if p := b1.Pins(); p != 0 {
 		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
+	if r := b1.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
 	}
 }
