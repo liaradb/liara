@@ -26,4 +26,21 @@ func TestEventSourceController__Outbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	listReq := &liara.ListOutboxesRequest{
+		TenantId: tid,
+	}
+
+	var result []*liara.Outbox
+	listStr := newTestOutboxStream(t.Context(), func(o *liara.Outbox) {
+		result = append(result, o)
+	})
+
+	if err := esc.ListOutboxes(listReq, listStr); err != nil {
+		t.Error(err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("incorrect length: %v, expected: %v", len(result), 1)
+	}
 }

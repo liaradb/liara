@@ -55,7 +55,13 @@ func (es *testEventService) GetOutbox(ctx context.Context, tid value.TenantID, o
 }
 
 func (es *testEventService) ListOutboxes(ctx context.Context, tid value.TenantID) iter.Seq2[*entity.Outbox, error] {
-	panic("unimplemented")
+	return func(yield func(*entity.Outbox, error) bool) {
+		for _, o := range es.outboxes {
+			if !yield(o, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (es *testEventService) TestIdempotency(ctx context.Context, tid value.TenantID, id value.RequestID) (result bool, err error) {
