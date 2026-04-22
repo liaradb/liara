@@ -468,6 +468,51 @@ func testStorage_Reads(t *testing.T) {
 	synctest.Wait()
 }
 
+func TestStorage_Load__Error(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testStorage_Load__Error)
+}
+
+func testStorage_Load__Error(t *testing.T) {
+	s, fsys := createStorageAndFileSystem(t, 1, 32, 0)
+	ctx := t.Context()
+
+	fn := link.NewFileName("testfile")
+	bid0 := fn.BlockID(0)
+
+	mfs := fsys.FSYS().(*filetesting.FileSystem)
+
+	mfs.SetFail(true)
+
+	// Request Buffer 0
+	b0, err := s.Request(ctx, bid0)
+	if err == nil {
+		t.Fatal("should return error")
+	}
+
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
+	b0.Release()
+
+	mfs.SetFail(false)
+
+	// Request Buffer 0 again
+	b1, err := s.Request(ctx, bid0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r := b1.Reads(); r != 2 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 2)
+	}
+
+	b1.Release()
+
+	synctest.Wait()
+}
+
 func createStorage(t *testing.T, max int, bs int64) *Storage {
 	t.Helper()
 

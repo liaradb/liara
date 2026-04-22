@@ -24,11 +24,16 @@ type fileInner struct {
 	readCount  int
 	writeCount int
 	delay      time.Duration
+	fsys       *FileSystem
 }
 
 var _ file.File = (*File)(nil)
 
 func NewMockFile(name string, delay time.Duration) *File {
+	return NewMockFileWithFileSystem(name, delay, nil)
+}
+
+func NewMockFileWithFileSystem(name string, delay time.Duration, fsys *FileSystem) *File {
 	return &File{
 		fileInner: &fileInner{
 			name: name,
@@ -36,6 +41,7 @@ func NewMockFile(name string, delay time.Duration) *File {
 				ModTime: time.Now(),
 			},
 			delay: delay,
+			fsys:  fsys,
 		},
 	}
 }
@@ -91,6 +97,10 @@ func (f *File) ReadAt(b []byte, off int64) (n int, err error) {
 			Err:  errors.New("negative offset")}
 	}
 
+	if f.isFail() {
+		return 0, io.ErrUnexpectedEOF
+	}
+
 	if f.endOfFile(b, off) {
 		err = io.EOF
 	}
@@ -125,6 +135,10 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
 			Err:  errors.New("negative offset")}
 	}
 
+	if f.isFail() {
+		return 0, io.ErrUnexpectedEOF
+	}
+
 	if f.delay != 0 {
 		time.Sleep(f.delay)
 	}
@@ -135,6 +149,14 @@ func (f *File) WriteAt(b []byte, off int64) (n int, err error) {
 	f.writeCount++
 
 	return copy(f.Data[off:int(off)+len(b)], b), nil
+}
+
+func (f *File) isFail() bool {
+	if f.fsys == nil {
+		return false
+	}
+
+	return f.fsys.fail
 }
 
 func (f *File) endOfFile(b []byte, off int64) bool {

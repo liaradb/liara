@@ -17,6 +17,7 @@ type FileSystem struct {
 	mux   sync.Mutex
 	lock  chan struct{}
 	delay time.Duration
+	fail  bool
 }
 
 func New(fsys fstest.MapFS) *filecache.Cache {
@@ -50,6 +51,9 @@ func newFileSystemDelay(fsys fstest.MapFS, delay time.Duration) *FileSystem {
 
 func (mfs *FileSystem) Lock()   { mfs.lock = make(chan struct{}) }
 func (mfs *FileSystem) UnLock() { close(mfs.lock) }
+
+func (mfs *FileSystem) IsFail() bool      { return mfs.fail }
+func (mfs *FileSystem) SetFail(fail bool) { mfs.fail = fail }
 
 func (mfs *FileSystem) MkDirAll(name string) error {
 	mfs.mux.Lock()
@@ -94,7 +98,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	base := path.Base(name)
 	m, ok := d[base]
 	if !ok {
-		m = NewMockFile(name, mfs.delay)
+		m = NewMockFileWithFileSystem(name, mfs.delay, mfs)
 		f, ok := mfs.MapFS[dir]
 		if ok {
 			m.Data = f.Data
