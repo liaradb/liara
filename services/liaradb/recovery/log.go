@@ -61,6 +61,7 @@ func NewLog(
 func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) PageID() action.PageID               { return l.writer.PageID() }
+func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
 func (l *Log) run(ctx context.Context) {
 	ticker := time.NewTicker(interval)
@@ -73,7 +74,7 @@ func (l *Log) run(ctx context.Context) {
 		case r := <-l.appendReqs:
 			l.appendRequest(r)
 		case <-ticker.C:
-			// l.flushRequest(&flushRequest{})
+			l.flushRequest(&flushRequest{})
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
 		}
@@ -204,6 +205,10 @@ func (l *Log) flushRequest(r *flushRequest) {
 }
 
 func (l *Log) flush() error {
+	if !l.IsDirty() {
+		return nil
+	}
+
 	if err := l.writer.Flush(); err != nil {
 		return err
 	}
