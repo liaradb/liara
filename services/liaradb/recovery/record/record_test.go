@@ -3,11 +3,11 @@ package record
 import (
 	"bufio"
 	"bytes"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestRecord(t *testing.T) {
@@ -24,15 +24,41 @@ func TestRecord(t *testing.T) {
 
 	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
 
-	testutil.Getter(t, rc.LogSequenceNumber, lsn, "LogSequenceNumber")
-	testutil.Getter(t, rc.TenantID, tid, "TenantID")
-	testutil.Getter(t, rc.TransactionID, txid, "TransactionID")
-	testutil.Getter(t, rc.Time, now, "Time")
-	testutil.Getter(t, rc.Action, action, "Action")
-	testutil.Getter(t, rc.Collection, collection, "Collection")
-	testutil.GetterArray(t, rc.Data, data, "Data")
-	testutil.GetterArray(t, rc.Reverse, reverse, "Reverse")
-	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
+	if i := rc.LogSequenceNumber(); i != lsn {
+		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
+	}
+
+	if i := rc.TenantID(); i != tid {
+		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
+	}
+
+	if i := rc.TransactionID(); i != txid {
+		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
+	}
+
+	if i := rc.Time(); i != now {
+		t.Errorf("incorrect time: %v, expected: %v", i, now)
+	}
+
+	if i := rc.Action(); i != action {
+		t.Errorf("incorrect action: %v, expected: %v", i, action)
+	}
+
+	if i := rc.Collection(); i != collection {
+		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
+	}
+
+	if i := rc.Data(); !slices.Equal(i, data) {
+		t.Errorf("incorrect data: %v, expected: %v", i, data)
+	}
+
+	if i := rc.Reverse(); !slices.Equal(i, reverse) {
+		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
+	}
+
+	if i := rc.IsCheckpoint(); i != (action == ActionCheckpoint) {
+		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == ActionCheckpoint)
+	}
 }
 
 func TestRecord_Write(t *testing.T) {
@@ -65,15 +91,41 @@ func TestRecord_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testutil.Getter(t, rc2.LogSequenceNumber, lsn, "LogSequenceNumber")
-	testutil.Getter(t, rc2.TenantID, tid, "TenantID")
-	testutil.Getter(t, rc2.TransactionID, txid, "TransactionID")
-	testutil.Getter(t, rc.Time, now, "Time")
-	testutil.Getter(t, rc.Action, action, "Action")
-	testutil.Getter(t, rc.Collection, collection, "Collection")
-	testutil.GetterArray(t, rc2.Data, data, "Data")
-	testutil.GetterArray(t, rc2.Reverse, reverse, "Reverse")
-	testutil.Getter(t, rc.IsCheckpoint, action == ActionCheckpoint, "IsCheckpoint")
+	if i := rc2.LogSequenceNumber(); i != lsn {
+		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
+	}
+
+	if i := rc2.TenantID(); i != tid {
+		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
+	}
+
+	if i := rc2.TransactionID(); i != txid {
+		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
+	}
+
+	if i := rc.Time(); i != now {
+		t.Errorf("incorrect time: %v, expected: %v", i, now)
+	}
+
+	if i := rc.Action(); i != action {
+		t.Errorf("incorrect action: %v, expected: %v", i, action)
+	}
+
+	if i := rc.Collection(); i != collection {
+		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
+	}
+
+	if i := rc2.Data(); !slices.Equal(i, data) {
+		t.Errorf("incorrect data: %v, expected: %v", i, data)
+	}
+
+	if i := rc2.Reverse(); !slices.Equal(i, reverse) {
+		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
+	}
+
+	if i := rc.IsCheckpoint(); i != (action == ActionCheckpoint) {
+		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == ActionCheckpoint)
+	}
 }
 
 func TestRecord_Compare(t *testing.T) {

@@ -20,7 +20,6 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
-	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 const (
@@ -504,9 +503,18 @@ func testPage(
 	rem record.Length,
 ) {
 	t.Helper()
-	testutil.Getter(t, p.ID, pid, "ID")
-	testutil.Getter(t, p.TimeLineID, tlid, "TimeLineID")
-	testutil.Getter(t, p.LengthRemaining, rem, "LengthRemaining")
+
+	if i := p.ID(); i != pid {
+		t.Errorf("incorrect id: %v, expected: %v", i, pid)
+	}
+
+	if i := p.TimeLineID(); i != tlid {
+		t.Errorf("incorrect timeline id: %v, expected: %v", i, tlid)
+	}
+
+	if l := p.LengthRemaining(); l != rem {
+		t.Errorf("incorrect length remaining: %v, expected: %v", l, tlid)
+	}
 }
 
 func createReaderWriter(t *testing.T) (file.File, *Page) {

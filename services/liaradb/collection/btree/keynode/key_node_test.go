@@ -10,22 +10,24 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
-	"github.com/liaradb/liaradb/util/testing/testutil"
 )
 
 func TestKeyNode(t *testing.T) {
 	t.Parallel()
 
-	testutil.Run(t, "should insert", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
+	t.Run("should insert", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		bp := node.New(b)
-		kn := New(bp)
+			bp := node.New(b)
+			kn := New(bp)
 
-		data := testKeyNodeInsertData(t, kn)
-		testKeyNodeChildren(t, kn, data)
+			data := testKeyNodeInsertData(t, kn)
+			testKeyNodeChildren(t, kn, data)
+		})
 	})
 
 	t.Run("should replace root", func(t *testing.T) {
@@ -69,16 +71,19 @@ func TestKeyNode(t *testing.T) {
 		})
 	})
 
-	testutil.Run(t, "should iterate in order", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
+	t.Run("should iterate in order", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		bp := node.New(b)
-		kn := New(bp)
+			bp := node.New(b)
+			kn := New(bp)
 
-		data := testKeyNodeInsertData(t, kn)
-		testKeyNodeChildren(t, kn, data)
+			data := testKeyNodeInsertData(t, kn)
+			testKeyNodeChildren(t, kn, data)
+		})
 	})
 
 	t.Run("should get child", func(t *testing.T) {
@@ -96,138 +101,156 @@ func TestKeyNode(t *testing.T) {
 		})
 	})
 
-	testutil.Run(t, "should search items", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
+	t.Run("should search items", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		bp := node.New(b)
-		kn := New(bp)
+			bp := node.New(b)
+			kn := New(bp)
 
-		data := testKeyNodeInsertData(t, kn)
-		testKeyNodeSearch(t, kn, data)
+			data := testKeyNodeInsertData(t, kn)
+			testKeyNodeSearch(t, kn, data)
+		})
 	})
 
 	// TODO: This method is private
-	testutil.Run(t, "should search indexes", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
+	t.Run("should search indexes", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		bp := node.New(b)
-		kn := New(bp)
+			bp := node.New(b)
+			kn := New(bp)
 
-		data := testKeyNodeInsertData(t, kn)
-		for i, e := range data {
-			index := kn.searchIndex(e.key)
-			if index != int16(i) {
-				t.Errorf("incorrect index: %v, expected: %v", index, int16(i))
+			data := testKeyNodeInsertData(t, kn)
+			for i, e := range data {
+				index := kn.searchIndex(e.key)
+				if index != int16(i) {
+					t.Errorf("incorrect index: %v, expected: %v", index, int16(i))
+				}
 			}
-		}
-		{
-			before := int16(0)
-			result := kn.searchIndex(key.NewKey([]byte("a")))
-			if result != before {
-				t.Errorf("incorrect before: %v, expected: %v", result, before)
+			{
+				before := int16(0)
+				result := kn.searchIndex(key.NewKey([]byte("a")))
+				if result != before {
+					t.Errorf("incorrect before: %v, expected: %v", result, before)
+				}
 			}
-		}
-		{
-			after := int16(len(data))
-			result := kn.searchIndex(key.NewKey([]byte("e")))
-			if result != after {
-				t.Errorf("incorrect after: %v, expected: %v", result, after)
-			}
-		}
-	})
-
-	testutil.Run(t, "should search before items", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
-
-		bp := node.New(b)
-		kn := New(bp)
-
-		data := testKeyNodeInsertData(t, kn)
-		want := data[0].block
-		result := kn.Search(key.NewKey([]byte("a")))
-		if result != want {
-			t.Errorf("incorrect result: %v, expected: %v", result, want)
-		}
-	})
-
-	testutil.Run(t, "should search after items", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
-
-		bp := node.New(b)
-		kn := New(bp)
-
-		data := testKeyNodeInsertData(t, kn)
-		want := data[2].block
-		result := kn.Search(key.NewKey([]byte("e")))
-		if result != want {
-			t.Errorf("incorrect result: %v, expected: %v", result, want)
-		}
-	})
-
-	testutil.Run(t, "should fill", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
-
-		bp := node.New(b)
-		kn := New(bp)
-
-		data := []keyEntry{
-			{key.NewKey([]byte("b")), 1},
-			{key.NewKey([]byte("c")), 2},
-			{key.NewKey([]byte("d")), 3},
-		}
-
-		kn.Fill(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
-			for _, ke := range data {
-				if !yield(ke.Key(), ke.Block()) {
-					return
+			{
+				after := int16(len(data))
+				result := kn.searchIndex(key.NewKey([]byte("e")))
+				if result != after {
+					t.Errorf("incorrect after: %v, expected: %v", result, after)
 				}
 			}
 		})
-
-		testKeyNodeChildren(t, kn, data)
-
-		if l := kn.Level(); l != 1 {
-			t.Errorf("incorrect level: %v, expected: %v", l, 1)
-		}
 	})
 
-	testutil.Run(t, "should replace", func(t *testing.T) {
-		s := storagetesting.CreateStorage(t, 2, 256)
-		b := createBuffer(t, s)
-		defer b.Release()
+	t.Run("should search before items", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		bp := node.New(b)
-		kn := New(bp)
+			bp := node.New(b)
+			kn := New(bp)
 
-		data := []keyEntry{
-			{key.NewKey([]byte("b")), 1},
-			{key.NewKey([]byte("c")), 2},
-			{key.NewKey([]byte("d")), 3},
-		}
-
-		kn.Replace(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
-			for _, ke := range data {
-				if !yield(ke.Key(), ke.Block()) {
-					return
-				}
+			data := testKeyNodeInsertData(t, kn)
+			want := data[0].block
+			result := kn.Search(key.NewKey([]byte("a")))
+			if result != want {
+				t.Errorf("incorrect result: %v, expected: %v", result, want)
 			}
 		})
+	})
 
-		testKeyNodeChildren(t, kn, data)
+	t.Run("should search after items", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
 
-		if l := kn.Level(); l != 1 {
-			t.Errorf("incorrect level: %v, expected: %v", l, 1)
-		}
+			bp := node.New(b)
+			kn := New(bp)
+
+			data := testKeyNodeInsertData(t, kn)
+			want := data[2].block
+			result := kn.Search(key.NewKey([]byte("e")))
+			if result != want {
+				t.Errorf("incorrect result: %v, expected: %v", result, want)
+			}
+		})
+	})
+
+	t.Run("should fill", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
+
+			bp := node.New(b)
+			kn := New(bp)
+
+			data := []keyEntry{
+				{key.NewKey([]byte("b")), 1},
+				{key.NewKey([]byte("c")), 2},
+				{key.NewKey([]byte("d")), 3},
+			}
+
+			kn.Fill(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+				for _, ke := range data {
+					if !yield(ke.Key(), ke.Block()) {
+						return
+					}
+				}
+			})
+
+			testKeyNodeChildren(t, kn, data)
+
+			if l := kn.Level(); l != 1 {
+				t.Errorf("incorrect level: %v, expected: %v", l, 1)
+			}
+		})
+	})
+
+	t.Run("should replace", func(t *testing.T) {
+		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			s := storagetesting.CreateStorage(t, 2, 256)
+			b := createBuffer(t, s)
+			defer b.Release()
+
+			bp := node.New(b)
+			kn := New(bp)
+
+			data := []keyEntry{
+				{key.NewKey([]byte("b")), 1},
+				{key.NewKey([]byte("c")), 2},
+				{key.NewKey([]byte("d")), 3},
+			}
+
+			kn.Replace(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+				for _, ke := range data {
+					if !yield(ke.Key(), ke.Block()) {
+						return
+					}
+				}
+			})
+
+			testKeyNodeChildren(t, kn, data)
+
+			if l := kn.Level(); l != 1 {
+				t.Errorf("incorrect level: %v, expected: %v", l, 1)
+			}
+		})
 	})
 }
 
