@@ -48,7 +48,7 @@ func (c *Slice[V]) Push(v V) {
 
 func (c *Slice[V]) SwapWithLast(i int) {
 	j := len(c.values) - 1
-	if i < 0 && i >= j {
+	if i < 0 || i >= j {
 		return
 	}
 
