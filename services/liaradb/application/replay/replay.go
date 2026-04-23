@@ -46,6 +46,8 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	switch r.Action() {
 	case record.ActionCheckpoint:
 		return re.recoverCheckpoint(ctx, r)
+	case record.ActionStart:
+		return re.recoverStart(ctx, r)
 	case record.ActionCommit:
 		return re.recoverCommit(ctx, r)
 	case record.ActionInsert:
@@ -62,6 +64,11 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverCheckpoint(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverStart(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }
