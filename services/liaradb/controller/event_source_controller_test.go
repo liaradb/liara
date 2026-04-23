@@ -222,6 +222,50 @@ func TestEventSourceController__Tenant(t *testing.T) {
 	name0 := "name0"
 	name1 := "name1"
 
+	_, err := esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: "abcde",
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: uuid.NewString(),
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.RenameTenant(t.Context(), &liara.RenameTenantRequest{
+		TenantId: "abcde",
+		Name:     name1,
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.RenameTenant(t.Context(), &liara.RenameTenantRequest{
+		TenantId: uuid.NewString(),
+		Name:     name1,
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.DeleteTenant(t.Context(), &liara.DeleteTenantRequest{
+		TenantId: "abcde",
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.DeleteTenant(t.Context(), &liara.DeleteTenantRequest{
+		TenantId: uuid.NewString(),
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
 	res0, err := esc.CreateTenant(t.Context(), &liara.CreateTenantRequest{
 		Name: name0,
 	})
@@ -263,15 +307,15 @@ func TestEventSourceController__Tenant(t *testing.T) {
 		t.Errorf("incorrect name: %v, expected: %v", res3.Tenant.Name, name1)
 	}
 
-	_, err = esc.GetTenant(t.Context(), &liara.GetTenantRequest{
-		TenantId: "abcde",
+	_, err = esc.DeleteTenant(t.Context(), &liara.DeleteTenantRequest{
+		TenantId: res0.TenantId,
 	})
-	if err == nil {
-		t.Error("should return error")
+	if err != nil {
+		t.Error(err)
 	}
 
 	_, err = esc.GetTenant(t.Context(), &liara.GetTenantRequest{
-		TenantId: uuid.NewString(),
+		TenantId: res0.TenantId,
 	})
 	if err == nil {
 		t.Error("should return error")
