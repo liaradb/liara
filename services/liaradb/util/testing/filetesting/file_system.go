@@ -98,7 +98,7 @@ func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
 	base := path.Base(name)
 	m, ok := d[base]
 	if !ok {
-		m = NewMockFileWithFileSystem(name, mfs.delay, mfs)
+		m = NewMockFileWithFileSystem(name, mfs.delay, mfs, time.Time{})
 		f, ok := mfs.MapFS[dir]
 		if ok {
 			m.Data = f.Data

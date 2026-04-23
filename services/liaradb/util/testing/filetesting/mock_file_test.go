@@ -9,13 +9,24 @@ import (
 	"path"
 	"slices"
 	"testing"
+	"time"
 )
 
 func TestFile(t *testing.T) {
 	t.Parallel()
 
-	f := NewMockFile("file", 0)
+	now := time.Now()
+	f := NewMockFile("file", 0, now)
 	f.Open()
+
+	s, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if mod := s.ModTime(); !mod.Equal(now) {
+		t.Errorf("incorrect mod time: %v, expected: %v", mod, now)
+	}
 
 	wb := make([]byte, 8)
 	binary.LittleEndian.PutUint64(wb, 12345)
@@ -41,23 +52,26 @@ func TestFile(t *testing.T) {
 		t.Fatal("wrong value")
 	}
 
-	s, err := f.Stat()
+	s, err = f.Stat()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if s.Name() != "file" {
-		t.Error("wrong name")
+	if n := s.Name(); n != "file" {
+		t.Errorf("incorrect name: %v, expected: %v", n, "file")
 	}
-	if s.Size() != 108 {
-		t.Error("wrong size")
+	if size := s.Size(); size != 108 {
+		t.Errorf("incorrect size: %v, expected: %v", size, 108)
+	}
+	if m := s.Mode(); m != fs.ModeAppend {
+		t.Errorf("incorrect mode: %v, expected: %v", m, fs.ModeAppend)
 	}
 }
 
 func TestFile_Write(t *testing.T) {
 	t.Parallel()
 
-	f := NewMockFile("file", 0)
+	f := NewMockFile("file", 0, time.Time{})
 	f.Open()
 
 	data0 := []byte{1, 2}
@@ -122,7 +136,7 @@ func TestFile_Write(t *testing.T) {
 }
 
 func TestFile_Stat__Closed(t *testing.T) {
-	f := NewMockFile("file", 0)
+	f := NewMockFile("file", 0, time.Time{})
 	f.Open()
 
 	_, err := f.Stat()

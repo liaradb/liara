@@ -29,16 +29,16 @@ type fileInner struct {
 
 var _ file.File = (*File)(nil)
 
-func NewMockFile(name string, delay time.Duration) *File {
-	return NewMockFileWithFileSystem(name, delay, nil)
+func NewMockFile(name string, delay time.Duration, mod time.Time) *File {
+	return NewMockFileWithFileSystem(name, delay, nil, mod)
 }
 
-func NewMockFileWithFileSystem(name string, delay time.Duration, fsys *FileSystem) *File {
+func NewMockFileWithFileSystem(name string, delay time.Duration, fsys *FileSystem, mod time.Time) *File {
 	return &File{
 		fileInner: &fileInner{
 			name: name,
 			MapFile: fstest.MapFile{
-				ModTime: time.Now(),
+				ModTime: mod,
 			},
 			delay: delay,
 			fsys:  fsys,

@@ -7,6 +7,8 @@ import (
 )
 
 func NewDiskFileCache(t *testing.T) *filecache.Cache {
+	t.Helper()
+
 	fsys := filecache.New()
 	t.Cleanup(func() {
 		if err := fsys.Close(); err != nil {
