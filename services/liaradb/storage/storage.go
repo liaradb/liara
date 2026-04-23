@@ -7,13 +7,13 @@ import (
 	"sync"
 
 	"github.com/liaradb/liaradb/async"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Storage struct {
 	bufferSize int64
-	fs         file.FileSystem
+	fs         filecache.FileSystem
 	dir        string
 	pinned     map[link.BlockID]*Buffer
 	unpinned   FreePool
@@ -25,7 +25,7 @@ type Storage struct {
 	hwMux      sync.RWMutex
 }
 
-func New(fs file.FileSystem, unpinned FreePool, max int, bs int64, dir string) *Storage {
+func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int64, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,
@@ -276,11 +276,11 @@ func (s *Storage) release(b *Buffer) {
 	s.returns <- b
 }
 
-func (s *Storage) openFile(bid link.BlockID) (file.File, error) {
+func (s *Storage) openFile(bid link.BlockID) (filecache.File, error) {
 	return s.openHighwater(bid.FileName())
 }
 
-func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
+func (s *Storage) openHighwater(fn link.FileName) (filecache.File, error) {
 	f, err := s.fs.OpenFile(path.Join(s.dir, fn.String()))
 	if err != nil {
 		return nil, err
@@ -293,7 +293,7 @@ func (s *Storage) openHighwater(fn link.FileName) (file.File, error) {
 	return f, nil
 }
 
-func (s *Storage) initHighwater(fn link.FileName, f file.File) error {
+func (s *Storage) initHighwater(fn link.FileName, f filecache.File) error {
 	s.hwMux.Lock()
 	defer s.hwMux.Unlock()
 

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -61,7 +61,7 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	return m, l
 }
 
-func createLog(t *testing.T, fsys file.FileSystem, dir string) *recovery.Log {
+func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *recovery.Log {
 	t.Helper()
 
 	l := recovery.NewLog(256, 3, fsys, dir)
@@ -89,7 +89,7 @@ func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
 	return lt
 }
 
-func createFiles() (file.FileSystem, string) {
+func createFiles() (filecache.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
 	return filetesting.New(nil), "."
 }

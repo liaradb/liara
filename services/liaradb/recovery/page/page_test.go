@@ -13,7 +13,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
@@ -517,7 +517,7 @@ func testPage(
 	}
 }
 
-func createReaderWriter(t *testing.T) (file.File, *Page) {
+func createReaderWriter(t *testing.T) (filecache.File, *Page) {
 	t.Helper()
 
 	fsys := filetesting.New(nil)

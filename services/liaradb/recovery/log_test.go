@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -888,7 +888,7 @@ func createLogStart(t *testing.T,
 func createLogAllStart(t *testing.T,
 	pageSize int64,
 	segmentSize action.PageID,
-	fsys file.FileSystem,
+	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
 	t.Helper()
@@ -904,7 +904,7 @@ func createLogAllStart(t *testing.T,
 func createLog(t *testing.T,
 	pageSize int64,
 	segmentSize action.PageID,
-	fsys file.FileSystem,
+	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
 	t.Helper()
@@ -929,7 +929,7 @@ func cleanupLog(t *testing.T, l *Log) {
 	})
 }
 
-func createFiles() (file.FileSystem, string) {
+func createFiles() (filecache.FileSystem, string) {
 	// return &disk.FileSystem{}, t.TempDir()
 	return filetesting.New(nil), "."
 }

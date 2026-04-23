@@ -9,7 +9,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 )
 
 type File struct {
@@ -27,7 +27,7 @@ type fileInner struct {
 	fsys       *FileSystem
 }
 
-var _ file.File = (*File)(nil)
+var _ filecache.File = (*File)(nil)
 
 func NewMockFile(name string, delay time.Duration, mod time.Time) *File {
 	return NewMockFileWithFileSystem(name, delay, nil, mod)

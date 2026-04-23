@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -94,7 +94,7 @@ func testReader_Reverse(t *testing.T) {
 	}
 }
 
-func createReaderWriter(t *testing.T) (file.File, *Reader, *Writer) {
+func createReaderWriter(t *testing.T) (filecache.File, *Reader, *Writer) {
 	t.Helper()
 
 	fsys := filetesting.New(nil)

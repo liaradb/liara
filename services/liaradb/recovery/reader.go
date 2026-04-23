@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"iter"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -46,7 +46,7 @@ func (rd *reader) recover() (iter.Seq[*record.Record], error) {
 	return iterator.Reverse[*record.Record](rcs), nil
 }
 
-func (rd *reader) recoverSegment(rcs *list.List, f file.File) (bool, error) {
+func (rd *reader) recoverSegment(rcs *list.List, f filecache.File) (bool, error) {
 	stat, err := f.Stat()
 	if err != nil {
 		return false, err

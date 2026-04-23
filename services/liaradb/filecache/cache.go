@@ -4,36 +4,33 @@ import (
 	"errors"
 	"io/fs"
 	"sync"
-
-	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/disk"
 )
 
 type Cache struct {
 	files map[string]*CacheFile
 	mux   sync.RWMutex
-	fsys  file.FileSystem
+	fsys  FileSystem
 }
 
 func New() *Cache {
-	return NewWithFileSystem(&disk.FileSystem{})
+	return NewWithFileSystem(&DiskFileSystem{})
 }
 
 func NewWithFileSystem(
-	fsys file.FileSystem,
+	fsys FileSystem,
 ) *Cache {
 	return &Cache{
 		fsys: fsys,
 	}
 }
 
-func (c *Cache) FSYS() file.FileSystem { return c.fsys }
+func (c *Cache) FSYS() FileSystem { return c.fsys }
 
 func (c *Cache) MkDirAll(name string) error {
 	return c.fsys.MkDirAll(name)
 }
 
-func (c *Cache) OpenFile(name string) (file.File, error) {
+func (c *Cache) OpenFile(name string) (File, error) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 

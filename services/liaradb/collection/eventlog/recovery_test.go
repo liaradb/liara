@@ -12,7 +12,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
@@ -68,7 +68,7 @@ func testRecovery(t *testing.T) {
 func write(
 	t *testing.T,
 	baseCtx context.Context,
-	fsys file.FileSystem,
+	fsys filecache.FileSystem,
 	max int,
 	bs int64,
 	dir string,
@@ -101,7 +101,7 @@ func write(
 func recover(
 	t *testing.T,
 	ctx context.Context,
-	fsys file.FileSystem,
+	fsys filecache.FileSystem,
 	max int,
 	bs int64,
 	dir string,

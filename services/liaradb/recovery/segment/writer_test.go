@@ -10,7 +10,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -244,7 +244,7 @@ func createWriterSmall(t *testing.T) *Writer {
 	return sw
 }
 
-func createFile(t *testing.T) file.File {
+func createFile(t *testing.T) filecache.File {
 	t.Helper()
 
 	f := filetesting.NewMockFile(path.Join(t.TempDir(), "logfile"), 0, time.Time{})
@@ -252,7 +252,7 @@ func createFile(t *testing.T) file.File {
 	return f
 }
 
-func createWriterFromFile(t *testing.T, f file.File) *Writer {
+func createWriterFromFile(t *testing.T, f filecache.File) *Writer {
 	t.Helper()
 
 	sw := NewWriter(256, 3)

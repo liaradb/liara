@@ -11,8 +11,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filecache"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/queue"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
@@ -534,7 +533,7 @@ func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Dura
 	return createStorageWithFileSystem(t, max, bs, fsys), fsys
 }
 
-func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem) *Storage {
+func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem) *Storage {
 	t.Helper()
 
 	dir := t.TempDir()

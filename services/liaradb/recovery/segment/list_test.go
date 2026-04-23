@@ -7,8 +7,7 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filecache"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -81,7 +80,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 
 	for message, test := range map[string]struct {
 		result SegmentID
-		fsys   file.FileSystem
+		fsys   filecache.FileSystem
 	}{
 		"should handle no files": {0, filetesting.New(fstest.MapFS{
 			fmt.Sprintf("%v/", dir): &fstest.MapFile{},
@@ -466,7 +465,7 @@ func createNames(start SegmentID, count SegmentID) []SegmentName {
 	return names
 }
 
-func createFiles(dir string, start SegmentID, count SegmentID) file.FileSystem {
+func createFiles(dir string, start SegmentID, count SegmentID) filecache.FileSystem {
 	mapfs := fstest.MapFS{}
 	for i := range count {
 		mapfs[createPath(dir, NewSegmentName(start+i, record.NewLogSequenceNumber(0)))] = &fstest.MapFile{}

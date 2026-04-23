@@ -3,17 +3,17 @@ package segment
 import (
 	"path"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 )
 
 type segmentFile struct {
-	file file.File
-	fsys file.FileSystem
+	file filecache.File
+	fsys filecache.FileSystem
 	dir  string
 	sn   SegmentName
 }
 
-func newSegmentFile(fsys file.FileSystem, dir string) *segmentFile {
+func newSegmentFile(fsys filecache.FileSystem, dir string) *segmentFile {
 	return &segmentFile{
 		fsys: fsys,
 		dir:  dir,
@@ -33,7 +33,7 @@ func (sf *segmentFile) Close() error {
 	return nil
 }
 
-func (sf *segmentFile) open(sn SegmentName) (file.File, error) {
+func (sf *segmentFile) open(sn SegmentName) (filecache.File, error) {
 	if sf.isCurrentAndOpen(sn) {
 		return sf.file, nil
 	}

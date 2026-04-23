@@ -1,9 +1,7 @@
 package filecache
 
-import "github.com/liaradb/liaradb/file"
-
 type CacheFile struct {
-	file.File
+	File
 	name   string
 	fsys   *Cache
 	closed bool

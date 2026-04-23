@@ -3,7 +3,7 @@ package filetesting
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/file/filecache"
+	"github.com/liaradb/liaradb/filecache"
 )
 
 func NewDiskFileCache(t *testing.T) *filecache.Cache {

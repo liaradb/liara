@@ -7,7 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -45,7 +45,7 @@ type appendValue struct {
 func NewLog(
 	pageSize int64,
 	segmentSize action.PageID,
-	fsys file.FileSystem,
+	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir)

@@ -7,7 +7,7 @@ import (
 	"path"
 
 	"github.com/liaradb/liaradb/application"
-	"github.com/liaradb/liaradb/file/filecache"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"

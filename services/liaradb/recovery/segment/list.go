@@ -5,18 +5,18 @@ import (
 	"io/fs"
 	"iter"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type List struct {
 	dir   string
-	fsys  file.FileSystem
+	fsys  filecache.FileSystem
 	names *list.List
 	sf    segmentFile
 }
 
-func NewList(fsys file.FileSystem, dir string) *List {
+func NewList(fsys filecache.FileSystem, dir string) *List {
 	return &List{
 		dir:  dir,
 		fsys: fsys,
@@ -58,7 +58,7 @@ func (l *List) init() error {
 	return l.Open()
 }
 
-func (l *List) OpenLatestSegment() (SegmentName, file.File, error) {
+func (l *List) OpenLatestSegment() (SegmentName, filecache.File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -76,7 +76,7 @@ func (l *List) OpenLatestSegment() (SegmentName, file.File, error) {
 	return sn, f, err
 }
 
-func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
+func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -92,7 +92,7 @@ func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, file.
 	return sn, f, err
 }
 
-func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
+func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -110,8 +110,8 @@ func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, 
 	return sn, f, nil
 }
 
-func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File, error] {
-	return func(yield func(file.File, error) bool) {
+func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[filecache.File, error] {
+	return func(yield func(filecache.File, error) bool) {
 		if err := l.init(); err != nil {
 			yield(nil, err)
 			return
@@ -130,7 +130,7 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[file.File,
 	}
 }
 
-func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, file.File, error) {
+func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -166,8 +166,8 @@ func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (l *List) Reverse() iter.Seq2[file.File, error] {
-	return func(yield func(file.File, error) bool) {
+func (l *List) Reverse() iter.Seq2[filecache.File, error] {
+	return func(yield func(filecache.File, error) bool) {
 		if err := l.init(); err != nil {
 			yield(nil, err)
 			return

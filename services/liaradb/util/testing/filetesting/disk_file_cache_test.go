@@ -3,7 +3,7 @@ package filetesting
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/file/disk"
+	"github.com/liaradb/liaradb/filecache"
 )
 
 func TestNewDiskFileCache(t *testing.T) {
@@ -14,7 +14,7 @@ func TestNewDiskFileCache(t *testing.T) {
 		t.Error("should return value")
 	}
 
-	if fsys, ok := fc.FSYS().(*disk.FileSystem); !ok {
+	if fsys, ok := fc.FSYS().(*filecache.DiskFileSystem); !ok {
 		t.Error("incorrect type")
 	} else if fsys == nil {
 		t.Error("should return value")

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/file"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
@@ -12,7 +12,7 @@ import (
 
 type Storage struct {
 	Storage *storage.Storage
-	FSys    file.FileSystem
+	FSys    filecache.FileSystem
 }
 
 func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
@@ -45,7 +45,7 @@ func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	return CreateStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys file.FileSystem) *storage.Storage {
+func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem) *storage.Storage {
 	t.Helper()
 
 	s := storage.New(fsys, lrupool.New(), max, bs, t.TempDir())

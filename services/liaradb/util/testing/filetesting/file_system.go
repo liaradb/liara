@@ -7,8 +7,7 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/liaradb/liaradb/file"
-	"github.com/liaradb/liaradb/file/filecache"
+	"github.com/liaradb/liaradb/filecache"
 )
 
 type FileSystem struct {
@@ -75,7 +74,7 @@ func (mfs *FileSystem) MkDirAll(name string) error {
 	return nil
 }
 
-func (mfs *FileSystem) OpenFile(name string) (file.File, error) {
+func (mfs *FileSystem) OpenFile(name string) (filecache.File, error) {
 	mfs.mux.Lock()
 	defer mfs.mux.Unlock()
 
