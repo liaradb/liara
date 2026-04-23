@@ -1,7 +1,9 @@
 package filecache
 
 import (
+	"io/fs"
 	"path"
+	"slices"
 	"testing"
 )
 
@@ -112,4 +114,61 @@ func TestCache_CloseFile(t *testing.T) {
 			t.Error(err)
 		}
 	})
+}
+
+func TestCache_Remove(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	n := "file"
+	p := path.Join(dir, n)
+	fc := New()
+
+	if c := fc.Count(); c != 0 {
+		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
+	}
+
+	f, err := fc.OpenFile(p)
+	if err != nil {
+		t.Error(err)
+	} else if f == nil {
+		t.Error("file should not be nil")
+	}
+
+	if c := fc.Count(); c != 1 {
+		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
+	}
+
+	entries, err := fc.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !slices.ContainsFunc(entries, func(e fs.DirEntry) bool {
+		return e.Name() == n
+	}) {
+		t.Error("file should exist")
+	}
+
+	if err := fc.Remove(p); err != nil {
+		t.Error(err)
+	} else if f == nil {
+		t.Error("file should not be nil")
+	}
+
+	if c := fc.Count(); c != 0 {
+		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, 0)
+	}
+
+	entries, err = fc.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if slices.ContainsFunc(entries, func(e fs.DirEntry) bool {
+		return e.Name() == n
+	}) {
+		t.Error("file should not exist")
+	}
 }
