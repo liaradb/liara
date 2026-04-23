@@ -73,6 +73,7 @@ func TestEventSourceController__Event(t *testing.T) {
 	tid := uuid.NewString()
 	var pid int32 = 1
 	id := uuid.NewString()
+	name := "name"
 
 	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
 		TenantId:    tid,
@@ -81,6 +82,19 @@ func TestEventSourceController__Event(t *testing.T) {
 			AggregateId: id,
 			Id:          uuid.NewString(),
 			Version:     1,
+		}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		Events: []*liara.AppendEvent{{
+			AggregateId:   id,
+			AggregateName: name,
+			Id:            uuid.NewString(),
+			Version:       2,
 		}},
 	}); err != nil {
 		t.Fatal(err)
@@ -97,7 +111,23 @@ func TestEventSourceController__Event(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if l := len(result); l != 1 {
+	if l := len(result); l != 2 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	}
+
+	var result2 []*liara.Event
+	if err := esc.GetByAggregateIDAndName(&liara.GetByAggregateIDAndNameRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		AggregateId: id,
+		Name:        name,
+	}, newTestStream(t.Context(), func(e *liara.Event) {
+		result2 = append(result2, e)
+	})); err != nil {
+		t.Fatal(err)
+	}
+
+	if l := len(result2); l != 1 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 1)
 	}
 }
