@@ -10,7 +10,7 @@ import (
 )
 
 type Cache struct {
-	files map[string]*File
+	files map[string]*CacheFile
 	mux   sync.RWMutex
 	fsys  file.FileSystem
 }
@@ -48,9 +48,9 @@ func (c *Cache) OpenFile(name string) (file.File, error) {
 	}
 
 	if c.files == nil {
-		c.files = map[string]*File{}
+		c.files = map[string]*CacheFile{}
 	}
-	df = &File{
+	df = &CacheFile{
 		File: f,
 		name: name,
 		fsys: c}

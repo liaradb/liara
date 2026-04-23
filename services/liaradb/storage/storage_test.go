@@ -629,7 +629,7 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mf, ok := f.(*filecache.File).File.(*filetesting.File)
+	mf, ok := f.(*filecache.CacheFile).File.(*filetesting.File)
 	if !ok {
 		t.Fatal("incorrect type")
 	}
