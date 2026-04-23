@@ -36,11 +36,9 @@ func TestEventSourceController__Outbox(t *testing.T) {
 	}
 
 	var result []*liara.Outbox
-	listStr := newTestOutboxStream(t.Context(), func(o *liara.Outbox) {
+	if err := esc.ListOutboxes(listReq, newTestStream(t.Context(), func(o *liara.Outbox) {
 		result = append(result, o)
-	})
-
-	if err := esc.ListOutboxes(listReq, listStr); err != nil {
+	})); err != nil {
 		t.Error(err)
 	}
 
@@ -66,5 +64,40 @@ func TestEventSourceController__Outbox(t *testing.T) {
 
 	if o.GlobalVersion != 0 {
 		t.Errorf("incorrect global version: %v, expected: %v", o.GlobalVersion, 10)
+	}
+}
+
+func TestEventSourceController__Event(t *testing.T) {
+	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+
+	tid := uuid.NewString()
+	var pid int32 = 1
+	id := uuid.NewString()
+
+	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		Events: []*liara.AppendEvent{{
+			AggregateId: id,
+			Id:          uuid.NewString(),
+			Version:     1,
+		}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	var result []*liara.Event
+	if err := esc.Get(&liara.GetRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		AggregateId: id,
+	}, newTestStream(t.Context(), func(e *liara.Event) {
+		result = append(result, e)
+	})); err != nil {
+		t.Fatal(err)
+	}
+
+	if l := len(result); l != 1 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 1)
 	}
 }
