@@ -4,6 +4,7 @@ import (
 	"context"
 	"iter"
 	"slices"
+	"time"
 
 	"github.com/cardboardrobots/baseerror"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -14,6 +15,7 @@ import (
 type testEventService struct {
 	outboxes map[value.OutboxID]*entity.Outbox
 	events   []*entity.Event
+	requests map[value.RequestID]*entity.RequestLog
 	version  value.GlobalVersion
 }
 
@@ -26,6 +28,13 @@ func (es *testEventService) Append(
 	pid value.PartitionID,
 	e ...service.AppendEvent,
 ) error {
+	rid, ok := options.RequestID()
+	if ok {
+		if _, ok := es.requests[rid]; ok {
+			return baseerror.ErrAlreadyExists
+		}
+	}
+
 	for _, event := range e {
 		id, err := value.NewEventIDFromString(event.ID)
 		if err != nil {
@@ -48,6 +57,14 @@ func (es *testEventService) Append(
 	slices.SortFunc(es.events, func(a, b *entity.Event) int {
 		return int(a.Version.Value() - b.Version.Value())
 	})
+
+	if ok {
+		if es.requests == nil {
+			es.requests = make(map[value.RequestID]*entity.RequestLog)
+		}
+		es.requests[rid] = entity.NewRequestLog(rid, value.NewTime(time.Now()))
+	}
+
 	return nil
 }
 
@@ -154,7 +171,8 @@ func (es *testEventService) TestIdempotency(
 	tid value.TenantID,
 	id value.RequestID,
 ) (result bool, err error) {
-	panic("unimplemented")
+	_, ok := es.requests[id]
+	return !ok, nil
 }
 
 func (es *testEventService) UpdateOutboxPosition(

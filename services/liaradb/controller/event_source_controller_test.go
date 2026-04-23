@@ -8,6 +8,8 @@ import (
 )
 
 func TestEventSourceController__Outbox(t *testing.T) {
+	t.Parallel()
+
 	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
 
 	tid := uuid.NewString()
@@ -68,6 +70,8 @@ func TestEventSourceController__Outbox(t *testing.T) {
 }
 
 func TestEventSourceController__Event(t *testing.T) {
+	t.Parallel()
+
 	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
 
 	tid := uuid.NewString()
@@ -96,6 +100,7 @@ func TestEventSourceController__Event(t *testing.T) {
 			Id:            uuid.NewString(),
 			Version:       2,
 		}},
+		Options: &liara.AppendOptions{},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -129,5 +134,146 @@ func TestEventSourceController__Event(t *testing.T) {
 
 	if l := len(result2); l != 1 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 1)
+	}
+}
+
+func TestEventSourceController__Idempotency(t *testing.T) {
+	t.Parallel()
+
+	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+
+	tid := uuid.NewString()
+	var pid int32 = 1
+	id := uuid.NewString()
+	rid0 := uuid.NewString()
+
+	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		Events: []*liara.AppendEvent{{
+			AggregateId: id,
+			Id:          uuid.NewString(),
+			Version:     1,
+		}},
+		Options: &liara.AppendOptions{
+			RequestId: rid0,
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
+		TenantId:    tid,
+		PartitionId: pid,
+		Events: []*liara.AppendEvent{{
+			AggregateId: id,
+			Id:          uuid.NewString(),
+			Version:     2,
+		}},
+		Options: &liara.AppendOptions{
+			RequestId: rid0,
+		},
+	}); err == nil {
+		t.Error("should return error")
+	}
+
+	res0, err := esc.TestIdempotency(t.Context(), &liara.TestIdempotencyRequest{
+		TenantId:  tid,
+		RequestId: rid0,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if res0.Ok {
+		t.Errorf("incorrect result: %v, expected: %v", res0.Ok, false)
+	}
+
+	res1, err := esc.TestIdempotency(t.Context(), &liara.TestIdempotencyRequest{
+		TenantId:  tid,
+		RequestId: uuid.NewString(),
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if !res1.Ok {
+		t.Errorf("incorrect result: %v, expected: %v", res1.Ok, true)
+	}
+
+	if _, err = esc.TestIdempotency(t.Context(), &liara.TestIdempotencyRequest{
+		TenantId:  "abcde",
+		RequestId: uuid.NewString(),
+	}); err == nil {
+		t.Error("should return error")
+	}
+
+	if _, err = esc.TestIdempotency(t.Context(), &liara.TestIdempotencyRequest{
+		TenantId:  uuid.NewString(),
+		RequestId: "abcde",
+	}); err == nil {
+		t.Error("should return error")
+	}
+}
+
+func TestEventSourceController__Tenant(t *testing.T) {
+	t.Parallel()
+
+	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+
+	name0 := "name0"
+	name1 := "name1"
+
+	res0, err := esc.CreateTenant(t.Context(), &liara.CreateTenantRequest{
+		Name: name0,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	res1, err := esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: res0.TenantId,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if res1.Tenant.TenantId != res0.TenantId {
+		t.Errorf("incorrect tenant id: %v, expected: %v", res1.Tenant.TenantId, res0.TenantId)
+	}
+	if res1.Tenant.Name != name0 {
+		t.Errorf("incorrect name: %v, expected: %v", res1.Tenant.Name, name0)
+	}
+
+	_, err = esc.RenameTenant(t.Context(), &liara.RenameTenantRequest{
+		TenantId: res0.TenantId,
+		Name:     name1,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	res3, err := esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: res0.TenantId,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+	if res3.Tenant.TenantId != res0.TenantId {
+		t.Errorf("incorrect tenant id: %v, expected: %v", res3.Tenant.TenantId, res0.TenantId)
+	}
+	if res3.Tenant.Name != name1 {
+		t.Errorf("incorrect name: %v, expected: %v", res3.Tenant.Name, name1)
+	}
+
+	_, err = esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: "abcde",
+	})
+	if err == nil {
+		t.Error("should return error")
+	}
+
+	_, err = esc.GetTenant(t.Context(), &liara.GetTenantRequest{
+		TenantId: uuid.NewString(),
+	})
+	if err == nil {
+		t.Error("should return error")
 	}
 }
