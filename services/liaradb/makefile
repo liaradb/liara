@@ -27,12 +27,17 @@ clean-data:
 
 .PHONY: cover
 cover:
-	@echo "Test coverage"
-	@go test -cover ./...
+	@echo "\n---------------\n Test coverage\n---------------\n"
+	@go test -cover ./... \
+		| sed -nE 's/^(ok)?[[:space:]]+github.com\/liaradb\/liaradb\/([^[:space:]]+)[[:space:]].*coverage:[[:space:]]+([^[:space:]]+).*/\2 \3/p' \
+		| column -t
 
 .PHONY: cover-file
 cover-file:
-	@go test -coverprofile=cover.out ./...
+	@echo "\n---------------\n Test coverage\n---------------\n"
+	@go test -coverprofile=cover.out ./... \
+		| sed -nE 's/^(ok)?[[:space:]]+github.com\/liaradb\/liaradb\/([^[:space:]]+)[[:space:]].*coverage:[[:space:]]+([^[:space:]]+).*/\2 \3/p' \
+		| column -t
 
 .PHONY: report
 report: cover-file
@@ -41,7 +46,7 @@ report: cover-file
 .PHONY: total
 total: cover-file
 	@COVERAGE=$$(go tool cover -func=cover.out | grep total | grep -Eo '[0-9]+\.[0-9]\%+'); \
-	echo "Coverage: $$COVERAGE"
+	echo "\nCoverage: $$COVERAGE\n"
 
 .PHONY: report-file
 report-file: cover-file total
