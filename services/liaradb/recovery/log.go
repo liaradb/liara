@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	interval = 10 * time.Second
+	interval = 100 * time.Millisecond
 )
 
 type Log struct {
@@ -74,7 +74,9 @@ func (l *Log) run(ctx context.Context) {
 		case r := <-l.appendReqs:
 			l.appendRequest(r)
 		case <-ticker.C:
-			l.flushRequest(&flushRequest{})
+			if err := l.flush(); err != nil {
+				panic(err)
+			}
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
 		}
@@ -147,7 +149,7 @@ func (l *Log) Commit(
 		return lsn, err
 	}
 
-	return lsn, l.Flush(ctx)
+	return lsn, l.requestFlush(ctx)
 }
 
 func (l *Log) Rollback(
@@ -161,7 +163,7 @@ func (l *Log) Rollback(
 		return lsn, err
 	}
 
-	return lsn, l.Flush(ctx)
+	return lsn, l.requestFlush(ctx)
 }
 
 func (l *Log) Insert(
@@ -195,7 +197,7 @@ func (l *Log) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) Flush(ctx context.Context) error {
+func (l *Log) requestFlush(ctx context.Context) error {
 	return l.flushReqs.Send(ctx, struct{}{})
 }
 

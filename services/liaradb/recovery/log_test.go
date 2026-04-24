@@ -124,9 +124,7 @@ func TestLog_Flush(t *testing.T) {
 
 			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
 
-			if err := l.Flush(ctx); err != nil {
-				t.Error(err)
-			}
+			time.Sleep(1 * time.Second)
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -161,9 +159,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if err := l.Flush(ctx); err != nil {
-				t.Error(err)
-			}
+			time.Sleep(1 * time.Second)
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -189,9 +185,7 @@ func TestLog_Flush(t *testing.T) {
 				}
 			}
 
-			if err := l.Flush(ctx); err != nil {
-				t.Fatal(err)
-			}
+			time.Sleep(1 * time.Second)
 
 			if p := l.PageID(); p != 3 {
 				t.Errorf("incorrect value: %v, expected: %v", p, 3)
@@ -236,9 +230,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if err := l.Flush(ctx); err != nil {
-				t.Error(err)
-			}
+			time.Sleep(1 * time.Second)
 
 			if _, err := l.Update(ctx,
 				tid,
@@ -251,9 +243,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if err := l.Flush(ctx); err != nil {
-				t.Error(err)
-			}
+			time.Sleep(1 * time.Second)
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -349,9 +339,7 @@ func testLog_Iterate(t *testing.T) {
 		}
 	}
 
-	if err := l.Flush(ctx); err != nil {
-		t.Fatal(err)
-	}
+	time.Sleep(1 * time.Second)
 
 	i := 0
 	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
@@ -408,9 +396,7 @@ func testLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Fatal(err)
-		}
+		time.Sleep(1 * time.Second)
 
 		if _, err := l.Update(ctx,
 			tid,
@@ -423,9 +409,7 @@ func testLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Fatal(err)
-		}
+		time.Sleep(1 * time.Second)
 
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
@@ -505,9 +489,7 @@ func testLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Fatal(err)
-		}
+		time.Sleep(1 * time.Second)
 
 		i := 0
 		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
@@ -556,9 +538,7 @@ func testLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		if err := l.Flush(ctx); err != nil {
-			t.Fatal(err)
-		}
+		time.Sleep(1 * time.Second)
 
 		i := 0
 		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
@@ -610,9 +590,7 @@ func testLog_Reverse(t *testing.T) {
 		}
 	}
 
-	if err := l.Flush(ctx); err != nil {
-		t.Fatal(err)
-	}
+	time.Sleep(1 * time.Second)
 
 	slices.Reverse(records)
 	i := 0
@@ -704,9 +682,7 @@ func testLog_Insert(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	if err := l.Flush(t.Context()); err != nil {
-		t.Fatal(err)
-	}
+	time.Sleep(1 * time.Second)
 
 	l2 := createLogAllStart(t, 320, 3, fsys, dir)
 
@@ -794,9 +770,7 @@ func testLog_Start(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	if err := l.Flush(t.Context()); err != nil {
-		t.Fatal(err)
-	}
+	time.Sleep(1 * time.Second)
 
 	l2 := createLogAllStart(t, 320, 3, fsys, dir)
 
@@ -846,9 +820,7 @@ func testLog_Update(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	if err := l.Flush(t.Context()); err != nil {
-		t.Fatal(err)
-	}
+	time.Sleep(1 * time.Second)
 
 	l2 := createLogAllStart(t, 320, 3, fsys, dir)
 
