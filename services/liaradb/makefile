@@ -25,19 +25,20 @@ clean:
 clean-data:
 	rm -rf .dbdata
 
-.PHONY: cover
-cover:
+.PHONY: title
+title:
 	@echo "\n---------------\n Test coverage\n---------------\n"
-	@go test -cover ./... \
-		| sed -nE 's/^(ok)?[[:space:]]+github.com\/liaradb\/liaradb\/([^[:space:]]+)[[:space:]].*coverage:[[:space:]]+([^[:space:]]+).*/\2 \3/p' \
-		| column -t
+
+TEST_REGEX = s/^(ok)?[[:space:]]+github.com\/liaradb\/liaradb\/([^[:space:]]+)[[:space:]].*coverage:[[:space:]]+([^[:space:]]+).*/\2 \3/p
+TEST_PARSE = sed -nE '$(TEST_REGEX)' | column -t
+
+.PHONY: cover
+cover: title
+	@go test -cover ./... | $(TEST_PARSE)
 
 .PHONY: cover-file
-cover-file:
-	@echo "\n---------------\n Test coverage\n---------------\n"
-	@go test -coverprofile=cover.out ./... \
-		| sed -nE 's/^(ok)?[[:space:]]+github.com\/liaradb\/liaradb\/([^[:space:]]+)[[:space:]].*coverage:[[:space:]]+([^[:space:]]+).*/\2 \3/p' \
-		| column -t
+cover-file: title
+	@go test -coverprofile=cover.out ./... | $(TEST_PARSE)
 
 .PHONY: report
 report: cover-file
