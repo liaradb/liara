@@ -11,3 +11,29 @@ services:
     volumes:
       - ./config.yaml:/app/config.yaml
       - ./.dbdata:/app/.dbdata
+  grafana:
+    profiles:
+      - analytics
+    image: grafana/grafana-enterprise
+    ports:
+      - 3000:3000
+  collector:
+    profiles:
+      - analytics
+    image: otel/opentelemetry-collector:0.149.0
+    ports:
+      - 4317:4317
+      - 4318:4318
+      # - 55679:55679
+    volumes:
+      - ./collector-config.yml:/etc/otelcol/config.yaml 
+  jaeger:
+    profiles:
+      - analytics
+    image: cr.jaegertracing.io/jaegertracing/jaeger:2.17.0
+    ports:
+      - 16686:16686
+      - 4317:4317
+      - 4318:4318
+      - 5778:5778
+      - 9411:9411

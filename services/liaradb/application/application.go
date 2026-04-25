@@ -32,6 +32,7 @@ type Application struct {
 	txManager   *transaction.Manager
 	log         *recovery.Log
 	lockTable   *locktable.LockTable[action.ItemID]
+	ot          openTelemetry
 }
 
 func New(conf configuration) *Application {
@@ -57,12 +58,15 @@ func New(conf configuration) *Application {
 // TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
 	ctx, cancelMain := context.WithCancel(ctx)
+
+	a.ot.init(ctx)
+
 	if err := a.run(ctx); err != nil {
 		cancelMain()
 		return err
 	}
 
-	defer a.close()
+	defer a.close(ctx)
 	defer func() {
 		slog.Info("shutting down...")
 		cancelMain()
@@ -126,14 +130,19 @@ func (a *Application) listen(ctx context.Context) {
 //   - Cancel Context
 //   - Flush Log
 //   - Flush Buffers
-func (a *Application) close() {
+func (a *Application) close(ctx context.Context) {
 	slog.Info("flushing...")
 	if err := a.txManager.Shutdown(time.Now()); err != nil {
 		slog.Error("unable to flush",
 			"error", err)
-		return
+	} else {
+		slog.Info("flushing complete")
 	}
-	slog.Info("flushing complete")
+
+	if err := a.ot.shutdown(ctx); err != nil {
+		slog.Error("unable to close open telemtry",
+			"error", err)
+	}
 
 	slog.Info("shutdown complete")
 }
