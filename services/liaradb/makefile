@@ -6,6 +6,12 @@ test:
 build:
 	go build -o bin/liaradb cmd/liaradb/main.go
 
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+
+.PHONY: run
+run:
+	go run cmd/liaradb/main.go
+
 .PHONY: clean-all
 clean-all: clean clean-data
 
