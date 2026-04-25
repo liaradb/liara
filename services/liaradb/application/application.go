@@ -57,11 +57,11 @@ func New(conf configuration) *Application {
 
 // TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
-	ctx, cancelMain := context.WithCancel(ctx)
+	ctxMain, cancelMain := context.WithCancel(ctx)
 
-	a.ot.init(ctx)
+	a.ot.init(ctxMain)
 
-	if err := a.run(ctx); err != nil {
+	if err := a.run(ctxMain); err != nil {
 		cancelMain()
 		return err
 	}
@@ -72,10 +72,10 @@ func (a *Application) Run(ctx context.Context) error {
 		cancelMain()
 	}()
 
-	ctx, cancelListen := WithSignal(ctx)
+	ctxMain, cancelListen := WithSignal(ctxMain)
 	defer cancelListen()
 
-	a.listen(ctx)
+	a.listen(ctxMain)
 
 	return nil
 }
