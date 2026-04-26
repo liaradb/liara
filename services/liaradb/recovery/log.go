@@ -24,11 +24,11 @@ type Log struct {
 	highWater  record.LogSequenceNumber
 	lowWater   record.LogSequenceNumber
 	appendReqs async.Handler[appendValue, record.LogSequenceNumber]
-	flushReqs  async.CommandHandler[struct{}]
+	flushReqs  async.CommandHandler[record.LogSequenceNumber]
 	cancel     context.CancelFunc
 }
 
-type flushRequest = async.Command[struct{}]
+type flushRequest = async.Command[record.LogSequenceNumber]
 
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
 
@@ -149,7 +149,7 @@ func (l *Log) Commit(
 		return lsn, err
 	}
 
-	return lsn, l.requestFlush(ctx)
+	return lsn, l.requestFlush(ctx, lsn)
 }
 
 func (l *Log) Rollback(
@@ -163,7 +163,7 @@ func (l *Log) Rollback(
 		return lsn, err
 	}
 
-	return lsn, l.requestFlush(ctx)
+	return lsn, l.requestFlush(ctx, lsn)
 }
 
 func (l *Log) Insert(
@@ -197,8 +197,8 @@ func (l *Log) Close() error {
 	return l.sl.Close()
 }
 
-func (l *Log) requestFlush(ctx context.Context) error {
-	return l.flushReqs.Send(ctx, struct{}{})
+func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
+	return l.flushReqs.Send(ctx, lsn)
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
