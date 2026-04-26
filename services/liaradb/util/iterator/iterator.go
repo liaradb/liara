@@ -24,3 +24,13 @@ func Reverse[T any](l *list.List) iter.Seq[T] {
 		}
 	}
 }
+
+func Item[T any](e *list.Element) (T, bool) {
+	if e == nil {
+		var t T
+		return t, false
+	}
+
+	fr, ok := e.Value.(T)
+	return fr, ok
+}
