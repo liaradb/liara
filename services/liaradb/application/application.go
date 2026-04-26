@@ -75,7 +75,10 @@ func (a *Application) Run(ctx context.Context) error {
 	ctxMain, cancelListen := WithSignal(ctxMain)
 	defer cancelListen()
 
-	a.listen(ctxMain)
+	if err := a.listen(ctxMain); err != nil {
+		slog.Error("failed to listen",
+			"error", err)
+	}
 
 	return nil
 }
@@ -121,8 +124,8 @@ func (a *Application) recover(ctx context.Context) error {
 	return r.Recover(ctx)
 }
 
-func (a *Application) listen(ctx context.Context) {
-	listener.Listen(ctx, a.conf.Port, a.initService())
+func (a *Application) listen(ctx context.Context) error {
+	return listener.Listen(ctx, a.conf.Port, a.initService())
 }
 
 // Closing Process
