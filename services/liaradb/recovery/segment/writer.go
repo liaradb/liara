@@ -100,7 +100,7 @@ func (wr *Writer) Flush() error {
 
 func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 	if size == 0 {
-		wr.initialize(rw)
+		wr.Initialize(rw)
 		return nil
 	}
 
@@ -111,7 +111,7 @@ func (wr *Writer) SeekTail(size int64, rw readWriterAt) error {
 		io.NewSectionReader(rw, wr.pageID.Position(wr.pageSize), wr.pageSize))
 }
 
-func (wr *Writer) initialize(w io.WriterAt) {
+func (wr *Writer) Initialize(w io.WriterAt) {
 	wr.reset(w)
 
 	wr.pageID = 0

@@ -28,7 +28,7 @@ func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 func (wr *writer) Append(rc *record.Record) (bool, error) {
 	flushed, err := wr.sw.Append(rc)
 	if err == raw.ErrInsufficientSpace {
-		// TODO: Should we use this value?
+		// Ignore this flushed value, as it's the first record
 		_, err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
 	}
 
@@ -41,11 +41,7 @@ func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceN
 		return false, err
 	}
 
-	// TODO: Use another method
-	if err := wr.sw.SeekTail(0, f); err != nil {
-		return false, err
-	}
-
+	wr.sw.Initialize(f)
 	return wr.sw.Append(rc)
 }
 
