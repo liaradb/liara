@@ -37,6 +37,7 @@ func run() error {
 	log := recovery.NewLog(
 		int64(conf.BlockSize),
 		action.PageID(segmentSize),
+		int64(conf.RecordSize),
 		fsys,
 		path.Join(conf.Directory, "log"))
 

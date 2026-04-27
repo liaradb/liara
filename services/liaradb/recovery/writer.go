@@ -15,11 +15,12 @@ type writer struct {
 func newWriter(
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 	sl *segment.List,
 ) *writer {
 	return &writer{
 		sl: sl,
-		sw: segment.NewWriter(pageSize, segmentSize),
+		sw: segment.NewWriter(pageSize, segmentSize, recordSize),
 	}
 }
 

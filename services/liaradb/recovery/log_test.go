@@ -22,7 +22,7 @@ func TestLog_Default(t *testing.T) {
 }
 
 func testLog_Default(t *testing.T) {
-	l := createLogStart(t, 320, 3)
+	l := createLogStart(t, 320, 3, 320)
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
 }
@@ -35,7 +35,7 @@ func TestLog_Append(t *testing.T) {
 func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 3)
+	l := createLogStart(t, 320, 3, 320)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
@@ -64,7 +64,7 @@ func TestLog_Append__Large(t *testing.T) {
 func testLog_Append__Large(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 3)
+	l := createLogStart(t, 320, 3, 320)
 	var data = make([]byte, 0, 1024)
 	for i := range 1024 {
 		data = append(data, byte(i%255))
@@ -95,7 +95,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 320, 3)
+			l := createLogStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
 			if _, err := l.Update(ctx,
@@ -134,7 +134,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 320, 3)
+			l := createLogStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
 			if _, err := l.Update(ctx,
@@ -169,7 +169,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 352, 4)
+			l := createLogStart(t, 352, 4, 352)
 			tid := value.NewTenantID()
 			count := 14
 			for range count {
@@ -197,7 +197,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 32, 1)
+			l := createLogStart(t, 32, 1, 32)
 
 			if _, err := l.Update(ctx,
 				value.NewTenantID(),
@@ -216,7 +216,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 320, 3)
+			l := createLogStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
 			if _, err := l.Update(ctx,
@@ -258,7 +258,7 @@ func TestLog_FlushCheckpoint(t *testing.T) {
 func testLog_FlushCheckpoint(t *testing.T) {
 	ctx := t.Context()
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 	tid := value.NewTenantID()
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
@@ -283,7 +283,7 @@ func testLog_FlushCheckpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	l1 := createLogAllStart(t, 320, 3, fsys, dir)
+	l1 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 	it, err := l1.Recover()
 	if err != nil {
 		t.Fatal(err)
@@ -305,7 +305,7 @@ func TestLog_EmptyReader(t *testing.T) {
 }
 
 func testLog_EmptyReader(t *testing.T) {
-	l := createLogStart(t, 320, 2)
+	l := createLogStart(t, 320, 2, 320)
 
 	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != segment.ErrNoSegmentFile {
@@ -322,7 +322,7 @@ func TestLog_Iterate(t *testing.T) {
 func testLog_Iterate(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 2)
+	l := createLogStart(t, 320, 2, 320)
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
@@ -376,7 +376,7 @@ func testLog_Recover(t *testing.T) {
 	r1 := records[1]
 
 	{ // "should append and flush"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -417,7 +417,7 @@ func testLog_Recover(t *testing.T) {
 	}
 
 	{ //"should recover"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -467,7 +467,7 @@ func testLog_RecoverMany(t *testing.T) {
 	records := append(records1, records2...)
 
 	{ // "should append and flush"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -516,7 +516,7 @@ func testLog_RecoverMany(t *testing.T) {
 	}
 
 	{ // "should append and flush more and iterate"
-		l := NewLog(256, 2, fsys, dir)
+		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
 		}
@@ -573,7 +573,7 @@ func TestLog_Reverse(t *testing.T) {
 func testLog_Reverse(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 2)
+	l := createLogStart(t, 320, 2, 320)
 	tid := value.NewTenantID()
 
 	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
@@ -622,7 +622,7 @@ func testLog_Commit(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	if lsn, err := l.Commit(ctx,
 		value.NewTenantID(),
@@ -636,7 +636,7 @@ func testLog_Commit(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
 
-	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -665,7 +665,7 @@ func testLog_Insert(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 
 	if lsn, err := l.Insert(ctx,
@@ -684,7 +684,7 @@ func testLog_Insert(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -713,7 +713,7 @@ func testLog_Rollback(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	if lsn, err := l.Rollback(ctx,
 		value.NewTenantID(),
@@ -727,7 +727,7 @@ func testLog_Rollback(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
 
-	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -756,7 +756,7 @@ func testLog_Start(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	if lsn, err := l.Start(ctx,
 		value.NewTenantID(),
@@ -772,7 +772,7 @@ func testLog_Start(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -801,7 +801,7 @@ func testLog_Update(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	l := createLogAllStart(t, 320, 3, fsys, dir)
+	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
@@ -822,7 +822,7 @@ func testLog_Update(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	l2 := createLogAllStart(t, 320, 3, fsys, dir)
+	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -845,11 +845,12 @@ func testLog_Update(t *testing.T) {
 func createLogStart(t *testing.T,
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 ) *Log {
 	t.Helper()
 
 	fsys, dir := createFiles()
-	l := createLog(t, pageSize, segmentSize, fsys, dir)
+	l := createLog(t, pageSize, segmentSize, recordSize, fsys, dir)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
@@ -860,12 +861,13 @@ func createLogStart(t *testing.T,
 func createLogAllStart(t *testing.T,
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
 	t.Helper()
 
-	l := createLog(t, pageSize, segmentSize, fsys, dir)
+	l := createLog(t, pageSize, segmentSize, recordSize, fsys, dir)
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
@@ -876,12 +878,13 @@ func createLogAllStart(t *testing.T,
 func createLog(t *testing.T,
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
 	t.Helper()
 
-	l := NewLog(pageSize, segmentSize, fsys, dir)
+	l := NewLog(pageSize, segmentSize, recordSize, fsys, dir)
 	if err := l.Open(t.Context()); err != nil {
 		t.Fatal(err)
 	}

@@ -225,7 +225,7 @@ func createWriter(t *testing.T) *Writer {
 	// fs := &file.FileSystem{}
 	// f, _ := fs.Open(path.Join(t.TempDir(), "logfile"))
 
-	sw := NewWriter(270, 3)
+	sw := NewWriter(270, 3, 270)
 	if err := sw.SeekTail(0, f); err != nil {
 		t.Fatal(err)
 	}
@@ -239,7 +239,7 @@ func createWriterSmall(t *testing.T) *Writer {
 	f := filetesting.NewMockFile(path.Join(t.TempDir(), "logfile"), 0, time.Time{})
 	f.Open()
 
-	sw := NewWriter(32, 1)
+	sw := NewWriter(32, 1, 32)
 	sw.SeekTail(0, f)
 	return sw
 }
@@ -255,7 +255,7 @@ func createFile(t *testing.T) filecache.File {
 func createWriterFromFile(t *testing.T, f filecache.File) *Writer {
 	t.Helper()
 
-	sw := NewWriter(256, 3)
+	sw := NewWriter(256, 3, 256)
 
 	i, err := f.Stat()
 	if err != nil {

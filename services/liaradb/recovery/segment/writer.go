@@ -18,6 +18,7 @@ const (
 type Writer struct {
 	pageSize    int64
 	segmentSize action.PageID
+	recordSize  int64
 	pageID      action.PageID
 	timeLineID  action.TimeLineID
 	writer      io.WriterAt
@@ -33,10 +34,12 @@ type readWriterAt interface {
 func NewWriter(
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 ) *Writer {
 	return &Writer{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
+		recordSize:  recordSize,
 		recordBuf:   bytes.NewBuffer(nil),
 		page:        page.New(pageSize),
 	}

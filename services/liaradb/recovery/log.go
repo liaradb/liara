@@ -59,6 +59,7 @@ type appendValue struct {
 func NewLog(
 	pageSize int64,
 	segmentSize action.PageID,
+	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
@@ -66,7 +67,7 @@ func NewLog(
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pageSize, segmentSize, sl),
+		writer:     newWriter(pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),

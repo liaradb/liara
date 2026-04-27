@@ -13,7 +13,7 @@ import (
 
 func TestReplay(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-		l := recovery.NewLog(256, 2, s.FSys, "dir")
+		l := recovery.NewLog(256, 2, 256, s.FSys, "dir")
 		r := NewReplay(collection.NewCollections(s.Storage), l)
 
 		if err := l.Open(t.Context()); err != nil {
