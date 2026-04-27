@@ -44,10 +44,13 @@ func NewWriter(
 
 func (wr *Writer) PageID() action.PageID { return wr.pageID }
 
-func (wr *Writer) Append(rc *record.Record) error {
+// Appends to current Page.  If insufficient space in Page
+//  1. flushes Page
+//  2. attempts to allocate next Page, else error
+func (wr *Writer) Append(rc *record.Record) (bool, error) {
 	data, err := wr.recordToBytes(rc)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	return wr.appendOrNext(data)
@@ -63,20 +66,20 @@ func (wr *Writer) recordToBytes(rc *record.Record) ([]byte, error) {
 	return wr.recordBuf.Bytes(), nil
 }
 
-func (wr *Writer) appendOrNext(data []byte) error {
+func (wr *Writer) appendOrNext(data []byte) (bool, error) {
+	// Appended, no flush
 	if ok := wr.page.Append(data); ok {
-		return nil
+		return false, nil
 	}
 
-	return wr.next(data)
+	if err := wr.Flush(); err != nil {
+		return false, err
+	}
+
+	return true, wr.next(data)
 }
 
 func (wr *Writer) next(data []byte) error {
-	// flush and start new page
-	if err := wr.Flush(); err != nil {
-		return err
-	}
-
 	wr.pageID++
 	if wr.pageID >= wr.segmentSize {
 		return raw.ErrInsufficientSpace

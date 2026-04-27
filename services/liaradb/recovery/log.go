@@ -17,6 +17,16 @@ const (
 	interval = 100 * time.Millisecond
 )
 
+// Append process
+//  1. Append log record
+//  2. Fill page
+//  3. If page is full, flush
+//  4. Request flush to LSN
+//  5. Wait for timeout
+//  6. Flush to LSN, notify requester
+//
+// What happens if we flush previous page or segment?
+// Do we flush current page when closing segment?
 type Log struct {
 	sl         *segment.List
 	reader     *reader
@@ -125,8 +135,14 @@ func (l *Log) append(
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
-	if err := l.writer.Append(rc); err != nil {
+	flushed, err := l.writer.Append(rc)
+	if err != nil {
 		return record.NewLogSequenceNumber(0), err
+	}
+
+	if flushed {
+		l.lowWater = l.highWater
+		l.queue.SendUpToLSN(l.highWater)
 	}
 
 	l.highWater = h
@@ -261,7 +277,14 @@ func (l *Log) FlushCheckpoint(
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	data := l.txIDsToData(txids)
-	lsn, err := l.append(value.TenantID{}, record.TransactionID{}, now, record.ActionCheckpoint, record.CollectionSystem, data, nil)
+	lsn, err := l.append(
+		value.TenantID{},
+		record.TransactionID{},
+		now,
+		record.ActionCheckpoint,
+		record.CollectionSystem,
+		data,
+		nil)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}

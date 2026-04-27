@@ -25,22 +25,26 @@ func newWriter(
 
 func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 
-func (wr *writer) Append(rc *record.Record) error {
-	err := wr.sw.Append(rc)
+func (wr *writer) Append(rc *record.Record) (bool, error) {
+	flushed, err := wr.sw.Append(rc)
 	if err == raw.ErrInsufficientSpace {
-		err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
+		// TODO: Should we use this value?
+		_, err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
 	}
 
-	return err
+	return flushed, err
 }
 
-func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) error {
+func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) (bool, error) {
 	_, f, err := wr.sl.OpenNextSegment(lsn)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	wr.sw.SeekTail(0, f)
+	// TODO: Use another method
+	if err := wr.sw.SeekTail(0, f); err != nil {
+		return false, err
+	}
 
 	return wr.sw.Append(rc)
 }

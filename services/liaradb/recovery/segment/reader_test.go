@@ -26,7 +26,7 @@ func testReader_Iterate(t *testing.T) {
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
+		if _, err := sw.Append(rc); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -63,7 +63,7 @@ func testReader_Reverse(t *testing.T) {
 	records, _ := createRecords(count)
 
 	for _, rc := range records {
-		if err := sw.Append(rc); err != nil {
+		if _, err := sw.Append(rc); err != nil {
 			t.Fatal(err)
 		}
 	}
