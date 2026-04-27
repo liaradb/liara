@@ -26,6 +26,7 @@ type Log struct {
 	appendReqs async.Handler[appendValue, record.LogSequenceNumber]
 	flushReqs  async.CommandHandler[record.LogSequenceNumber]
 	cancel     context.CancelFunc
+	queue      requestQueue
 }
 
 type flushRequest = async.Command[record.LogSequenceNumber]
@@ -64,6 +65,9 @@ func (l *Log) PageID() action.PageID               { return l.writer.PageID() }
 func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
 func (l *Log) run(ctx context.Context) {
+	timer := time.NewTimer(interval)
+	defer timer.Stop()
+
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -73,12 +77,12 @@ func (l *Log) run(ctx context.Context) {
 			return
 		case r := <-l.appendReqs:
 			l.appendRequest(r)
-		case <-ticker.C:
-			if err := l.flush(); err != nil {
-				panic(err)
-			}
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
+		case <-timer.C:
+			l.flushOrPanic()
+		case <-ticker.C:
+			l.flushOrPanic()
 		}
 	}
 }
@@ -202,8 +206,13 @@ func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) er
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
-	err := l.flush()
-	r.Reply(err)
+	l.queue.Add(r)
+}
+
+func (l *Log) flushOrPanic() {
+	if err := l.flush(); err != nil {
+		panic(err)
+	}
 }
 
 func (l *Log) flush() error {
@@ -216,6 +225,7 @@ func (l *Log) flush() error {
 	}
 
 	l.lowWater = l.highWater
+	l.queue.SendUpToLSN(l.highWater)
 	return nil
 }
 
