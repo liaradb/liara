@@ -95,6 +95,7 @@ func (wr *Writer) next(data []byte) error {
 }
 
 func (wr *Writer) Flush() error {
+	// TODO: Flush in other Goroutine
 	return wr.page.Write(wr.writer)
 }
 
