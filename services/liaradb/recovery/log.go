@@ -141,8 +141,7 @@ func (l *Log) append(
 	}
 
 	if flushed {
-		l.lowWater = l.highWater
-		l.queue.SendUpToLSN(l.highWater)
+		l.completeFlush()
 	}
 
 	l.highWater = h
@@ -240,9 +239,13 @@ func (l *Log) flush() error {
 		return err
 	}
 
+	l.completeFlush()
+	return nil
+}
+
+func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
 	l.queue.SendUpToLSN(l.highWater)
-	return nil
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
