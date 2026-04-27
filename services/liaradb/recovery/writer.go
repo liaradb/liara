@@ -25,6 +25,7 @@ func newWriter(
 }
 
 func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
+func (wr *writer) RecordSize() int64     { return wr.sw.RecordSize() }
 
 func (wr *writer) Append(rc *record.Record) (bool, error) {
 	flushed, err := wr.sw.Append(rc)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -114,6 +115,11 @@ func (l *Log) appendRecord(
 	data []byte,
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
+	// Verify that record can fit at all
+	if len(data) > int(l.writer.RecordSize()) {
+		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
+	}
+
 	return l.appendReqs.Send(ctx, appendValue{
 		tid:        tid,
 		txid:       txid,

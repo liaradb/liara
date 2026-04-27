@@ -46,6 +46,7 @@ func NewWriter(
 }
 
 func (wr *Writer) PageID() action.PageID { return wr.pageID }
+func (wr *Writer) RecordSize() int64     { return wr.recordSize }
 
 // Appends to current Page.  If insufficient space in Page
 //  1. flushes Page
@@ -88,7 +89,7 @@ func (wr *Writer) next(data []byte) error {
 		return raw.ErrInsufficientSpace
 	}
 
-	// TODO: Verify that record can fit at all before initializing
+	// TODO: Verify that spanned record can fit at all before initializing
 	wr.page.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
 	if ok := wr.page.Append(data); !ok {
 		return raw.ErrInsufficientSpace

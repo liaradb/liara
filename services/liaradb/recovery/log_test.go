@@ -55,7 +55,6 @@ func testLog_Append(t *testing.T) {
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 }
 
-// TODO: Should not create next Segment if cannot fit
 func TestLog_Append__Large(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testLog_Append__Large)
