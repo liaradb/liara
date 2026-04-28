@@ -25,22 +25,5 @@
 		"editor.formatOnSave": true,
 		"clang-format.style": "google",
 		"clang-format.executable": "clang-format",
-		"sqltools.connections": [
-			{
-				"previewLimit": 50,
-				"driver": "SQLite",
-				"name": "local",
-				"database": "${workspaceFolder:liarasql}/test.db"
-			},
-			{
-				"previewLimit": 50,
-				"server": "localhost",
-				"port": 5432,
-				"driver": "PostgreSQL",
-				"name": "postgres",
-				"username": "postgres",
-				"database": "liara"
-			}
-		],
 	}
 }

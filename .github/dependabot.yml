@@ -11,6 +11,5 @@ updates:
       # - "/modules/liaractl"
       - "/modules/eventsource_go"
       - "/services/liaradb"
-      # - "/services/liarasql"
     schedule:
       interval: "weekly"

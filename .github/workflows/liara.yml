@@ -26,7 +26,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version-file: services/liarasql/go.mod
+          go-version-file: services/liaradb/go.mod
           cache-dependency-path: |
             modules/eventsource_go/go.sum
             modules/liara/go.sum
