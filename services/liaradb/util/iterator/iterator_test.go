@@ -54,3 +54,22 @@ func TestReverse(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, values)
 	}
 }
+
+func TestItem(t *testing.T) {
+	t.Parallel()
+
+	l := list.New()
+
+	if _, ok := Item[string](l.Front()); ok {
+		t.Error("should not return value")
+	}
+
+	want := "a"
+	l.PushBack(want)
+
+	if v, ok := Item[string](l.Front()); !ok {
+		t.Error("should return value")
+	} else if v != want {
+		t.Errorf("incorrect value: %v, expected: %v", v, want)
+	}
+}
