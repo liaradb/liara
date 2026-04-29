@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
+	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/storage"
 )
 
@@ -28,7 +29,7 @@ func (c *Cursor) Reader() io.Reader {
 	for _, b := range c.buffers {
 		readers = append(readers, buffer.NewFromSlice(b.Raw()))
 	}
-	return newMultiReader(readers...)
+	return multi.NewReader(readers...)
 }
 
 func (c *Cursor) Writer() io.Writer {
@@ -36,5 +37,5 @@ func (c *Cursor) Writer() io.Writer {
 	for _, b := range c.buffers {
 		writers = append(writers, buffer.NewFromSlice(b.Raw()))
 	}
-	return newMultiWriter(writers...)
+	return multi.NewWriter(writers...)
 }
