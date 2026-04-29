@@ -80,21 +80,25 @@ func (wr *Writer) appendOrNext(data []byte) (bool, error) {
 		return false, err
 	}
 
-	return true, wr.next(data)
+	// TODO: Verify that spanned record can fit at all before initializing
+	if err := wr.next(); err != nil {
+		return true, err
+	}
+
+	if ok := wr.page.Append(data); !ok {
+		return true, raw.ErrInsufficientSpace
+	}
+
+	return true, nil
 }
 
-func (wr *Writer) next(data []byte) error {
+func (wr *Writer) next() error {
+	if wr.pageID+1 >= wr.segmentSize {
+		return raw.ErrInsufficientSpace
+	}
+
 	wr.pageID++
-	if wr.pageID >= wr.segmentSize {
-		return raw.ErrInsufficientSpace
-	}
-
-	// TODO: Verify that spanned record can fit at all before initializing
 	wr.page.Init(wr.pageID, wr.timeLineID, record.NewLength(0))
-	if ok := wr.page.Append(data); !ok {
-		return raw.ErrInsufficientSpace
-	}
-
 	return nil
 }
 
