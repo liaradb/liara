@@ -25,6 +25,6 @@ func (pl *Pool) Get(pid action.PageID, tlid action.TimeLineID, rl record.Length)
 	return p
 }
 
-func (pl *Pool) Return(p *Page) {
+func (pl *Pool) Put(p *Page) {
 	pl.pool.Put(p)
 }
