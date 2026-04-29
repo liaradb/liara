@@ -1,4 +1,4 @@
-package segment
+package page
 
 import (
 	"testing"
@@ -7,8 +7,8 @@ import (
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
-func TestPagePool(t *testing.T) {
-	pp := NewPagePool(1024)
+func TestPool(t *testing.T) {
+	pp := NewPool(1024)
 
 	p0 := pp.Get(action.PageID(1), action.TimeLineID(2), record.NewLength(3))
 	pp.Return(p0)
