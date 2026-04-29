@@ -12,6 +12,10 @@ func NewWriter(writers ...io.Writer) *Writer {
 	}
 }
 
+func (w *Writer) Append(r io.Writer) {
+	w.writers = append(w.writers, r)
+}
+
 func (w *Writer) Write(p []byte) (int, error) {
 	n := 0
 	for _, w := range w.writers {
