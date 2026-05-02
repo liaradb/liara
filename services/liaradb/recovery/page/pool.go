@@ -11,8 +11,8 @@ type Pool struct {
 	pool sync.Pool
 }
 
-func NewPool(size int64) *Pool {
-	return &Pool{
+func NewPool(size int64) Pool {
+	return Pool{
 		pool: sync.Pool{New: func() any {
 			return New(size)
 		}},
