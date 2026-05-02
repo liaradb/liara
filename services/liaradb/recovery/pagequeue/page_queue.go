@@ -3,7 +3,6 @@ package pagequeue
 import (
 	"bytes"
 	"container/list"
-	"errors"
 
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
@@ -30,6 +29,13 @@ func (pq *PageQueue) Count() int {
 	return pq.list.Len() + 1
 }
 
+// # Append
+//   - Compare size of new Record to remaining space in current Page
+//   - If it fits, append to the current Page
+//   - If it spans, generate a new list of Pages to fit
+//   - Append Record as Span to the list
+//   - Append list to queue, up to but not including, current
+//   - If current Page is entirely full, append current to list and swap current for next Page
 func (pq *PageQueue) Append(rc *record.Record) error {
 	data, err := pq.recordToBytes(rc)
 	if err != nil {
@@ -45,7 +51,7 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 	pq.next()
 
 	if ok := pq.current.Append(data); !ok {
-		return errors.New("unable to append")
+		return ErrUnableToAppend
 	}
 
 	return nil
@@ -63,12 +69,19 @@ func (pq *PageQueue) next() {
 	pq.current = pq.pool.Get(pq.pid, pq.tlid, pq.rl)
 }
 
-func (wr *PageQueue) recordToBytes(rc *record.Record) ([]byte, error) {
-	wr.recordBuf.Reset()
-	if err := rc.Write(&wr.recordBuf); err != nil {
+func (pq *PageQueue) recordToBytes(rc *record.Record) ([]byte, error) {
+	// TODO: Use Span instead, as it writes directly
+	pq.recordBuf.Reset()
+	if err := rc.Write(&pq.recordBuf); err != nil {
 		return nil, err
 	}
 
 	// We don't need to clone, as the data is copied
-	return wr.recordBuf.Bytes(), nil
+	return pq.recordBuf.Bytes(), nil
+}
+
+// # Flushing
+//   - Flush entire queue to Disk, including Current
+func (pq *PageQueue) Flush() error {
+	return nil
 }
