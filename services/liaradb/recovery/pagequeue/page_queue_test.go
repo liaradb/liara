@@ -30,6 +30,10 @@ func TestPageQueue(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if c := pq.Count(); c != 1 {
+		t.Fatalf("incorrect count: %v, expected: %v", c, 1)
+	}
+
 	var item []byte
 	for i := range pq.current.Items() {
 		item = i
@@ -77,5 +81,38 @@ func TestPageQueue(t *testing.T) {
 
 	if i := rc.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
 		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == record.ActionCheckpoint)
+	}
+}
+
+func TestPageQueue__Next(t *testing.T) {
+	t.Parallel()
+
+	pq := New(256)
+
+	lsn := record.NewLogSequenceNumber(1)
+	tid := value.NewTenantID()
+	txid := record.NewTransactionID(2)
+	now := record.NewTime(time.UnixMicro(1234567890))
+	action := record.ActionInsert
+	collection := record.CollectionEvent
+	data := []byte("abcdef")
+	reverse := []byte("fghij")
+
+	rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+	if err := pq.Append(rc); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := pq.Append(rc); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := pq.Append(rc); err != nil {
+		t.Fatal(err)
+	}
+
+	if c := pq.Count(); c != 2 {
+		t.Fatalf("incorrect count: %v, expected: %v", c, 1)
 	}
 }
