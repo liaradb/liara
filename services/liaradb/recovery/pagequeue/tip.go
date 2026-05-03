@@ -13,6 +13,7 @@ type Tip struct {
 func NewTip(current *page.Page) Tip {
 	return Tip{
 		current: current,
+		pages:   []*page.Page{current},
 	}
 }
 
@@ -59,4 +60,8 @@ func (t *Tip) next() *page.Page {
 	p.Init(t.current.ID()+1, t.current.TimeLineID(), record.NewLength(0))
 	t.pages = append(t.pages, p)
 	return p
+}
+
+func (t *Tip) Pages() []*page.Page {
+	return t.pages
 }

@@ -27,4 +27,13 @@ func TestTip(t *testing.T) {
 	if l != want {
 		t.Errorf("incorrect length: %v, expected: %v", l, want)
 	}
+
+	pages := tip.Pages()
+	if l := len(pages); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	if c := pages[0]; c != current {
+		t.Errorf("incorrect first page: %v, expected: %v", c, current)
+	}
 }
