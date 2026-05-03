@@ -21,6 +21,7 @@ type Page struct {
 	data     []byte
 	list     crclist.CRCList
 	byteList bytelist.ByteList
+	offset   int16
 }
 
 func New(size int64) *Page {
@@ -43,7 +44,9 @@ func NewFromSlice(data []byte) *Page {
 	}
 }
 
+// TODO: Why do we need to pass rl?
 func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length) {
+	// TODO: Do we always need to clear?
 	clear(p.data)
 	p.header.init()
 	p.list.Reset()
@@ -51,6 +54,7 @@ func (p *Page) Init(pid action.PageID, tlid action.TimeLineID, rl record.Length)
 }
 
 func (p *Page) IsPage() bool { return p.header.isPage() }
+func (p *Page) Size() int16  { return int16(len(p.data)) }
 
 // Copies data to Page
 func (p *Page) Append(data []byte) bool {
@@ -73,6 +77,31 @@ func (p *Page) Append(data []byte) bool {
 
 	copy(b, data)
 
+	return true
+}
+
+func (p *Page) Lease(size int16) ([]byte, bool) {
+	if size < 1 {
+		return nil, false
+	}
+
+	s := p.Space()
+	if s == 0 {
+		return nil, false
+	}
+
+	available := min(size, s)
+	offset := p.next() - available
+	p.offset = offset
+	return p.byteList.Slice(int64(offset), int64(available))
+}
+
+func (p *Page) Return(data []byte) bool {
+	if _, ok := p.list.Push(p.offset, int16(len(data)), page.NewCRC(data)); !ok {
+		return false
+	}
+
+	p.header.setNext(p.offset)
 	return true
 }
 

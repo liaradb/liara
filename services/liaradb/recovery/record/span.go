@@ -30,6 +30,17 @@ func NewSpan(fragments ...Fragment) Span {
 	}
 }
 
+func (s Span) Length() (l int64) {
+	for _, f := range s.fragments {
+		l += f.Length()
+	}
+	return
+}
+
+func (s *Span) Append(f Fragment) {
+	s.fragments = append(s.fragments, f)
+}
+
 func (s Span) Read(p []byte) (n int, err error) {
 	return s.reader.Read(p)
 }

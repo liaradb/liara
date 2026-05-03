@@ -18,6 +18,8 @@ func NewFragment(data []byte) Fragment {
 	}
 }
 
+func (f Fragment) Length() int64 { return f.buffer.Length() }
+
 func (f Fragment) Read(p []byte) (n int, err error) {
 	return f.buffer.Read(p)
 }
