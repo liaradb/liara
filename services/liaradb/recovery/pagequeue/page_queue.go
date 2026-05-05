@@ -44,6 +44,13 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 
 	pq.initCurrent()
 
+	// TODO: Change to use Span
+	t := NewTip(pq.current)
+	s := t.Span(int16(rc.Size()))
+	if err := rc.Write(s); err != nil {
+		return err
+	}
+
 	if ok := pq.current.Append(data); ok {
 		return nil
 	}
