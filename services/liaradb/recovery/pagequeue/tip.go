@@ -13,7 +13,6 @@ type Tip struct {
 func NewTip(current *page.Page) Tip {
 	return Tip{
 		current: current,
-		pages:   []*page.Page{current},
 	}
 }
 
@@ -53,6 +52,21 @@ func (t *Tip) Span(size int16) *record.Span {
 	}
 
 	return &s
+}
+
+// TODO: What do we do on a partial commit?
+func (t *Tip) Commit() bool {
+	if ok := t.current.Commit(); !ok {
+		return false
+	}
+
+	for _, p := range t.pages {
+		if ok := p.Commit(); !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (t *Tip) next() *page.Page {

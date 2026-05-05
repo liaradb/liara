@@ -21,7 +21,8 @@ type Page struct {
 	data     []byte
 	list     crclist.CRCList
 	byteList bytelist.ByteList
-	offset   int16
+	leasePos int16
+	leaseLen int16
 }
 
 func New(size int64) *Page {
@@ -90,18 +91,25 @@ func (p *Page) Lease(size int16) ([]byte, bool) {
 		return nil, false
 	}
 
-	available := min(size, s)
-	offset := p.next() - available
-	p.offset = offset
-	return p.byteList.Slice(int64(offset), int64(available))
+	p.leaseLen = min(size, s)
+	p.leasePos = p.next() - p.leaseLen
+	return p.leaseData()
 }
 
-func (p *Page) Return(data []byte) bool {
-	if _, ok := p.list.Push(p.offset, int16(len(data)), page.NewCRC(data)); !ok {
+func (p *Page) leaseData() ([]byte, bool) {
+	return p.byteList.Slice(int64(p.leasePos), int64(p.leaseLen))
+}
+
+func (p *Page) Commit() bool {
+	data, ok := p.leaseData()
+	if !ok {
 		return false
 	}
 
-	p.header.setNext(p.offset)
+	if _, ok := p.list.Push(p.leasePos, p.leaseLen, page.NewCRC(data)); !ok {
+		return false
+	}
+
 	return true
 }
 

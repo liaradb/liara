@@ -1,7 +1,6 @@
 package pagequeue
 
 import (
-	"bytes"
 	"container/list"
 
 	"github.com/liaradb/liaradb/recovery/action"
@@ -10,13 +9,12 @@ import (
 )
 
 type PageQueue struct {
-	pool      page.Pool
-	list      list.List
-	current   *page.Page
-	pid       action.PageID
-	tlid      action.TimeLineID
-	rl        record.Length
-	recordBuf bytes.Buffer
+	pool    page.Pool
+	list    list.List
+	current *page.Page
+	pid     action.PageID
+	tlid    action.TimeLineID
+	rl      record.Length
 }
 
 func New(size int64) *PageQueue {
@@ -37,28 +35,20 @@ func (pq *PageQueue) Count() int {
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
 func (pq *PageQueue) Append(rc *record.Record) error {
-	data, err := pq.recordToBytes(rc)
-	if err != nil {
-		return err
-	}
-
 	pq.initCurrent()
 
-	// TODO: Change to use Span
 	t := NewTip(pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
 		return err
 	}
 
-	if ok := pq.current.Append(data); ok {
-		return nil
+	if ok := t.Commit(); !ok {
+
 	}
 
-	pq.next()
-
-	if ok := pq.current.Append(data); !ok {
-		return ErrUnableToAppend
+	for _, p := range t.Pages() {
+		pq.list.PushFront(p)
 	}
 
 	return nil
@@ -70,25 +60,9 @@ func (pq *PageQueue) initCurrent() {
 	}
 }
 
-func (pq *PageQueue) next() {
-	pq.list.PushFront(pq.current)
-	// TODO: Increment pid
-	pq.current = pq.pool.Get(pq.pid, pq.tlid, pq.rl)
-}
-
-func (pq *PageQueue) recordToBytes(rc *record.Record) ([]byte, error) {
-	// TODO: Use Span instead, as it writes directly
-	pq.recordBuf.Reset()
-	if err := rc.Write(&pq.recordBuf); err != nil {
-		return nil, err
-	}
-
-	// We don't need to clone, as the data is copied
-	return pq.recordBuf.Bytes(), nil
-}
-
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
+	// TODO: Implement this
 	return nil
 }
