@@ -113,6 +113,6 @@ func TestPageQueue__Next(t *testing.T) {
 	}
 
 	if c := pq.Count(); c != 2 {
-		t.Fatalf("incorrect count: %v, expected: %v", c, 1)
+		t.Fatalf("incorrect count: %v, expected: %v", c, 2)
 	}
 }

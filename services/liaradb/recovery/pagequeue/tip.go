@@ -16,6 +16,8 @@ func NewTip(current *page.Page) Tip {
 	}
 }
 
+func (t *Tip) Pages() []*page.Page { return t.pages }
+
 // Request Lease from current Page
 // If insufficient space is available, build list of Pages for remaining
 func (t *Tip) Span(size int16) *record.Span {
@@ -54,6 +56,13 @@ func (t *Tip) Span(size int16) *record.Span {
 	return &s
 }
 
+func (t *Tip) next() *page.Page {
+	p := page.New(int64(t.current.Size()))
+	p.Init(t.current.ID()+1, t.current.TimeLineID(), record.NewLength(0))
+	t.pages = append(t.pages, p)
+	return p
+}
+
 // TODO: What do we do on a partial commit?
 func (t *Tip) Commit() bool {
 	if ok := t.current.Commit(); !ok {
@@ -67,15 +76,4 @@ func (t *Tip) Commit() bool {
 	}
 
 	return true
-}
-
-func (t *Tip) next() *page.Page {
-	p := page.New(int64(t.current.Size()))
-	p.Init(t.current.ID()+1, t.current.TimeLineID(), record.NewLength(0))
-	t.pages = append(t.pages, p)
-	return p
-}
-
-func (t *Tip) Pages() []*page.Page {
-	return t.pages
 }

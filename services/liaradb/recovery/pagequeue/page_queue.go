@@ -44,11 +44,25 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 	}
 
 	if ok := t.Commit(); !ok {
-
+		return ErrUnableToAppend
 	}
 
-	for _, p := range t.Pages() {
-		pq.list.PushFront(p)
+	pgs := t.Pages()
+
+	// If pages is empty, do nothing
+	l := len(pgs)
+	if l == 0 {
+		return nil
+	}
+
+	pq.list.PushBack(pq.current)
+	last := l - 1
+	for i, p := range pgs {
+		if i == last {
+			pq.current = p
+		} else {
+			pq.list.PushBack(p)
+		}
 	}
 
 	return nil

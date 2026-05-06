@@ -87,10 +87,6 @@ func (p *Page) Lease(size int16) ([]byte, bool) {
 	}
 
 	s := p.Space()
-	if s == 0 {
-		return nil, false
-	}
-
 	p.leaseLen = min(size, s)
 	p.leasePos = p.next() - p.leaseLen
 	return p.leaseData()
@@ -110,6 +106,7 @@ func (p *Page) Commit() bool {
 		return false
 	}
 
+	p.header.setNext(p.leasePos)
 	return true
 }
 
