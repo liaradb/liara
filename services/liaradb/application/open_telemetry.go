@@ -7,7 +7,9 @@ import (
 	"go.opentelemetry.io/contrib/exporters/autoexport"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.40.0"
 )
 
 type openTelemetry struct {
@@ -25,6 +27,18 @@ func (op *openTelemetry) init(ctx context.Context) error {
 }
 
 func (op *openTelemetry) initOT(ctx context.Context) error {
+	res, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName("LiaraDB"),
+			semconv.ArtifactVersion("0.0.0"),
+		),
+	)
+	if err != nil {
+		return err
+	}
+
 	// Create trace exporter using environment variables
 	spanExporter, err := autoexport.NewSpanExporter(ctx)
 	if err != nil {
@@ -39,11 +53,13 @@ func (op *openTelemetry) initOT(ctx context.Context) error {
 
 	// Create trace provider with the exporter
 	tracerProvider := trace.NewTracerProvider(
+		trace.WithResource(res),
 		trace.WithBatcher(spanExporter),
 	)
 
 	// Create meter provider with the reader
 	meterProvider := metric.NewMeterProvider(
+		metric.WithResource(res),
 		metric.WithReader(metricReader),
 	)
 
