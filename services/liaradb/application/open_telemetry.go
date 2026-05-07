@@ -3,8 +3,10 @@ package application
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.opentelemetry.io/contrib/exporters/autoexport"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -27,14 +29,18 @@ func (op *openTelemetry) init(ctx context.Context) error {
 }
 
 func (op *openTelemetry) initOT(ctx context.Context) error {
+	err := runtime.Start(
+		runtime.WithMinimumReadMemStatsInterval(10 * time.Second))
+	if err != nil {
+		return err
+	}
+
 	res, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceName("LiaraDB"),
-			semconv.ArtifactVersion("0.0.0"),
-		),
-	)
+			semconv.ArtifactVersion("0.0.0")))
 	if err != nil {
 		return err
 	}
