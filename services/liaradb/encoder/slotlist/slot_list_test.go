@@ -66,23 +66,23 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
 	}
 
-	if item, ok := l.Item(0); !ok {
+	if slot, ok := l.Slot(0); !ok {
 		t.Errorf("should have value")
-	} else if item.Offset() != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 1)
-	} else if item.Size() != 10 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 10)
+	} else if slot.Offset() != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 1)
+	} else if slot.Size() != 10 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 10)
 	}
 
-	if item, ok := l.Item(1); !ok {
+	if slot, ok := l.Slot(1); !ok {
 		t.Errorf("should have value")
-	} else if item.Offset() != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 2)
-	} else if item.size != 20 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 20)
+	} else if slot.Offset() != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
+	} else if slot.size != 20 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 20)
 	}
 
-	if _, ok := l.Item(2); ok {
+	if _, ok := l.Slot(2); ok {
 		t.Errorf("should not have a value")
 	}
 }
@@ -100,12 +100,12 @@ func TestSlotList_Pop(t *testing.T) {
 		t.Error("should push")
 	}
 
-	if item, ok := l.Pop(); !ok {
+	if slot, ok := l.Pop(); !ok {
 		t.Error("should pop")
-	} else if item.Offset() != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 2)
-	} else if item.Size() != 20 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 20)
+	} else if slot.Offset() != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
+	} else if slot.Size() != 20 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 20)
 	}
 
 	if s := l.Size(); s != 6 {
@@ -116,12 +116,12 @@ func TestSlotList_Pop(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
 
-	if item, ok := l.Pop(); !ok {
+	if slot, ok := l.Pop(); !ok {
 		t.Error("should pop")
-	} else if item.Offset() != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 1)
-	} else if item.Size() != 10 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 10)
+	} else if slot.Offset() != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 1)
+	} else if slot.Size() != 10 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 10)
 	}
 
 	if s := l.Size(); s != 2 {
@@ -137,7 +137,7 @@ func TestSlotList_Pop(t *testing.T) {
 	}
 }
 
-func TestSlotList_Items(t *testing.T) {
+func TestSlotList_Slots(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 42))
@@ -156,7 +156,7 @@ func TestSlotList_Items(t *testing.T) {
 	}
 
 	result := make([]tuple, 0, len(data))
-	for i := range l.Items() {
+	for i := range l.Slots() {
 		result = append(result, tuple{i.Offset(), i.Size()})
 	}
 
@@ -165,7 +165,7 @@ func TestSlotList_Items(t *testing.T) {
 	}
 }
 
-func TestSlotList_ItemsReverse(t *testing.T) {
+func TestSlotList_SlotsReverse(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 42))
@@ -184,12 +184,12 @@ func TestSlotList_ItemsReverse(t *testing.T) {
 	}
 
 	result := make([]tuple, 0, len(data))
-	for i := range l.ItemsReverse() {
+	for i := range l.SlotsReverse() {
 		result = append(result, tuple{i.Offset(), i.Size()})
 	}
 
 	// Partial iteration
-	for range l.ItemsReverse() {
+	for range l.SlotsReverse() {
 		break
 	}
 
@@ -199,7 +199,7 @@ func TestSlotList_ItemsReverse(t *testing.T) {
 	}
 }
 
-func TestSlotList_ItemsRange(t *testing.T) {
+func TestSlotList_SlotsRange(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 42))
@@ -251,12 +251,12 @@ func TestSlotList_ItemsRange(t *testing.T) {
 			}
 
 			result := make([]tuple, 0, len(c.want))
-			for i := range l.ItemsRange(c.start, c.end) {
+			for i := range l.SlotsRange(c.start, c.end) {
 				result = append(result, tuple{i.Offset(), i.Size()})
 			}
 
 			// Partial iteration
-			for range l.ItemsRange(c.start, c.end) {
+			for range l.SlotsRange(c.start, c.end) {
 				break
 			}
 
@@ -332,12 +332,12 @@ func TestSlotList_Insert(t *testing.T) {
 			}
 
 			result := make([]tuple, 0, len(c.data))
-			for i := range l.Items() {
+			for i := range l.Slots() {
 				result = append(result, tuple{i.Offset(), i.Size()})
 			}
 
 			// Partial iteration
-			for range l.Items() {
+			for range l.Slots() {
 				break
 			}
 
@@ -351,9 +351,9 @@ func TestSlotList_Insert(t *testing.T) {
 		t.Parallel()
 
 		l := New(make([]byte, 6))
-		for i, item := range []tuple{
+		for i, slot := range []tuple{
 			{10, 60}} {
-			if _, ok := l.Insert(item.a, item.b, int16(i)); !ok {
+			if _, ok := l.Insert(slot.a, slot.b, int16(i)); !ok {
 				t.Fatal("should insert")
 			}
 		}
@@ -391,7 +391,7 @@ func TestSlotList_Reset(t *testing.T) {
 	}
 
 	c := 0
-	for range l.Items() {
+	for range l.Slots() {
 		c++
 	}
 
@@ -434,7 +434,7 @@ func TestSlotList_Clear(t *testing.T) {
 	}
 
 	c := 0
-	for range l.Items() {
+	for range l.Slots() {
 		c++
 	}
 

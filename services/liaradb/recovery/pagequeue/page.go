@@ -30,7 +30,7 @@ func (p *Page) Header() []byte {
 }
 
 func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
-	item, ok := p.list.Item(i)
+	item, ok := p.list.Slot(i)
 	if !ok {
 		return nil, nil, false
 	}
