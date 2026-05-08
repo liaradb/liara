@@ -53,9 +53,9 @@ func (sl *SlotList) Count() int16 {
 	return sl.count
 }
 
-func (sl *SlotList) setSize(size int16) {
-	if sl.list.Set(0, size) {
-		sl.count = size
+func (sl *SlotList) setCount(count int16) {
+	if sl.list.Set(0, count) {
+		sl.count = count
 	}
 }
 
@@ -119,7 +119,7 @@ func (sl *SlotList) SlotsRange(start, end int16) iter.Seq[Slot] {
 	}
 }
 
-func (sl *SlotList) Insert(a int16, b int16, i int16) (int16, bool) {
+func (sl *SlotList) Insert(offset int16, size int16, i int16) (int16, bool) {
 	start := sl.position(i)
 	end := sl.position(sl.count)
 
@@ -127,45 +127,44 @@ func (sl *SlotList) Insert(a int16, b int16, i int16) (int16, bool) {
 		return 0, false
 	}
 
-	if ok := sl.list.Set(start, a); !ok {
+	if ok := sl.list.Set(start, offset); !ok {
 		return 0, false
 	}
 
-	if ok := sl.list.Set(start+1, b); !ok {
+	if ok := sl.list.Set(start+1, size); !ok {
 		return 0, false
 	}
 
-	size := sl.Count()
-	sl.setSize(size + 1)
-	return size, true
+	count := sl.count
+	sl.setCount(count + 1)
+	return count, true
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
-	size := sl.Count()
-	if size < 1 {
+	if sl.count < 1 {
 		return Slot{}, false
 	}
 
-	slot, ok := sl.Slot(size - 1)
+	slot, ok := sl.Slot(sl.count - 1)
 	if !ok {
 		return Slot{}, false
 	}
 
-	sl.setSize(size - 1)
+	sl.setCount(sl.count - 1)
 	return slot, true
 }
 
-func (sl *SlotList) Push(a int16, b int16) (int16, bool) {
-	size := sl.Count()
-	pos := sl.position(size)
-	if !sl.list.Set(pos, a) {
+func (sl *SlotList) Push(offset int16, size int16) (int16, bool) {
+	pos := sl.position(sl.count)
+	if !sl.list.Set(pos, offset) {
 		return 0, false
 	}
 
-	if !sl.list.Set(pos+1, b) {
+	if !sl.list.Set(pos+1, size) {
 		return 0, false
 	}
 
-	sl.setSize(size + 1)
-	return size, true
+	count := sl.count
+	sl.setCount(count + 1)
+	return count, true
 }
