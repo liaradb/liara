@@ -14,6 +14,7 @@ const (
 
 type SlotList struct {
 	count int16
+	next  int16
 	list  int16list.Int16List
 }
 
@@ -21,14 +22,41 @@ func New(data []byte) SlotList {
 	l := int16list.New(data)
 	count, _ := l.Get(0)
 
-	return SlotList{
+	sl := SlotList{
 		count: count,
 		list:  l,
 	}
+
+	sl.initNext(int16(len(data)))
+
+	return sl
+}
+
+func (sl *SlotList) Next() int16 { return sl.next }
+
+// TODO: Remove this
+func (sl *SlotList) SetNext(next int16) {
+	sl.next = next
 }
 
 func (*SlotList) position(i int16) int16 {
 	return i*tupleSize + headerSize
+}
+
+func (sl *SlotList) initNext(size int16) {
+	var next = size
+
+	for slot := range sl.Slots() {
+		if !slot.IsFilled() {
+			return
+		}
+
+		if offset := slot.Offset(); offset < next {
+			next = offset
+		}
+	}
+
+	sl.next = next
 }
 
 func (sl *SlotList) Reset() {
