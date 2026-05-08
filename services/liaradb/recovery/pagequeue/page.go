@@ -35,8 +35,7 @@ func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
 		return nil, nil, false
 	}
 
-	start := p.headerSize + item.Offset
-	end := start + item.Size
+	start, end := item.Range(p.headerSize)
 	slot := p.data[start:end]
 
 	return slot[p.slotHeaderSize:], slot[:p.slotHeaderSize], true

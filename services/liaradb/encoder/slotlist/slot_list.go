@@ -55,31 +55,26 @@ func (sl *SlotList) setSize(size int16) {
 	}
 }
 
-func (sl *SlotList) Item(index int16) (Item, bool) {
+func (sl *SlotList) Item(index int16) (Slot, bool) {
 	if index >= sl.count {
-		return Item{}, false
+		return Slot{}, false
 	}
 
 	a, ok := sl.list.Get((tupleSize * index) + headerSize)
 	if !ok {
-		return Item{}, false
+		return Slot{}, false
 	}
 
 	b, ok := sl.list.Get((tupleSize * index) + 1 + headerSize)
 	if !ok {
-		return Item{}, false
+		return Slot{}, false
 	}
 
-	return Item{a, b}, true
+	return Slot{a, b}, true
 }
 
-type Item struct {
-	Offset int16
-	Size   int16
-}
-
-func (sl *SlotList) Items() iter.Seq[Item] {
-	return func(yield func(Item) bool) {
+func (sl *SlotList) Items() iter.Seq[Slot] {
+	return func(yield func(Slot) bool) {
 		for i := range sl.count {
 			item, ok := sl.Item(i)
 			if !ok || !yield(item) {
@@ -89,8 +84,8 @@ func (sl *SlotList) Items() iter.Seq[Item] {
 	}
 }
 
-func (sl *SlotList) ItemsReverse() iter.Seq[Item] {
-	return func(yield func(Item) bool) {
+func (sl *SlotList) ItemsReverse() iter.Seq[Slot] {
+	return func(yield func(Slot) bool) {
 		c := sl.count - 1
 		for i := range sl.count {
 			item, ok := sl.Item(c - i)
@@ -101,8 +96,8 @@ func (sl *SlotList) ItemsReverse() iter.Seq[Item] {
 	}
 }
 
-func (sl *SlotList) ItemsRange(start, end int16) iter.Seq[Item] {
-	return func(yield func(Item) bool) {
+func (sl *SlotList) ItemsRange(start, end int16) iter.Seq[Slot] {
+	return func(yield func(Slot) bool) {
 		if start < 0 {
 			start = sl.count + 1 + start
 		}
@@ -139,15 +134,15 @@ func (sl *SlotList) Insert(a int16, b int16, i int16) (int16, bool) {
 	return size, true
 }
 
-func (sl *SlotList) Pop() (Item, bool) {
+func (sl *SlotList) Pop() (Slot, bool) {
 	size := sl.Count()
 	if size < 1 {
-		return Item{}, false
+		return Slot{}, false
 	}
 
 	item, ok := sl.Item(size - 1)
 	if !ok {
-		return Item{}, false
+		return Slot{}, false
 	}
 
 	sl.setSize(size - 1)

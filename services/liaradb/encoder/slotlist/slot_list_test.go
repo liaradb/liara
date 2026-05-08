@@ -68,18 +68,18 @@ func TestSlotList_Push(t *testing.T) {
 
 	if item, ok := l.Item(0); !ok {
 		t.Errorf("should have value")
-	} else if item.Offset != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset, 1)
-	} else if item.Size != 10 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size, 10)
+	} else if item.Offset() != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 1)
+	} else if item.Size() != 10 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 10)
 	}
 
 	if item, ok := l.Item(1); !ok {
 		t.Errorf("should have value")
-	} else if item.Offset != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset, 2)
-	} else if item.Size != 20 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size, 20)
+	} else if item.Offset() != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 2)
+	} else if item.size != 20 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 20)
 	}
 
 	if _, ok := l.Item(2); ok {
@@ -102,10 +102,10 @@ func TestSlotList_Pop(t *testing.T) {
 
 	if item, ok := l.Pop(); !ok {
 		t.Error("should pop")
-	} else if item.Offset != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset, 2)
-	} else if item.Size != 20 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size, 20)
+	} else if item.Offset() != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 2)
+	} else if item.Size() != 20 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 20)
 	}
 
 	if s := l.Size(); s != 6 {
@@ -118,10 +118,10 @@ func TestSlotList_Pop(t *testing.T) {
 
 	if item, ok := l.Pop(); !ok {
 		t.Error("should pop")
-	} else if item.Offset != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Offset, 1)
-	} else if item.Size != 10 {
-		t.Errorf("incorrect value: %v, expected: %v", item.Size, 10)
+	} else if item.Offset() != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Offset(), 1)
+	} else if item.Size() != 10 {
+		t.Errorf("incorrect value: %v, expected: %v", item.Size(), 10)
 	}
 
 	if s := l.Size(); s != 2 {
@@ -157,7 +157,7 @@ func TestSlotList_Items(t *testing.T) {
 
 	result := make([]tuple, 0, len(data))
 	for i := range l.Items() {
-		result = append(result, tuple{i.Offset, i.Size})
+		result = append(result, tuple{i.Offset(), i.Size()})
 	}
 
 	if !slices.Equal(result, data) {
@@ -185,7 +185,7 @@ func TestSlotList_ItemsReverse(t *testing.T) {
 
 	result := make([]tuple, 0, len(data))
 	for i := range l.ItemsReverse() {
-		result = append(result, tuple{i.Offset, i.Size})
+		result = append(result, tuple{i.Offset(), i.Size()})
 	}
 
 	// Partial iteration
@@ -252,7 +252,7 @@ func TestSlotList_ItemsRange(t *testing.T) {
 
 			result := make([]tuple, 0, len(c.want))
 			for i := range l.ItemsRange(c.start, c.end) {
-				result = append(result, tuple{i.Offset, i.Size})
+				result = append(result, tuple{i.Offset(), i.Size()})
 			}
 
 			// Partial iteration
@@ -333,7 +333,7 @@ func TestSlotList_Insert(t *testing.T) {
 
 			result := make([]tuple, 0, len(c.data))
 			for i := range l.Items() {
-				result = append(result, tuple{i.Offset, i.Size})
+				result = append(result, tuple{i.Offset(), i.Size()})
 			}
 
 			// Partial iteration
