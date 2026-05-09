@@ -13,7 +13,7 @@ type Page struct {
 	byteList       bytelist.ByteList
 }
 
-func NewPage(
+func New(
 	size int,
 	headerSize int16,
 	slotHeaderSize int16,

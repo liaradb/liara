@@ -5,7 +5,7 @@ import "testing"
 func TestPage(t *testing.T) {
 	t.Parallel()
 
-	p := NewPage(32, 4, 4)
+	p := New(32, 4, 4)
 	header, data := p.Next(8)
 
 	if l := len(header); l != 4 {
