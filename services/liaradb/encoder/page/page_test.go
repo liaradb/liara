@@ -1,4 +1,4 @@
-package pagequeue
+package page
 
 import "testing"
 
