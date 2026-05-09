@@ -28,6 +28,20 @@ func New(
 	}
 }
 
+func NewFromSlice(
+	data []byte,
+	headerSize int16,
+	slotHeaderSize int16,
+) *Page {
+	return &Page{
+		headerSize:     headerSize,
+		slotHeaderSize: slotHeaderSize,
+		data:           data,
+		list:           slotlist.New(data[headerSize:]),
+		byteList:       bytelist.New(data[headerSize:]),
+	}
+}
+
 func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
@@ -62,4 +76,8 @@ func (p *Page) Commit(size int16) (int16, bool) {
 
 	p.list.SetNext(start)
 	return i, true
+}
+
+func (p *Page) Reset() {
+	clear(p.data)
 }
