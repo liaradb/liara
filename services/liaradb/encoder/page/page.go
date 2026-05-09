@@ -1,6 +1,8 @@
 package page
 
 import (
+	"iter"
+
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/slotlist"
 )
@@ -14,7 +16,7 @@ type Page struct {
 }
 
 func New(
-	size int,
+	size int16,
 	headerSize int16,
 	slotHeaderSize int16,
 ) *Page {
@@ -56,6 +58,19 @@ func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
 	data := p.data[start:end]
 
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:], true
+}
+
+func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
+	return func(yield func([]byte, []byte) bool) {
+		for slot := range p.list.Slots() {
+			start, end := slot.Range()
+			data := p.data[start:end]
+
+			if !yield(data[:p.slotHeaderSize], data[p.slotHeaderSize:]) {
+				return
+			}
+		}
+	}
 }
 
 func (p *Page) Next(size int16) ([]byte, []byte) {
