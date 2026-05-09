@@ -9,7 +9,7 @@ import (
 )
 
 type PageQueue struct {
-	pool    page.Pool
+	pool    Pool
 	list    list.List
 	current *page.Page
 	pid     action.PageID
@@ -19,7 +19,7 @@ type PageQueue struct {
 
 func New(size int64) *PageQueue {
 	return &PageQueue{
-		pool: page.NewPool(size),
+		pool: NewPool(size),
 	}
 }
 
