@@ -38,26 +38,28 @@ func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
 		return nil, nil, false
 	}
 
-	start, end := slot.Range(p.headerSize)
+	start, end := slot.Range()
 	data := p.data[start:end]
 
-	return data[p.slotHeaderSize:], data[:p.slotHeaderSize], true
+	return data[:p.slotHeaderSize], data[p.slotHeaderSize:], true
 }
 
 func (p *Page) Next(size int16) ([]byte, []byte) {
 	end := p.list.Next()
-	start := end - size
+	start := (end - size) - p.slotHeaderSize
 	data := p.data[start:end]
 
-	return data[p.slotHeaderSize:], data[:p.slotHeaderSize]
+	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
-func (p *Page) Commit(size int16) bool {
-	_, ok := p.list.Push(p.list.Next(), size)
+func (p *Page) Commit(size int16) (int16, bool) {
+	fullSize := size + p.slotHeaderSize
+	start := p.list.Next() - fullSize
+	i, ok := p.list.Push(start, fullSize)
 	if !ok {
-		return false
+		return 0, false
 	}
 
-	p.list.SetNext(p.list.Next() - size)
-	return true
+	p.list.SetNext(start)
+	return i, true
 }
