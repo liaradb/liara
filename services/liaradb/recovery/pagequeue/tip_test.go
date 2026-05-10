@@ -14,9 +14,10 @@ const (
 
 func TestTip(t *testing.T) {
 	t.Parallel()
+	pool := NewPool(pageSize, headerSize, slotHeaderSize)
 
 	current := page.New(pageSize, headerSize, slotHeaderSize)
-	tip := NewTip(pageSize, headerSize, slotHeaderSize, current)
+	tip := NewTip(&pool, current)
 	var want int16 = 128
 	s := tip.Span(want)
 

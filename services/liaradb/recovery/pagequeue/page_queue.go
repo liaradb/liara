@@ -43,7 +43,7 @@ func (pq *PageQueue) Count() int {
 func (pq *PageQueue) Append(rc *record.Record) error {
 	pq.initCurrent()
 
-	t := NewTip(pq.size, pq.headerSize, pq.slotHeaderSize, pq.current)
+	t := NewTip(&pq.pool, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
 		return err
