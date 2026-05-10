@@ -3,22 +3,20 @@ package pagequeue
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/encoder/page"
+)
+
+const (
+	pageSize       = 64
+	headerSize     = 22
+	slotHeaderSize = 4
 )
 
 func TestTip(t *testing.T) {
 	t.Parallel()
 
-	var pageSize int64 = 64
-	current := page.New(pageSize)
-	current.Init(
-		action.NewPageIDFromSize(pageSize, 0),
-		0,
-		record.NewLength(0))
-
-	tip := NewTip(current)
+	current := page.New(pageSize, headerSize, slotHeaderSize)
+	tip := NewTip(pageSize, headerSize, slotHeaderSize, current)
 	var want int16 = 128
 	s := tip.Span(want)
 

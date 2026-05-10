@@ -3,26 +3,24 @@ package pagequeue
 import (
 	"sync"
 
-	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type Pool struct {
 	pool sync.Pool
 }
 
-func NewPool(size int64) Pool {
+func NewPool(size int16, headerSize int16, slotHeaderSize int16) Pool {
 	return Pool{
 		pool: sync.Pool{New: func() any {
-			return page.New(size)
+			return page.New(size, headerSize, slotHeaderSize)
 		}},
 	}
 }
 
-func (pl *Pool) Get(pid action.PageID, tlid action.TimeLineID, rl record.Length) *page.Page {
+func (pl *Pool) Get() *page.Page {
 	p := pl.pool.Get().(*page.Page)
-	p.Init(pid, tlid, rl)
+	p.Reset()
 	return p
 }
 

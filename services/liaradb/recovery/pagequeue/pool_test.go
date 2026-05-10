@@ -1,26 +1,31 @@
 package pagequeue
 
 import (
+	"slices"
 	"testing"
-
-	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestPool(t *testing.T) {
-	pp := NewPool(1024)
+	pp := NewPool(1024, 8, 4)
 
-	p0 := pp.Get(action.PageID(1), action.TimeLineID(2), record.NewLength(3))
+	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	empty := make([]byte, 8)
+
+	p0 := pp.Get()
+	h0 := p0.Header()
+	copy(h0, data)
+
 	pp.Put(p0)
 
-	if i := p0.ID(); i != action.PageID(1) {
-		t.Errorf("incorrect id: %v, expected: %v", i, action.PageID(1))
+	p1 := pp.Get()
+
+	h1 := p1.Header()
+	if !slices.Equal(h1, empty) {
+		t.Errorf("incorrect header: %v, expected: %v", h1, empty)
+	}
+	if !slices.Equal(h0, empty) {
+		t.Errorf("incorrect header: %v, expected: %v", h0, empty)
 	}
 
-	p1 := pp.Get(action.PageID(10), action.TimeLineID(20), record.NewLength(30))
 	pp.Put(p1)
-
-	if i := p1.ID(); i != action.PageID(10) {
-		t.Errorf("incorrect id: %v, expected: %v", i, action.PageID(10))
-	}
 }

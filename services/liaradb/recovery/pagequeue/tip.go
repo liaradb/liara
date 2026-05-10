@@ -1,18 +1,25 @@
 package pagequeue
 
 import (
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Tip struct {
-	current *page.Page
-	pages   []*page.Page
+	size           int16
+	headerSize     int16
+	slotHeaderSize int16
+	current        *page.Page
+	pages          []*page.Page
+	sizes          []int16
 }
 
-func NewTip(current *page.Page) Tip {
+func NewTip(size int16, headerSize int16, slotHeaderSize int16, current *page.Page) Tip {
 	return Tip{
-		current: current,
+		size:           size,
+		headerSize:     headerSize,
+		slotHeaderSize: slotHeaderSize,
+		current:        current,
 	}
 }
 
@@ -26,13 +33,10 @@ func (t *Tip) Span(size int16) *record.Span {
 	var available int16 = 0
 	var remaining int16 = size
 
-	data, ok := t.current.Lease(remaining)
-	if !ok {
-		// TODO: This ok may not be correct
-		panic("incorrect")
-	}
+	_, data := t.current.Next(remaining)
 
 	l := int16(len(data))
+	t.sizes = append(t.sizes, l)
 	available = l
 	remaining -= l
 	f := record.NewFragment(data)
@@ -40,13 +44,10 @@ func (t *Tip) Span(size int16) *record.Span {
 
 	for available < size {
 		p := t.next()
-		data, ok := p.Lease(remaining)
-		if !ok {
-			// TODO: This ok may not be correct
-			panic("incorrect")
-		}
+		_, data := p.Next(remaining)
 
 		l := int16(len(data))
+		t.sizes = append(t.sizes, l)
 		available += l
 		remaining -= l
 		f := record.NewFragment(data)
@@ -57,20 +58,21 @@ func (t *Tip) Span(size int16) *record.Span {
 }
 
 func (t *Tip) next() *page.Page {
-	p := page.New(int64(t.current.Size()))
-	p.Init(t.current.ID()+1, t.current.TimeLineID(), record.NewLength(0))
+	p := page.New(t.size, t.headerSize, t.slotHeaderSize)
 	t.pages = append(t.pages, p)
 	return p
 }
 
 // TODO: What do we do on a partial commit?
 func (t *Tip) Commit() bool {
-	if ok := t.current.Commit(); !ok {
+	size := t.sizes[0]
+	if _, ok := t.current.Commit(size); !ok {
 		return false
 	}
 
-	for _, p := range t.pages {
-		if ok := p.Commit(); !ok {
+	for i, p := range t.pages {
+		size := t.sizes[i]
+		if _, ok := p.Commit(size); !ok {
 			return false
 		}
 	}

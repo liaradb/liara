@@ -13,7 +13,7 @@ import (
 func TestPageQueue(t *testing.T) {
 	t.Parallel()
 
-	pq := New(256)
+	pq := New(256, 22, 4)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
@@ -35,7 +35,7 @@ func TestPageQueue(t *testing.T) {
 	}
 
 	var item []byte
-	for i := range pq.current.Items() {
+	for _, i := range pq.current.Slots() {
 		item = i
 		break
 	}
@@ -87,7 +87,7 @@ func TestPageQueue(t *testing.T) {
 func TestPageQueue__Next(t *testing.T) {
 	t.Parallel()
 
-	pq := New(256)
+	pq := New(256, 22, 4)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()

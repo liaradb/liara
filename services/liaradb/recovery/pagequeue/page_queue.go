@@ -3,23 +3,29 @@ package pagequeue
 import (
 	"container/list"
 
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type PageQueue struct {
-	pool    Pool
-	list    list.List
-	current *page.Page
-	pid     action.PageID
-	tlid    action.TimeLineID
-	rl      record.Length
+	size           int16
+	headerSize     int16
+	slotHeaderSize int16
+	pool           Pool
+	list           list.List
+	current        *page.Page
+	pid            action.PageID
+	tlid           action.TimeLineID
+	rl             record.Length
 }
 
-func New(size int64) *PageQueue {
+func New(size int16, headerSize int16, slotHeaderSize int16) *PageQueue {
 	return &PageQueue{
-		pool: NewPool(size),
+		size:           size,
+		headerSize:     headerSize,
+		slotHeaderSize: slotHeaderSize,
+		pool:           NewPool(size, headerSize, slotHeaderSize),
 	}
 }
 
@@ -37,7 +43,7 @@ func (pq *PageQueue) Count() int {
 func (pq *PageQueue) Append(rc *record.Record) error {
 	pq.initCurrent()
 
-	t := NewTip(pq.current)
+	t := NewTip(pq.size, pq.headerSize, pq.slotHeaderSize, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
 		return err
@@ -70,7 +76,7 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 
 func (pq *PageQueue) initCurrent() {
 	if pq.current == nil {
-		pq.current = pq.pool.Get(pq.pid, pq.tlid, pq.rl)
+		pq.current = pq.pool.Get()
 	}
 }
 

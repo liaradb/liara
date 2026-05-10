@@ -74,11 +74,21 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) Next(size int16) ([]byte, []byte) {
+	space := p.Space()
+	size = min(size, space)
 	end := p.list.Next()
 	start := (end - size) - p.slotHeaderSize
 	data := p.data[start:end]
 
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
+}
+
+func (p *Page) Space() int16 {
+	end := p.list.Next()
+	size := p.list.Size()
+	start := (end - size) - p.slotHeaderSize
+
+	return max(start, 0)
 }
 
 func (p *Page) Commit(size int16) (int16, bool) {
