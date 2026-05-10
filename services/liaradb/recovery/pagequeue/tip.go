@@ -63,18 +63,18 @@ func (t *Tip) next() *page.Page {
 	return p
 }
 
-// TODO: What do we do on a partial commit?
+// Commit pages before current to avoid a partial commit
 func (t *Tip) Commit() bool {
-	size := t.sizes[0]
-	if _, ok := t.current.Commit(size); !ok {
-		return false
-	}
-
 	for i, p := range t.pages {
 		size := t.sizes[i]
 		if _, ok := p.Commit(size); !ok {
 			return false
 		}
+	}
+
+	size := t.sizes[0]
+	if _, ok := t.current.Commit(size); !ok {
+		return false
 	}
 
 	return true
