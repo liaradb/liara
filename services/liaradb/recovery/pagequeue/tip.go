@@ -19,8 +19,6 @@ func NewTip(pool *Pool, current *page.Page) Tip {
 	}
 }
 
-func (t *Tip) Pages() []*page.Page { return t.pages }
-
 // Request Lease from current Page
 // If insufficient space is available, build list of Pages for remaining
 func (t *Tip) Span(size int16) *record.Span {
@@ -64,20 +62,20 @@ func (t *Tip) next() *page.Page {
 }
 
 // Commit pages before current to avoid a partial commit
-func (t *Tip) Commit() bool {
+func (t *Tip) Commit() ([]*page.Page, bool) {
 	for i, p := range t.pages {
 		size := t.sizes[i]
 		if _, ok := p.Commit(size); !ok {
-			return false
+			return nil, false
 		}
 	}
 
 	size := t.sizes[0]
 	if _, ok := t.current.Commit(size); !ok {
-		return false
+		return nil, false
 	}
 
-	return true
+	return t.pages, true
 }
 
 func (t *Tip) Abort() {

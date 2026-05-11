@@ -50,17 +50,21 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 		return err
 	}
 
-	if ok := t.Commit(); !ok {
+	pgs, ok := t.Commit()
+	if !ok {
 		t.Abort()
 		return ErrUnableToAppend
 	}
 
-	pgs := t.Pages()
+	pq.appendPages(pgs)
+	return nil
+}
 
+func (pq *PageQueue) appendPages(pgs []*page.Page) {
 	// If pages is empty, do nothing
 	l := len(pgs)
 	if l == 0 {
-		return nil
+		return
 	}
 
 	pq.list.PushBack(pq.current)
@@ -72,8 +76,6 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 			pq.list.PushBack(p)
 		}
 	}
-
-	return nil
 }
 
 func (pq *PageQueue) initCurrent() {
