@@ -3,7 +3,7 @@ package page
 import "github.com/liaradb/liaradb/encoder/page"
 
 const (
-	itemHeaderSize = page.CrcSize
+	ItemHeaderSize = page.CrcSize
 )
 
 type itemHeader struct {

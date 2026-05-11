@@ -2,6 +2,7 @@ package pagequeue
 
 import (
 	"container/list"
+	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -91,6 +92,25 @@ func (pq *PageQueue) Flush() error {
 		// Flush p
 		pq.pool.Put(p)
 	}
+	pq.list.Init()
 	// Flush current
 	return nil
+}
+
+func (pq *PageQueue) Pages() iter.Seq[*page.Page] {
+	return func(yield func(*page.Page) bool) {
+		for p := range iterator.Forward[*page.Page](&pq.list) {
+			if !yield(p) {
+				return
+			}
+		}
+		yield(pq.current)
+	}
+}
+
+func (pq *PageQueue) Clear() {
+	for p := range iterator.Forward[*page.Page](&pq.list) {
+		pq.pool.Put(p)
+	}
+	pq.list.Init()
 }

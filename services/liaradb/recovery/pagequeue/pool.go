@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
+// TODO: Can we implement this without sync.Pool?
 type Pool struct {
 	pool sync.Pool
 }

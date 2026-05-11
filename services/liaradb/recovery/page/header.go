@@ -10,7 +10,7 @@ import (
 const (
 	nextSize = 2
 
-	headerSize = 0 +
+	HeaderSize = 0 +
 		page.MagicSize +
 		nextSize +
 		action.PageIDSize +
@@ -77,7 +77,7 @@ func (h *header) TimeLineID() action.TimeLineID {
 }
 
 func (h header) Size() int {
-	return headerSize
+	return HeaderSize
 }
 
 func (h *header) isEmpty() bool {

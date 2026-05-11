@@ -10,6 +10,8 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -39,6 +41,7 @@ type Log struct {
 	syncReqs   async.CommandHandler[record.LogSequenceNumber]
 	cancel     context.CancelFunc
 	queue      requestQueue
+	pageQueue  *pagequeue.PageQueue
 }
 
 type flushRequest = async.Command[record.LogSequenceNumber]
@@ -72,6 +75,7 @@ func NewLog(
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),
+		pageQueue:  pagequeue.New(int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }
 

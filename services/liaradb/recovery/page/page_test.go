@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	testHeaderSize = 2 + headerSize
+	testHeaderSize = 2 + HeaderSize
 )
 
 func TestPage(t *testing.T) {
