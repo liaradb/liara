@@ -29,28 +29,32 @@ func (t *Tip) Span(size int16) *record.Span {
 	var available int16 = 0
 	var remaining int16 = size
 
-	_, data := t.current.Next(remaining)
+	p := t.current
 
-	l := int16(len(data))
-	t.sizes = append(t.sizes, l)
+	l := t.appendToSpan(&s, p, remaining)
+
 	available = l
 	remaining -= l
-	f := record.NewFragment(data)
-	s.Append(f)
 
 	for available < size {
-		p := t.next()
-		_, data := p.Next(remaining)
+		p = t.next()
 
-		l := int16(len(data))
-		t.sizes = append(t.sizes, l)
+		l := t.appendToSpan(&s, p, remaining)
+
 		available += l
 		remaining -= l
-		f := record.NewFragment(data)
-		s.Append(f)
 	}
 
 	return &s
+}
+
+func (t *Tip) appendToSpan(s *record.Span, p *page.Page, remaining int16) int16 {
+	_, data := p.Next(remaining)
+	l := int16(len(data))
+	t.sizes = append(t.sizes, l)
+	f := record.NewFragment(data)
+	s.Append(f)
+	return l
 }
 
 func (t *Tip) next() *page.Page {
