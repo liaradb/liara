@@ -61,8 +61,17 @@ func (t *Tip) next() *page.Page {
 	return p
 }
 
-// Commit pages before current to avoid a partial commit
 func (t *Tip) Commit() ([]*page.Page, bool) {
+	pgs, ok := t.commitPages()
+	if !ok {
+		t.abortPages()
+	}
+
+	return pgs, ok
+}
+
+// Commit pages before current to avoid a partial commit
+func (t *Tip) commitPages() ([]*page.Page, bool) {
 	for i, p := range t.pages {
 		size := t.sizes[i]
 		if _, ok := p.Commit(size); !ok {
@@ -78,7 +87,7 @@ func (t *Tip) Commit() ([]*page.Page, bool) {
 	return t.pages, true
 }
 
-func (t *Tip) Abort() {
+func (t *Tip) abortPages() {
 	for _, p := range t.pages {
 		t.pool.Put(p)
 	}

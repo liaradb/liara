@@ -52,7 +52,6 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 
 	pgs, ok := t.Commit()
 	if !ok {
-		t.Abort()
 		return ErrUnableToAppend
 	}
 
