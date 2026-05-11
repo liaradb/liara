@@ -59,15 +59,15 @@ func TestPageQueue(t *testing.T) {
 		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
 	}
 
-	if i := rc.Time(); i != now {
+	if i := rc2.Time(); i != now {
 		t.Errorf("incorrect time: %v, expected: %v", i, now)
 	}
 
-	if i := rc.Action(); i != action {
+	if i := rc2.Action(); i != action {
 		t.Errorf("incorrect action: %v, expected: %v", i, action)
 	}
 
-	if i := rc.Collection(); i != collection {
+	if i := rc2.Collection(); i != collection {
 		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
 	}
 
@@ -79,7 +79,7 @@ func TestPageQueue(t *testing.T) {
 		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
 	}
 
-	if i := rc.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
+	if i := rc2.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
 		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == record.ActionCheckpoint)
 	}
 }
