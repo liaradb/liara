@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type PageQueue struct {
@@ -50,6 +51,7 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 	}
 
 	if ok := t.Commit(); !ok {
+		t.Abort()
 		return ErrUnableToAppend
 	}
 
@@ -84,5 +86,10 @@ func (pq *PageQueue) initCurrent() {
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
 	// TODO: Implement this
+	for p := range iterator.Forward[*page.Page](&pq.list) {
+		// Flush p
+		pq.pool.Put(p)
+	}
+	// Flush current
 	return nil
 }

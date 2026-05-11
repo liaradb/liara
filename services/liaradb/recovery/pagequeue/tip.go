@@ -75,3 +75,9 @@ func (t *Tip) Commit() bool {
 
 	return true
 }
+
+func (t *Tip) Abort() {
+	for _, p := range t.pages {
+		t.pool.Put(p)
+	}
+}
