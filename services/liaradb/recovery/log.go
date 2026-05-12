@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
+	encoder "github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
@@ -152,6 +153,11 @@ func (l *Log) append(
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
+
+	if _, err := l.appendToPageQueue(rc); err != nil {
+		return record.NewLogSequenceNumber(0), err
+	}
+
 	flushed, err := l.writer.Append(rc)
 	if err != nil {
 		return record.NewLogSequenceNumber(0), err
@@ -163,6 +169,23 @@ func (l *Log) append(
 
 	l.highWater = h
 	return l.highWater, nil
+}
+
+func (l *Log) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
+	if err := l.pageQueue.Append(rc); err != nil {
+		return nil, err
+	}
+
+	var current *encoder.Page
+	for p := range l.pageQueue.Pages() {
+		current = p
+	}
+
+	// if err := l.pageQueue.Flush(); err != nil {
+	// 	return nil, err
+	// }
+
+	return current, nil
 }
 
 func (l *Log) Start(
