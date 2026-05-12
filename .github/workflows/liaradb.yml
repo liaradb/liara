@@ -23,13 +23,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
           go-version-file: services/liaradb/go.mod
-          cache-dependency-path: services/liaradb/go.sum
+          cache-dependency-path: services/liaradb/go.mod
 
       - name: Build
         working-directory: ./services/liaradb
@@ -44,14 +44,14 @@ jobs:
         run: make report-file
 
       - name: Upload test coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: ./services/liaradb/cover.html
           retention-days: 5
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: liaradb
           path: ./services/liaradb/bin/liaradb
