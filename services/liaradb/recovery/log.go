@@ -171,6 +171,11 @@ func (l *Log) append(
 	return l.highWater, nil
 }
 
+// # Append to PageQueue
+//   - If current page was full already, do not sync
+//   - Otherwise, sync current page
+//   - For every page after, push new page to disk
+//   - For last page, store that as current
 func (l *Log) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
 	if err := l.pageQueue.Append(rc); err != nil {
 		return nil, err

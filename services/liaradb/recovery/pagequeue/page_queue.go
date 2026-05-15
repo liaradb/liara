@@ -23,12 +23,26 @@ type PageQueue struct {
 }
 
 func New(size int16, headerSize int16, slotHeaderSize int16) *PageQueue {
-	return &PageQueue{
+	pq := &PageQueue{
 		size:           size,
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		pool:           NewPool(size, headerSize, slotHeaderSize),
 	}
+
+	pq.initCurrent()
+
+	return pq
+}
+
+func (pq *PageQueue) initCurrent() {
+	if pq.current == nil {
+		pq.current = pq.pool.Get()
+	}
+}
+
+func (pq *PageQueue) Init(data []byte) {
+	pq.current.Fill(data)
 }
 
 func (pq *PageQueue) Count() int {
@@ -43,8 +57,6 @@ func (pq *PageQueue) Count() int {
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
 func (pq *PageQueue) Append(rc *record.Record) error {
-	pq.initCurrent()
-
 	t := NewTip(&pq.pool, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
@@ -75,12 +87,6 @@ func (pq *PageQueue) appendPages(pgs []*page.Page) {
 		} else {
 			pq.list.PushBack(p)
 		}
-	}
-}
-
-func (pq *PageQueue) initCurrent() {
-	if pq.current == nil {
-		pq.current = pq.pool.Get()
 	}
 }
 

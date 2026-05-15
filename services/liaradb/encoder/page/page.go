@@ -48,6 +48,11 @@ func (p *Page) Data() []byte {
 	return p.data
 }
 
+func (p *Page) Fill(data []byte) {
+	n := copy(p.data, data)
+	clear(p.data[n:])
+}
+
 func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
