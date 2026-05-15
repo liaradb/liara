@@ -324,7 +324,8 @@ func testLog_Iterate(t *testing.T) {
 	l := createLogStart(t, 320, 2, 320)
 	tid := value.NewTenantID()
 
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
+	var count uint64 = 100
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(count))
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			tid,
@@ -340,7 +341,7 @@ func testLog_Iterate(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	i := 0
+	var i uint64 = 0
 	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
@@ -355,7 +356,7 @@ func testLog_Iterate(t *testing.T) {
 		}
 		i++
 	}
-	if i != 100 {
+	if i != count {
 		t.Errorf("incorrect count: %v, expected: %v", i, 100)
 	}
 }

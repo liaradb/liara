@@ -178,12 +178,13 @@ func (l *Log) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
 
 	var current *encoder.Page
 	for p := range l.pageQueue.Pages() {
+		_ = p.Data()
 		current = p
 	}
 
-	// if err := l.pageQueue.Flush(); err != nil {
-	// 	return nil, err
-	// }
+	if err := l.pageQueue.Flush(); err != nil {
+		return nil, err
+	}
 
 	return current, nil
 }

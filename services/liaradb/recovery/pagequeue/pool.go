@@ -21,7 +21,7 @@ func NewPool(size int16, headerSize int16, slotHeaderSize int16) Pool {
 
 func (pl *Pool) Get() *page.Page {
 	p := pl.pool.Get().(*page.Page)
-	p.Reset()
+	p.Clear()
 	return p
 }
 

@@ -27,7 +27,7 @@ func New(data []byte) SlotList {
 		list:  l,
 	}
 
-	sl.initNext(int16(len(data)))
+	sl.initNext()
 
 	return sl
 }
@@ -43,7 +43,9 @@ func (*SlotList) position(i int16) int16 {
 	return i*tupleSize + headerSize
 }
 
-func (sl *SlotList) initNext(size int16) {
+func (sl *SlotList) initNext() {
+	// TODO: Fix this cast
+	size := int16(sl.list.Length())
 	var next = size
 
 	for slot := range sl.Slots() {
@@ -67,6 +69,7 @@ func (sl *SlotList) Reset() {
 func (sl *SlotList) Clear() {
 	_ = sl.list.Set(0, 0)
 	sl.count = 0
+	sl.initNext()
 }
 
 func (sl *SlotList) Length() int {

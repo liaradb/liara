@@ -44,6 +44,10 @@ func NewFromSlice(
 	}
 }
 
+func (p *Page) Data() []byte {
+	return p.data
+}
+
 func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
@@ -74,16 +78,19 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) Next(size int16) ([]byte, []byte) {
-	space := p.Space()
+	space := p.space()
 	size = min(size, space)
 	end := p.list.Next()
 	start := (end - size) - p.slotHeaderSize
 	data := p.data[start:end]
+	if end-start < p.slotHeaderSize {
+		return nil, nil
+	}
 
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
-func (p *Page) Space() int16 {
+func (p *Page) space() int16 {
 	end := p.list.Next()
 	size := p.list.Size()
 	start := (end - size) - p.slotHeaderSize
@@ -103,6 +110,7 @@ func (p *Page) Commit(size int16) (int16, bool) {
 	return i, true
 }
 
-func (p *Page) Reset() {
+func (p *Page) Clear() {
 	clear(p.data)
+	p.list.Clear()
 }
