@@ -51,7 +51,7 @@ func (wr *Writer) RecordSize() int64     { return wr.recordSize }
 // Appends to current Page.  If insufficient space in Page
 //  1. flushes Page
 //  2. attempts to allocate next Page, else error
-func (wr *Writer) Append(rc *record.Record) (bool, error) {
+func (wr *Writer) AppendRecord(rc *record.Record) (bool, error) {
 	data, err := wr.recordToBytes(rc)
 	if err != nil {
 		return false, err

@@ -38,7 +38,7 @@ func (wr *writer) Append(rc *record.Record) (bool, error) {
 		return false, err
 	}
 
-	flushed, err := wr.sw.Append(rc)
+	flushed, err := wr.sw.AppendRecord(rc)
 	if err == raw.ErrInsufficientSpace {
 		// Ignore this flushed value, as it's the first record
 		_, err = wr.appendToNextSegment(rc, rc.LogSequenceNumber())
@@ -77,7 +77,7 @@ func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceN
 	}
 
 	wr.sw.Initialize(f)
-	return wr.sw.Append(rc)
+	return wr.sw.AppendRecord(rc)
 }
 
 func (wr *writer) Flush() error {

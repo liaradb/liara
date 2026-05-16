@@ -35,7 +35,7 @@ func testWriter_Append(t *testing.T) {
 		data,
 		reverse)
 
-	if _, err := sw.Append(rec); err != nil {
+	if _, err := sw.AppendRecord(rec); err != nil {
 		t.Error(err)
 	}
 }
@@ -61,7 +61,7 @@ func testWriter_SeekTail(t *testing.T) {
 		data,
 		reverse)
 
-	if _, err := sw.Append(rec); err != nil {
+	if _, err := sw.AppendRecord(rec); err != nil {
 		t.Fatal(err)
 	}
 
@@ -76,7 +76,7 @@ func testWriter_SeekTail(t *testing.T) {
 
 	sw2 := createWriterFromFile(t, f)
 
-	if _, err := sw2.Append(rec); err != nil {
+	if _, err := sw2.AppendRecord(rec); err != nil {
 		t.Fatal(err)
 	}
 
@@ -126,11 +126,11 @@ func TestWriter_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			sw := createWriter(t)
 
-			if _, err := sw.Append(rec); err != nil {
+			if _, err := sw.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
-			if _, err := sw.Append(rec); err != nil {
+			if _, err := sw.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
@@ -145,11 +145,11 @@ func TestWriter_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			sw := createWriter(t)
 
-			if _, err := sw.Append(rec); err != nil {
+			if _, err := sw.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
-			if _, err := sw.Append(rec); err != nil {
+			if _, err := sw.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
@@ -167,7 +167,7 @@ func TestWriter_Flush(t *testing.T) {
 			count := 10
 
 			for range count - 1 {
-				if _, err := l.Append(rec); err != nil {
+				if _, err := l.AppendRecord(rec); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -187,7 +187,7 @@ func TestWriter_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			l := createWriterSmall(t)
 
-			if _, err := l.Append(rec); err != raw.ErrInsufficientSpace {
+			if _, err := l.AppendRecord(rec); err != raw.ErrInsufficientSpace {
 				t.Error("should return error")
 			}
 		})
@@ -198,7 +198,7 @@ func TestWriter_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			l := createWriter(t)
 
-			if _, err := l.Append(rec); err != nil {
+			if _, err := l.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
@@ -206,7 +206,7 @@ func TestWriter_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if _, err := l.Append(rec); err != nil {
+			if _, err := l.AppendRecord(rec); err != nil {
 				t.Error(err)
 			}
 
