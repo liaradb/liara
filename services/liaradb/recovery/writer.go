@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
+	"github.com/liaradb/liaradb/recovery/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/segmentio"
@@ -15,10 +16,11 @@ type writer struct {
 	sl *segment.List
 	sw *segmentio.Writer
 	pq *pagequeue.PageQueue
+	ps *pagestorage.PageStorage
 }
 
 func newWriter(
-	ps pagequeue.PageStorage,
+	ps *pagestorage.PageStorage,
 	pageSize int64,
 	segmentSize action.PageID,
 	recordSize int64,
@@ -28,6 +30,7 @@ func newWriter(
 		sl: sl,
 		sw: segmentio.NewWriter(pageSize, segmentSize, recordSize),
 		pq: pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
+		ps: ps,
 	}
 }
 
@@ -86,6 +89,10 @@ func (wr *writer) Flush() error {
 }
 
 func (wr *writer) Start() error {
+	if err := wr.ps.Init(); err != nil {
+		return err
+	}
+
 	_, f, err := wr.sl.OpenLatestSegment()
 	if err != nil {
 		return err
