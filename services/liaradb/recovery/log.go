@@ -3,6 +3,7 @@ package recovery
 import (
 	"context"
 	"iter"
+	"path"
 	"time"
 
 	"github.com/liaradb/liaradb/async"
@@ -66,10 +67,12 @@ func NewLog(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir)
+	// TODO: Remove the secondary storage
+	sl2 := segment.NewList(fsys, path.Join(dir, "pagestorage"))
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pagestorage.New(sl), pageSize, segmentSize, recordSize, sl),
+		writer:     newWriter(pagestorage.New(sl2), pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),

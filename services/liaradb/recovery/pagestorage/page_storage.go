@@ -48,19 +48,15 @@ func (ps *PageStorage) SeekTail(size int64) {
 }
 
 func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
-	// TODO: Restore this
-	// if err := ps.next(lsn); err != nil {
-	// 	return err
-	// }
+	if err := ps.next(lsn); err != nil {
+		return err
+	}
 
-	// return ps.write(data)
-	return nil
+	return ps.write(data)
 }
 
 func (ps *PageStorage) Sync(data []byte) error {
-	// TODO: Restore this
-	// return ps.write(data)
-	return nil
+	return ps.write(data)
 }
 
 func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
