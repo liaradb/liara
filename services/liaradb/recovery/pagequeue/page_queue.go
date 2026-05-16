@@ -21,11 +21,12 @@ type PageQueue struct {
 	tlid           action.TimeLineID
 	rl             record.Length
 	ps             PageStorage
+	lsn            record.LogSequenceNumber
 }
 
 type PageStorage interface {
 	Sync([]byte) error
-	Append([]byte) error
+	Append(record.LogSequenceNumber, []byte) error
 }
 
 func New(
@@ -80,6 +81,7 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 		return ErrUnableToAppend
 	}
 
+	pq.lsn = rc.LogSequenceNumber()
 	pq.appendPages(pgs)
 	return nil
 }
@@ -146,7 +148,7 @@ func (pq *PageQueue) appendCurrent() error {
 }
 
 func (pq *PageQueue) appendPage(p *page.Page) error {
-	return pq.ps.Append(p.Data())
+	return pq.ps.Append(pq.lsn, p.Data())
 }
 
 func (pq *PageQueue) Pages() iter.Seq[*page.Page] {

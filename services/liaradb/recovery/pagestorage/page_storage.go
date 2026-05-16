@@ -47,10 +47,8 @@ func (ps *PageStorage) SeekTail(size int64) {
 	ps.pageID = action.NewActivePageIDFromSize(size, ps.pageSize)
 }
 
-func (ps *PageStorage) Append(data []byte) error {
+func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
 	// TODO: Restore this
-	// TODO: Where do we get this value?
-	// lsn := record.NewLogSequenceNumber(0)
 	// if err := ps.next(lsn); err != nil {
 	// 	return err
 	// }

@@ -120,7 +120,7 @@ func TestPageQueue__Next(t *testing.T) {
 type testPageStorage struct {
 }
 
-func (t *testPageStorage) Append([]byte) error {
+func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
 	return nil
 }
 
