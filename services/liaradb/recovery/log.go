@@ -69,7 +69,7 @@ func NewLog(
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pagestorage.New(), pageSize, segmentSize, recordSize, sl),
+		writer:     newWriter(pagestorage.New(sl), pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),
