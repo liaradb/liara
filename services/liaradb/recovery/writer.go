@@ -8,11 +8,12 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/recovery/segmentio"
 )
 
 type writer struct {
 	sl *segment.List
-	sw *segment.Writer
+	sw *segmentio.Writer
 	pq *pagequeue.PageQueue
 }
 
@@ -25,7 +26,7 @@ func newWriter(
 ) *writer {
 	return &writer{
 		sl: sl,
-		sw: segment.NewWriter(pageSize, segmentSize, recordSize),
+		sw: segmentio.NewWriter(pageSize, segmentSize, recordSize),
 		pq: pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }

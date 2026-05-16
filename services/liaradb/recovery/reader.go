@@ -7,12 +7,13 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/recovery/segmentio"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type reader struct {
 	sl *segment.List
-	sr *segment.Reader
+	sr *segmentio.Reader
 }
 
 func newReader(
@@ -21,7 +22,7 @@ func newReader(
 ) *reader {
 	return &reader{
 		sl: sl,
-		sr: segment.NewReader(pageSize),
+		sr: segmentio.NewReader(pageSize),
 	}
 }
 
