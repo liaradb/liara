@@ -1,8 +1,11 @@
 package recovery
 
 import (
+	encoder "github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -10,6 +13,7 @@ import (
 type writer struct {
 	sl *segment.List
 	sw *segment.Writer
+	pq *pagequeue.PageQueue
 }
 
 func newWriter(
@@ -21,6 +25,7 @@ func newWriter(
 	return &writer{
 		sl: sl,
 		sw: segment.NewWriter(pageSize, segmentSize, recordSize),
+		pq: pagequeue.New(int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }
 
@@ -28,6 +33,10 @@ func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 func (wr *writer) RecordSize() int64     { return wr.sw.RecordSize() }
 
 func (wr *writer) Append(rc *record.Record) (bool, error) {
+	if _, err := wr.appendToPageQueue(rc); err != nil {
+		return false, err
+	}
+
 	flushed, err := wr.sw.Append(rc)
 	if err == raw.ErrInsufficientSpace {
 		// Ignore this flushed value, as it's the first record
@@ -35,6 +44,29 @@ func (wr *writer) Append(rc *record.Record) (bool, error) {
 	}
 
 	return flushed, err
+}
+
+// # Append to PageQueue
+//   - If current page was full already, do not sync
+//   - Otherwise, sync current page
+//   - For every page after, push new page to disk
+//   - For last page, store that as current
+func (wr *writer) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
+	if err := wr.pq.Append(rc); err != nil {
+		return nil, err
+	}
+
+	var current *encoder.Page
+	for p := range wr.pq.Pages() {
+		_ = p.Data()
+		current = p
+	}
+
+	if err := wr.pq.Flush(); err != nil {
+		return nil, err
+	}
+
+	return current, nil
 }
 
 func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) (bool, error) {

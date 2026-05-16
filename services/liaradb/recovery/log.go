@@ -7,12 +7,9 @@ import (
 
 	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
-	encoder "github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/page"
-	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -42,7 +39,6 @@ type Log struct {
 	syncReqs   async.CommandHandler[record.LogSequenceNumber]
 	cancel     context.CancelFunc
 	queue      requestQueue
-	pageQueue  *pagequeue.PageQueue
 }
 
 type flushRequest = async.Command[record.LogSequenceNumber]
@@ -76,7 +72,6 @@ func NewLog(
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),
-		pageQueue:  pagequeue.New(int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }
 
@@ -154,10 +149,6 @@ func (l *Log) append(
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
 
-	if _, err := l.appendToPageQueue(rc); err != nil {
-		return record.NewLogSequenceNumber(0), err
-	}
-
 	flushed, err := l.writer.Append(rc)
 	if err != nil {
 		return record.NewLogSequenceNumber(0), err
@@ -169,29 +160,6 @@ func (l *Log) append(
 
 	l.highWater = h
 	return l.highWater, nil
-}
-
-// # Append to PageQueue
-//   - If current page was full already, do not sync
-//   - Otherwise, sync current page
-//   - For every page after, push new page to disk
-//   - For last page, store that as current
-func (l *Log) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
-	if err := l.pageQueue.Append(rc); err != nil {
-		return nil, err
-	}
-
-	var current *encoder.Page
-	for p := range l.pageQueue.Pages() {
-		_ = p.Data()
-		current = p
-	}
-
-	if err := l.pageQueue.Flush(); err != nil {
-		return nil, err
-	}
-
-	return current, nil
 }
 
 func (l *Log) Start(
