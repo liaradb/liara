@@ -13,7 +13,7 @@ import (
 func TestPageQueue(t *testing.T) {
 	t.Parallel()
 
-	pq := New(256, 22, 4)
+	pq := New(&testPageStorage{}, 256, 22, 4)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
@@ -87,7 +87,7 @@ func TestPageQueue(t *testing.T) {
 func TestPageQueue__Next(t *testing.T) {
 	t.Parallel()
 
-	pq := New(256, 22, 4)
+	pq := New(&testPageStorage{}, 256, 22, 4)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
@@ -116,3 +116,16 @@ func TestPageQueue__Next(t *testing.T) {
 		t.Fatalf("incorrect count: %v, expected: %v", c, 2)
 	}
 }
+
+type testPageStorage struct {
+}
+
+func (t *testPageStorage) Append([]byte) error {
+	return nil
+}
+
+func (t *testPageStorage) Sync([]byte) error {
+	return nil
+}
+
+var _ PageStorage = &testPageStorage{}

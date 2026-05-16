@@ -17,6 +17,7 @@ type writer struct {
 }
 
 func newWriter(
+	ps pagequeue.PageStorage,
 	pageSize int64,
 	segmentSize action.PageID,
 	recordSize int64,
@@ -25,7 +26,7 @@ func newWriter(
 	return &writer{
 		sl: sl,
 		sw: segment.NewWriter(pageSize, segmentSize, recordSize),
-		pq: pagequeue.New(int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
+		pq: pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }
 

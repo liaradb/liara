@@ -20,14 +20,26 @@ type PageQueue struct {
 	pid            action.PageID
 	tlid           action.TimeLineID
 	rl             record.Length
+	ps             PageStorage
 }
 
-func New(size int16, headerSize int16, slotHeaderSize int16) *PageQueue {
+type PageStorage interface {
+	Sync([]byte) error
+	Append([]byte) error
+}
+
+func New(
+	ps PageStorage,
+	size int16,
+	headerSize int16,
+	slotHeaderSize int16,
+) *PageQueue {
 	pq := &PageQueue{
 		size:           size,
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		pool:           NewPool(size, headerSize, slotHeaderSize),
+		ps:             ps,
 	}
 
 	pq.initCurrent()
@@ -93,14 +105,48 @@ func (pq *PageQueue) appendPages(pgs []*page.Page) {
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
+	if pq.list.Len() == 0 {
+		return pq.syncCurrent()
+	}
+
 	// TODO: Implement this
+	i := 0
 	for p := range iterator.Forward[*page.Page](&pq.list) {
+		if i == 0 {
+			// Sync first
+			if err := pq.syncPage(p); err != nil {
+				return err
+			}
+		} else {
+			if err := pq.appendPage(p); err != nil {
+				return err
+			}
+		}
+
 		// Flush p
 		pq.pool.Put(p)
+		i++
 	}
+
 	pq.list.Init()
-	// Flush current
-	return nil
+
+	return pq.appendCurrent()
+}
+
+func (pq *PageQueue) syncCurrent() error {
+	return pq.syncPage(pq.current)
+}
+
+func (pq *PageQueue) syncPage(p *page.Page) error {
+	return pq.ps.Sync(p.Data())
+}
+
+func (pq *PageQueue) appendCurrent() error {
+	return pq.appendPage(pq.current)
+}
+
+func (pq *PageQueue) appendPage(p *page.Page) error {
+	return pq.ps.Append(p.Data())
 }
 
 func (pq *PageQueue) Pages() iter.Seq[*page.Page] {

@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -68,7 +69,7 @@ func NewLog(
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pageSize, segmentSize, recordSize, sl),
+		writer:     newWriter(pagestorage.New(), pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),
