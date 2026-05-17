@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"io/fs"
 	"iter"
+	"path"
 
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -13,19 +14,19 @@ type List struct {
 	dir   string
 	fsys  filecache.FileSystem
 	names *list.List
-	sf    segmentFile
+	file  filecache.File
+	sn    SegmentName
 }
 
 func NewList(fsys filecache.FileSystem, dir string) *List {
 	return &List{
 		dir:  dir,
 		fsys: fsys,
-		sf:   *newSegmentFile(fsys, dir),
 	}
 }
 
 func (l *List) Close() error {
-	if err := l.sf.Close(); err != nil {
+	if err := l.close(); err != nil {
 		return err
 	}
 
@@ -64,7 +65,7 @@ func (l *List) OpenLatestSegment() (SegmentName, filecache.File, error) {
 	}
 
 	sn, ok := l.getLatestSegment()
-	f, err := l.sf.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -82,7 +83,7 @@ func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, filec
 	}
 
 	sn := l.getNextSegment(lsn)
-	f, err := l.sf.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -102,7 +103,7 @@ func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, 
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 
-	f, err := l.sf.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -123,7 +124,7 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[filecache.
 		}
 
 		for sn := range iterate[SegmentName](e) {
-			if f, err := l.sf.open(sn); !yield(f, err) {
+			if f, err := l.open(sn); !yield(f, err) {
 				return
 			}
 		}
@@ -140,7 +141,7 @@ func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, fil
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 
-	f, err := l.sf.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -158,7 +159,7 @@ func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 		return ErrNoSegmentFile
 	}
 
-	if err := l.sf.remove(sn); err != nil {
+	if err := l.remove(sn); err != nil {
 		return err
 	}
 
@@ -174,7 +175,7 @@ func (l *List) Reverse() iter.Seq2[filecache.File, error] {
 		}
 
 		for sn := range l.reverse() {
-			if f, err := l.sf.open(sn); !yield(f, err) {
+			if f, err := l.open(sn); !yield(f, err) {
 				return
 			}
 		}
@@ -296,4 +297,76 @@ func (l *List) reverse() iter.Seq2[SegmentName, *list.Element] {
 			e = e.Prev()
 		}
 	}
+}
+
+// Methods from segmentFile
+
+func (l *List) isCurrent(sn SegmentName) bool {
+	return l.sn == sn
+}
+
+func (l *List) isCurrentAndOpen(sn SegmentName) bool {
+	return l.isCurrent(sn) && l.isOpen()
+}
+
+func (l *List) isOpen() bool {
+	return l.file != nil
+}
+
+func (l *List) path(sn SegmentName) string {
+	return path.Join(l.dir, sn.String())
+}
+
+func (l *List) close() error {
+	if !l.isOpen() {
+		return nil
+	}
+
+	if err := l.file.Close(); err != nil {
+		return err
+	}
+
+	l.file = nil
+	return nil
+}
+
+func (l *List) open(sn SegmentName) (filecache.File, error) {
+	if l.isCurrentAndOpen(sn) {
+		return l.file, nil
+	}
+
+	if err := l.close(); err != nil {
+		return nil, err
+	}
+
+	if err := l.openFile(sn); err != nil {
+		return nil, err
+	}
+
+	return l.file, nil
+}
+
+func (l *List) remove(sn SegmentName) error {
+	if l.isCurrent(sn) {
+		if err := l.close(); err != nil {
+			return err
+		}
+	}
+
+	if err := l.fsys.Remove(l.path(sn)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (l *List) openFile(sn SegmentName) error {
+	f, err := l.fsys.OpenFile(l.path(sn))
+	if err != nil {
+		return err
+	}
+
+	l.sn = sn
+	l.file = f
+	return nil
 }
