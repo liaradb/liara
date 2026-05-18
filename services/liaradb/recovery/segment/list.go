@@ -14,8 +14,7 @@ type List struct {
 	dir   string
 	fsys  filecache.FileSystem
 	names *list.List
-	file  filecache.File
-	sn    SegmentName
+	f     *File
 }
 
 func NewList(fsys filecache.FileSystem, dir string) *List {
@@ -23,14 +22,6 @@ func NewList(fsys filecache.FileSystem, dir string) *List {
 		dir:  dir,
 		fsys: fsys,
 	}
-}
-
-func (l *List) Close() error {
-	if err := l.close(); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (l *List) Names() []SegmentName {
@@ -301,41 +292,47 @@ func (l *List) reverse() iter.Seq2[SegmentName, *list.Element] {
 
 // Methods from segmentFile
 
-func (l *List) isCurrent(sn SegmentName) bool {
-	return l.sn == sn
-}
+func (l *List) file() (*File, bool) {
+	if l.f == nil {
+		return nil, false
+	}
 
-func (l *List) isCurrentAndOpen(sn SegmentName) bool {
-	return l.isCurrent(sn) && l.isOpen()
-}
-
-func (l *List) isOpen() bool {
-	return l.file != nil
+	return l.f, true
 }
 
 func (l *List) path(sn SegmentName) string {
 	return path.Join(l.dir, sn.String())
 }
 
-func (l *List) close() error {
-	if !l.isOpen() {
+func (l *List) Close() error {
+	f, ok := l.file()
+	if !ok || !f.isOpen() {
 		return nil
 	}
 
-	if err := l.file.Close(); err != nil {
+	if err := f.close(); err != nil {
 		return err
 	}
 
-	l.file = nil
+	l.f = nil
 	return nil
 }
 
-func (l *List) open(sn SegmentName) (filecache.File, error) {
-	if l.isCurrentAndOpen(sn) {
-		return l.file, nil
+func (l *List) isCurrentAndOpen(sn SegmentName) (filecache.File, bool) {
+	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
+		return f.file, true
+
 	}
 
-	if err := l.close(); err != nil {
+	return nil, false
+}
+
+func (l *List) open(sn SegmentName) (filecache.File, error) {
+	if f, ok := l.isCurrentAndOpen(sn); ok {
+		return f, nil
+	}
+
+	if err := l.Close(); err != nil {
 		return nil, err
 	}
 
@@ -343,21 +340,17 @@ func (l *List) open(sn SegmentName) (filecache.File, error) {
 		return nil, err
 	}
 
-	return l.file, nil
+	return l.f.file, nil
 }
 
 func (l *List) remove(sn SegmentName) error {
-	if l.isCurrent(sn) {
-		if err := l.close(); err != nil {
+	if f, ok := l.file(); ok {
+		if err := f.close(); err != nil {
 			return err
 		}
 	}
 
-	if err := l.fsys.Remove(l.path(sn)); err != nil {
-		return err
-	}
-
-	return nil
+	return l.fsys.Remove(l.path(sn))
 }
 
 func (l *List) openFile(sn SegmentName) error {
@@ -366,7 +359,6 @@ func (l *List) openFile(sn SegmentName) error {
 		return err
 	}
 
-	l.sn = sn
-	l.file = f
+	l.f = newFile(f, sn)
 	return nil
 }
