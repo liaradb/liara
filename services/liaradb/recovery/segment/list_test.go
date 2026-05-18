@@ -22,7 +22,7 @@ func TestList_Open(t *testing.T) {
 		t.Parallel()
 
 		fsys := createFiles(dir, 0, 0)
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
@@ -40,7 +40,7 @@ func TestList_Open(t *testing.T) {
 		t.Parallel()
 
 		fsys := createFiles(dir, 0, count)
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
@@ -58,7 +58,7 @@ func TestList_Open(t *testing.T) {
 		t.Parallel()
 
 		fsys := createFiles(dir, 9998, count)
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		if err := sl.Open(); err != nil {
 			t.Fatal(err)
@@ -96,7 +96,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sl := NewList(test.fsys, dir)
+			sl := NewList(test.fsys, dir, 128, 128)
 
 			f, err := sl.OpenLatestSegment()
 			if err != nil {
@@ -127,7 +127,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenLatestSegment()
 		if err != nil {
@@ -162,7 +162,7 @@ func TestList_IterateFromLSN(t *testing.T) {
 		createPath(dir, sn1): {},
 		createPath(dir, sn2): {},
 	})
-	sl := NewList(fsys, dir)
+	sl := NewList(fsys, dir, 128, 128)
 
 	c := 0
 	n := make([]SegmentName, 0, 3)
@@ -192,7 +192,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
-	sl := NewList(fsys, dir)
+	sl := NewList(fsys, dir, 128, 128)
 
 	for message, test := range map[string]struct {
 		search uint64
@@ -242,7 +242,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(10))
 		if err != nil {
@@ -269,7 +269,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(30))
 		if err != nil {
@@ -305,7 +305,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 		fsys := filetesting.New(fstest.MapFS{
 			createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(20))
 		if err != nil {
@@ -333,7 +333,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
 		if err != nil {
@@ -362,7 +362,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
 		if err != nil {
@@ -386,7 +386,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 			createPath(dir, NewSegmentName(3, record.NewLogSequenceNumber(30))): {},
 		})
-		sl := NewList(fsys, dir)
+		sl := NewList(fsys, dir, 128, 128)
 
 		if _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(10)); err == nil {
 			t.Error("should not open file")
@@ -403,7 +403,7 @@ func TestList_RemoveSegmentBeforeLSN(t *testing.T) {
 		createPath(dir, NewSegmentName(1, record.NewLogSequenceNumber(10))): {},
 		createPath(dir, NewSegmentName(2, record.NewLogSequenceNumber(20))): {},
 	})
-	sl := NewList(fsys, dir)
+	sl := NewList(fsys, dir, 128, 128)
 
 	if err := sl.RemoveSegmentBeforeLSN(record.NewLogSequenceNumber(20)); err != nil {
 		t.Fatal(err)
@@ -438,7 +438,7 @@ func TestList_Reverse(t *testing.T) {
 		createPath(dir, sn1): {},
 		createPath(dir, sn2): {},
 	})
-	sl := NewList(fsys, dir)
+	sl := NewList(fsys, dir, 128, 128)
 
 	c := 0
 	n := make([]SegmentName, 0, 3)

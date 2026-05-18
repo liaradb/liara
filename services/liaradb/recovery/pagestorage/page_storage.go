@@ -1,30 +1,20 @@
 package pagestorage
 
 import (
-	"io"
-
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
 type PageStorage struct {
-	sl          *segment.List
-	wr          *segment.File
-	pageSize    int64
-	segmentSize action.PageID
-	pageID      action.PageID
+	sl *segment.List
+	f  *segment.File
 }
 
 func New(
 	sl *segment.List,
-	pageSize int64,
-	segmentSize action.PageID,
 ) *PageStorage {
 	return &PageStorage{
-		sl:          sl,
-		pageSize:    pageSize,
-		segmentSize: segmentSize,
+		sl: sl,
 	}
 }
 
@@ -34,18 +24,12 @@ func (ps *PageStorage) Init() error {
 		return err
 	}
 
-	size, err := f.Size()
-	if err != nil {
+	if err := f.SeekTail(); err != nil {
 		return err
 	}
 
-	ps.wr = f
-	ps.SeekTail(size)
+	ps.f = f
 	return nil
-}
-
-func (ps *PageStorage) SeekTail(size int64) {
-	ps.pageID = action.NewActivePageIDFromSize(size, ps.pageSize)
 }
 
 func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
@@ -61,7 +45,7 @@ func (ps *PageStorage) Sync(data []byte) error {
 }
 
 func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
-	if ps.incrementPageID() {
+	if ps.f.IncrementPageID() {
 		return nil
 	}
 
@@ -70,26 +54,11 @@ func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
 		return err
 	}
 
-	ps.wr = f
+	ps.f = f
 
 	return nil
 }
 
-func (ps *PageStorage) incrementPageID() bool {
-	if ps.pageID+1 >= ps.segmentSize {
-		return false
-	}
-
-	ps.pageID++
-	return true
-}
-
 func (ps *PageStorage) write(data []byte) error {
-	wr := io.NewOffsetWriter(ps.wr, ps.position())
-	_, err := wr.Write(data)
-	return err
-}
-
-func (ps *PageStorage) position() int64 {
-	return ps.pageID.Position(ps.pageSize)
+	return ps.f.Write(data)
 }

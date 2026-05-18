@@ -40,7 +40,7 @@ func (sn SegmentName) LogSequenceNumber() record.LogSequenceNumber { return sn.l
 
 func (sn SegmentName) Next(lsn record.LogSequenceNumber) SegmentName {
 	return SegmentName{
-		id:  sn.id + 1,
+		id:  sn.id.Next(),
 		lsn: lsn,
 	}
 }

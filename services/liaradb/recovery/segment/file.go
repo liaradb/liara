@@ -1,23 +1,32 @@
 package segment
 
 import (
+	"io"
 	"io/fs"
 
 	"github.com/liaradb/liaradb/filecache"
+	"github.com/liaradb/liaradb/recovery/action"
 )
 
 type File struct {
-	file filecache.File
-	sn   SegmentName
+	file        filecache.File
+	sn          SegmentName
+	pageSize    int64
+	segmentSize action.PageID
+	pageID      action.PageID
 }
 
 func newFile(
 	file filecache.File,
 	sn SegmentName,
+	pageSize int64,
+	segmentSize action.PageID,
 ) *File {
 	return &File{
-		file: file,
-		sn:   sn,
+		file:        file,
+		sn:          sn,
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
 	}
 }
 
@@ -61,10 +70,39 @@ func (f *File) Stat() (fs.FileInfo, error) {
 	return f.file.Stat()
 }
 
+func (f *File) SeekTail() error {
+	size, err := f.Size()
+	if err != nil {
+		return err
+	}
+
+	f.pageID = action.NewActivePageIDFromSize(size, f.pageSize)
+	return nil
+}
+
 func (f *File) ReadAt(data []byte, off int64) (int, error) {
 	return f.file.ReadAt(data, off)
 }
 
 func (f *File) WriteAt(data []byte, off int64) (int, error) {
 	return f.file.WriteAt(data, off)
+}
+
+func (ps *File) Write(data []byte) error {
+	wr := io.NewOffsetWriter(ps, ps.position())
+	_, err := wr.Write(data)
+	return err
+}
+
+func (f *File) IncrementPageID() bool {
+	if f.pageID+1 >= f.segmentSize {
+		return false
+	}
+
+	f.pageID++
+	return true
+}
+
+func (f *File) position() int64 {
+	return f.pageID.Position(f.pageSize)
 }

@@ -6,20 +6,30 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/filecache"
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type List struct {
-	dir   string
-	fsys  filecache.FileSystem
-	names *list.List
-	f     *File
+	dir         string
+	fsys        filecache.FileSystem
+	names       *list.List
+	f           *File
+	pageSize    int64
+	segmentSize action.PageID
 }
 
-func NewList(fsys filecache.FileSystem, dir string) *List {
+func NewList(
+	fsys filecache.FileSystem,
+	dir string,
+	pageSize int64,
+	segmentSize action.PageID,
+) *List {
 	return &List{
-		dir:  dir,
-		fsys: fsys,
+		dir:         dir,
+		fsys:        fsys,
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
 	}
 }
 
@@ -183,7 +193,7 @@ func (l *List) openFile(sn SegmentName) (*File, error) {
 		return nil, err
 	}
 
-	file := newFile(f, sn)
+	file := newFile(f, sn, l.pageSize, l.segmentSize)
 	l.f = file
 	return file, nil
 }
