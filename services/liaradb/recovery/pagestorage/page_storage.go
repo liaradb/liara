@@ -3,7 +3,6 @@ package pagestorage
 import (
 	"io"
 
-	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -11,7 +10,7 @@ import (
 
 type PageStorage struct {
 	sl          *segment.List
-	wr          filecache.File
+	wr          *segment.File
 	pageSize    int64
 	segmentSize action.PageID
 	recordSize  int64
@@ -33,13 +32,13 @@ func (ps *PageStorage) Init() error {
 		return err
 	}
 
-	stat, err := f.Stat()
+	size, err := f.Size()
 	if err != nil {
 		return err
 	}
 
 	ps.wr = f
-	ps.SeekTail(stat.Size())
+	ps.SeekTail(size)
 	return nil
 }
 

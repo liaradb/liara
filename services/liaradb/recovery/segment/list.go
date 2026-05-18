@@ -50,13 +50,13 @@ func (l *List) init() error {
 	return l.Open()
 }
 
-func (l *List) OpenLatestSegment() (SegmentName, filecache.File, error) {
+func (l *List) OpenLatestSegment() (SegmentName, *File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
 
 	sn, ok := l.getLatestSegment()
-	f, err := l.open(sn)
+	_, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -65,26 +65,26 @@ func (l *List) OpenLatestSegment() (SegmentName, filecache.File, error) {
 		l.names.PushBack(sn)
 	}
 
-	return sn, f, err
+	return sn, l.f, err
 }
 
-func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
+func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
 
 	sn := l.getNextSegment(lsn)
-	f, err := l.open(sn)
+	_, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
 	l.names.PushBack(sn)
 
-	return sn, f, err
+	return sn, l.f, err
 }
 
-func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
+func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -94,12 +94,12 @@ func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, 
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 
-	f, err := l.open(sn)
+	_, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	return sn, f, nil
+	return sn, l.f, nil
 }
 
 func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[filecache.File, error] {
@@ -138,6 +138,31 @@ func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, fil
 	}
 
 	return sn, f, err
+}
+
+func (l *List) open(sn SegmentName) (filecache.File, error) {
+	if f, ok := l.isCurrentAndOpen(sn); ok {
+		return f, nil
+	}
+
+	if err := l.Close(); err != nil {
+		return nil, err
+	}
+
+	if err := l.openFile(sn); err != nil {
+		return nil, err
+	}
+
+	return l.f.file, nil
+}
+
+func (l *List) isCurrentAndOpen(sn SegmentName) (filecache.File, bool) {
+	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
+		return f.file, true
+
+	}
+
+	return nil, false
 }
 
 func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
@@ -306,7 +331,7 @@ func (l *List) path(sn SegmentName) string {
 
 func (l *List) Close() error {
 	f, ok := l.file()
-	if !ok || !f.isOpen() {
+	if !ok || !f.IsOpen() {
 		return nil
 	}
 
@@ -316,31 +341,6 @@ func (l *List) Close() error {
 
 	l.f = nil
 	return nil
-}
-
-func (l *List) isCurrentAndOpen(sn SegmentName) (filecache.File, bool) {
-	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
-		return f.file, true
-
-	}
-
-	return nil, false
-}
-
-func (l *List) open(sn SegmentName) (filecache.File, error) {
-	if f, ok := l.isCurrentAndOpen(sn); ok {
-		return f, nil
-	}
-
-	if err := l.Close(); err != nil {
-		return nil, err
-	}
-
-	if err := l.openFile(sn); err != nil {
-		return nil, err
-	}
-
-	return l.f.file, nil
 }
 
 func (l *List) remove(sn SegmentName) error {

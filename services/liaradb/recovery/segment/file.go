@@ -26,10 +26,10 @@ func (f *File) isCurrent(sn SegmentName) bool {
 }
 
 func (f *File) isCurrentAndOpen(sn SegmentName) bool {
-	return f.isCurrent(sn) && f.isOpen()
+	return f.isCurrent(sn) && f.IsOpen()
 }
 
-func (f *File) isOpen() bool {
+func (f *File) IsOpen() bool {
 	return f.file != nil
 }
 
@@ -38,7 +38,7 @@ func (f *File) path(dir string) string {
 }
 
 func (f *File) close() error {
-	if !f.isOpen() {
+	if !f.IsOpen() {
 		return nil
 	}
 
@@ -48,4 +48,21 @@ func (f *File) close() error {
 
 	f.file = nil
 	return nil
+}
+
+func (f *File) Size() (int64, error) {
+	stat, err := f.file.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	return stat.Size(), nil
+}
+
+func (f *File) ReadAt(data []byte, off int64) (int, error) {
+	return f.file.ReadAt(data, off)
+}
+
+func (f *File) WriteAt(data []byte, off int64) (int, error) {
+	return f.file.WriteAt(data, off)
 }

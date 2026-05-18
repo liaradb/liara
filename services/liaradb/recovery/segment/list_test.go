@@ -141,7 +141,7 @@ func TestList_OpenLatestSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*filecache.CacheFile).IsOpen() {
+		if f.IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -314,7 +314,7 @@ func TestList_OpenNextSegment(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*filecache.CacheFile).IsOpen() {
+		if f.IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
@@ -370,7 +370,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*filecache.CacheFile).IsOpen() {
+		if f.IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})

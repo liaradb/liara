@@ -98,10 +98,10 @@ func (wr *writer) Start() error {
 		return err
 	}
 
-	stat, err := f.Stat()
+	size, err := f.Size()
 	if err != nil {
 		return err
 	}
 
-	return wr.sw.SeekTail(stat.Size(), f)
+	return wr.sw.SeekTail(size, f)
 }
