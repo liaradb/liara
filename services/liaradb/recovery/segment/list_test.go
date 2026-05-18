@@ -98,11 +98,12 @@ func TestList_OpenLatestSegment(t *testing.T) {
 
 			sl := NewList(test.fsys, dir)
 
-			sn, f, err := sl.OpenLatestSegment()
+			f, err := sl.OpenLatestSegment()
 			if err != nil {
 				t.Fatal(err)
 			}
 
+			sn := f.SegmentName()
 			if id := sn.ID(); id != test.result {
 				t.Errorf("wrong id: %v, expected: %v", id, test.result)
 			}
@@ -128,16 +129,16 @@ func TestList_OpenLatestSegment(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		_, f, err := sl.OpenLatestSegment()
+		f, err := sl.OpenLatestSegment()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, _, err = sl.OpenNextSegment(record.NewLogSequenceNumber(30)); err != nil {
+		if _, err = sl.OpenNextSegment(record.NewLogSequenceNumber(30)); err != nil {
 			t.Fatal(err)
 		}
 
-		if _, _, err := sl.OpenLatestSegment(); err != nil {
+		if _, err := sl.OpenLatestSegment(); err != nil {
 			t.Fatal(err)
 		}
 
@@ -206,7 +207,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 		t.Run(message, func(t *testing.T) {
 			t.Parallel()
 
-			sn, f, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(test.search))
+			f, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(test.search))
 			if test.found {
 				if err != nil {
 					if err == ErrNoSegmentFile {
@@ -217,7 +218,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 				}
 
 				result := record.NewLogSequenceNumber(test.result)
-				if lsn := sn.LogSequenceNumber(); lsn != result {
+				if lsn := f.SegmentName().LogSequenceNumber(); lsn != result {
 					t.Errorf("wrong log sequence number: %v, expected: %v", lsn, result)
 				}
 				if f == nil {
@@ -243,12 +244,12 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		_, f, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(10))
+		f, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(10))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, _, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(20)); err != nil {
+		if _, err := sl.OpenSegmentForLSN(record.NewLogSequenceNumber(20)); err != nil {
 			t.Fatal(err)
 		}
 
@@ -270,11 +271,12 @@ func TestList_OpenNextSegment(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		sn, f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(30))
+		f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(30))
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		sn := f.SegmentName()
 		if id := sn.ID(); id != 3 {
 			t.Errorf("wrong id: %v, expected: %v", id, 3)
 		}
@@ -305,12 +307,12 @@ func TestList_OpenNextSegment(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		_, f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(20))
+		f, err := sl.OpenNextSegment(record.NewLogSequenceNumber(20))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, _, err := sl.OpenNextSegment(record.NewLogSequenceNumber(30)); err != nil {
+		if _, err := sl.OpenNextSegment(record.NewLogSequenceNumber(30)); err != nil {
 			t.Fatal(err)
 		}
 
@@ -333,11 +335,12 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		sn, f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
+		f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
 		if err != nil {
 			t.Fatal(err)
 		}
 
+		sn := f.SegmentName()
 		if id := sn.ID(); id != 2 {
 			t.Errorf("wrong id: %v, expected: %v", id, 2)
 		}
@@ -361,12 +364,12 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		_, f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
+		f, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(30))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if _, _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(20)); err != nil {
+		if _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(20)); err != nil {
 			t.Fatal(err)
 		}
 
@@ -385,8 +388,7 @@ func TestList_OpenSegmentBeforeLSN(t *testing.T) {
 		})
 		sl := NewList(fsys, dir)
 
-		_, _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(10))
-		if err == nil {
+		if _, err := sl.OpenSegmentBeforeLSN(record.NewLogSequenceNumber(10)); err == nil {
 			t.Error("should not open file")
 		}
 	})

@@ -49,56 +49,56 @@ func (l *List) init() error {
 	return l.Open()
 }
 
-func (l *List) OpenLatestSegment() (SegmentName, *File, error) {
+func (l *List) OpenLatestSegment() (*File, error) {
 	if err := l.init(); err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	sn, ok := l.getLatestSegment()
-	_, err := l.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	if !ok {
 		l.names.PushBack(sn)
 	}
 
-	return sn, l.f, err
+	return f, err
 }
 
-func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
+func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	sn := l.getNextSegment(lsn)
-	_, err := l.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	l.names.PushBack(sn)
 
-	return sn, l.f, err
+	return f, err
 }
 
-func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
+func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	sn, _, ok := l.getSegmentBeforeLSN(lsn)
 	if !ok {
-		return SegmentName{}, nil, ErrNoSegmentFile
+		return nil, ErrNoSegmentFile
 	}
 
-	_, err := l.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
-	return sn, l.f, nil
+	return f, nil
 }
 
 func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[*File, error] {
@@ -121,22 +121,22 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[*File, err
 	}
 }
 
-func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
+func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
 	sn, _, ok := l.getSegmentForLSN(lsn)
 	if !ok {
-		return SegmentName{}, nil, ErrNoSegmentFile
+		return nil, ErrNoSegmentFile
 	}
 
-	_, err := l.open(sn)
+	f, err := l.open(sn)
 	if err != nil {
-		return SegmentName{}, nil, err
+		return nil, err
 	}
 
-	return sn, l.f, err
+	return f, err
 }
 
 func (l *List) open(sn SegmentName) (*File, error) {
@@ -148,11 +148,7 @@ func (l *List) open(sn SegmentName) (*File, error) {
 		return nil, err
 	}
 
-	if err := l.openFile(sn); err != nil {
-		return nil, err
-	}
-
-	return l.f, nil
+	return l.openFile(sn)
 }
 
 func (l *List) isCurrentAndOpen(sn SegmentName) (*File, bool) {
@@ -352,12 +348,13 @@ func (l *List) remove(sn SegmentName) error {
 	return l.fsys.Remove(l.path(sn))
 }
 
-func (l *List) openFile(sn SegmentName) error {
+func (l *List) openFile(sn SegmentName) (*File, error) {
 	f, err := l.fsys.OpenFile(l.path(sn))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	l.f = newFile(f, sn)
-	return nil
+	file := newFile(f, sn)
+	l.f = file
+	return file, nil
 }

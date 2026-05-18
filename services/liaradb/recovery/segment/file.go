@@ -21,6 +21,8 @@ func newFile(
 	}
 }
 
+func (f *File) SegmentName() SegmentName { return f.sn }
+
 func (f *File) isCurrent(sn SegmentName) bool {
 	return f.sn == sn
 }

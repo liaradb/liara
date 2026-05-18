@@ -27,7 +27,7 @@ func New(
 }
 
 func (ps *PageStorage) Init() error {
-	_, f, err := ps.sl.OpenLatestSegment()
+	f, err := ps.sl.OpenLatestSegment()
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
 		return nil
 	}
 
-	_, f, err := ps.sl.OpenNextSegment(lsn)
+	f, err := ps.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return err
 	}

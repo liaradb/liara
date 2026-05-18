@@ -75,7 +75,7 @@ func (wr *writer) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
 }
 
 func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) (bool, error) {
-	_, f, err := wr.sl.OpenNextSegment(lsn)
+	f, err := wr.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return false, err
 	}
@@ -93,7 +93,7 @@ func (wr *writer) Start() error {
 		return err
 	}
 
-	_, f, err := wr.sl.OpenLatestSegment()
+	f, err := wr.sl.OpenLatestSegment()
 	if err != nil {
 		return err
 	}
