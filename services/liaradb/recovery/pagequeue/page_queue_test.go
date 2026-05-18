@@ -13,7 +13,7 @@ import (
 func TestPageQueue(t *testing.T) {
 	t.Parallel()
 
-	pq := New(&testPageStorage{}, 256, 22, 4)
+	pq := New(&testPageStorage{}, largePageSize, headerSize, slotHeaderSize)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
@@ -87,7 +87,7 @@ func TestPageQueue(t *testing.T) {
 func TestPageQueue__Next(t *testing.T) {
 	t.Parallel()
 
-	pq := New(&testPageStorage{}, 256, 22, 4)
+	pq := New(&testPageStorage{}, largePageSize, headerSize, slotHeaderSize)
 
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()

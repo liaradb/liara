@@ -8,6 +8,7 @@ import (
 
 const (
 	pageSize       = 64
+	largePageSize  = 256
 	headerSize     = 22
 	slotHeaderSize = 4
 )
