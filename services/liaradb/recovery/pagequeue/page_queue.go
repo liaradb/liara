@@ -5,23 +5,16 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type PageQueue struct {
-	size           int16
-	headerSize     int16
-	slotHeaderSize int16
-	pool           Pool
-	list           list.List
-	current        *page.Page
-	pid            action.PageID
-	tlid           action.TimeLineID
-	rl             record.Length
-	ps             PageStorage
-	lsn            record.LogSequenceNumber
+	pool    Pool
+	list    list.List
+	current *page.Page
+	ps      PageStorage
+	lsn     record.LogSequenceNumber
 }
 
 type PageStorage interface {
@@ -36,11 +29,8 @@ func New(
 	slotHeaderSize int16,
 ) *PageQueue {
 	pq := &PageQueue{
-		size:           size,
-		headerSize:     headerSize,
-		slotHeaderSize: slotHeaderSize,
-		pool:           NewPool(size, headerSize, slotHeaderSize),
-		ps:             ps,
+		pool: NewPool(size, headerSize, slotHeaderSize),
+		ps:   ps,
 	}
 
 	pq.initCurrent()

@@ -5,6 +5,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
+// TODO: Should we combine this into segment.List?
 type PageStorage struct {
 	sl *segment.List
 	f  *segment.File
