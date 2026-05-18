@@ -33,7 +33,7 @@ func (ps *PageStorage) Init() error {
 }
 
 func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
-	if err := ps.next(lsn); err != nil {
+	if err := ps.nextPage(lsn); err != nil {
 		return err
 	}
 
@@ -44,18 +44,21 @@ func (ps *PageStorage) Sync(data []byte) error {
 	return ps.write(data)
 }
 
-func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
-	if ps.f.IncrementPageID() {
+func (ps *PageStorage) nextPage(lsn record.LogSequenceNumber) error {
+	if ps.f.NextPage() {
 		return nil
 	}
 
+	return ps.nextSegment(lsn)
+}
+
+func (ps *PageStorage) nextSegment(lsn record.LogSequenceNumber) error {
 	f, err := ps.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return err
 	}
 
 	ps.f = f
-
 	return nil
 }
 

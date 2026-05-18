@@ -94,7 +94,7 @@ func (ps *File) Write(data []byte) error {
 	return err
 }
 
-func (f *File) IncrementPageID() bool {
+func (f *File) NextPage() bool {
 	if f.pageID+1 >= f.segmentSize {
 		return false
 	}
