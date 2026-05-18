@@ -13,16 +13,18 @@ type PageStorage struct {
 	wr          *segment.File
 	pageSize    int64
 	segmentSize action.PageID
-	recordSize  int64
 	pageID      action.PageID
-	timeLineID  action.TimeLineID
 }
 
 func New(
 	sl *segment.List,
+	pageSize int64,
+	segmentSize action.PageID,
 ) *PageStorage {
 	return &PageStorage{
-		sl: sl,
+		sl:          sl,
+		pageSize:    pageSize,
+		segmentSize: segmentSize,
 	}
 }
 
@@ -59,8 +61,7 @@ func (ps *PageStorage) Sync(data []byte) error {
 }
 
 func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
-	if ps.pageID+1 < ps.segmentSize {
-		ps.pageID++
+	if ps.incrementPageID() {
 		return nil
 	}
 
@@ -74,12 +75,21 @@ func (ps *PageStorage) next(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (ps *PageStorage) position() int64 {
-	return ps.pageID.Position(ps.pageSize)
+func (ps *PageStorage) incrementPageID() bool {
+	if ps.pageID+1 >= ps.segmentSize {
+		return false
+	}
+
+	ps.pageID++
+	return true
 }
 
 func (ps *PageStorage) write(data []byte) error {
 	wr := io.NewOffsetWriter(ps.wr, ps.position())
 	_, err := wr.Write(data)
 	return err
+}
+
+func (ps *PageStorage) position() int64 {
+	return ps.pageID.Position(ps.pageSize)
 }

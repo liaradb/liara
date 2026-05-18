@@ -69,10 +69,11 @@ func NewLog(
 	sl := segment.NewList(fsys, dir)
 	// TODO: Remove the secondary storage
 	sl2 := segment.NewList(fsys, path.Join(dir, "pagestorage"))
+	ps := pagestorage.New(sl2, pageSize, segmentSize)
 	return &Log{
 		sl:         sl,
 		reader:     newReader(pageSize, sl),
-		writer:     newWriter(pagestorage.New(sl2), pageSize, segmentSize, recordSize, sl),
+		writer:     newWriter(ps, pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),
 		syncReqs:   make(chan *syncRequest),
