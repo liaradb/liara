@@ -1,8 +1,6 @@
 package segment
 
 import (
-	"path"
-
 	"github.com/liaradb/liaradb/filecache"
 )
 
@@ -31,10 +29,6 @@ func (f *File) isCurrentAndOpen(sn SegmentName) bool {
 
 func (f *File) IsOpen() bool {
 	return f.file != nil
-}
-
-func (f *File) path(dir string) string {
-	return path.Join(dir, f.sn.String())
 }
 
 func (f *File) close() error {

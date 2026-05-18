@@ -2,6 +2,7 @@ package segment
 
 import (
 	"fmt"
+	"path"
 	"regexp"
 	"strconv"
 
@@ -46,4 +47,8 @@ func (sn SegmentName) Next(lsn record.LogSequenceNumber) SegmentName {
 
 func (sn SegmentName) String() string {
 	return fmt.Sprintf("segment_%016x_%016x.lr", sn.id, sn.lsn.Value())
+}
+
+func (sn *SegmentName) path(dir string) string {
+	return path.Join(dir, sn.String())
 }

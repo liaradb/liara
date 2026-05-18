@@ -4,7 +4,6 @@ import (
 	"container/list"
 	"io/fs"
 	"iter"
-	"path"
 
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -326,7 +325,7 @@ func (l *List) file() (*File, bool) {
 }
 
 func (l *List) path(sn SegmentName) string {
-	return path.Join(l.dir, sn.String())
+	return sn.path(l.dir)
 }
 
 func (l *List) Close() error {
