@@ -23,12 +23,38 @@ func NewList(fsys filecache.FileSystem, dir string) *List {
 	}
 }
 
+func (l *List) file() (*File, bool) {
+	if l.f == nil {
+		return nil, false
+	}
+
+	return l.f, true
+}
+
+func (l *List) path(sn SegmentName) string {
+	return sn.path(l.dir)
+}
+
 func (l *List) Names() []SegmentName {
 	names := make([]SegmentName, 0, l.names.Len())
 	for n := range l.iterate() {
 		names = append(names, n)
 	}
 	return names
+}
+
+func (l *List) Close() error {
+	f, ok := l.file()
+	if !ok || !f.IsOpen() {
+		return nil
+	}
+
+	if err := f.close(); err != nil {
+		return err
+	}
+
+	l.f = nil
+	return nil
 }
 
 func (l *List) Open() error {
@@ -151,6 +177,17 @@ func (l *List) open(sn SegmentName) (*File, error) {
 	return l.openFile(sn)
 }
 
+func (l *List) openFile(sn SegmentName) (*File, error) {
+	f, err := l.fsys.OpenFile(l.path(sn))
+	if err != nil {
+		return nil, err
+	}
+
+	file := newFile(f, sn)
+	l.f = file
+	return file, nil
+}
+
 func (l *List) isCurrentAndOpen(sn SegmentName) (*File, bool) {
 	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
 		return f, true
@@ -176,6 +213,16 @@ func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 
 	l.names.Remove(e)
 	return nil
+}
+
+func (l *List) remove(sn SegmentName) error {
+	if f, ok := l.file(); ok {
+		if err := f.close(); err != nil {
+			return err
+		}
+	}
+
+	return l.fsys.Remove(l.path(sn))
 }
 
 func (l *List) Reverse() iter.Seq2[*File, error] {
@@ -308,53 +355,4 @@ func (l *List) reverse() iter.Seq2[SegmentName, *list.Element] {
 			e = e.Prev()
 		}
 	}
-}
-
-// Methods from segmentFile
-
-func (l *List) file() (*File, bool) {
-	if l.f == nil {
-		return nil, false
-	}
-
-	return l.f, true
-}
-
-func (l *List) path(sn SegmentName) string {
-	return sn.path(l.dir)
-}
-
-func (l *List) Close() error {
-	f, ok := l.file()
-	if !ok || !f.IsOpen() {
-		return nil
-	}
-
-	if err := f.close(); err != nil {
-		return err
-	}
-
-	l.f = nil
-	return nil
-}
-
-func (l *List) remove(sn SegmentName) error {
-	if f, ok := l.file(); ok {
-		if err := f.close(); err != nil {
-			return err
-		}
-	}
-
-	return l.fsys.Remove(l.path(sn))
-}
-
-func (l *List) openFile(sn SegmentName) (*File, error) {
-	f, err := l.fsys.OpenFile(l.path(sn))
-	if err != nil {
-		return nil, err
-	}
-
-	file := newFile(f, sn)
-	l.f = file
-	return file, nil
 }
