@@ -1,6 +1,8 @@
 package segment
 
 import (
+	"io/fs"
+
 	"github.com/liaradb/liaradb/filecache"
 )
 
@@ -51,6 +53,10 @@ func (f *File) Size() (int64, error) {
 	}
 
 	return stat.Size(), nil
+}
+
+func (f *File) Stat() (fs.FileInfo, error) {
+	return f.file.Stat()
 }
 
 func (f *File) ReadAt(data []byte, off int64) (int, error) {

@@ -101,8 +101,8 @@ func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, 
 	return sn, l.f, nil
 }
 
-func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[filecache.File, error] {
-	return func(yield func(filecache.File, error) bool) {
+func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[*File, error] {
+	return func(yield func(*File, error) bool) {
 		if err := l.init(); err != nil {
 			yield(nil, err)
 			return
@@ -121,7 +121,7 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[filecache.
 	}
 }
 
-func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, filecache.File, error) {
+func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *File, error) {
 	if err := l.init(); err != nil {
 		return SegmentName{}, nil, err
 	}
@@ -131,15 +131,15 @@ func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, fil
 		return SegmentName{}, nil, ErrNoSegmentFile
 	}
 
-	f, err := l.open(sn)
+	_, err := l.open(sn)
 	if err != nil {
 		return SegmentName{}, nil, err
 	}
 
-	return sn, f, err
+	return sn, l.f, err
 }
 
-func (l *List) open(sn SegmentName) (filecache.File, error) {
+func (l *List) open(sn SegmentName) (*File, error) {
 	if f, ok := l.isCurrentAndOpen(sn); ok {
 		return f, nil
 	}
@@ -152,12 +152,12 @@ func (l *List) open(sn SegmentName) (filecache.File, error) {
 		return nil, err
 	}
 
-	return l.f.file, nil
+	return l.f, nil
 }
 
-func (l *List) isCurrentAndOpen(sn SegmentName) (filecache.File, bool) {
+func (l *List) isCurrentAndOpen(sn SegmentName) (*File, bool) {
 	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
-		return f.file, true
+		return f, true
 
 	}
 
@@ -182,8 +182,8 @@ func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (l *List) Reverse() iter.Seq2[filecache.File, error] {
-	return func(yield func(filecache.File, error) bool) {
+func (l *List) Reverse() iter.Seq2[*File, error] {
+	return func(yield func(*File, error) bool) {
 		if err := l.init(); err != nil {
 			yield(nil, err)
 			return

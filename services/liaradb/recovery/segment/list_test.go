@@ -252,7 +252,7 @@ func TestList_OpenSegmentForLSN(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if f.(*filecache.CacheFile).IsOpen() {
+		if f.IsOpen() {
 			t.Error("previous file should be closed")
 		}
 	})
