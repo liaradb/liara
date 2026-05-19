@@ -88,8 +88,14 @@ func (f *File) WriteAt(data []byte, off int64) (int, error) {
 	return f.file.WriteAt(data, off)
 }
 
-func (ps *File) Write(data []byte) error {
-	wr := io.NewOffsetWriter(ps, ps.position())
+func (f *File) Read(data []byte) error {
+	wr := io.NewSectionReader(f, f.position(), f.pageSize)
+	_, err := wr.Read(data)
+	return err
+}
+
+func (f *File) Write(data []byte) error {
+	wr := io.NewOffsetWriter(f, f.position())
 	_, err := wr.Write(data)
 	return err
 }
