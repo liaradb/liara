@@ -43,6 +43,7 @@ func (t *Tip) Span(size int16) *record.Span {
 		remaining -= l
 	}
 
+	s.InitIndexes()
 	return &s
 }
 

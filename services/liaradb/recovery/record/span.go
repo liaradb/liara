@@ -27,6 +27,13 @@ func (s *Span) Append(f Fragment) {
 	s.fragments = append(s.fragments, f)
 }
 
+func (s *Span) InitIndexes() {
+	l := len(s.fragments)
+	for i, f := range s.fragments {
+		f.SetIndex(int16(l - i))
+	}
+}
+
 // TODO: Can we do this without creating a new reader?
 func (s Span) Read(p []byte) (n int, err error) {
 	readers := make([]io.Reader, 0, len(s.fragments))

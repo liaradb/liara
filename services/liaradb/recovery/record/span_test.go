@@ -30,6 +30,7 @@ func TestSpan_Write(t *testing.T) {
 		NewFragment(make([]byte, 2), make([]byte, a)),
 		NewFragment(make([]byte, 2), make([]byte, b)),
 	)
+	s.InitIndexes()
 
 	if err := rc.Write(s); err != nil {
 		t.Fatal(err)

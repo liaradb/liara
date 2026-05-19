@@ -40,6 +40,7 @@ func TestPageQueue(t *testing.T) {
 	}
 
 	s := record.NewSpan(item)
+	s.InitIndexes()
 
 	rc2 := &record.Record{}
 	if err := rc2.Read(s); err != nil {
