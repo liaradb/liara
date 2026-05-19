@@ -9,14 +9,14 @@ import (
 )
 
 type PageIterator struct {
-	list *segment.List
+	sl *segment.List
 }
 
 func New(
-	list *segment.List,
+	sl *segment.List,
 ) *PageIterator {
 	return &PageIterator{
-		list: list,
+		sl: sl,
 	}
 }
 
@@ -24,8 +24,8 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 	return func(yield func(*record.Record, error) bool) {
 		var p page.Page
 		var s record.Span
-		var rc *record.Record = &record.Record{}
-		for f, err := range pi.list.IterateFromLSN(lsn) {
+
+		for f, err := range pi.sl.IterateFromLSN(lsn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -40,15 +40,20 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				for h, d := range p.Slots() {
 					f := record.NewFragment(h, d)
 					s.Append(f)
-				}
 
-				if err := rc.Read(s); err != nil {
-					yield(nil, err)
-					return
-				}
+					if f.Index() == 0 {
+						rc := &record.Record{}
+						if err := rc.Read(s); err != nil {
+							yield(nil, err)
+							return
+						}
 
-				if !yield(rc, nil) {
-					return
+						if !yield(rc, nil) {
+							return
+						}
+
+						s = record.NewSpan()
+					}
 				}
 
 				if !f.NextPage() {

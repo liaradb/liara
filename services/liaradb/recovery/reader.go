@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"iter"
 
+	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/segmentio"
@@ -13,6 +14,7 @@ import (
 type reader struct {
 	sl *segment.List
 	sr *segmentio.Reader
+	it *pageiterator.PageIterator
 }
 
 func newReader(
@@ -22,6 +24,7 @@ func newReader(
 	return &reader{
 		sl: sl,
 		sr: segmentio.NewReader(pageSize),
+		it: pageiterator.New(sl),
 	}
 }
 
@@ -105,4 +108,9 @@ func (rd *reader) iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record
 			}
 		}
 	}
+}
+
+// TODO: Remove this
+func (rd *reader) iterateIterator(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+	return rd.it.Forward(lsn)
 }

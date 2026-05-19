@@ -28,7 +28,7 @@ func (s *Span) Append(f Fragment) {
 }
 
 func (s *Span) InitIndexes() {
-	l := len(s.fragments)
+	l := len(s.fragments) - 1
 	for i, f := range s.fragments {
 		f.SetIndex(int16(l - i))
 	}

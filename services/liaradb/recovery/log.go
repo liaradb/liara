@@ -279,6 +279,11 @@ func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, er
 	return l.reader.iterate(lsn)
 }
 
+// TODO: Remove this
+func (l *Log) IterateIterator(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+	return l.reader.iterateIterator(lsn)
+}
+
 func (l *Log) Open(ctx context.Context) error {
 	if err := l.sl.Open(); err != nil {
 		return err
