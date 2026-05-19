@@ -27,8 +27,8 @@ func TestSpan_Write(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := NewSpan(
-		NewFragment(make([]byte, a)),
-		NewFragment(make([]byte, b)),
+		NewFragment(make([]byte, 2), make([]byte, a)),
+		NewFragment(make([]byte, 2), make([]byte, b)),
 	)
 
 	if err := rc.Write(s); err != nil {

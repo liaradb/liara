@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -34,16 +33,16 @@ func TestPageQueue(t *testing.T) {
 		t.Fatalf("incorrect count: %v, expected: %v", c, 1)
 	}
 
-	var item []byte
-	for _, i := range pq.current.Slots() {
-		item = i
+	var item record.Fragment
+	for h, d := range pq.current.Slots() {
+		item = record.NewFragment(h, d)
 		break
 	}
 
-	b := buffer.NewFromSlice(item)
+	s := record.NewSpan(item)
 
 	rc2 := &record.Record{}
-	if err := rc2.Read(b); err != nil {
+	if err := rc2.Read(s); err != nil {
 		t.Fatal(err)
 	}
 

@@ -2,7 +2,6 @@ package pagequeue
 
 import (
 	"container/list"
-	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -101,11 +100,10 @@ func (pq *PageQueue) Flush() error {
 		return pq.syncCurrent()
 	}
 
-	// TODO: Implement this
+	// TODO: Implement error handling
 	i := 0
 	for p := range iterator.Forward[*page.Page](&pq.list) {
-		if i == 0 {
-			// Sync first
+		if i == 0 { // Sync first
 			if err := pq.syncPage(p); err != nil {
 				return err
 			}
@@ -115,7 +113,6 @@ func (pq *PageQueue) Flush() error {
 			}
 		}
 
-		// Flush p
 		pq.pool.Put(p)
 		i++
 	}
@@ -139,17 +136,6 @@ func (pq *PageQueue) appendCurrent() error {
 
 func (pq *PageQueue) appendPage(p *page.Page) error {
 	return pq.ps.Append(pq.lsn, p.Data())
-}
-
-func (pq *PageQueue) Pages() iter.Seq[*page.Page] {
-	return func(yield func(*page.Page) bool) {
-		for p := range iterator.Forward[*page.Page](&pq.list) {
-			if !yield(p) {
-				return
-			}
-		}
-		yield(pq.current)
-	}
 }
 
 func (pq *PageQueue) Clear() {

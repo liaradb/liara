@@ -1,7 +1,6 @@
 package recovery
 
 import (
-	encoder "github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/page"
@@ -38,7 +37,7 @@ func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 func (wr *writer) RecordSize() int64     { return wr.sw.RecordSize() }
 
 func (wr *writer) Append(rc *record.Record) (bool, error) {
-	if _, err := wr.appendToPageQueue(rc); err != nil {
+	if err := wr.appendToPageQueue(rc); err != nil {
 		return false, err
 	}
 
@@ -56,22 +55,12 @@ func (wr *writer) Append(rc *record.Record) (bool, error) {
 //   - Otherwise, sync current page
 //   - For every page after, push new page to disk
 //   - For last page, store that as current
-func (wr *writer) appendToPageQueue(rc *record.Record) (*encoder.Page, error) {
+func (wr *writer) appendToPageQueue(rc *record.Record) error {
 	if err := wr.pq.Append(rc); err != nil {
-		return nil, err
+		return err
 	}
 
-	var current *encoder.Page
-	for p := range wr.pq.Pages() {
-		_ = p.Data()
-		current = p
-	}
-
-	if err := wr.pq.Flush(); err != nil {
-		return nil, err
-	}
-
-	return current, nil
+	return wr.pq.Flush()
 }
 
 func (wr *writer) appendToNextSegment(rc *record.Record, lsn record.LogSequenceNumber) (bool, error) {
