@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"iter"
 
+	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -20,11 +21,12 @@ type reader struct {
 func newReader(
 	pageSize int64,
 	sl *segment.List,
+	sl2 *segment.List,
 ) *reader {
 	return &reader{
 		sl: sl,
 		sr: segmentio.NewReader(pageSize),
-		it: pageiterator.New(sl),
+		it: pageiterator.New(sl2, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 	}
 }
 

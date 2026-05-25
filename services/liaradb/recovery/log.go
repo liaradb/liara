@@ -71,7 +71,7 @@ func NewLog(
 	sl2 := segment.NewList(fsys, path.Join(dir, "pagestorage"), pageSize, segmentSize)
 	return &Log{
 		sl:         sl,
-		reader:     newReader(pageSize, sl),
+		reader:     newReader(pageSize, sl, sl2),
 		writer:     newWriter(pagestorage.New(sl2), pageSize, segmentSize, recordSize, sl),
 		appendReqs: make(chan *appendRequest),
 		flushReqs:  make(chan *flushRequest),

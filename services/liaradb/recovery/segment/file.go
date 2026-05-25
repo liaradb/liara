@@ -109,6 +109,16 @@ func (f *File) NextPage() bool {
 	return true
 }
 
+func (f *File) NextPageUntilSize(size int64) bool {
+	segmentSize := action.NewActivePageIDFromSize(size, f.pageSize)
+	if f.pageID+1 >= segmentSize {
+		return false
+	}
+
+	f.pageID++
+	return true
+}
+
 func (f *File) position() int64 {
 	return f.pageID.Position(f.pageSize)
 }

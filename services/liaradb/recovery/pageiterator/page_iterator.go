@@ -3,26 +3,30 @@ package pageiterator
 import (
 	"iter"
 
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
 type PageIterator struct {
-	sl *segment.List
+	sl   *segment.List
+	pool pagequeue.Pool
 }
 
 func New(
 	sl *segment.List,
+	size int16,
+	headerSize int16,
+	slotHeaderSize int16,
 ) *PageIterator {
 	return &PageIterator{
-		sl: sl,
+		sl:   sl,
+		pool: pagequeue.NewPool(size, headerSize, slotHeaderSize),
 	}
 }
 
 func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		var p page.Page
 		var s record.Span
 
 		for f, err := range pi.sl.IterateFromLSN(lsn) {
@@ -31,12 +35,20 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				return
 			}
 
+			size, err := f.Size()
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
 			for {
+				p := pi.pool.Get()
 				if err := f.Read(p.Data()); err != nil {
 					yield(nil, err)
 					return
 				}
 
+				p.Reset()
 				for h, d := range p.Slots() {
 					f := record.NewFragment(h, d)
 					s.Append(f)
@@ -56,8 +68,8 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 					}
 				}
 
-				if !f.NextPage() {
-					continue
+				if !f.NextPageUntilSize(size) {
+					break
 				}
 			}
 		}

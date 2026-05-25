@@ -53,6 +53,10 @@ func (p *Page) Fill(data []byte) {
 	clear(p.data[n:])
 }
 
+func (p *Page) Reset() {
+	p.list.Reset()
+}
+
 func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
