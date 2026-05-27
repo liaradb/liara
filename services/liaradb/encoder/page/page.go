@@ -13,6 +13,7 @@ type Page struct {
 	data           []byte
 	list           slotlist.SlotList
 	byteList       bytelist.ByteList
+	next           int16
 }
 
 func New(
@@ -20,14 +21,10 @@ func New(
 	headerSize int16,
 	slotHeaderSize int16,
 ) *Page {
-	data := make([]byte, size)
-	return &Page{
-		headerSize:     headerSize,
-		slotHeaderSize: slotHeaderSize,
-		data:           data,
-		list:           slotlist.New(data[headerSize:]),
-		byteList:       bytelist.New(data[headerSize:]),
-	}
+	return NewFromSlice(
+		make([]byte, size),
+		headerSize,
+		slotHeaderSize)
 }
 
 func NewFromSlice(
@@ -35,13 +32,15 @@ func NewFromSlice(
 	headerSize int16,
 	slotHeaderSize int16,
 ) *Page {
-	return &Page{
+	p := Page{
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		data:           data,
 		list:           slotlist.New(data[headerSize:]),
 		byteList:       bytelist.New(data[headerSize:]),
 	}
+	p.initNext()
+	return &p
 }
 
 func (p *Page) Data() []byte {
@@ -86,10 +85,14 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 	}
 }
 
+func (p *Page) initNext() {
+	p.next = p.list.Next()
+}
+
 func (p *Page) Next(size int16) ([]byte, []byte) {
 	space := p.space()
 	size = min(size, space)
-	end := p.list.Next()
+	end := p.next
 	start := (end - size) - p.slotHeaderSize
 	data := p.data[start:end]
 	if end-start < p.slotHeaderSize {
@@ -100,7 +103,7 @@ func (p *Page) Next(size int16) ([]byte, []byte) {
 }
 
 func (p *Page) space() int16 {
-	end := p.list.Next()
+	end := p.next
 	size := p.list.Size()
 	start := (end - size) - p.slotHeaderSize
 
@@ -109,17 +112,18 @@ func (p *Page) space() int16 {
 
 func (p *Page) Commit(size int16) (int16, bool) {
 	fullSize := size + p.slotHeaderSize
-	start := p.list.Next() - fullSize
+	start := p.next - fullSize
 	i, ok := p.list.Push(start, fullSize)
 	if !ok {
 		return 0, false
 	}
 
-	p.list.SetNext(start)
+	p.next = start
 	return i, true
 }
 
 func (p *Page) Clear() {
 	clear(p.data)
 	p.list.Clear()
+	p.initNext()
 }

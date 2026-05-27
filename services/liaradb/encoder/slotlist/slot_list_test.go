@@ -27,6 +27,10 @@ func TestSlotList_Default(t *testing.T) {
 	if c := l.Count(); c != 0 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
+
+	if n := l.Next(); n != 0 {
+		t.Errorf("incorrect next: %v, expected: %v", n, 0)
+	}
 }
 
 func TestSlotList_Push(t *testing.T) {

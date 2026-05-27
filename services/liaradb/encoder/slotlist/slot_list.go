@@ -14,7 +14,6 @@ const (
 
 type SlotList struct {
 	count int16
-	next  int16
 	list  int16list.Int16List
 }
 
@@ -27,30 +26,21 @@ func New(data []byte) SlotList {
 		list:  l,
 	}
 
-	sl.initNext()
-
 	return sl
-}
-
-func (sl *SlotList) Next() int16 { return sl.next }
-
-// TODO: Remove this
-func (sl *SlotList) SetNext(next int16) {
-	sl.next = next
 }
 
 func (*SlotList) position(i int16) int16 {
 	return i*tupleSize + headerSize
 }
 
-func (sl *SlotList) initNext() {
+func (sl *SlotList) Next() int16 {
 	// TODO: Fix this cast
 	size := int16(sl.list.Length())
 	var next = size
 
 	for slot := range sl.Slots() {
 		if !slot.IsFilled() {
-			return
+			break
 		}
 
 		if offset := slot.Offset(); offset < next {
@@ -58,7 +48,7 @@ func (sl *SlotList) initNext() {
 		}
 	}
 
-	sl.next = next
+	return next
 }
 
 func (sl *SlotList) Reset() {
@@ -69,7 +59,6 @@ func (sl *SlotList) Reset() {
 func (sl *SlotList) Clear() {
 	_ = sl.list.Set(0, 0)
 	sl.count = 0
-	sl.initNext()
 }
 
 func (sl *SlotList) Length() int {
@@ -91,18 +80,13 @@ func (sl *SlotList) setCount(count int16) {
 }
 
 func (sl *SlotList) Slot(i int16) (Slot, bool) {
-	if i >= sl.count {
+	if i < 0 || i >= sl.count {
 		return Slot{}, false
 	}
 
 	pos := sl.position(i)
 
-	a, ok := sl.list.Get(pos)
-	if !ok {
-		return Slot{}, false
-	}
-
-	b, ok := sl.list.Get(pos + 1)
+	a, b, ok := sl.getSlot(pos)
 	if !ok {
 		return Slot{}, false
 	}
@@ -158,11 +142,7 @@ func (sl *SlotList) Insert(offset int16, size int16, i int16) (int16, bool) {
 		return 0, false
 	}
 
-	if ok := sl.list.Set(start, offset); !ok {
-		return 0, false
-	}
-
-	if ok := sl.list.Set(start+1, size); !ok {
+	if !sl.setSlot(start, offset, size) {
 		return 0, false
 	}
 
@@ -172,10 +152,6 @@ func (sl *SlotList) Insert(offset int16, size int16, i int16) (int16, bool) {
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
-	if sl.count < 1 {
-		return Slot{}, false
-	}
-
 	slot, ok := sl.Slot(sl.count - 1)
 	if !ok {
 		return Slot{}, false
@@ -187,15 +163,26 @@ func (sl *SlotList) Pop() (Slot, bool) {
 
 func (sl *SlotList) Push(offset int16, size int16) (int16, bool) {
 	pos := sl.position(sl.count)
-	if !sl.list.Set(pos, offset) {
-		return 0, false
-	}
-
-	if !sl.list.Set(pos+1, size) {
+	if !sl.setSlot(pos, offset, size) {
 		return 0, false
 	}
 
 	count := sl.count
 	sl.setCount(count + 1)
 	return count, true
+}
+
+func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {
+	offset, ok := sl.list.Get(pos)
+	if !ok {
+		return 0, 0, false
+	}
+
+	size, ok := sl.list.Get(pos + 1)
+	return offset, size, ok
+}
+
+func (sl *SlotList) setSlot(pos, offset, size int16) bool {
+	return sl.list.Set(pos, offset) &&
+		sl.list.Set(pos+1, size)
 }
