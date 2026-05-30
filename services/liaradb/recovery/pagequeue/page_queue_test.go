@@ -1,6 +1,7 @@
 package pagequeue
 
 import (
+	"io"
 	"slices"
 	"testing"
 	"time"
@@ -12,8 +13,6 @@ import (
 func TestPageQueue(t *testing.T) {
 	t.Parallel()
 
-	pq := New(&testPageStorage{}, largePageSize, headerSize, slotHeaderSize)
-
 	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := record.NewTransactionID(2)
@@ -23,108 +22,238 @@ func TestPageQueue(t *testing.T) {
 	data := []byte("abcdef")
 	reverse := []byte("fghij")
 
-	rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+	t.Run("should run", func(t *testing.T) {
+		t.Parallel()
 
-	if err := pq.Append(rc); err != nil {
-		t.Fatal(err)
-	}
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
-	if c := pq.Count(); c != 1 {
-		t.Fatalf("incorrect count: %v, expected: %v", c, 1)
-	}
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
 
-	var item record.Fragment
-	for h, d := range pq.current.Slots() {
-		item = record.NewFragment(h, d)
-		break
-	}
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
 
-	s := record.NewSpan(item)
-	s.InitIndexes()
+		if c := pq.Count(); c != 1 {
+			t.Fatalf("incorrect count: %v, expected: %v", c, 1)
+		}
 
-	rc2 := &record.Record{}
-	if err := rc2.Read(s); err != nil {
-		t.Fatal(err)
-	}
+		var item record.Fragment
+		for h, d := range pq.current.Slots() {
+			item = record.NewFragment(h, d)
+			break
+		}
 
-	if i := rc2.LogSequenceNumber(); i != lsn {
-		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
-	}
+		s := record.NewSpan(item)
+		s.InitIndexes()
 
-	if i := rc2.TenantID(); i != tid {
-		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
-	}
+		rc2 := &record.Record{}
+		if err := rc2.Read(s); err != nil {
+			t.Fatal(err)
+		}
 
-	if i := rc2.TransactionID(); i != txid {
-		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
-	}
+		if i := rc2.LogSequenceNumber(); i != lsn {
+			t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
+		}
 
-	if i := rc2.Time(); i != now {
-		t.Errorf("incorrect time: %v, expected: %v", i, now)
-	}
+		if i := rc2.TenantID(); i != tid {
+			t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
+		}
 
-	if i := rc2.Action(); i != action {
-		t.Errorf("incorrect action: %v, expected: %v", i, action)
-	}
+		if i := rc2.TransactionID(); i != txid {
+			t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
+		}
 
-	if i := rc2.Collection(); i != collection {
-		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
-	}
+		if i := rc2.Time(); i != now {
+			t.Errorf("incorrect time: %v, expected: %v", i, now)
+		}
 
-	if i := rc2.Data(); !slices.Equal(i, data) {
-		t.Errorf("incorrect data: %v, expected: %v", i, data)
-	}
+		if i := rc2.Action(); i != action {
+			t.Errorf("incorrect action: %v, expected: %v", i, action)
+		}
 
-	if i := rc2.Reverse(); !slices.Equal(i, reverse) {
-		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
-	}
+		if i := rc2.Collection(); i != collection {
+			t.Errorf("incorrect collection: %v, expected: %v", i, collection)
+		}
 
-	if i := rc2.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
-		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == record.ActionCheckpoint)
-	}
-}
+		if i := rc2.Data(); !slices.Equal(i, data) {
+			t.Errorf("incorrect data: %v, expected: %v", i, data)
+		}
 
-func TestPageQueue__Next(t *testing.T) {
-	t.Parallel()
+		if i := rc2.Reverse(); !slices.Equal(i, reverse) {
+			t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
+		}
 
-	pq := New(&testPageStorage{}, largePageSize, headerSize, slotHeaderSize)
+		if i := rc2.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
+			t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == record.ActionCheckpoint)
+		}
+	})
 
-	lsn := record.NewLogSequenceNumber(1)
-	tid := value.NewTenantID()
-	txid := record.NewTransactionID(2)
-	now := record.NewTime(time.UnixMicro(1234567890))
-	action := record.ActionInsert
-	collection := record.CollectionEvent
-	data := []byte("abcdef")
-	reverse := []byte("fghij")
+	t.Run("should run next", func(t *testing.T) {
+		t.Parallel()
 
-	rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
-	if err := pq.Append(rc); err != nil {
-		t.Fatal(err)
-	}
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
 
-	if err := pq.Append(rc); err != nil {
-		t.Fatal(err)
-	}
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
 
-	if err := pq.Append(rc); err != nil {
-		t.Fatal(err)
-	}
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
 
-	if c := pq.Count(); c != 2 {
-		t.Fatalf("incorrect count: %v, expected: %v", c, 2)
-	}
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
+
+		if c := pq.Count(); c != 2 {
+			t.Fatalf("incorrect count: %v, expected: %v", c, 2)
+		}
+	})
+
+	t.Run("should flush one", func(t *testing.T) {
+		t.Parallel()
+
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := pq.Flush(); err != nil {
+			t.Error(err)
+		}
+
+		if ps.syncCount != 1 {
+			t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
+		}
+
+		if ps.appendCount != 0 {
+			t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 0)
+		}
+	})
+
+	t.Run("should handle error on flush one", func(t *testing.T) {
+		t.Parallel()
+
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+
+		if err := pq.Append(rc); err != nil {
+			t.Fatal(err)
+		}
+
+		ps.errorOnSync = true
+
+		if err := pq.Flush(); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should flush many", func(t *testing.T) {
+		t.Parallel()
+
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+
+		for range 6 {
+			if err := pq.Append(rc); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if err := pq.Flush(); err != nil {
+			t.Error(err)
+		}
+
+		if ps.syncCount != 1 {
+			t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
+		}
+
+		if ps.appendCount != 2 {
+			t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 2)
+		}
+	})
+
+	t.Run("should handle error on flush many", func(t *testing.T) {
+		t.Parallel()
+
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+
+		for range 6 {
+			if err := pq.Append(rc); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		ps.errorOnSync = true
+		if err := pq.Flush(); err == nil {
+			t.Error("should return error")
+		}
+
+		ps.errorOnSync = false
+		ps.errorOnAppend = true
+		if err := pq.Flush(); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should clear", func(t *testing.T) {
+		t.Parallel()
+
+		rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+
+		ps := &testPageStorage{}
+		pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+
+		for range 6 {
+			if err := pq.Append(rc); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		pq.Clear()
+		if c := pq.Count(); c != 1 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 1)
+		}
+	})
 }
 
 type testPageStorage struct {
+	errorOnAppend bool
+	errorOnSync   bool
+	syncCount     int
+	appendCount   int
 }
 
 func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
+	if t.errorOnAppend {
+		return ErrUnableToAppend
+	}
+
+	t.appendCount++
 	return nil
 }
 
 func (t *testPageStorage) Sync([]byte) error {
+	if t.errorOnSync {
+		return io.ErrShortWrite
+	}
+
+	t.syncCount++
 	return nil
 }
 
