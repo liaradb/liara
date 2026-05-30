@@ -124,6 +124,7 @@ func (p *Page) space() int16 {
 	return max(start, 0)
 }
 
+// TODO: The index returned is unused
 func (p *Page) Commit(size int16) (int16, bool) {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
