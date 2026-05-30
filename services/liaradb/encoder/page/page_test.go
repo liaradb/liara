@@ -80,3 +80,53 @@ func TestPage_Next(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 }
+
+func TestPage_Slot(t *testing.T) {
+	t.Parallel()
+
+	p := New(32, 4, 4)
+	if _, _, ok := p.Slot(0); ok {
+		t.Error("slot should not exist")
+	}
+
+	c := 0
+	for range p.Slots() {
+		c++
+	}
+
+	if c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+
+	_, _ = p.Next(8)
+	if _, ok := p.Commit(8); !ok {
+		t.Error("should commit")
+	}
+
+	_, _ = p.Next(8)
+	if _, ok := p.Commit(8); !ok {
+		t.Error("should commit")
+	}
+
+	if _, _, ok := p.Slot(0); !ok {
+		t.Error("slot should exist")
+	}
+
+	if _, _, ok := p.Slot(1); !ok {
+		t.Error("slot should exist")
+	}
+
+	c = 0
+	for range p.Slots() {
+		c++
+	}
+
+	if c != 2 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 2)
+	}
+
+	// Early return
+	for range p.Slots() {
+		break
+	}
+}

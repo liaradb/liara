@@ -66,23 +66,25 @@ func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
 		return nil, nil, false
 	}
 
-	start, end := slot.Range()
-	data := p.data[start:end]
-
-	return data[:p.slotHeaderSize], data[p.slotHeaderSize:], true
+	h, b := p.slot(slot)
+	return h, b, true
 }
 
 func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 	return func(yield func([]byte, []byte) bool) {
 		for slot := range p.list.Slots() {
-			start, end := slot.Range()
-			data := p.data[start:end]
-
-			if !yield(data[:p.slotHeaderSize], data[p.slotHeaderSize:]) {
+			if !yield(p.slot(slot)) {
 				return
 			}
 		}
 	}
+}
+
+func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
+	start, end := s.Range()
+	data := p.data[start:end]
+
+	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
 func (p *Page) initNext() {
