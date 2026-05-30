@@ -1,6 +1,7 @@
 package page
 
 import (
+	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
@@ -50,10 +51,16 @@ func (p *Page) Data() []byte {
 func (p *Page) Fill(data []byte) {
 	n := copy(p.data, data)
 	clear(p.data[n:])
+	p.list.Reset()
 }
 
-func (p *Page) Reset() {
+func (p *Page) Replace(r io.Reader) error {
+	if _, err := r.Read(p.data); err != nil {
+		return err
+	}
+
 	p.list.Reset()
+	return nil
 }
 
 func (p *Page) Header() []byte {

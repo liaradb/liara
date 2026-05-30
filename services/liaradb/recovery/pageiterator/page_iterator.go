@@ -43,12 +43,11 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 
 			for {
 				p := pi.pool.Get()
-				if err := f.Read(p.Data()); err != nil {
+				if err := p.Replace(f); err != nil {
 					yield(nil, err)
 					return
 				}
 
-				p.Reset()
 				for h, d := range p.Slots() {
 					f := record.NewFragment(h, d)
 					s.Append(f)
