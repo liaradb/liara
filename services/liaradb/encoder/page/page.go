@@ -86,7 +86,12 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) initNext() {
-	p.next = p.list.Next()
+	if last, ok := p.list.Last(); ok {
+		p.next = last.Offset()
+	} else {
+		// TODO: Fix this cast
+		p.next = int16(p.list.Length())
+	}
 }
 
 func (p *Page) Next(size int16) ([]byte, []byte) {

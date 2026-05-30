@@ -33,22 +33,8 @@ func (*SlotList) position(i int16) int16 {
 	return i*tupleSize + headerSize
 }
 
-func (sl *SlotList) Next() int16 {
-	// TODO: Fix this cast
-	size := int16(sl.list.Length())
-	var next = size
-
-	for slot := range sl.Slots() {
-		if !slot.IsFilled() {
-			break
-		}
-
-		if offset := slot.Offset(); offset < next {
-			next = offset
-		}
-	}
-
-	return next
+func (sl *SlotList) Last() (Slot, bool) {
+	return sl.Slot(sl.count - 1)
 }
 
 func (sl *SlotList) Reset() {

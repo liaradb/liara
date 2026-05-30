@@ -28,8 +28,10 @@ func TestSlotList_Default(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 
-	if n := l.Next(); n != 0 {
-		t.Errorf("incorrect next: %v, expected: %v", n, 0)
+	if last, ok := l.Last(); ok {
+		t.Errorf("incorrect next: %v, expected: %v", ok, false)
+	} else if offset := last.Offset(); offset != 0 {
+		t.Errorf("incorrect next: %v, expected: %v", offset, 0)
 	}
 }
 
@@ -42,7 +44,11 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 32)
 	}
 
-	if i, ok := l.Push(1, 10); !ok {
+	if _, ok := l.Last(); ok {
+		t.Errorf("incorrect next: %v, expected: %v", ok, false)
+	}
+
+	if i, ok := l.Push(2, 10); !ok {
 		t.Error("should push")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
@@ -56,7 +62,13 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
 
-	if i, ok := l.Push(2, 20); !ok {
+	if last, ok := l.Last(); !ok {
+		t.Errorf("incorrect next: %v, expected: %v", ok, true)
+	} else if offset := last.Offset(); offset != 2 {
+		t.Errorf("incorrect next: %v, expected: %v", offset, 2)
+	}
+
+	if i, ok := l.Push(5, 20); !ok {
 		t.Error("should push")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
@@ -70,18 +82,24 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
 	}
 
+	if last, ok := l.Last(); !ok {
+		t.Errorf("incorrect next: %v, expected: %v", ok, true)
+	} else if offset := last.Offset(); offset != 5 {
+		t.Errorf("incorrect next: %v, expected: %v", offset, 5)
+	}
+
 	if slot, ok := l.Slot(0); !ok {
 		t.Errorf("should have value")
-	} else if slot.Offset() != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 1)
+	} else if slot.Offset() != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
 	} else if slot.Size() != 10 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 10)
 	}
 
 	if slot, ok := l.Slot(1); !ok {
 		t.Errorf("should have value")
-	} else if slot.Offset() != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
+	} else if slot.Offset() != 5 {
+		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 5)
 	} else if slot.size != 20 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 20)
 	}
