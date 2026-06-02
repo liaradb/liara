@@ -55,6 +55,10 @@ func (sl *SlotList) Size() int16 {
 	return sl.position(sl.count) * slotSize
 }
 
+func (sl *SlotList) NextSize() int16 {
+	return sl.position(sl.count+1) * slotSize
+}
+
 func (sl *SlotList) Count() int16 {
 	return sl.count
 }

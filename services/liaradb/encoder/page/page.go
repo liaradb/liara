@@ -118,7 +118,7 @@ func (p *Page) Next(size int16) ([]byte, []byte) {
 
 func (p *Page) space() int16 {
 	end := p.next
-	size := p.list.Size()
+	size := p.list.NextSize()
 	start := (end - size) - p.slotHeaderSize
 
 	return max(start, 0)

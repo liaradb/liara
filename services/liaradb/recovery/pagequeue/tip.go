@@ -74,7 +74,7 @@ func (t *Tip) Commit() ([]*page.Page, bool) {
 // Commit pages before current to avoid a partial commit
 func (t *Tip) commitPages() bool {
 	for i, p := range t.pages {
-		if !t.commitPage(p, i) {
+		if !t.commitPage(p, i+1) {
 			return false
 		}
 	}

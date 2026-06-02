@@ -37,9 +37,9 @@ func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
 func (wr *writer) RecordSize() int64     { return wr.sw.RecordSize() }
 
 func (wr *writer) Append(rc *record.Record) (bool, error) {
-	if err := wr.appendToPageQueue(rc); err != nil {
-		return false, err
-	}
+	// if err := wr.appendToPageQueue(rc); err != nil {
+	// 	return false, err
+	// }
 
 	flushed, err := wr.sw.AppendRecord(rc)
 	if err == raw.ErrInsufficientSpace {
