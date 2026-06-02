@@ -196,7 +196,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 32, 1, 32)
+			l := createLogStart(t, 48, 1, 48)
 
 			if _, err := l.Update(ctx,
 				value.NewTenantID(),

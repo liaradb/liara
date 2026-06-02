@@ -18,7 +18,6 @@ const (
 type Writer struct {
 	pageSize    int64
 	segmentSize action.PageID
-	recordSize  int64
 	pageID      action.PageID
 	timeLineID  action.TimeLineID
 	writer      io.WriterAt
@@ -34,19 +33,16 @@ type readWriterAt interface {
 func NewWriter(
 	pageSize int64,
 	segmentSize action.PageID,
-	recordSize int64,
 ) *Writer {
 	return &Writer{
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
-		recordSize:  recordSize,
 		recordBuf:   bytes.NewBuffer(nil),
 		page:        page.New(pageSize),
 	}
 }
 
 func (wr *Writer) PageID() action.PageID { return wr.pageID }
-func (wr *Writer) RecordSize() int64     { return wr.recordSize }
 
 // Appends to current Page.  If insufficient space in Page
 //  1. flushes Page

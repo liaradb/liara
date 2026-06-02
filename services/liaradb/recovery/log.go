@@ -31,16 +31,17 @@ const (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type Log struct {
-	sl         *segment.List
-	reader     *reader
-	writer     *writer
-	highWater  record.LogSequenceNumber
-	lowWater   record.LogSequenceNumber
-	appendReqs async.Handler[appendValue, record.LogSequenceNumber]
-	flushReqs  async.CommandHandler[record.LogSequenceNumber]
-	syncReqs   async.CommandHandler[record.LogSequenceNumber]
-	cancel     context.CancelFunc
-	queue      requestQueue
+	sl            *segment.List
+	reader        *reader
+	writer        *writer
+	highWater     record.LogSequenceNumber
+	lowWater      record.LogSequenceNumber
+	appendReqs    async.Handler[appendValue, record.LogSequenceNumber]
+	flushReqs     async.CommandHandler[record.LogSequenceNumber]
+	syncReqs      async.CommandHandler[record.LogSequenceNumber]
+	cancel        context.CancelFunc
+	queue         requestQueue
+	maxRecordSize int64
 }
 
 type flushRequest = async.Command[record.LogSequenceNumber]
@@ -62,7 +63,7 @@ type appendValue struct {
 func NewLog(
 	pageSize int64,
 	segmentSize action.PageID,
-	recordSize int64,
+	maxRecordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
@@ -70,12 +71,13 @@ func NewLog(
 	// TODO: Remove the secondary storage
 	sl2 := segment.NewList(fsys, path.Join(dir, "pagestorage"), pageSize, segmentSize)
 	return &Log{
-		sl:         sl,
-		reader:     newReader(pageSize, sl, sl2),
-		writer:     newWriter(pagestorage.New(sl2), pageSize, segmentSize, recordSize, sl),
-		appendReqs: make(chan *appendRequest),
-		flushReqs:  make(chan *flushRequest),
-		syncReqs:   make(chan *syncRequest),
+		sl:            sl,
+		reader:        newReader(pageSize, sl, sl2),
+		writer:        newWriter(pagestorage.New(sl2), pageSize, segmentSize, sl),
+		appendReqs:    make(chan *appendRequest),
+		flushReqs:     make(chan *flushRequest),
+		syncReqs:      make(chan *syncRequest),
+		maxRecordSize: maxRecordSize,
 	}
 }
 
@@ -120,7 +122,7 @@ func (l *Log) appendRecord(
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	// Verify that record can fit at all
-	if len(data) > int(l.writer.RecordSize()) {
+	if len(data) > int(l.maxRecordSize) {
 		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
 	}
 

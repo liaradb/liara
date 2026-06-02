@@ -22,24 +22,22 @@ func newWriter(
 	ps *pagestorage.PageStorage,
 	pageSize int64,
 	segmentSize action.PageID,
-	recordSize int64,
 	sl *segment.List,
 ) *writer {
 	return &writer{
 		sl: sl,
-		sw: segmentio.NewWriter(pageSize, segmentSize, recordSize),
+		sw: segmentio.NewWriter(pageSize, segmentSize),
 		pq: pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 		ps: ps,
 	}
 }
 
 func (wr *writer) PageID() action.PageID { return wr.sw.PageID() }
-func (wr *writer) RecordSize() int64     { return wr.sw.RecordSize() }
 
 func (wr *writer) Append(rc *record.Record) (bool, error) {
-	// if err := wr.appendToPageQueue(rc); err != nil {
-	// 	return false, err
-	// }
+	if err := wr.appendToPageQueue(rc); err != nil {
+		return false, err
+	}
 
 	flushed, err := wr.sw.AppendRecord(rc)
 	if err == raw.ErrInsufficientSpace {
