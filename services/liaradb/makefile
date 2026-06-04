@@ -3,8 +3,18 @@ test:
 	go test -cover ./...
 
 .PHONY: build
-build:
+build: build-amd64 build-arm64
 	go build -o bin/liaradb cmd/liaradb/main.go
+
+.PHONY: build-amd64
+build-amd64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+		go build -o bin/liaradb-amd64 cmd/liaradb/main.go
+
+.PHONY: build-arm64
+build-arm64:
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 \
+		go build -o bin/liaradb-arm64 cmd/liaradb/main.go
 
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 

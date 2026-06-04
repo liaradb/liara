@@ -50,9 +50,16 @@ jobs:
           path: ./services/liaradb/cover.html
           retention-days: 5
 
-      - name: Upload binary
+      - name: Upload binary - AMD64
         uses: actions/upload-artifact@v7
         with:
-          name: liaradb
-          path: ./services/liaradb/bin/liaradb
+          name: liaradb-amd64
+          path: ./services/liaradb/bin/liaradb-amd64
+          retention-days: 5
+
+      - name: Upload binary - ARM64
+        uses: actions/upload-artifact@v7
+        with:
+          name: liaradb-arm64
+          path: ./services/liaradb/bin/liaradb-arm64
           retention-days: 5
