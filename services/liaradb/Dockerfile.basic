@@ -1,0 +1,13 @@
+FROM scratch AS app
+
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /app
+
+COPY ./bin/liaradb-${TARGETARCH} ./liaradb
+COPY ./config.yml .
+
+EXPOSE 50055
+
+CMD [ "/app/liaradb" ]
