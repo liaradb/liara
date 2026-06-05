@@ -6,6 +6,14 @@ Event-native database, to power Event Sourced workflows for Microservices with D
 
 ## Run
 
+### Docker
+
+```bash
+docker run -d -p 50055:50055 liaradb/liara:main
+```
+
+### From source
+
 ```bash
 cd ./services/liaradb
 go run ./cmd
