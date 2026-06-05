@@ -62,14 +62,18 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: liaradb-amd64
-          path: ./services/liaradb/bin/liaradb-amd64
+          path: |
+            ./services/liaradb/bin/liaradb-amd64
+            ./services/liaradb/config.yml
           retention-days: 5
 
       - name: Upload binary - ARM64
         uses: actions/upload-artifact@v7
         with:
           name: liaradb-arm64
-          path: ./services/liaradb/bin/liaradb-arm64
+          path: |
+            ./services/liaradb/bin/liaradb-arm64
+            ./services/liaradb/config.yml
           retention-days: 5
 
       - name: Install cosign
