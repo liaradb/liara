@@ -1,7 +1,6 @@
 package pageiterator
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -44,11 +43,10 @@ func TestPageIterator(t *testing.T) {
 
 		pq := pagequeue.New(ps, size, headerSize, slotSize)
 
-		want := 4
+		numberOfRecords := 24
 
-		for i := range want {
+		for i := range numberOfRecords {
 			rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
-			fmt.Println(rc.LogSequenceNumber())
 			if err := pq.Append(rc); err != nil {
 				t.Error(err)
 			}
@@ -76,12 +74,11 @@ func TestPageIterator(t *testing.T) {
 				t.Errorf("incorrect lsn: %v, expected: %v", lsn, want)
 			}
 
-			fmt.Println(rc.LogSequenceNumber())
 			c++
 		}
 
-		if c != want {
-			t.Errorf("incorrect count: %v, expected: %v", c, want)
+		if c != numberOfRecords {
+			t.Errorf("incorrect count: %v, expected: %v", c, numberOfRecords)
 		}
 	})
 }
