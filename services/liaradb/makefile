@@ -4,7 +4,6 @@ test:
 
 .PHONY: build
 build: build-amd64 build-arm64
-	go build -o bin/liaradb cmd/liaradb/main.go
 
 .PHONY: build-amd64
 build-amd64:
