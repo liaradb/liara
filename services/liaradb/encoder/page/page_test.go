@@ -81,6 +81,24 @@ func TestPage_Next(t *testing.T) {
 	}
 }
 
+func TestPage_Next__Empty(t *testing.T) {
+	t.Parallel()
+
+	p := New(32, 4, 4)
+	if _, ok := p.Commit(18); !ok {
+		t.Error("should commit")
+	}
+
+	header, data := p.Next(2)
+	if l := len(header); l != 0 {
+		t.Errorf("incorrect header: %v, expected: %v", l, 0)
+	}
+
+	if l := len(data); l != 0 {
+		t.Errorf("incorrect data: %v, expected: %v", l, 0)
+	}
+}
+
 func TestPage_Slot(t *testing.T) {
 	t.Parallel()
 

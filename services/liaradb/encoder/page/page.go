@@ -110,11 +110,11 @@ func (p *Page) Next(size int16) ([]byte, []byte) {
 	size = min(size, space)
 	end := p.next
 	start := (end - size) - p.slotHeaderSize
-	data := p.body[start:end]
-	if end-start < p.slotHeaderSize {
+	if end-start <= p.slotHeaderSize {
 		return nil, nil
 	}
 
+	data := p.body[start:end]
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
