@@ -41,6 +41,10 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				return
 			}
 
+			if size == 0 {
+				return
+			}
+
 			for {
 				p := pi.pool.Get()
 				if err := p.Replace(f); err != nil {

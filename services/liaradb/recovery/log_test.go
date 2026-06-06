@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -306,10 +305,16 @@ func TestLog_EmptyReader(t *testing.T) {
 func testLog_EmptyReader(t *testing.T) {
 	l := createLogStart(t, 320, 2, 320)
 
+	c := 0
 	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != segment.ErrNoSegmentFile {
-			t.Error("should have no files")
+		if err != nil {
+			t.Error(err)
 		}
+		c++
+	}
+
+	if c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 }
 
@@ -357,7 +362,7 @@ func testLog_Iterate(t *testing.T) {
 		i++
 	}
 	if i != count {
-		t.Errorf("incorrect count: %v, expected: %v", i, 100)
+		t.Errorf("incorrect count: %v, expected: %v", i, count)
 	}
 }
 
