@@ -43,7 +43,7 @@ func TestPageIterator(t *testing.T) {
 
 		pq := pagequeue.New(ps, size, headerSize, slotSize)
 
-		numberOfRecords := 24
+		numberOfRecords := 100
 
 		for i := range numberOfRecords {
 			rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)

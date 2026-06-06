@@ -88,6 +88,10 @@ func (t *Tip) commitPages() bool {
 
 func (t *Tip) commitPage(p *page.Page, i int) bool {
 	size := t.sizes[i]
+	if size == 0 {
+		return true
+	}
+
 	_, ok := p.Commit(size)
 	return ok
 }
