@@ -89,6 +89,16 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 	}
 }
 
+func (p *Page) SlotsReverse() iter.Seq2[[]byte, []byte] {
+	return func(yield func([]byte, []byte) bool) {
+		for slot := range p.list.SlotsReverse() {
+			if !yield(p.slot(slot)) {
+				return
+			}
+		}
+	}
+}
+
 func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
 	start, end := s.Range()
 	data := p.body[start:end]

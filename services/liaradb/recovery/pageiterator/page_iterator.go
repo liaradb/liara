@@ -1,8 +1,10 @@
 package pageiterator
 
 import (
+	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -73,4 +75,64 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 			}
 		}
 	}
+}
+
+func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
+	return func(yield func(*record.Record, error) bool) {
+		var s record.Span
+
+		for f, err := range pi.sl.Reverse() {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			size, err := f.Size()
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if size == 0 {
+				continue
+			}
+
+			pid := action.NewActivePageIDFromSize(size, int64(pi.size))
+
+			for i := range pid + 1 {
+				p := pi.pool.Get()
+				sec := io.NewSectionReader(f, pi.position(pid-i), int64(pi.size))
+				if err := p.Replace(sec); err != nil {
+					if err != io.EOF {
+						yield(nil, err)
+					}
+					return
+				}
+				p.SlotsReverse()
+
+				for h, d := range p.SlotsReverse() {
+					f := record.NewFragment(h, d)
+					s.Append(f)
+
+					if f.Count()-1 == f.Index() {
+						s.Reverse()
+
+						if rc, err := s.ToRecord(); !yield(rc, err) || err != nil {
+							return
+						}
+
+						s = record.NewSpan()
+					}
+				}
+
+				if !f.PrevPageUntilStart() {
+					break
+				}
+			}
+		}
+	}
+}
+
+func (pi *PageIterator) position(pid action.PageID) int64 {
+	return pid.Position(int64(pi.size))
 }

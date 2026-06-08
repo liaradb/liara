@@ -2,6 +2,7 @@ package record
 
 import (
 	"io"
+	"slices"
 
 	"github.com/liaradb/liaradb/encoder/multi"
 )
@@ -25,6 +26,10 @@ func (s Span) Length() (l int64) {
 
 func (s *Span) Append(f Fragment) {
 	s.fragments = append(s.fragments, f)
+}
+
+func (s *Span) Reverse() {
+	slices.Reverse(s.fragments)
 }
 
 func (s *Span) InitIndexes() {

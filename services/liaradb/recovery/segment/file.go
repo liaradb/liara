@@ -118,6 +118,15 @@ func (f *File) NextPageUntilSize(size int64) bool {
 	return true
 }
 
+func (f *File) PrevPageUntilStart() bool {
+	if f.pageID == 0 {
+		return false
+	}
+
+	f.pageID--
+	return true
+}
+
 func (f *File) position() int64 {
 	return f.pageID.Position(f.pageSize)
 }
