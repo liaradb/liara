@@ -28,8 +28,10 @@ func (s *Span) Append(f Fragment) {
 }
 
 func (s *Span) InitIndexes() {
-	l := len(s.fragments) - 1
+	c := len(s.fragments)
+	l := c - 1
 	for i, f := range s.fragments {
+		f.SetCount(int16(c))
 		f.SetIndex(int16(l - i))
 	}
 }
@@ -64,4 +66,13 @@ func (s Span) SeekStart() error {
 	}
 
 	return nil
+}
+
+func (s Span) ToRecord() (*Record, error) {
+	rc := Record{}
+	if err := rc.Read(s); err != nil {
+		return nil, err
+	}
+
+	return &rc, nil
 }

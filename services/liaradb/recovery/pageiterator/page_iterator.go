@@ -9,6 +9,7 @@ import (
 )
 
 type PageIterator struct {
+	size int16
 	sl   *segment.List
 	pool pagequeue.Pool
 }
@@ -20,6 +21,7 @@ func New(
 	slotHeaderSize int16,
 ) *PageIterator {
 	return &PageIterator{
+		size: size,
 		sl:   sl,
 		pool: pagequeue.NewPool(size, headerSize, slotHeaderSize),
 	}
@@ -57,13 +59,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 					s.Append(f)
 
 					if f.Index() == 0 {
-						rc := &record.Record{}
-						if err := rc.Read(s); err != nil {
-							yield(nil, err)
-							return
-						}
-
-						if !yield(rc, nil) {
+						if rc, err := s.ToRecord(); !yield(rc, err) || err != nil {
 							return
 						}
 
