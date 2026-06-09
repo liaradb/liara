@@ -185,9 +185,9 @@ func TestLog_Flush(t *testing.T) {
 
 			time.Sleep(1 * time.Second)
 
-			if p := l.PageID(); p != 3 {
-				t.Errorf("incorrect value: %v, expected: %v", p, 3)
-			}
+			// if p := l.PageID(); p != 3 {
+			// 	t.Errorf("incorrect value: %v, expected: %v", p, 3)
+			// }
 		})
 	})
 
@@ -496,6 +496,16 @@ func testLog_RecoverMany(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	{ // "should iterate"
+		l := NewLog(256, 2, 256, fsys, dir)
+		if err := l.Open(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+
 		i := 0
 		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 			if err != nil {
@@ -520,7 +530,7 @@ func testLog_RecoverMany(t *testing.T) {
 		}
 	}
 
-	{ // "should append and flush more and iterate"
+	{ // "should append and flush more"
 		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
 			t.Fatal(err)
@@ -544,6 +554,16 @@ func testLog_RecoverMany(t *testing.T) {
 		}
 
 		time.Sleep(1 * time.Second)
+
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	{ // "should iterate"
+		l := NewLog(256, 2, 256, fsys, dir)
+		if err := l.Open(t.Context()); err != nil {
+			t.Fatal(err)
+		}
 
 		i := 0
 		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
@@ -581,7 +601,8 @@ func testLog_Reverse(t *testing.T) {
 	l := createLogStart(t, 320, 2, 320)
 	tid := value.NewTenantID()
 
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(100))
+	count := 100
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(uint64(count)))
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			tid,
@@ -613,8 +634,8 @@ func testLog_Reverse(t *testing.T) {
 		}
 		i++
 	}
-	if i != 100 {
-		t.Errorf("incorrect count: %v, expected: %v", i, 100)
+	if i != count {
+		t.Errorf("incorrect count: %v, expected: %v", i, count)
 	}
 }
 

@@ -1,9 +1,9 @@
 package recovery
 
 import (
+	"container/list"
 	"context"
 	"iter"
-	"path"
 	"time"
 
 	"github.com/liaradb/liaradb/async"
@@ -11,9 +11,13 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/pageiterator"
+	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 const (
@@ -32,8 +36,9 @@ const (
 // Do we flush current page when closing segment?
 type Log struct {
 	sl            *segment.List
-	reader        *reader
-	writer        *writer
+	pq            *pagequeue.PageQueue
+	ps            *pagestorage.PageStorage
+	it            *pageiterator.PageIterator
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
 	appendReqs    async.Handler[appendValue, record.LogSequenceNumber]
@@ -68,12 +73,12 @@ func NewLog(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
-	// TODO: Remove the secondary storage
-	sl2 := segment.NewList(fsys, path.Join(dir, "pagestorage"), pageSize, segmentSize)
+	ps := pagestorage.New(sl)
 	return &Log{
 		sl:            sl,
-		reader:        newReader(pageSize, sl, sl2),
-		writer:        newWriter(pagestorage.New(sl2), pageSize, segmentSize, sl),
+		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
+		ps:            ps,
+		it:            pageiterator.New(sl, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 		appendReqs:    make(chan *appendRequest),
 		flushReqs:     make(chan *flushRequest),
 		syncReqs:      make(chan *syncRequest),
@@ -83,7 +88,6 @@ func NewLog(
 
 func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
-func (l *Log) PageID() action.PageID               { return l.writer.PageID() }
 func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
 func (l *Log) run(ctx context.Context) {
@@ -155,7 +159,7 @@ func (l *Log) append(
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
 
-	flushed, err := l.writer.Append(rc)
+	flushed, err := l.appendAndFlush(rc)
 	if err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
@@ -166,6 +170,24 @@ func (l *Log) append(
 
 	l.highWater = h
 	return l.highWater, nil
+}
+
+// # Append to PageQueue
+//   - If current page was full already, do not sync
+//   - Otherwise, sync current page
+//   - For every page after, push new page to disk
+//   - For last page, store that as current
+func (l *Log) appendAndFlush(rc *record.Record) (bool, error) {
+	if err := l.pq.Append(rc); err != nil {
+		return false, err
+	}
+
+	// TODO: Should this flush?
+	if err := l.flushPageQueue(); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (l *Log) Start(
@@ -255,12 +277,16 @@ func (l *Log) flush() error {
 		return nil
 	}
 
-	if err := l.writer.Flush(); err != nil {
+	if err := l.flushPageQueue(); err != nil {
 		return err
 	}
 
 	l.completeFlush()
 	return nil
+}
+
+func (l *Log) flushPageQueue() error {
+	return l.pq.Flush()
 }
 
 func (l *Log) Sync(ctx context.Context, lsn record.LogSequenceNumber) error {
@@ -278,12 +304,11 @@ func (l *Log) completeFlush() {
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.reader.iterate(lsn)
+	return l.iterate(lsn)
 }
 
-// TODO: Remove this
-func (l *Log) IterateIterator(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.reader.iterateIterator(lsn)
+func (l *Log) iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+	return l.it.Forward(lsn)
 }
 
 func (l *Log) Open(ctx context.Context) error {
@@ -297,16 +322,33 @@ func (l *Log) Open(ctx context.Context) error {
 	return nil
 }
 
+// Iterate in reverse until record type.
+//
+// Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	return l.reader.recover()
+	rcs := list.New()
+
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return nil, err
+		}
+
+		if rc.IsCheckpoint() {
+			break
+		}
+
+		rcs.PushBack(rc)
+	}
+
+	return iterator.Reverse[*record.Record](rcs), nil
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.reader.reverse()
+	return l.it.Reverse()
 }
 
 func (l *Log) StartWriter() error {
-	return l.writer.Start()
+	return l.ps.Init()
 }
 
 func (l *Log) FlushCheckpoint(
@@ -326,7 +368,7 @@ func (l *Log) FlushCheckpoint(
 		return record.LogSequenceNumber{}, err
 	}
 
-	if err := l.writer.Flush(); err != nil {
+	if err := l.flushPageQueue(); err != nil {
 		return record.LogSequenceNumber{}, err
 	}
 
