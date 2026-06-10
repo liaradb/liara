@@ -304,10 +304,6 @@ func (l *Log) completeFlush() {
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.iterate(lsn)
-}
-
-func (l *Log) iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return l.it.Forward(lsn)
 }
 

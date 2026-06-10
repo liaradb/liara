@@ -110,7 +110,7 @@ func (f *File) NextPage() bool {
 
 func (f *File) NextPageUntilSize(size int64) bool {
 	segmentSize := action.NewActivePageIDFromSize(size, f.pageSize)
-	if f.pageID+1 >= segmentSize {
+	if f.pageID >= segmentSize {
 		return false
 	}
 
@@ -119,7 +119,7 @@ func (f *File) NextPageUntilSize(size int64) bool {
 }
 
 func (f *File) PrevPageUntilStart() bool {
-	if f.pageID == 0 {
+	if f.pageID <= 0 {
 		return false
 	}
 
@@ -129,4 +129,8 @@ func (f *File) PrevPageUntilStart() bool {
 
 func (f *File) position() int64 {
 	return f.pageID.Position(f.pageSize)
+}
+
+func (f *File) reset() {
+	f.pageID = 0
 }

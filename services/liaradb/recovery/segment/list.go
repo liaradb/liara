@@ -200,8 +200,8 @@ func (l *List) openFile(sn SegmentName) (*File, error) {
 
 func (l *List) isCurrentAndOpen(sn SegmentName) (*File, bool) {
 	if f, ok := l.file(); ok && f.isCurrentAndOpen(sn) {
+		f.reset()
 		return f, true
-
 	}
 
 	return nil, false

@@ -50,6 +50,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 			}
 
 			for {
+				// TODO: Return Page
 				p := pi.pool.Get()
 				if err := p.Replace(f); err != nil {
 					yield(nil, err)
@@ -100,6 +101,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 			pid := action.NewActivePageIDFromSize(size, int64(pi.size))
 
 			for i := range pid + 1 {
+				// TODO: Return Page
 				p := pi.pool.Get()
 				sec := io.NewSectionReader(f, pi.position(pid-i), int64(pi.size))
 				if err := p.Replace(sec); err != nil {
