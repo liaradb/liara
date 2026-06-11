@@ -1,6 +1,6 @@
 module github.com/cardboardrobots/liaractl
 
-go 1.26.2
+go 1.26.4
 
 replace github.com/cardboardrobots/eventsource_go => ../eventsource_go
 

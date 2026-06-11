@@ -1,4 +1,4 @@
-FROM golang:1.26.3-alpine AS build
+FROM golang:1.26.4-alpine AS build
 
 WORKDIR /build/modules/eventsource_go
 COPY --from=eventsource_go go.mod go.sum ./
