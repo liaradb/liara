@@ -332,7 +332,7 @@ func testLog_Iterate(t *testing.T) {
 	tid := value.NewTenantID()
 
 	count := 100
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(uint64(count)))
+	records, _ := createRecords(tid, uint64(count), 0)
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			tid,
@@ -384,7 +384,7 @@ func testLog_Recover(t *testing.T) {
 
 	fsys, dir := createFiles()
 	tid := value.NewTenantID()
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(2))
+	records, _ := createRecords(tid, 2, 0)
 	r0 := records[0]
 	r1 := records[1]
 
@@ -475,8 +475,8 @@ func testLog_RecoverMany(t *testing.T) {
 	var aCount1 = record.NewLogSequenceNumber(1)
 	var aCount2 = record.NewLogSequenceNumber(1)
 	aCount := aCount1.Value() + aCount2.Value()
-	records1, _ := createRecords(tid, aCount1)
-	records2, _ := createRecords(tid, aCount2)
+	records1, _ := createRecords(tid, 1, 0)
+	records2, _ := createRecords(tid, 1, 1)
 	records := append(records1, records2...)
 
 	{ // "should append and flush"
@@ -612,7 +612,7 @@ func testLog_Reverse(t *testing.T) {
 	tid := value.NewTenantID()
 
 	count := 100
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(uint64(count)))
+	records, _ := createRecords(tid, uint64(count), 0)
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			tid,
@@ -951,14 +951,14 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*record.Record, record.LogSequenceNumber) {
+func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, record.LogSequenceNumber) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	records := make([]*record.Record, 0, count.Value())
-	for i := range count.Value() {
+	records := make([]*record.Record, 0, count)
+	for i := range count {
 		records = append(records, record.New(
-			record.NewLogSequenceNumber(i+1),
+			record.NewLogSequenceNumber(i+1+offset),
 			tid,
 			record.NewTransactionID(2),
 			record.NewTime(time.UnixMicro(1234567890)),
@@ -967,7 +967,7 @@ func createRecords(tid value.TenantID, count record.LogSequenceNumber) ([]*recor
 			data,
 			reverse))
 	}
-	return records, count.Decrement()
+	return records, record.NewLogSequenceNumber(count).Decrement()
 }
 
 func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
