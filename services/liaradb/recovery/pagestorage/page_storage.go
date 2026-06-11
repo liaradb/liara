@@ -1,6 +1,8 @@
 package pagestorage
 
 import (
+	"errors"
+
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
@@ -19,14 +21,23 @@ func New(
 	}
 }
 
-func (ps *PageStorage) Init() error {
+func (ps *PageStorage) Init(data []byte) error {
 	f, err := ps.sl.OpenLatestSegment()
 	if err != nil {
 		return err
 	}
 
-	if err := f.SeekTail(); err != nil {
-		return err
+	size, err := f.SeekTail()
+	if err != nil {
+		return errors.Join(err, f.Close())
+	}
+
+	if size == 0 {
+		clear(data)
+	} else {
+		if _, err := f.Read(data); err != nil {
+			return errors.Join(err, f.Close())
+		}
 	}
 
 	ps.f = f

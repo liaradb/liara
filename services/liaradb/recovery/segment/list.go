@@ -59,7 +59,7 @@ func (l *List) Close() error {
 		return nil
 	}
 
-	if err := f.close(); err != nil {
+	if err := f.Close(); err != nil {
 		return err
 	}
 
@@ -227,7 +227,7 @@ func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
 
 func (l *List) remove(sn SegmentName) error {
 	if f, ok := l.file(); ok {
-		if err := f.close(); err != nil {
+		if err := f.Close(); err != nil {
 			return err
 		}
 	}

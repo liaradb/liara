@@ -20,7 +20,8 @@ func TestPageStorage(t *testing.T) {
 	sl := segment.NewList(fsys, dir, 128, 1)
 	ps := New(sl)
 
-	if err := ps.Init(); err != nil {
+	pageData := make([]byte, 128)
+	if err := ps.Init(pageData); err != nil {
 		t.Error(err)
 	}
 

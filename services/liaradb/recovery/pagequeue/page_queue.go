@@ -19,6 +19,7 @@ type PageQueue struct {
 type PageStorage interface {
 	Sync([]byte) error
 	Append(record.LogSequenceNumber, []byte) error
+	Init([]byte) error
 }
 
 func New(

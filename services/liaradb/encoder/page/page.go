@@ -54,6 +54,7 @@ func (p *Page) Fill(data []byte) {
 	n := copy(p.data, data)
 	clear(p.data[n:])
 	p.list.Reset()
+	p.initNext()
 }
 
 func (p *Page) Replace(r io.Reader) error {
@@ -62,6 +63,7 @@ func (p *Page) Replace(r io.Reader) error {
 	}
 
 	p.list.Reset()
+	p.initNext()
 	return nil
 }
 

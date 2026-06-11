@@ -248,6 +248,10 @@ func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
 	return nil
 }
 
+func (t *testPageStorage) Init([]byte) error {
+	return nil
+}
+
 func (t *testPageStorage) Sync([]byte) error {
 	if t.errorOnSync {
 		return io.ErrShortWrite

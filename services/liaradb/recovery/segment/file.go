@@ -44,7 +44,7 @@ func (f *File) IsOpen() bool {
 	return f.file != nil
 }
 
-func (f *File) close() error {
+func (f *File) Close() error {
 	if !f.IsOpen() {
 		return nil
 	}
@@ -70,14 +70,14 @@ func (f *File) Stat() (fs.FileInfo, error) {
 	return f.file.Stat()
 }
 
-func (f *File) SeekTail() error {
+func (f *File) SeekTail() (int64, error) {
 	size, err := f.Size()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	f.pageID = action.NewActivePageIDFromSize(size, f.pageSize)
-	return nil
+	return size, nil
 }
 
 func (f *File) ReadAt(data []byte, off int64) (int, error) {

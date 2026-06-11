@@ -35,6 +35,7 @@ const (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type Log struct {
+	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
 	ps            *pagestorage.PageStorage
@@ -75,6 +76,7 @@ func NewLog(
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	ps := pagestorage.New(sl)
 	return &Log{
+		pageSize:      pageSize,
 		sl:            sl,
 		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize, page.ItemHeaderSize),
 		ps:            ps,
@@ -343,8 +345,43 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 	return l.it.Reverse()
 }
 
+func (l *Log) initHighWater() error {
+	l.lowWater = record.NewLogSequenceNumber(0)
+	l.highWater = record.NewLogSequenceNumber(0)
+
+	hw := false
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return err
+		}
+
+		if !hw {
+			l.highWater = rc.LogSequenceNumber()
+			hw = true
+		}
+
+		if rc.Action() == record.ActionCheckpoint {
+			l.lowWater = rc.LogSequenceNumber()
+			break
+		}
+	}
+
+	return nil
+}
+
 func (l *Log) StartWriter() error {
-	return l.ps.Init()
+	if err := l.initHighWater(); err != nil {
+		return err
+	}
+
+	// TODO: Don't create a page, just copy the data
+	data := make([]byte, l.pageSize)
+	if err := l.ps.Init(data); err != nil {
+		return err
+	}
+
+	l.pq.Init(data)
+	return nil
 }
 
 func (l *Log) FlushCheckpoint(

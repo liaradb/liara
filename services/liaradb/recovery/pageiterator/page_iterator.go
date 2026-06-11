@@ -99,7 +99,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 			}
 
 			// TODO: Combine these
-			if err := f.SeekTail(); err != nil {
+			if _, err := f.SeekTail(); err != nil {
 				yield(nil, err)
 				return
 			}

@@ -536,6 +536,8 @@ func testLog_RecoverMany(t *testing.T) {
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
 		}
+
+		synctest.Wait()
 	}
 
 	{ // "should append and flush more"
@@ -566,6 +568,8 @@ func testLog_RecoverMany(t *testing.T) {
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
 		}
+
+		synctest.Wait()
 	}
 	{ // "should iterate"
 		l := NewLog(256, 2, 256, fsys, dir)
