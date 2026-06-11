@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/liaradb/liaradb/encoder/multi"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Span struct {
@@ -72,13 +71,4 @@ func (s Span) SeekStart() error {
 	}
 
 	return nil
-}
-
-func (s Span) ToRecord() (*record.Record, error) {
-	rc := record.Record{}
-	if err := rc.Read(s); err != nil {
-		return nil, err
-	}
-
-	return &rc, nil
 }

@@ -4,7 +4,6 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -63,7 +62,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 					s.Append(f)
 
 					if f.Index() == 0 {
-						if rc, err := s.ToRecord(); !yield(rc, err) || err != nil {
+						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
 							return
 						}
 
@@ -123,7 +122,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 					if f.Count()-1 == f.Index() {
 						s.Reverse()
 
-						if rc, err := s.ToRecord(); !yield(rc, err) || err != nil {
+						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
 							return
 						}
 
@@ -139,6 +138,11 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (pi *PageIterator) position(pid action.PageID) int64 {
-	return pid.Position(int64(pi.size))
+func (*PageIterator) ToRecord(s span.Span) (*record.Record, error) {
+	rc := record.Record{}
+	if err := rc.Read(s); err != nil {
+		return nil, err
+	}
+
+	return &rc, nil
 }
