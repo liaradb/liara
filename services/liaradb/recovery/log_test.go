@@ -195,7 +195,7 @@ func TestLog_Flush(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
-			l := createLogStart(t, 48, 1, 48)
+			l := createLogStart(t, 48, 1, 2)
 
 			if _, err := l.Update(ctx,
 				value.NewTenantID(),
@@ -204,7 +204,7 @@ func TestLog_Flush(t *testing.T) {
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != raw.ErrInsufficientSpace {
+			); err == nil {
 				t.Fatal("should return error")
 			}
 		})

@@ -149,6 +149,11 @@ func (l *Log) appendRequest(r *appendRequest) {
 	r.Reply(lsn, err)
 }
 
+// # Append to PageQueue
+//   - If current page was full already, do not sync
+//   - Otherwise, sync current page
+//   - For every page after, push new page to disk
+//   - For last page, store that as current
 func (l *Log) append(
 	tid value.TenantID,
 	txid record.TransactionID,
@@ -161,35 +166,12 @@ func (l *Log) append(
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
 
-	flushed, err := l.appendAndFlush(rc)
-	if err != nil {
+	if err := l.pq.Append(rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
-	}
-
-	if flushed {
-		l.completeFlush()
 	}
 
 	l.highWater = h
 	return l.highWater, nil
-}
-
-// # Append to PageQueue
-//   - If current page was full already, do not sync
-//   - Otherwise, sync current page
-//   - For every page after, push new page to disk
-//   - For last page, store that as current
-func (l *Log) appendAndFlush(rc *record.Record) (bool, error) {
-	if err := l.pq.Append(rc); err != nil {
-		return false, err
-	}
-
-	// TODO: Should this flush?
-	// if err := l.flushPageQueue(); err != nil {
-	// 	return false, err
-	// }
-
-	return true, nil
 }
 
 func (l *Log) Start(
