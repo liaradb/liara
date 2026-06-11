@@ -1,4 +1,4 @@
-package record
+package span
 
 import (
 	"github.com/liaradb/liaradb/encoder/buffer"

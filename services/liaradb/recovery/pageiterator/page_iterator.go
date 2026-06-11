@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type PageIterator struct {
@@ -31,7 +32,7 @@ func New(
 
 func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		var s record.Span
+		var s span.Span
 
 		for f, err := range pi.sl.IterateFromLSN(lsn) {
 			if err != nil {
@@ -58,7 +59,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				}
 
 				for h, d := range p.Slots() {
-					f := record.NewFragment(h, d)
+					f := span.NewFragment(h, d)
 					s.Append(f)
 
 					if f.Index() == 0 {
@@ -66,7 +67,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 							return
 						}
 
-						s = record.NewSpan()
+						s = span.NewSpan()
 					}
 				}
 
@@ -80,7 +81,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 
 func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
-		var s record.Span
+		var s span.Span
 
 		for f, err := range pi.sl.Reverse() {
 			if err != nil {
@@ -116,7 +117,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				p.SlotsReverse()
 
 				for h, d := range p.SlotsReverse() {
-					f := record.NewFragment(h, d)
+					f := span.NewFragment(h, d)
 					s.Append(f)
 
 					if f.Count()-1 == f.Index() {
@@ -126,7 +127,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 							return
 						}
 
-						s = record.NewSpan()
+						s = span.NewSpan()
 					}
 				}
 

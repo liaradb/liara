@@ -2,7 +2,7 @@ package pagequeue
 
 import (
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type Tip struct {
@@ -21,8 +21,8 @@ func NewTip(pool *Pool, current *page.Page) Tip {
 
 // Request Lease from current Page
 // If insufficient space is available, build list of Pages for remaining
-func (t *Tip) Span(size int16) *record.Span {
-	s := record.NewSpan()
+func (t *Tip) Span(size int16) *span.Span {
+	s := span.NewSpan()
 
 	var available int16 = 0
 	var remaining int16 = size
@@ -47,7 +47,7 @@ func (t *Tip) Span(size int16) *record.Span {
 	return &s
 }
 
-func (t *Tip) appendToSpan(s *record.Span, p *page.Page, remaining int16) int16 {
+func (t *Tip) appendToSpan(s *span.Span, p *page.Page, remaining int16) int16 {
 	header, data := p.Next(remaining)
 	l := int16(len(data))
 	t.sizes = append(t.sizes, l)
@@ -55,7 +55,7 @@ func (t *Tip) appendToSpan(s *record.Span, p *page.Page, remaining int16) int16 
 		return l
 	}
 
-	f := record.NewFragment(header, data)
+	f := span.NewFragment(header, data)
 	s.Append(f)
 	return l
 }

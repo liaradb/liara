@@ -2,12 +2,12 @@ package page
 
 import (
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/span"
 )
 
 const (
 	ItemHeaderSize = page.CrcSize +
-		record.FragmentHeaderSize
+		span.FragmentHeaderSize
 )
 
 type itemHeader struct {

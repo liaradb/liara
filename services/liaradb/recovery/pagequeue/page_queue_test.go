@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/span"
 )
 
 func TestPageQueue(t *testing.T) {
@@ -38,13 +39,13 @@ func TestPageQueue(t *testing.T) {
 			t.Fatalf("incorrect count: %v, expected: %v", c, 1)
 		}
 
-		var item record.Fragment
+		var item span.Fragment
 		for h, d := range pq.current.Slots() {
-			item = record.NewFragment(h, d)
+			item = span.NewFragment(h, d)
 			break
 		}
 
-		s := record.NewSpan(item)
+		s := span.NewSpan(item)
 		s.InitIndexes()
 
 		rc2 := &record.Record{}

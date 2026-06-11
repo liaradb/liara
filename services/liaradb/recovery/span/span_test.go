@@ -1,4 +1,4 @@
-package record
+package span
 
 import (
 	"math"
@@ -7,21 +7,22 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestSpan_Write(t *testing.T) {
 	t.Parallel()
 
-	lsn := NewLogSequenceNumber(1)
+	lsn := record.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
-	txid := NewTransactionID(2)
-	now := NewTime(time.UnixMicro(1234567890))
-	action := ActionInsert
-	collection := CollectionEvent
+	txid := record.NewTransactionID(2)
+	now := record.NewTime(time.UnixMicro(1234567890))
+	action := record.ActionInsert
+	collection := record.CollectionEvent
 	data := []byte("abcdef")
 	reverse := []byte("fghij")
 
-	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
+	rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 	size := float64(rc.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
@@ -40,7 +41,7 @@ func TestSpan_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	rc2 := &Record{}
+	rc2 := &record.Record{}
 	if err := rc2.Read(s); err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +78,7 @@ func TestSpan_Write(t *testing.T) {
 		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
 	}
 
-	if i := rc.IsCheckpoint(); i != (action == ActionCheckpoint) {
-		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == ActionCheckpoint)
+	if i := rc.IsCheckpoint(); i != (action == record.ActionCheckpoint) {
+		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == record.ActionCheckpoint)
 	}
 }
