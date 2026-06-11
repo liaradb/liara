@@ -98,13 +98,16 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				continue
 			}
 
-			pid := action.NewActivePageIDFromSize(size, int64(pi.size))
+			// TODO: Combine these
+			if err := f.SeekTail(); err != nil {
+				yield(nil, err)
+				return
+			}
 
-			for i := range pid + 1 {
+			for {
 				// TODO: Return Page
 				p := pi.pool.Get()
-				sec := io.NewSectionReader(f, pi.position(pid-i), int64(pi.size))
-				if err := p.Replace(sec); err != nil {
+				if err := p.Replace(f); err != nil {
 					if err != io.EOF {
 						yield(nil, err)
 					}

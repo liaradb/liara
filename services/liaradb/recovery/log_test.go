@@ -326,11 +326,13 @@ func TestLog_Iterate(t *testing.T) {
 func testLog_Iterate(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 2, 320)
+	fsys, dir := createFiles()
+
+	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
 	tid := value.NewTenantID()
 
-	var count uint64 = 100
-	records, _ := createRecords(tid, record.NewLogSequenceNumber(count))
+	count := 100
+	records, _ := createRecords(tid, record.NewLogSequenceNumber(uint64(count)))
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			tid,
@@ -346,7 +348,13 @@ func testLog_Iterate(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	var i uint64 = 0
+	l.Close()
+
+	synctest.Wait()
+
+	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
+
+	i := 0
 	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
 		if err != nil {
 			t.Fatal(err)
@@ -598,7 +606,9 @@ func TestLog_Reverse(t *testing.T) {
 func testLog_Reverse(t *testing.T) {
 	ctx := t.Context()
 
-	l := createLogStart(t, 320, 2, 320)
+	fsys, dir := createFiles()
+
+	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
 	tid := value.NewTenantID()
 
 	count := 100
@@ -617,6 +627,12 @@ func testLog_Reverse(t *testing.T) {
 	}
 
 	time.Sleep(1 * time.Second)
+
+	l.Close()
+
+	synctest.Wait()
+
+	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
 
 	slices.Reverse(records)
 	i := 0

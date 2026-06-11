@@ -183,9 +183,9 @@ func (l *Log) appendAndFlush(rc *record.Record) (bool, error) {
 	}
 
 	// TODO: Should this flush?
-	if err := l.flushPageQueue(); err != nil {
-		return false, err
-	}
+	// if err := l.flushPageQueue(); err != nil {
+	// 	return false, err
+	// }
 
 	return true, nil
 }
