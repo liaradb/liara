@@ -27,10 +27,9 @@ func TestSpan_Write(t *testing.T) {
 	size := float64(rc.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := NewSpan(
-		NewFragment(make([]byte, FragmentHeaderSize), make([]byte, a)),
-		NewFragment(make([]byte, FragmentHeaderSize), make([]byte, b)),
-	)
+	s := Span{}
+	s.Append(make([]byte, FragmentHeaderSize), make([]byte, a))
+	s.Append(make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := rc.Write(s); err != nil {

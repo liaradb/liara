@@ -8,24 +8,20 @@ import (
 )
 
 type Span struct {
-	fragments []Fragment
-}
-
-func NewSpan(fragments ...Fragment) Span {
-	return Span{
-		fragments: fragments,
-	}
+	fragments []*Fragment
 }
 
 func (s Span) Length() (l int64) {
 	for _, f := range s.fragments {
-		l += f.Length()
+		l += f.length()
 	}
 	return
 }
 
-func (s *Span) Append(f Fragment) {
+func (s *Span) Append(header []byte, data []byte) *Fragment {
+	f := newFragment(header, data)
 	s.fragments = append(s.fragments, f)
+	return f
 }
 
 func (s *Span) Reverse() {
@@ -36,8 +32,8 @@ func (s *Span) InitIndexes() {
 	c := len(s.fragments)
 	l := c - 1
 	for i, f := range s.fragments {
-		f.SetCount(int16(c))
-		f.SetIndex(int16(l - i))
+		f.setCount(int16(c))
+		f.setIndex(int16(l - i))
 	}
 }
 
@@ -45,7 +41,7 @@ func (s *Span) InitIndexes() {
 func (s Span) Read(p []byte) (n int, err error) {
 	readers := make([]io.Reader, 0, len(s.fragments))
 	for _, f := range s.fragments {
-		readers = append(readers, &f)
+		readers = append(readers, f)
 	}
 
 	reader := multi.NewReader(readers...)
@@ -56,7 +52,7 @@ func (s Span) Read(p []byte) (n int, err error) {
 func (s Span) Write(p []byte) (n int, err error) {
 	writers := make([]io.Writer, 0, len(s.fragments))
 	for _, f := range s.fragments {
-		writers = append(writers, &f)
+		writers = append(writers, f)
 	}
 
 	writer := multi.NewWriter(writers...)

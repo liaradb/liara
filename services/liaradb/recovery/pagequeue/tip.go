@@ -22,7 +22,7 @@ func NewTip(pool *Pool, current *page.Page) Tip {
 // Request Lease from current Page
 // If insufficient space is available, build list of Pages for remaining
 func (t *Tip) Span(size int16) *span.Span {
-	s := span.NewSpan()
+	s := span.Span{}
 
 	var available int16 = 0
 	var remaining int16 = size
@@ -55,8 +55,7 @@ func (t *Tip) appendToSpan(s *span.Span, p *page.Page, remaining int16) int16 {
 		return l
 	}
 
-	f := span.NewFragment(header, data)
-	s.Append(f)
+	_ = s.Append(header, data)
 	return l
 }
 

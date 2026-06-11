@@ -58,15 +58,14 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				}
 
 				for h, d := range p.Slots() {
-					f := span.NewFragment(h, d)
-					s.Append(f)
+					f := s.Append(h, d)
 
 					if f.Index() == 0 {
 						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
 							return
 						}
 
-						s = span.NewSpan()
+						s = span.Span{}
 					}
 				}
 
@@ -116,8 +115,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				p.SlotsReverse()
 
 				for h, d := range p.SlotsReverse() {
-					f := span.NewFragment(h, d)
-					s.Append(f)
+					f := s.Append(h, d)
 
 					if f.Count()-1 == f.Index() {
 						s.Reverse()
@@ -126,7 +124,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 							return
 						}
 
-						s = span.NewSpan()
+						s = span.Span{}
 					}
 				}
 

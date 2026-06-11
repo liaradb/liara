@@ -15,25 +15,25 @@ type Fragment struct {
 	buffer *buffer.Buffer
 }
 
-func NewFragment(header []byte, data []byte) Fragment {
+func newFragment(header []byte, data []byte) *Fragment {
 	count, header0 := wrap.NewInt16(header)
 	index, _ := wrap.NewInt16(header0)
-	return Fragment{
+	return &Fragment{
 		count:  count,
 		index:  index,
 		buffer: buffer.NewFromSlice(data),
 	}
 }
 
-func (f Fragment) Length() int64 { return f.buffer.Length() }
+func (f Fragment) length() int64 { return f.buffer.Length() }
 func (f Fragment) Count() int16  { return f.count.Get() }
 func (f Fragment) Index() int16  { return f.index.Get() }
 
-func (f Fragment) SetCount(v int16) {
+func (f Fragment) setCount(v int16) {
 	f.count.Set(v)
 }
 
-func (f Fragment) SetIndex(v int16) {
+func (f Fragment) setIndex(v int16) {
 	f.index.Set(v)
 }
 

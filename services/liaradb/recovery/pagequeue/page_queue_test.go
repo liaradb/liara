@@ -39,13 +39,11 @@ func TestPageQueue(t *testing.T) {
 			t.Fatalf("incorrect count: %v, expected: %v", c, 1)
 		}
 
-		var item span.Fragment
+		s := span.Span{}
 		for h, d := range pq.current.Slots() {
-			item = span.NewFragment(h, d)
+			s.Append(h, d)
 			break
 		}
-
-		s := span.NewSpan(item)
 		s.InitIndexes()
 
 		rc2 := &record.Record{}
