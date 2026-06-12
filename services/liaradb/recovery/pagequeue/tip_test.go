@@ -10,7 +10,7 @@ const (
 	pageSize       = 64
 	largePageSize  = 256
 	headerSize     = 22
-	slotHeaderSize = 4
+	slotHeaderSize = 8
 )
 
 func TestTip(t *testing.T) {
@@ -33,7 +33,7 @@ func TestTip(t *testing.T) {
 		t.Error("should commit")
 	}
 
-	if l := len(pages); l != 3 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 3)
+	if l := len(pages); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 }

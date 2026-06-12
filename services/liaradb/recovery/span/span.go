@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/liaradb/liaradb/encoder/multi"
+	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type Span struct {
@@ -16,6 +17,15 @@ func (s Span) Length() (l int64) {
 		l += f.length()
 	}
 	return
+}
+
+func (s Span) valid() bool {
+	for _, f := range s.fragments {
+		if !f.valid() {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Span) Append(header []byte, data []byte) *Fragment {
@@ -39,6 +49,10 @@ func (s *Span) InitIndexes() {
 
 // TODO: Can we do this without creating a new reader?
 func (s Span) Read(p []byte) (n int, err error) {
+	if !s.valid() {
+		return 0, page.ErrInvalidCRC
+	}
+
 	readers := make([]io.Reader, 0, len(s.fragments))
 	for _, f := range s.fragments {
 		readers = append(readers, f)

@@ -32,7 +32,7 @@ func TestPageIterator(t *testing.T) {
 		const (
 			size       = 128
 			headerSize = 4
-			slotSize   = 4
+			slotSize   = 8
 		)
 
 		sl := segment.NewList(fsys, dir, size, 1)
@@ -92,7 +92,7 @@ func TestPageIterator(t *testing.T) {
 		const (
 			size       = 128
 			headerSize = 4
-			slotSize   = 4
+			slotSize   = 8
 		)
 
 		sl := segment.NewList(fsys, dir, size, 1)
