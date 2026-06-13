@@ -12,6 +12,7 @@ type PageQueue struct {
 	pool    Pool
 	list    list.List
 	current *page.Page
+	shadow  *page.Page
 	ps      PageStorage
 	lsn     record.LogSequenceNumber
 }
@@ -33,15 +34,14 @@ func New(
 		ps:   ps,
 	}
 
-	pq.initCurrent()
+	pq.init()
 
 	return pq
 }
 
-func (pq *PageQueue) initCurrent() {
-	if pq.current == nil {
-		pq.current = pq.pool.Get()
-	}
+func (pq *PageQueue) init() {
+	pq.shadow = pq.pool.Get()
+	pq.current = pq.pool.Get()
 }
 
 func (pq *PageQueue) Init(data []byte) {
@@ -87,7 +87,7 @@ func (pq *PageQueue) appendPages(pgs []*page.Page) {
 	last := l - 1
 	for i, p := range pgs {
 		if i == last {
-			pq.current = p
+			pq.replaceCurrent(p)
 		} else {
 			pq.list.PushBack(p)
 		}
@@ -97,6 +97,8 @@ func (pq *PageQueue) appendPages(pgs []*page.Page) {
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
+	pq.syncShadow()
+
 	if pq.list.Len() == 0 {
 		return pq.syncCurrent()
 	}
@@ -123,8 +125,16 @@ func (pq *PageQueue) Flush() error {
 	return pq.appendCurrent()
 }
 
+func (pq *PageQueue) replaceCurrent(p *page.Page) {
+	pq.current = p
+}
+
+func (pq *PageQueue) syncShadow() {
+	pq.shadow.Fill(pq.current.Data())
+}
+
 func (pq *PageQueue) syncCurrent() error {
-	return pq.syncPage(pq.current)
+	return pq.syncPage(pq.shadow)
 }
 
 func (pq *PageQueue) syncPage(p *page.Page) error {
@@ -132,7 +142,7 @@ func (pq *PageQueue) syncPage(p *page.Page) error {
 }
 
 func (pq *PageQueue) appendCurrent() error {
-	return pq.appendPage(pq.current)
+	return pq.appendPage(pq.shadow)
 }
 
 func (pq *PageQueue) appendPage(p *page.Page) error {
