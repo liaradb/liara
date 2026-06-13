@@ -248,7 +248,7 @@ func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) er
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
-	l.queue.Add(r)
+	l.queue.add(r)
 }
 
 func (l *Log) flushOrPanic() {
@@ -280,12 +280,12 @@ func (l *Log) Sync(ctx context.Context, lsn record.LogSequenceNumber) error {
 
 func (l *Log) syncRequest(r *async.Command[record.LogSequenceNumber]) {
 	l.lowWater = r.Value()
-	l.queue.SendUpToLSN(l.lowWater)
+	l.queue.sendUpToLSN(l.lowWater)
 }
 
 func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
-	l.queue.SendUpToLSN(l.highWater)
+	l.queue.sendUpToLSN(l.highWater)
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
