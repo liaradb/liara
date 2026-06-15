@@ -36,31 +36,21 @@ func (po *PageOut) Count() int {
 
 func (po *PageOut) Append(
 	lsn record.LogSequenceNumber,
-	c *page.Page,
-	pgs []*page.Page,
+	pgs ...*page.Page,
 ) (*page.Page, bool) {
 	po.setLSN(lsn)
 
-	// If pages is empty, do nothing
+	// If only one page, do nothing
 	l := len(pgs)
-	if l == 0 {
+	if l <= 1 {
 		return nil, false
 	}
 
-	po.push(c)
-
-	last := l - 1
-	for i, p := range pgs {
-		if i == last {
-			// TODO: Should we do something with p?
-			return p, true
-		} else {
-			po.push(p)
-		}
+	for _, p := range pgs[:l-1] {
+		po.push(p)
 	}
 
-	// TODO: This should never happen
-	return nil, false
+	return pgs[l-1], true
 }
 
 func (po *PageOut) setLSN(lsn record.LogSequenceNumber) {

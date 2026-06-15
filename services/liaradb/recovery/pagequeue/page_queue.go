@@ -59,7 +59,11 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 }
 
 func (pq *PageQueue) appendPages(lsn record.LogSequenceNumber, pgs []*page.Page) {
-	c, ok := pq.po.Append(lsn, pq.current, pgs)
+	// TODO: Make this simpler
+	var p []*page.Page
+	p = append(p, pq.current)
+	p = append(p, pgs...)
+	c, ok := pq.po.Append(lsn, p...)
 	if ok {
 		pq.replaceCurrent(c)
 	}
