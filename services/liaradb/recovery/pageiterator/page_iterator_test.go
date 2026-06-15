@@ -2,6 +2,7 @@ package pageiterator
 
 import (
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
@@ -25,123 +26,125 @@ func TestPageIterator(t *testing.T) {
 
 	t.Run("should run", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			fsys := filetesting.New(nil)
+			dir := "dir"
 
-		fsys := filetesting.New(nil)
-		dir := "dir"
+			const (
+				size       = 128
+				headerSize = 4
+				slotSize   = 8
+			)
 
-		const (
-			size       = 128
-			headerSize = 4
-			slotSize   = 8
-		)
-
-		sl := segment.NewList(fsys, dir, size, 1)
-		ps := pagestorage.New(sl)
-		pageData := make([]byte, size)
-		if err := ps.Init(pageData); err != nil {
-			t.Error(err)
-		}
-
-		pq := pagequeue.New(ps, size, headerSize, slotSize)
-
-		numberOfRecords := 100
-
-		for i := range numberOfRecords {
-			rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
-			if err := pq.Append(rc); err != nil {
-				t.Error(err)
-			}
-		}
-
-		if err := pq.Flush(); err != nil {
-			t.Error(err)
-		}
-
-		if err := sl.Close(); err != nil {
-			t.Error(err)
-		}
-
-		sl = segment.NewList(fsys, dir, size, 1)
-		pi := New(sl, size, headerSize, slotSize)
-
-		c := 0
-		for rc, err := range pi.Forward(record.NewLogSequenceNumber(0)) {
-			if err != nil {
+			sl := segment.NewList(fsys, dir, size, 1)
+			ps := pagestorage.New(sl)
+			pageData := make([]byte, size)
+			if err := ps.Init(pageData); err != nil {
 				t.Error(err)
 			}
 
-			want := uint64(c)
-			if lsn := rc.LogSequenceNumber().Value(); lsn != want {
-				t.Errorf("incorrect lsn: %v, expected: %v", lsn, want)
+			pq := pagequeue.New(ps, size, headerSize, slotSize)
+
+			numberOfRecords := 100
+
+			for i := range numberOfRecords {
+				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
+				if err := pq.Append(rc); err != nil {
+					t.Error(err)
+				}
 			}
 
-			c++
-		}
+			if err := pq.Flush(); err != nil {
+				t.Error(err)
+			}
 
-		if c != numberOfRecords {
-			t.Errorf("incorrect count: %v, expected: %v", c, numberOfRecords)
-		}
+			if err := sl.Close(); err != nil {
+				t.Error(err)
+			}
+
+			sl = segment.NewList(fsys, dir, size, 1)
+			pi := New(sl, size, headerSize, slotSize)
+
+			c := 0
+			for rc, err := range pi.Forward(record.NewLogSequenceNumber(0)) {
+				if err != nil {
+					t.Error(err)
+				}
+
+				want := uint64(c)
+				if lsn := rc.LogSequenceNumber().Value(); lsn != want {
+					t.Errorf("incorrect lsn: %v, expected: %v", lsn, want)
+				}
+
+				c++
+			}
+
+			if c != numberOfRecords {
+				t.Errorf("incorrect count: %v, expected: %v", c, numberOfRecords)
+			}
+		})
 	})
 
 	t.Run("should reverse", func(t *testing.T) {
 		t.Parallel()
+		synctest.Test(t, func(t *testing.T) {
+			fsys := filetesting.New(nil)
+			dir := "dir"
 
-		fsys := filetesting.New(nil)
-		dir := "dir"
+			const (
+				size       = 128
+				headerSize = 4
+				slotSize   = 8
+			)
 
-		const (
-			size       = 128
-			headerSize = 4
-			slotSize   = 8
-		)
-
-		sl := segment.NewList(fsys, dir, size, 1)
-		ps := pagestorage.New(sl)
-		pageData := make([]byte, size)
-		if err := ps.Init(pageData); err != nil {
-			t.Error(err)
-		}
-
-		pq := pagequeue.New(ps, size, headerSize, slotSize)
-
-		numberOfRecords := 100
-
-		for i := range numberOfRecords {
-			rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
-			if err := pq.Append(rc); err != nil {
+			sl := segment.NewList(fsys, dir, size, 1)
+			ps := pagestorage.New(sl)
+			pageData := make([]byte, size)
+			if err := ps.Init(pageData); err != nil {
 				t.Error(err)
 			}
-		}
 
-		if err := pq.Flush(); err != nil {
-			t.Error(err)
-		}
+			pq := pagequeue.New(ps, size, headerSize, slotSize)
 
-		if err := sl.Close(); err != nil {
-			t.Error(err)
-		}
+			numberOfRecords := 100
 
-		sl = segment.NewList(fsys, dir, size, 1)
-		pi := New(sl, size, headerSize, slotSize)
-
-		c := 0
-		reverseIndex := numberOfRecords - 1
-		for rc, err := range pi.Reverse() {
-			if err != nil {
-				t.Fatal(err)
+			for i := range numberOfRecords {
+				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
+				if err := pq.Append(rc); err != nil {
+					t.Error(err)
+				}
 			}
 
-			want := uint64(reverseIndex)
-			if lsn := rc.LogSequenceNumber().Value(); lsn != want {
-				t.Errorf("incorrect lsn: %v, expected: %v", lsn, want)
+			if err := pq.Flush(); err != nil {
+				t.Error(err)
 			}
 
-			c++
-			reverseIndex--
-		}
+			if err := sl.Close(); err != nil {
+				t.Error(err)
+			}
 
-		if c != numberOfRecords {
-			t.Errorf("incorrect count: %v, expected: %v", c, numberOfRecords)
-		}
+			sl = segment.NewList(fsys, dir, size, 1)
+			pi := New(sl, size, headerSize, slotSize)
+
+			c := 0
+			reverseIndex := numberOfRecords - 1
+			for rc, err := range pi.Reverse() {
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				want := uint64(reverseIndex)
+				if lsn := rc.LogSequenceNumber().Value(); lsn != want {
+					t.Errorf("incorrect lsn: %v, expected: %v", lsn, want)
+				}
+
+				c++
+				reverseIndex--
+			}
+
+			if c != numberOfRecords {
+				t.Errorf("incorrect count: %v, expected: %v", c, numberOfRecords)
+			}
+		})
 	})
 }
