@@ -24,6 +24,8 @@ func NewTip(pool *Pool, current *page.Page) Tip {
 func (t *Tip) Span(size int16) *span.Span {
 	s := span.Span{}
 
+	t.pages = append(t.pages, t.current)
+
 	var available int16 = 0
 	var remaining int16 = size
 
@@ -76,7 +78,7 @@ func (t *Tip) Commit() ([]*page.Page, bool) {
 
 // Commit pages before current to avoid a partial commit
 func (t *Tip) commitPages() bool {
-	for i, p := range t.pages {
+	for i, p := range t.pages[1:] {
 		if !t.commitPage(p, i+1) {
 			return false
 		}

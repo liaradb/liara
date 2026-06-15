@@ -33,7 +33,7 @@ func TestTip(t *testing.T) {
 		t.Error("should commit")
 	}
 
-	if l := len(pages); l != 4 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	if l := len(pages); l != 5 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 5)
 	}
 }
