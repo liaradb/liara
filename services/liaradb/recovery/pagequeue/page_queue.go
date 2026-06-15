@@ -8,14 +8,7 @@ import (
 type PageQueue struct {
 	pool    Pool
 	current *page.Page
-	ps      PageStorage
 	po      PageOut
-}
-
-type PageStorage interface {
-	Sync([]byte) error
-	Append(record.LogSequenceNumber, []byte) error
-	Init([]byte) error
 }
 
 func New(
@@ -26,29 +19,20 @@ func New(
 ) *PageQueue {
 	pq := &PageQueue{
 		pool: NewPool(size, headerSize, slotHeaderSize),
-		ps:   ps,
-		po: PageOut{
-			ps: ps,
-		},
 	}
 
-	pq.init()
+	pq.init(ps)
 
 	return pq
 }
 
-func (pq *PageQueue) init() {
-	pq.po.pool = &pq.pool
-	pq.po.shadow = pq.pool.Get()
+func (pq *PageQueue) init(ps PageStorage) {
+	pq.po = newPageOut(ps, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 
 func (pq *PageQueue) Init(data []byte) {
 	pq.current.Fill(data)
-}
-
-func (pq *PageQueue) Count() int {
-	return pq.po.Count()
 }
 
 // # Append
@@ -75,29 +59,10 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 }
 
 func (pq *PageQueue) appendPages(lsn record.LogSequenceNumber, pgs []*page.Page) {
-	pq.po.SetLSN(lsn)
-
-	// If pages is empty, do nothing
-	l := len(pgs)
-	if l == 0 {
-		return
+	c, ok := pq.po.Append(lsn, pq.current, pgs)
+	if ok {
+		pq.replaceCurrent(c)
 	}
-
-	pq.po.Push(pq.current)
-	last := l - 1
-	for i, p := range pgs {
-		if i == last {
-			pq.replaceCurrent(p)
-		} else {
-			pq.po.Push(p)
-		}
-	}
-}
-
-// # Flushing
-//   - Flush entire queue to Disk, including Current
-func (pq *PageQueue) Flush() error {
-	return pq.po.Flush(pq.current)
 }
 
 func (pq *PageQueue) replaceCurrent(p *page.Page) {
@@ -106,4 +71,14 @@ func (pq *PageQueue) replaceCurrent(p *page.Page) {
 
 func (pq *PageQueue) Clear() {
 	pq.po.Clear()
+}
+
+func (pq *PageQueue) Count() int {
+	return pq.po.Count()
+}
+
+// # Flushing
+//   - Flush entire queue to Disk, including Current
+func (pq *PageQueue) Flush() error {
+	return pq.po.Flush(pq.current)
 }

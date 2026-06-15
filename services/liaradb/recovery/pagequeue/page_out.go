@@ -16,15 +16,58 @@ type PageOut struct {
 	lsn    record.LogSequenceNumber
 }
 
+type PageStorage interface {
+	Sync([]byte) error
+	Append(record.LogSequenceNumber, []byte) error
+	Init([]byte) error
+}
+
+func newPageOut(ps PageStorage, pool *Pool) PageOut {
+	return PageOut{
+		pool:   pool,
+		ps:     ps,
+		shadow: pool.Get(),
+	}
+}
+
 func (po *PageOut) Count() int {
 	return po.list.Len() + 1
 }
 
-func (po *PageOut) SetLSN(lsn record.LogSequenceNumber) {
+func (po *PageOut) Append(
+	lsn record.LogSequenceNumber,
+	c *page.Page,
+	pgs []*page.Page,
+) (*page.Page, bool) {
+	po.setLSN(lsn)
+
+	// If pages is empty, do nothing
+	l := len(pgs)
+	if l == 0 {
+		return nil, false
+	}
+
+	po.push(c)
+
+	last := l - 1
+	for i, p := range pgs {
+		if i == last {
+			// TODO: Should we do something with p?
+			return p, true
+		} else {
+			po.push(p)
+		}
+	}
+
+	// TODO: This should never happen
+	return nil, false
+}
+
+func (po *PageOut) setLSN(lsn record.LogSequenceNumber) {
 	po.lsn = lsn
 }
 
-func (po *PageOut) Push(p *page.Page) {
+func (po *PageOut) push(p *page.Page) {
 	po.list.PushBack(p)
 }
 
