@@ -1,20 +1,15 @@
 package pagequeue
 
 import (
-	"container/list"
-
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type PageQueue struct {
 	pool    Pool
-	list    list.List
 	current *page.Page
-	shadow  *page.Page
 	ps      PageStorage
-	lsn     record.LogSequenceNumber
+	po      PageOut
 }
 
 type PageStorage interface {
@@ -32,6 +27,9 @@ func New(
 	pq := &PageQueue{
 		pool: NewPool(size, headerSize, slotHeaderSize),
 		ps:   ps,
+		po: PageOut{
+			ps: ps,
+		},
 	}
 
 	pq.init()
@@ -40,7 +38,8 @@ func New(
 }
 
 func (pq *PageQueue) init() {
-	pq.shadow = pq.pool.Get()
+	pq.po.pool = &pq.pool
+	pq.po.shadow = pq.pool.Get()
 	pq.current = pq.pool.Get()
 }
 
@@ -49,7 +48,7 @@ func (pq *PageQueue) Init(data []byte) {
 }
 
 func (pq *PageQueue) Count() int {
-	return pq.list.Len() + 1
+	return pq.po.Count()
 }
 
 // # Append
@@ -71,25 +70,26 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 		return ErrUnableToAppend
 	}
 
-	pq.lsn = rc.LogSequenceNumber()
-	pq.appendPages(pgs)
+	pq.appendPages(rc.LogSequenceNumber(), pgs)
 	return nil
 }
 
-func (pq *PageQueue) appendPages(pgs []*page.Page) {
+func (pq *PageQueue) appendPages(lsn record.LogSequenceNumber, pgs []*page.Page) {
+	pq.po.SetLSN(lsn)
+
 	// If pages is empty, do nothing
 	l := len(pgs)
 	if l == 0 {
 		return
 	}
 
-	pq.list.PushBack(pq.current)
+	pq.po.Push(pq.current)
 	last := l - 1
 	for i, p := range pgs {
 		if i == last {
 			pq.replaceCurrent(p)
 		} else {
-			pq.list.PushBack(p)
+			pq.po.Push(p)
 		}
 	}
 }
@@ -97,61 +97,13 @@ func (pq *PageQueue) appendPages(pgs []*page.Page) {
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
-	pq.syncShadow()
-
-	if pq.list.Len() == 0 {
-		return pq.syncCurrent()
-	}
-
-	// TODO: Implement error handling
-	i := 0
-	for p := range iterator.Forward[*page.Page](&pq.list) {
-		if i == 0 { // Sync first
-			if err := pq.syncPage(p); err != nil {
-				return err
-			}
-		} else {
-			if err := pq.appendPage(p); err != nil {
-				return err
-			}
-		}
-
-		pq.pool.Put(p)
-		i++
-	}
-
-	pq.list.Init()
-
-	return pq.appendCurrent()
+	return pq.po.Flush(pq.current)
 }
 
 func (pq *PageQueue) replaceCurrent(p *page.Page) {
 	pq.current = p
 }
 
-func (pq *PageQueue) syncShadow() {
-	pq.shadow.Fill(pq.current.Data())
-}
-
-func (pq *PageQueue) syncCurrent() error {
-	return pq.syncPage(pq.shadow)
-}
-
-func (pq *PageQueue) syncPage(p *page.Page) error {
-	return pq.ps.Sync(p.Data())
-}
-
-func (pq *PageQueue) appendCurrent() error {
-	return pq.appendPage(pq.shadow)
-}
-
-func (pq *PageQueue) appendPage(p *page.Page) error {
-	return pq.ps.Append(pq.lsn, p.Data())
-}
-
 func (pq *PageQueue) Clear() {
-	for p := range iterator.Forward[*page.Page](&pq.list) {
-		pq.pool.Put(p)
-	}
-	pq.list.Init()
+	pq.po.Clear()
 }
