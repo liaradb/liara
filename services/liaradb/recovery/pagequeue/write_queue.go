@@ -7,17 +7,16 @@ import (
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
+type WriteQueue struct {
+	items chan queueItem
+	ps    PageStorage
+	fl    Flusher
+}
+
 type queueItem struct {
 	lsn  record.LogSequenceNumber
 	page *page.Page
 	sync bool
-}
-
-type WriteQueue struct {
-	current *page.Page
-	items   chan queueItem
-	ps      PageStorage
-	fl      Flusher
 }
 
 type Flusher interface {

@@ -2,6 +2,7 @@ package pagequeue
 
 import (
 	"container/list"
+	"context"
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -13,6 +14,7 @@ type PageOut struct {
 	shadow *page.Page
 	list   list.List
 	ps     PageStorage
+	wq     *WriteQueue
 	lsn    record.LogSequenceNumber
 }
 
@@ -22,12 +24,17 @@ type PageStorage interface {
 	Init([]byte) error
 }
 
-func newPageOut(ps PageStorage, pool *Pool) PageOut {
+func newPageOut(ps PageStorage, fl Flusher, pool *Pool) PageOut {
 	return PageOut{
 		pool:   pool,
 		ps:     ps,
+		wq:     newWriteQueue(100, ps, fl),
 		shadow: pool.Get(),
 	}
+}
+
+func (po *PageOut) Run(ctx context.Context) {
+	po.wq.Run(ctx)
 }
 
 func (po *PageOut) Count() int {

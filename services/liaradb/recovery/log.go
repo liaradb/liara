@@ -94,6 +94,8 @@ func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
 func (l *Log) run(ctx context.Context) {
+	l.pq.Run(ctx)
+
 	timer := time.NewTimer(interval)
 	defer timer.Stop()
 

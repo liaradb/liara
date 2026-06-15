@@ -1,6 +1,8 @@
 package pagequeue
 
 import (
+	"context"
+
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -27,12 +29,16 @@ func New(
 }
 
 func (pq *PageQueue) init(ps PageStorage) {
-	pq.po = newPageOut(ps, &pq.pool)
+	pq.po = newPageOut(ps, pq, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 
 func (pq *PageQueue) Init(data []byte) {
 	pq.current.Fill(data)
+}
+
+func (pq *PageQueue) Run(ctx context.Context) {
+	pq.po.Run(ctx)
 }
 
 // # Append
@@ -81,4 +87,12 @@ func (pq *PageQueue) Count() int {
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush() error {
 	return pq.po.Flush(pq.current)
+}
+
+func (pq *PageQueue) OnFlush(record.LogSequenceNumber) {
+
+}
+
+func (pq *PageQueue) OnError(error) bool {
+	return true
 }
