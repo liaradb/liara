@@ -113,9 +113,9 @@ func (l *Log) run(ctx context.Context) {
 		case r := <-l.syncReqs:
 			l.syncRequest(r)
 		case <-timer.C:
-			l.flushOrPanic()
+			l.flushOrPanic(ctx)
 		case <-ticker.C:
-			l.flushOrPanic()
+			l.flushOrPanic(ctx)
 		}
 	}
 }
@@ -253,18 +253,18 @@ func (l *Log) flushRequest(r *flushRequest) {
 	l.queue.add(r)
 }
 
-func (l *Log) flushOrPanic() {
-	if err := l.flush(); err != nil {
+func (l *Log) flushOrPanic(ctx context.Context) {
+	if err := l.flush(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (l *Log) flush() error {
+func (l *Log) flush(ctx context.Context) error {
 	if !l.IsDirty() {
 		return nil
 	}
 
-	if err := l.flushPageQueue(); err != nil {
+	if err := l.flushPageQueue(ctx); err != nil {
 		return err
 	}
 
@@ -272,8 +272,8 @@ func (l *Log) flush() error {
 	return nil
 }
 
-func (l *Log) flushPageQueue() error {
-	return l.pq.Flush()
+func (l *Log) flushPageQueue(ctx context.Context) error {
+	return l.pq.Flush(ctx)
 }
 
 func (l *Log) Sync(ctx context.Context, lsn record.LogSequenceNumber) error {
@@ -370,6 +370,7 @@ func (l *Log) StartWriter() error {
 }
 
 func (l *Log) FlushCheckpoint(
+	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
@@ -386,7 +387,7 @@ func (l *Log) FlushCheckpoint(
 		return record.LogSequenceNumber{}, err
 	}
 
-	if err := l.flushPageQueue(); err != nil {
+	if err := l.flushPageQueue(ctx); err != nil {
 		return record.LogSequenceNumber{}, err
 	}
 

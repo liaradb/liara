@@ -61,7 +61,7 @@ func (m *Manager) run(ctx context.Context) {
 	for {
 		select {
 		case t := <-ticker.C:
-			m.flushCheckpoint(t)
+			m.flushCheckpoint(ctx, t)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -111,7 +111,7 @@ func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
 }
 
-func (m *Manager) flushCheckpoint(now time.Time) {
+func (m *Manager) flushCheckpoint(ctx context.Context, now time.Time) {
 	m.drainEnd()
 	if !m.isDirty() {
 		return
@@ -120,7 +120,7 @@ func (m *Manager) flushCheckpoint(now time.Time) {
 	slog.Info("flushing...")
 
 	// TODO: What do we do with this error?
-	if err := m.flush(now); err != nil {
+	if err := m.flush(ctx, now); err != nil {
 		slog.Error("unable to flush",
 			"error", err)
 		return
@@ -136,12 +136,12 @@ func (m *Manager) drainEnd() {
 	}
 }
 
-func (m *Manager) flush(now time.Time) error {
+func (m *Manager) flush(ctx context.Context, now time.Time) error {
 	if err := m.storage.FlushAll(); err != nil {
 		return err
 	}
 
-	lsn, err := m.log.FlushCheckpoint(now, m.Active()...)
+	lsn, err := m.log.FlushCheckpoint(ctx, now, m.Active()...)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (m *Manager) flush(now time.Time) error {
 	return nil
 }
 
-func (m *Manager) Shutdown(now time.Time) error {
+func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
 	// TODO: How do we drain everything?
 	m.drainEnd()
 
@@ -162,7 +162,7 @@ func (m *Manager) Shutdown(now time.Time) error {
 		return nil
 	}
 
-	lsn, err := m.log.FlushCheckpoint(now, m.Active()...)
+	lsn, err := m.log.FlushCheckpoint(ctx, now, m.Active()...)
 	if err != nil {
 		return err
 	}

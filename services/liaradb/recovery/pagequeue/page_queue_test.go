@@ -123,14 +123,17 @@ func TestPageQueue(t *testing.T) {
 
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+			pq.Run(t.Context())
 
 			if err := pq.Append(rc); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := pq.Flush(); err != nil {
+			if err := pq.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
+
+			synctest.Wait()
 
 			if ps.syncCount != 1 {
 				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
@@ -156,7 +159,7 @@ func TestPageQueue(t *testing.T) {
 
 			ps.errorOnSync = true
 
-			if err := pq.Flush(); err == nil {
+			if err := pq.Flush(t.Context()); err == nil {
 				t.Error("should return error")
 			}
 		})
@@ -169,6 +172,7 @@ func TestPageQueue(t *testing.T) {
 
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+			pq.Run(t.Context())
 
 			for range 6 {
 				if err := pq.Append(rc); err != nil {
@@ -176,9 +180,11 @@ func TestPageQueue(t *testing.T) {
 				}
 			}
 
-			if err := pq.Flush(); err != nil {
+			if err := pq.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
+
+			synctest.Wait()
 
 			if ps.syncCount != 1 {
 				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
@@ -197,6 +203,7 @@ func TestPageQueue(t *testing.T) {
 
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+			pq.Run(t.Context())
 
 			for range 6 {
 				if err := pq.Append(rc); err != nil {
@@ -205,13 +212,13 @@ func TestPageQueue(t *testing.T) {
 			}
 
 			ps.errorOnSync = true
-			if err := pq.Flush(); err == nil {
+			if err := pq.Flush(t.Context()); err == nil {
 				t.Error("should return error")
 			}
 
 			ps.errorOnSync = false
 			ps.errorOnAppend = true
-			if err := pq.Flush(); err == nil {
+			if err := pq.Flush(t.Context()); err == nil {
 				t.Error("should return error")
 			}
 		})
@@ -224,6 +231,7 @@ func TestPageQueue(t *testing.T) {
 
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+			pq.Run(t.Context())
 
 			for range 6 {
 				if err := pq.Append(rc); err != nil {

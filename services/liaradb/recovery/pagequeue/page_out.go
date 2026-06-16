@@ -70,7 +70,7 @@ func (po *PageOut) push(p *page.Page) {
 
 // # Flushing
 //   - Flush entire queue to Disk, including Current
-func (po *PageOut) Flush(current *page.Page) error {
+func (po *PageOut) Flush(ctx context.Context, current *page.Page) error {
 	po.syncShadow(current)
 
 	if po.list.Len() == 0 {

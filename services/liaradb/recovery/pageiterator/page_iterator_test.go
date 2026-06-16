@@ -44,6 +44,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pq := pagequeue.New(ps, size, headerSize, slotSize)
+			pq.Run(t.Context())
 
 			numberOfRecords := 100
 
@@ -54,9 +55,11 @@ func TestPageIterator(t *testing.T) {
 				}
 			}
 
-			if err := pq.Flush(); err != nil {
+			if err := pq.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
+
+			synctest.Wait()
 
 			if err := sl.Close(); err != nil {
 				t.Error(err)
@@ -105,6 +108,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pq := pagequeue.New(ps, size, headerSize, slotSize)
+			pq.Run(t.Context())
 
 			numberOfRecords := 100
 
@@ -115,9 +119,11 @@ func TestPageIterator(t *testing.T) {
 				}
 			}
 
-			if err := pq.Flush(); err != nil {
+			if err := pq.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
+
+			synctest.Wait()
 
 			if err := sl.Close(); err != nil {
 				t.Error(err)

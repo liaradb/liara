@@ -13,12 +13,6 @@ type WriteQueue struct {
 	fl    Flusher
 }
 
-type queueItem struct {
-	lsn  record.LogSequenceNumber
-	page *page.Page
-	sync bool
-}
-
 type Flusher interface {
 	OnFlush(record.LogSequenceNumber)
 	OnError(error) bool
@@ -77,9 +71,9 @@ func (wq *WriteQueue) notifyFlush(qi queueItem) {
 }
 
 func (wq *WriteQueue) Append(lsn record.LogSequenceNumber, p *page.Page) {
-	wq.items <- queueItem{lsn, p, false}
+	wq.items <- newAppendQueueItem(lsn, p)
 }
 
 func (wq *WriteQueue) Sync(lsn record.LogSequenceNumber, p *page.Page) {
-	wq.items <- queueItem{lsn, p, true}
+	wq.items <- newSyncQueueItem(lsn, p)
 }

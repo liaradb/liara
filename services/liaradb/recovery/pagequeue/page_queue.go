@@ -85,8 +85,8 @@ func (pq *PageQueue) Count() int {
 
 // # Flushing
 //   - Flush entire queue to Disk, including Current
-func (pq *PageQueue) Flush() error {
-	return pq.po.Flush(pq.current)
+func (pq *PageQueue) Flush(ctx context.Context) error {
+	return pq.po.Flush(ctx, pq.current)
 }
 
 func (pq *PageQueue) OnFlush(record.LogSequenceNumber) {

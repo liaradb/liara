@@ -135,7 +135,7 @@ func (a *Application) listen(ctx context.Context) error {
 //   - Flush Buffers
 func (a *Application) close(ctx context.Context) {
 	slog.Info("flushing...")
-	if err := a.txManager.Shutdown(time.Now()); err != nil {
+	if err := a.txManager.Shutdown(ctx, time.Now()); err != nil {
 		slog.Error("unable to flush",
 			"error", err)
 	} else {
