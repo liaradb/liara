@@ -18,12 +18,6 @@ type PageOut struct {
 	lsn    record.LogSequenceNumber
 }
 
-type PageStorage interface {
-	Sync([]byte) error
-	Append(record.LogSequenceNumber, []byte) error
-	Init([]byte) error
-}
-
 func newPageOut(ps PageStorage, fl Flusher, pool *Pool) PageOut {
 	return PageOut{
 		pool:   pool,

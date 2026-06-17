@@ -13,6 +13,12 @@ type WriteQueue struct {
 	fl    Flusher
 }
 
+type PageStorage interface {
+	Sync([]byte) error
+	Append(record.LogSequenceNumber, []byte) error
+	Init([]byte) error
+}
+
 type Flusher interface {
 	OnFlush(record.LogSequenceNumber)
 	OnError(error) bool
