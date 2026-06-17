@@ -107,7 +107,7 @@ func (l *Log) run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case r := <-l.appendReqs:
-			l.appendRequest(r)
+			l.appendRequest(ctx, r)
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
 		case r := <-l.syncReqs:
@@ -146,9 +146,9 @@ func (l *Log) appendRecord(
 	})
 }
 
-func (l *Log) appendRequest(r *appendRequest) {
+func (l *Log) appendRequest(ctx context.Context, r *appendRequest) {
 	v := r.Value()
-	lsn, err := l.append(v.tid, v.txid, v.time, v.action, v.collection, v.data, v.reverse)
+	lsn, err := l.append(ctx, v.tid, v.txid, v.time, v.action, v.collection, v.data, v.reverse)
 	r.Reply(lsn, err)
 }
 
@@ -158,6 +158,7 @@ func (l *Log) appendRequest(r *appendRequest) {
 //   - For every page after, push new page to disk
 //   - For last page, store that as current
 func (l *Log) append(
+	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
 	time time.Time,
@@ -169,7 +170,7 @@ func (l *Log) append(
 	h := l.highWater.Increment()
 	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
 
-	if err := l.pq.Append(rc); err != nil {
+	if err := l.pq.Append(ctx, rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
 
@@ -376,6 +377,7 @@ func (l *Log) FlushCheckpoint(
 ) (record.LogSequenceNumber, error) {
 	data := l.txIDsToData(txids)
 	lsn, err := l.append(
+		ctx,
 		value.TenantID{},
 		record.TransactionID{},
 		now,

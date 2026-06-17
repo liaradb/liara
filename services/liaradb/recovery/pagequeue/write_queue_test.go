@@ -29,8 +29,8 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 	wq.Run(t.Context())
 
 	wg.Add(1)
-	wq.Append(record.NewLogSequenceNumber(0), page.New(128, 16, 8))
-	wq.Append(record.NewLogSequenceNumber(1), page.New(128, 16, 8))
+	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.New(128, 16, 8))
+	wq.Append(t.Context(), record.NewLogSequenceNumber(1), page.New(128, 16, 8))
 	wg.Wait()
 
 	if ps.appendCount != 2 {

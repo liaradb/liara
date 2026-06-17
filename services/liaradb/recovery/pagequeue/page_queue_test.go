@@ -32,7 +32,7 @@ func TestPageQueue(t *testing.T) {
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
@@ -98,15 +98,15 @@ func TestPageQueue(t *testing.T) {
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
@@ -125,7 +125,7 @@ func TestPageQueue(t *testing.T) {
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
 			pq.Run(t.Context())
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
@@ -152,8 +152,9 @@ func TestPageQueue(t *testing.T) {
 
 			ps := &testPageStorage{}
 			pq := New(ps, largePageSize, headerSize, slotHeaderSize)
+			pq.Run(t.Context())
 
-			if err := pq.Append(rc); err != nil {
+			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
 			}
 
@@ -175,7 +176,7 @@ func TestPageQueue(t *testing.T) {
 			pq.Run(t.Context())
 
 			for range 6 {
-				if err := pq.Append(rc); err != nil {
+				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -206,7 +207,7 @@ func TestPageQueue(t *testing.T) {
 			pq.Run(t.Context())
 
 			for range 6 {
-				if err := pq.Append(rc); err != nil {
+				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -234,7 +235,7 @@ func TestPageQueue(t *testing.T) {
 			pq.Run(t.Context())
 
 			for range 6 {
-				if err := pq.Append(rc); err != nil {
+				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Fatal(err)
 				}
 			}

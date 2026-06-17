@@ -50,7 +50,7 @@ func TestPageIterator(t *testing.T) {
 
 			for i := range numberOfRecords {
 				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
-				if err := pq.Append(rc); err != nil {
+				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Error(err)
 				}
 			}
@@ -114,7 +114,7 @@ func TestPageIterator(t *testing.T) {
 
 			for i := range numberOfRecords {
 				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
-				if err := pq.Append(rc); err != nil {
+				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Error(err)
 				}
 			}

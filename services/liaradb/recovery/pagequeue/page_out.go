@@ -36,6 +36,7 @@ func (po *PageOut) Count() int {
 }
 
 func (po *PageOut) Append(
+	ctx context.Context,
 	lsn record.LogSequenceNumber,
 	pgs ...*page.Page,
 ) (*page.Page, bool) {

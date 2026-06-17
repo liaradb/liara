@@ -48,7 +48,7 @@ func (pq *PageQueue) Run(ctx context.Context) {
 //   - Append Record as Span to the list
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
-func (pq *PageQueue) Append(rc *record.Record) error {
+func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 	t := NewTip(&pq.pool, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
@@ -60,12 +60,12 @@ func (pq *PageQueue) Append(rc *record.Record) error {
 		return ErrUnableToAppend
 	}
 
-	pq.appendPages(rc.LogSequenceNumber(), pgs)
+	pq.appendPages(ctx, rc.LogSequenceNumber(), pgs)
 	return nil
 }
 
-func (pq *PageQueue) appendPages(lsn record.LogSequenceNumber, pgs []*page.Page) {
-	c, ok := pq.po.Append(lsn, pgs...)
+func (pq *PageQueue) appendPages(ctx context.Context, lsn record.LogSequenceNumber, pgs []*page.Page) {
+	c, ok := pq.po.Append(ctx, lsn, pgs...)
 	if ok {
 		pq.replaceCurrent(c)
 	}

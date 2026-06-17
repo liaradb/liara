@@ -76,10 +76,18 @@ func (wq *WriteQueue) notifyFlush(qi queueItem) {
 	}
 }
 
-func (wq *WriteQueue) Append(lsn record.LogSequenceNumber, p *page.Page) {
+func (wq *WriteQueue) Append(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	p *page.Page,
+) {
 	wq.items <- newAppendQueueItem(lsn, p)
 }
 
-func (wq *WriteQueue) Sync(lsn record.LogSequenceNumber, p *page.Page) {
+func (wq *WriteQueue) Sync(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	p *page.Page,
+) {
 	wq.items <- newSyncQueueItem(lsn, p)
 }
