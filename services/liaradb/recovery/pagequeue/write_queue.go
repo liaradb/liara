@@ -10,7 +10,11 @@ import (
 type WriteQueue struct {
 	items chan queueItem
 	ps    PageStorage
-	fl    Flusher
+}
+
+type queueItem interface {
+	Wait(context.Context) error
+	Store(PageStorage) error
 }
 
 type PageStorage interface {
@@ -19,20 +23,13 @@ type PageStorage interface {
 	Init([]byte) error
 }
 
-type Flusher interface {
-	OnFlush(record.LogSequenceNumber)
-	OnError(error) bool
-}
-
 func newWriteQueue(
 	size int,
 	ps PageStorage,
-	fl Flusher,
 ) *WriteQueue {
 	return &WriteQueue{
 		items: make(chan queueItem, size),
 		ps:    ps,
-		fl:    fl,
 	}
 }
 
@@ -40,40 +37,21 @@ func (wq *WriteQueue) Run(ctx context.Context) {
 	go wq.run(ctx)
 }
 
-func (wq *WriteQueue) run(ctx context.Context) {
+func (wq *WriteQueue) run(ctx context.Context) error {
 	for {
 		select {
 		case qi := <-wq.items:
-			if !wq.runItem(qi) {
-				return
+			if err := wq.runItem(qi); err != nil {
+				return err
 			}
 		case <-ctx.Done():
-			return
+			return nil
 		}
 	}
 }
 
-func (wq *WriteQueue) runItem(qi queueItem) bool {
-	if err := wq.storeItem(qi); err != nil {
-		return wq.fl.OnError(err)
-	}
-
-	wq.notifyFlush(qi)
-	return true
-}
-
-func (wq *WriteQueue) storeItem(qi queueItem) error {
-	if qi.sync {
-		return wq.ps.Sync(qi.page.Data())
-	}
-
-	return wq.ps.Append(qi.lsn, qi.page.Data())
-}
-
-func (wq *WriteQueue) notifyFlush(qi queueItem) {
-	if qi.lsn.Value() != 0 {
-		wq.fl.OnFlush(qi.lsn)
-	}
+func (wq *WriteQueue) runItem(qi queueItem) error {
+	return qi.Store(wq.ps)
 }
 
 func (wq *WriteQueue) Append(
@@ -81,13 +59,23 @@ func (wq *WriteQueue) Append(
 	lsn record.LogSequenceNumber,
 	p *page.Page,
 ) {
-	wq.items <- newAppendQueueItem(lsn, p)
+	select {
+	case wq.items <- newAppendQueueItem(lsn, p):
+	case <-ctx.Done():
+	}
 }
 
 func (wq *WriteQueue) Sync(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
 	p *page.Page,
-) {
-	wq.items <- newSyncQueueItem(lsn, p)
+) error {
+	qi := newSyncQueueItem(p)
+
+	select {
+	case wq.items <- qi:
+	case <-ctx.Done():
+	}
+
+	return qi.Wait(ctx)
 }

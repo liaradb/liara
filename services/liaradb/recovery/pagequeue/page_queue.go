@@ -29,7 +29,7 @@ func New(
 }
 
 func (pq *PageQueue) init(ps PageStorage) {
-	pq.po = newPageOut(ps, pq, &pq.pool)
+	pq.po = newPageOut(ps, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 
@@ -87,12 +87,4 @@ func (pq *PageQueue) Count() int {
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
 	return pq.po.Flush(ctx, pq.current)
-}
-
-func (pq *PageQueue) OnFlush(record.LogSequenceNumber) {
-
-}
-
-func (pq *PageQueue) OnError(error) bool {
-	return true
 }

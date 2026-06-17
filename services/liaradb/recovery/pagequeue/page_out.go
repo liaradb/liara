@@ -18,11 +18,11 @@ type PageOut struct {
 	lsn    record.LogSequenceNumber
 }
 
-func newPageOut(ps PageStorage, fl Flusher, pool *Pool) PageOut {
+func newPageOut(ps PageStorage, pool *Pool) PageOut {
 	return PageOut{
 		pool:   pool,
 		ps:     ps,
-		wq:     newWriteQueue(100, ps, fl),
+		wq:     newWriteQueue(100, ps),
 		shadow: pool.Get(),
 	}
 }
