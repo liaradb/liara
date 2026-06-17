@@ -37,8 +37,9 @@ func (pq *PageQueue) Init(data []byte) {
 	pq.current.Fill(data)
 }
 
-func (pq *PageQueue) Run(ctx context.Context) {
-	pq.po.Run(ctx)
+// TODO: Test this error
+func (pq *PageQueue) Run(ctx context.Context) error {
+	return pq.po.Run(ctx)
 }
 
 // # Append

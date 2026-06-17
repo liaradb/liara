@@ -27,8 +27,8 @@ func newPageOut(ps PageStorage, pool *Pool) PageOut {
 	}
 }
 
-func (po *PageOut) Run(ctx context.Context) {
-	po.wq.Run(ctx)
+func (po *PageOut) Run(ctx context.Context) error {
+	return po.wq.Run(ctx)
 }
 
 func (po *PageOut) Count() int {

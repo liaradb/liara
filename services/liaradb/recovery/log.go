@@ -94,8 +94,6 @@ func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
 func (l *Log) run(ctx context.Context) {
-	l.pq.Run(ctx)
-
 	timer := time.NewTimer(interval)
 	defer timer.Stop()
 
@@ -303,6 +301,9 @@ func (l *Log) Open(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	l.cancel = cancel
 	go l.run(ctx)
+	go func() {
+		_ = l.pq.Run(ctx)
+	}()
 	return nil
 }
 

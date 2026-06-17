@@ -44,7 +44,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pq := pagequeue.New(ps, size, headerSize, slotSize)
-			pq.Run(t.Context())
+			go pq.Run(t.Context())
 
 			numberOfRecords := 100
 
@@ -108,7 +108,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pq := pagequeue.New(ps, size, headerSize, slotSize)
-			pq.Run(t.Context())
+			go pq.Run(t.Context())
 
 			numberOfRecords := 100
 

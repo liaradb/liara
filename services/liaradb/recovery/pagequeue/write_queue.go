@@ -33,11 +33,7 @@ func newWriteQueue(
 	}
 }
 
-func (wq *WriteQueue) Run(ctx context.Context) {
-	go wq.run(ctx)
-}
-
-func (wq *WriteQueue) run(ctx context.Context) error {
+func (wq *WriteQueue) Run(ctx context.Context) error {
 	for {
 		select {
 		case qi := <-wq.items:

@@ -16,7 +16,7 @@ func TestWriteQueue(t *testing.T) {
 func testWriteQueueTestWriteQueue(t *testing.T) {
 	ps := &testPageStorage{}
 	wq := newWriteQueue(10, ps)
-	wq.Run(t.Context())
+	go wq.Run(t.Context())
 
 	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.New(128, 16, 8))
 	wq.Append(t.Context(), record.NewLogSequenceNumber(1), page.New(128, 16, 8))
