@@ -1,12 +1,12 @@
-package pagequeue
+package pagepool
 
 import (
 	"slices"
 	"testing"
 )
 
-func TestPool(t *testing.T) {
-	pp := NewPool(1024, 8, 4)
+func TestPagePool(t *testing.T) {
+	pp := New(1024, 8, 4)
 
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	empty := make([]byte, 8)

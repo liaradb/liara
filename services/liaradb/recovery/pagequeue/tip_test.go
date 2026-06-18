@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 )
 
 const (
@@ -15,7 +16,7 @@ const (
 
 func TestTip(t *testing.T) {
 	t.Parallel()
-	pool := NewPool(pageSize, headerSize, slotHeaderSize)
+	pool := pagepool.New(pageSize, headerSize, slotHeaderSize)
 
 	current := page.New(pageSize, headerSize, slotHeaderSize)
 	tip := NewTip(&pool, current)

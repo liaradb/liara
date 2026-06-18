@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
 type PageQueue struct {
-	pool    Pool
+	pool    pagepool.PagePool
 	current *page.Page
 	po      PageOut
 }
@@ -21,7 +22,7 @@ func New(
 	slotHeaderSize int16,
 ) *PageQueue {
 	pq := &PageQueue{
-		pool: NewPool(size, headerSize, slotHeaderSize),
+		pool: pagepool.New(size, headerSize, slotHeaderSize),
 	}
 
 	pq.init(ps)

@@ -4,7 +4,7 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/recovery/pagequeue"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
@@ -13,7 +13,7 @@ import (
 type PageIterator struct {
 	size int16
 	sl   *segment.List
-	pool pagequeue.Pool
+	pool pagepool.PagePool
 }
 
 func New(
@@ -25,7 +25,7 @@ func New(
 	return &PageIterator{
 		size: size,
 		sl:   sl,
-		pool: pagequeue.NewPool(size, headerSize, slotHeaderSize),
+		pool: pagepool.New(size, headerSize, slotHeaderSize),
 	}
 }
 

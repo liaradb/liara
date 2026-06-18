@@ -5,13 +5,14 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/writequeue"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type PageOut struct {
-	pool   *Pool
+	pool   *pagepool.PagePool
 	shadow *page.Page
 	list   list.List
 	ps     PageStorage
@@ -26,7 +27,7 @@ type PageStorage interface {
 	Init([]byte) error
 }
 
-func newPageOut(ps PageStorage, pool *Pool) PageOut {
+func newPageOut(ps PageStorage, pool *pagepool.PagePool) PageOut {
 	return PageOut{
 		pool:   pool,
 		ps:     ps,

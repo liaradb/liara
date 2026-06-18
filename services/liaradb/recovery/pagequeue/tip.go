@@ -2,17 +2,18 @@ package pagequeue
 
 import (
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type Tip struct {
-	pool    *Pool
+	pool    *pagepool.PagePool
 	current *page.Page
 	pages   []*page.Page
 	sizes   []int16
 }
 
-func NewTip(pool *Pool, current *page.Page) Tip {
+func NewTip(pool *pagepool.PagePool, current *page.Page) Tip {
 	return Tip{
 		pool:    pool,
 		current: current,
