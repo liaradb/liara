@@ -73,7 +73,6 @@ func (wq *WriteQueue) Append(
 
 func (wq *WriteQueue) Sync(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
 	p *page.Page,
 ) error {
 	qi := newSyncQueueItem(p)

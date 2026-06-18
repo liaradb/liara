@@ -23,7 +23,7 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 
 	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.New(128, 16, 8))
 	wq.Append(t.Context(), record.NewLogSequenceNumber(1), page.New(128, 16, 8))
-	if err := wq.Sync(t.Context(), record.NewLogSequenceNumber(2), page.New(128, 16, 8)); err != nil {
+	if err := wq.Sync(t.Context(), page.New(128, 16, 8)); err != nil {
 		t.Fatal(err)
 	}
 
