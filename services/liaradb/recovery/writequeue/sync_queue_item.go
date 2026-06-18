@@ -34,3 +34,7 @@ func (qi *syncQueueItem) Store(ps PageStorage) error {
 	qi.reply <- err
 	return err
 }
+
+func (qi *syncQueueItem) Page() *page.Page {
+	return qi.page
+}

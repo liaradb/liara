@@ -4,17 +4,20 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type WriteQueue struct {
 	items chan queueItem
 	ps    PageStorage
+	pool  *pagepool.PagePool
 }
 
 type queueItem interface {
 	Wait(context.Context) error
 	Store(PageStorage) error
+	Page() *page.Page
 }
 
 type PageStorage interface {
@@ -26,10 +29,12 @@ type PageStorage interface {
 func New(
 	size int,
 	ps PageStorage,
+	pool *pagepool.PagePool,
 ) *WriteQueue {
 	return &WriteQueue{
 		items: make(chan queueItem, size),
 		ps:    ps,
+		pool:  pool,
 	}
 }
 
@@ -46,9 +51,13 @@ func (wq *WriteQueue) Run(ctx context.Context) error {
 	}
 }
 
-// TODO: Return Page to Pool after it is stored
 func (wq *WriteQueue) run(qi queueItem) error {
-	return qi.Store(wq.ps)
+	if err := qi.Store(wq.ps); err != nil {
+		return err
+	}
+
+	wq.pool.Put(qi.Page())
+	return nil
 }
 
 func (wq *WriteQueue) Append(

@@ -29,3 +29,7 @@ func (*appendQueueItem) Wait(context.Context) error {
 func (qi *appendQueueItem) Store(ps PageStorage) error {
 	return ps.Append(qi.lsn, qi.page.Data())
 }
+
+func (qi *appendQueueItem) Page() *page.Page {
+	return qi.page
+}

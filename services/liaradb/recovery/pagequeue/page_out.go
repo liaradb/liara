@@ -31,7 +31,7 @@ func newPageOut(ps PageStorage, pool *pagepool.PagePool) PageOut {
 	return PageOut{
 		pool:   pool,
 		ps:     ps,
-		wq:     writequeue.New(100, ps),
+		wq:     writequeue.New(100, ps, pool),
 		shadow: pool.Get(),
 	}
 }
