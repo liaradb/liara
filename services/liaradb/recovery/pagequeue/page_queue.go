@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
 type PageQueue struct {
@@ -58,7 +59,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 
 	pgs, ok := t.Commit()
 	if !ok {
-		return ErrUnableToAppend
+		return writequeue.ErrUnableToAppend
 	}
 
 	pq.appendPages(ctx, rc.LogSequenceNumber(), pgs)

@@ -1,4 +1,4 @@
-package pagequeue
+package writequeue
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type PageStorage interface {
 	Init([]byte) error
 }
 
-func newWriteQueue(
+func New(
 	size int,
 	ps PageStorage,
 ) *WriteQueue {
@@ -37,7 +37,7 @@ func (wq *WriteQueue) Run(ctx context.Context) error {
 	for {
 		select {
 		case qi := <-wq.items:
-			if err := wq.runItem(qi); err != nil {
+			if err := wq.run(qi); err != nil {
 				return err
 			}
 		case <-ctx.Done():
@@ -46,7 +46,7 @@ func (wq *WriteQueue) Run(ctx context.Context) error {
 	}
 }
 
-func (wq *WriteQueue) runItem(qi queueItem) error {
+func (wq *WriteQueue) run(qi queueItem) error {
 	return qi.Store(wq.ps)
 }
 

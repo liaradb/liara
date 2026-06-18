@@ -1,6 +1,7 @@
-package pagequeue
+package writequeue
 
 import (
+	"io"
 	"testing"
 	"testing/synctest"
 
@@ -15,7 +16,7 @@ func TestWriteQueue(t *testing.T) {
 
 func testWriteQueueTestWriteQueue(t *testing.T) {
 	ps := &testPageStorage{}
-	wq := newWriteQueue(10, ps)
+	wq := New(10, ps)
 	go wq.Run(t.Context())
 
 	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.New(128, 16, 8))
@@ -32,3 +33,34 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 		t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
 	}
 }
+
+type testPageStorage struct {
+	errorOnAppend bool
+	errorOnSync   bool
+	syncCount     int
+	appendCount   int
+}
+
+func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
+	if t.errorOnAppend {
+		return ErrUnableToAppend
+	}
+
+	t.appendCount++
+	return nil
+}
+
+func (t *testPageStorage) Init([]byte) error {
+	return nil
+}
+
+func (t *testPageStorage) Sync([]byte) error {
+	if t.errorOnSync {
+		return io.ErrShortWrite
+	}
+
+	t.syncCount++
+	return nil
+}
+
+var _ PageStorage = &testPageStorage{}

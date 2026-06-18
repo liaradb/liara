@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
+	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
 func TestPageQueue(t *testing.T) {
@@ -257,7 +258,7 @@ type testPageStorage struct {
 
 func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
 	if t.errorOnAppend {
-		return ErrUnableToAppend
+		return writequeue.ErrUnableToAppend
 	}
 
 	t.appendCount++

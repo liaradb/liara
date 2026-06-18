@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/writequeue"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
@@ -14,15 +15,22 @@ type PageOut struct {
 	shadow *page.Page
 	list   list.List
 	ps     PageStorage
-	wq     *WriteQueue
+	wq     *writequeue.WriteQueue
 	lsn    record.LogSequenceNumber
+}
+
+// TODO: This is a duplicate
+type PageStorage interface {
+	Sync([]byte) error
+	Append(record.LogSequenceNumber, []byte) error
+	Init([]byte) error
 }
 
 func newPageOut(ps PageStorage, pool *Pool) PageOut {
 	return PageOut{
 		pool:   pool,
 		ps:     ps,
-		wq:     newWriteQueue(100, ps),
+		wq:     writequeue.New(100, ps),
 		shadow: pool.Get(),
 	}
 }
