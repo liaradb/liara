@@ -156,30 +156,44 @@ func TestList_IterateFromLSN(t *testing.T) {
 	sn0 := NewSegmentName(1, record.NewLogSequenceNumber(10))
 	sn1 := NewSegmentName(2, record.NewLogSequenceNumber(20))
 	sn2 := NewSegmentName(3, record.NewLogSequenceNumber(30))
-	names := []SegmentName{sn0, sn1, sn2}
-	fsys := filetesting.New(fstest.MapFS{
-		createPath(dir, sn0): {},
-		createPath(dir, sn1): {},
-		createPath(dir, sn2): {},
-	})
-	sl := NewList(fsys, dir, 128, 128)
 
-	c := 0
-	n := make([]SegmentName, 0, 3)
-	for f, err := range sl.IterateFromLSN(record.NewLogSequenceNumber(10)) {
-		if err != nil {
-			t.Fatal(err)
-		}
+	for message, c := range map[string]struct {
+		skip   bool
+		names  []SegmentName
+		result []SegmentName
+	}{
+		"should find a segment name": {
+			names:  []SegmentName{sn0, sn1, sn2},
+			result: []SegmentName{sn0, sn1, sn2},
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
 
-		m, _ := f.Stat()
-		n = append(n, ParseSegmentName(m.Name()))
-		c++
-	}
-	if c != 3 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 3)
-	}
-	if !slices.Equal(names, n) {
-		t.Error("names do not match")
+			m := fstest.MapFS{}
+			for _, sn := range c.names {
+				m[createPath(dir, sn)] = &fstest.MapFile{}
+			}
+			fsys := filetesting.New(m)
+			sl := NewList(fsys, dir, 128, 128)
+
+			var n []SegmentName
+			for f, err := range sl.IterateFromLSN(record.NewLogSequenceNumber(10)) {
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				m, _ := f.Stat()
+				n = append(n, ParseSegmentName(m.Name()))
+			}
+
+			if !slices.Equal(c.result, n) {
+				t.Error("names do not match")
+			}
+		})
 	}
 }
 
