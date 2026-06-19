@@ -58,6 +58,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 		return err
 	}
 
+	s.Commit()
 	pgs, ok := t.Commit()
 	if !ok {
 		return writequeue.ErrUnableToAppend

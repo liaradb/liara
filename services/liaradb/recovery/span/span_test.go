@@ -36,6 +36,7 @@ func TestSpan_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	s.Commit()
 	if err := s.SeekStart(); err != nil {
 		t.Fatal(err)
 	}

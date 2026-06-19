@@ -82,3 +82,9 @@ func (s Span) SeekStart() error {
 
 	return nil
 }
+
+func (s Span) Commit() {
+	for _, f := range s.fragments {
+		f.commit()
+	}
+}

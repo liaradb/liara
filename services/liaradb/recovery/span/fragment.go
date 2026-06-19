@@ -54,14 +54,10 @@ func (f Fragment) setIndex(v int16) {
 	f.index.Set(v)
 }
 
-func (f Fragment) Read(p []byte) (n int, err error) {
+func (f Fragment) Read(p []byte) (int, error) {
 	return f.buffer.Read(p)
 }
 
-func (f Fragment) Write(p []byte) (n int, err error) {
-	n, err = f.buffer.Write(p)
-	if err == nil {
-		f.commit()
-	}
-	return
+func (f Fragment) Write(p []byte) (int, error) {
+	return f.buffer.Write(p)
 }
