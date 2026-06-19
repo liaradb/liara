@@ -52,10 +52,6 @@ func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
 	return ps.write(data)
 }
 
-func (ps *PageStorage) Sync(data []byte) error {
-	return ps.write(data)
-}
-
 func (ps *PageStorage) nextPage(lsn record.LogSequenceNumber) error {
 	if ps.f.NextPage() {
 		return nil
@@ -72,6 +68,10 @@ func (ps *PageStorage) nextSegment(lsn record.LogSequenceNumber) error {
 
 	ps.f = f
 	return nil
+}
+
+func (ps *PageStorage) Sync(data []byte) error {
+	return ps.write(data)
 }
 
 func (ps *PageStorage) write(data []byte) error {

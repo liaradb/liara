@@ -33,7 +33,6 @@ func TestPageIterator(t *testing.T) {
 			const (
 				size       = 128
 				headerSize = 4
-				slotSize   = 8
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
@@ -43,7 +42,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize, slotSize)
+			pq := pagequeue.New(ps, size, headerSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -51,27 +50,27 @@ func TestPageIterator(t *testing.T) {
 			for i := range numberOfRecords {
 				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
 				if err := pq.Append(t.Context(), rc); err != nil {
-					t.Error(err)
+					t.Fatal(err)
 				}
 			}
 
 			if err := pq.Flush(t.Context()); err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
 			synctest.Wait()
 
 			if err := sl.Close(); err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, size, headerSize, slotSize)
+			pi := New(sl, size, headerSize)
 
 			c := 0
 			for rc, err := range pi.Forward(record.NewLogSequenceNumber(0)) {
 				if err != nil {
-					t.Error(err)
+					t.Fatal(err)
 				}
 
 				want := uint64(c)
@@ -97,7 +96,6 @@ func TestPageIterator(t *testing.T) {
 			const (
 				size       = 128
 				headerSize = 4
-				slotSize   = 8
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
@@ -107,7 +105,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize, slotSize)
+			pq := pagequeue.New(ps, size, headerSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -130,7 +128,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, size, headerSize, slotSize)
+			pi := New(sl, size, headerSize)
 
 			c := 0
 			reverseIndex := numberOfRecords - 1

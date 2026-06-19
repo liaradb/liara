@@ -5,20 +5,20 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/pagepool"
+	"github.com/liaradb/liaradb/recovery/span"
 )
 
 const (
-	pageSize       = 64
-	largePageSize  = 256
-	headerSize     = 22
-	slotHeaderSize = 8
+	pageSize      = 64
+	largePageSize = 256
+	headerSize    = 22
 )
 
 func TestTip(t *testing.T) {
 	t.Parallel()
-	pool := pagepool.New(pageSize, headerSize, slotHeaderSize)
+	pool := pagepool.New(pageSize, headerSize, span.FragmentHeaderSize)
 
-	current := page.New(pageSize, headerSize, slotHeaderSize)
+	current := page.New(pageSize, headerSize, span.FragmentHeaderSize)
 	tip := NewTip(&pool, current)
 	var want int16 = 128
 	s := tip.Span(want)

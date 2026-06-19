@@ -17,7 +17,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
@@ -79,9 +78,9 @@ func NewLog(
 	return &Log{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize, span.FragmentHeaderSize),
+		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize),
 		ps:            ps,
-		it:            pageiterator.New(sl, int16(pageSize), page.HeaderSize, span.FragmentHeaderSize),
+		it:            pageiterator.New(sl, int16(pageSize), page.HeaderSize),
 		appendReqs:    make(chan *appendRequest),
 		flushReqs:     make(chan *flushRequest),
 		syncReqs:      make(chan *syncRequest),

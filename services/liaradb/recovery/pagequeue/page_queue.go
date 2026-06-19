@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
@@ -19,10 +20,9 @@ func New(
 	ps PageStorage,
 	size int16,
 	headerSize int16,
-	slotHeaderSize int16,
 ) *PageQueue {
 	pq := &PageQueue{
-		pool: pagepool.New(size, headerSize, slotHeaderSize),
+		pool: pagepool.New(size, headerSize, span.FragmentHeaderSize),
 	}
 
 	pq.init(ps)

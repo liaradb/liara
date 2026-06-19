@@ -20,12 +20,11 @@ func New(
 	sl *segment.List,
 	size int16,
 	headerSize int16,
-	slotHeaderSize int16,
 ) *PageIterator {
 	return &PageIterator{
 		size: size,
 		sl:   sl,
-		pool: pagepool.New(size, headerSize, slotHeaderSize),
+		pool: pagepool.New(size, headerSize, span.FragmentHeaderSize),
 	}
 }
 
@@ -112,7 +111,6 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 					}
 					return
 				}
-				p.SlotsReverse()
 
 				for h, d := range p.SlotsReverse() {
 					f := s.Append(h, d)
