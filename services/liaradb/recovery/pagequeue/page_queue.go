@@ -79,14 +79,6 @@ func (pq *PageQueue) replaceCurrent(p *page.Page) {
 	pq.current = p
 }
 
-func (pq *PageQueue) Clear() {
-	pq.po.Clear()
-}
-
-func (pq *PageQueue) Count() int {
-	return pq.po.Count()
-}
-
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
