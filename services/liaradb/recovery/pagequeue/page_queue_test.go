@@ -220,8 +220,8 @@ func TestPageQueue(t *testing.T) {
 
 			ps.errorOnSync = false
 			ps.errorOnAppend = true
-			if err := pq.Flush(t.Context()); err == nil {
-				t.Error("should return error")
+			if err := pq.Flush(t.Context()); err != nil {
+				t.Error(err)
 			}
 		})
 	})

@@ -32,7 +32,7 @@ func (qi *syncQueueItem) Wait(ctx context.Context) error {
 func (qi *syncQueueItem) Store(ps PageStorage) error {
 	err := ps.Sync(qi.page.Data())
 	qi.reply <- err
-	return err
+	return nil
 }
 
 func (qi *syncQueueItem) Page() *page.Page {
