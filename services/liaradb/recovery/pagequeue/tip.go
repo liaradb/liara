@@ -94,8 +94,7 @@ func (t *Tip) commitPage(p *page.Page, i int) bool {
 		return true
 	}
 
-	_, ok := p.Commit(size)
-	return ok
+	return p.Commit(size)
 }
 
 func (t *Tip) abortPages() {

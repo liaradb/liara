@@ -138,17 +138,16 @@ func (p *Page) space() int16 {
 	return max(space, 0)
 }
 
-// TODO: The index returned is unused
-func (p *Page) Commit(size int16) (int16, bool) {
+func (p *Page) Commit(size int16) bool {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
-	i, ok := p.list.Push(start, fullSize)
-	if !ok {
-		return 0, false
+
+	if _, ok := p.list.Push(start, fullSize); !ok {
+		return false
 	}
 
 	p.next = start
-	return i, true
+	return true
 }
 
 func (p *Page) Clear() {

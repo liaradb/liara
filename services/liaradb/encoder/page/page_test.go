@@ -62,12 +62,11 @@ func TestPage_Next(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	i, ok := p.Commit(8)
-	if !ok {
+	if ok := p.Commit(8); !ok {
 		t.Error("should commit")
 	}
 
-	header, data, ok = p.Slot(i)
+	header, data, ok := p.Slot(0)
 	if !ok {
 		t.Error("should get slot")
 	}
@@ -85,7 +84,7 @@ func TestPage_Next__Empty(t *testing.T) {
 	t.Parallel()
 
 	p := New(32, 4, 4)
-	if _, ok := p.Commit(18); !ok {
+	if ok := p.Commit(18); !ok {
 		t.Error("should commit")
 	}
 
@@ -117,12 +116,12 @@ func TestPage_Slot(t *testing.T) {
 	}
 
 	_, _ = p.Next(8)
-	if _, ok := p.Commit(8); !ok {
+	if ok := p.Commit(8); !ok {
 		t.Error("should commit")
 	}
 
 	_, _ = p.Next(8)
-	if _, ok := p.Commit(8); !ok {
+	if ok := p.Commit(8); !ok {
 		t.Error("should commit")
 	}
 
