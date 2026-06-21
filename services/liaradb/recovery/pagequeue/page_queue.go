@@ -22,18 +22,19 @@ func New(
 	ps writequeue.PageStorage,
 	size int16,
 	headerSize int16,
+	writeQueueSize int,
 ) *PageQueue {
 	pq := &PageQueue{
 		pool: pagepool.New(size, headerSize, span.FragmentHeaderSize),
 	}
 
-	pq.init(ps)
+	pq.init(writeQueueSize, ps)
 
 	return pq
 }
 
-func (pq *PageQueue) init(ps writequeue.PageStorage) {
-	pq.wq = writequeue.New(100, ps, &pq.pool)
+func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
+	pq.wq = writequeue.New(writeQueueSize, ps, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 

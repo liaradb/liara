@@ -35,14 +35,22 @@ type Application struct {
 	ot          openTelemetry
 }
 
-func New(conf configuration) *Application {
-	segmentSize := 1024
-	inSize := 100
+const (
+	segmentSize = 1024
+	inSize      = 100
+)
 
+func New(conf configuration) *Application {
 	fsys := filecache.New()
 
 	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
-	log := recovery.NewLog(int64(conf.BlockSize), action.PageID(segmentSize), int64(conf.RecordSize), fsys, path.Join(conf.Directory, "log"))
+	log := recovery.NewLog(
+		int64(conf.BlockSize),
+		action.PageID(segmentSize),
+		int64(conf.RecordSize),
+		conf.WriteQueueSize,
+		fsys,
+		path.Join(conf.Directory, "log"))
 	lt := locktable.New[action.ItemID](inSize)
 
 	return &Application{

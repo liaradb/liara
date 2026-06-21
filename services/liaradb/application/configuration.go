@@ -7,11 +7,12 @@ import (
 )
 
 type configuration struct {
-	Port       int    `yaml:"port" config:"PORT"`
-	Buffers    int    `yaml:"buffers" config:"BUFFERS"`
-	BlockSize  int    `yaml:"blockSize" config:"BLOCK_SIZE"`
-	RecordSize int    `yaml:"recordSize" config:"RECORD_SIZE"`
-	Directory  string `yaml:"directory" config:"DIRECTORY"`
+	Port           int    `yaml:"port" config:"PORT"`
+	Buffers        int    `yaml:"buffers" config:"BUFFERS"`
+	BlockSize      int    `yaml:"blockSize" config:"BLOCK_SIZE"`
+	RecordSize     int    `yaml:"recordSize" config:"RECORD_SIZE"`
+	WriteQueueSize int    `yaml:"writeQueueSize" config:"WRITE_QUEUE_SIZE"`
+	Directory      string `yaml:"directory" config:"DIRECTORY"`
 }
 
 func LoadConfig() (configuration, error) {

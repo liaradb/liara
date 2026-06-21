@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	pageSize      = 64
-	largePageSize = 256
-	headerSize    = 22
+	pageSize       = 64
+	largePageSize  = 256
+	headerSize     = 22
+	writeQueueSize = 100
 )
 
 func TestTip(t *testing.T) {

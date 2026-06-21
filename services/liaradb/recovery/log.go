@@ -70,6 +70,7 @@ func NewLog(
 	pageSize int64,
 	segmentSize action.PageID,
 	maxRecordSize int64,
+	writeQueueSize int,
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
@@ -78,7 +79,7 @@ func NewLog(
 	return &Log{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize),
+		pq:            pagequeue.New(ps, int16(pageSize), page.HeaderSize, writeQueueSize),
 		ps:            ps,
 		it:            pageiterator.New(sl, int16(pageSize), page.HeaderSize),
 		appendReqs:    make(chan *appendRequest),

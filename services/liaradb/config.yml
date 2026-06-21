@@ -2,4 +2,5 @@ port: 50055
 buffers: 200
 blockSize: 4096
 recordSize: 1024
+writeQueueSize: 4096
 directory: .dbdata

@@ -31,8 +31,9 @@ func TestPageIterator(t *testing.T) {
 			dir := "dir"
 
 			const (
-				size       = 128 // TODO: This does not work if the page is too small
-				headerSize = 4
+				size           = 128 // TODO: This does not work if the page is too small
+				headerSize     = 4
+				writeQueueSize = 100
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
@@ -42,7 +43,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize)
+			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -94,8 +95,9 @@ func TestPageIterator(t *testing.T) {
 			dir := "dir"
 
 			const (
-				size       = 80
-				headerSize = 4
+				size           = 80
+				headerSize     = 4
+				writeQueueSize = 100
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
@@ -105,7 +107,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize)
+			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100

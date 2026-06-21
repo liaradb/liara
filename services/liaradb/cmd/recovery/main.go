@@ -38,6 +38,7 @@ func run() error {
 		int64(conf.BlockSize),
 		action.PageID(segmentSize),
 		int64(conf.RecordSize),
+		conf.WriteQueueSize,
 		fsys,
 		path.Join(conf.Directory, "log"))
 
