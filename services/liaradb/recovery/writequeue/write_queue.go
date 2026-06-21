@@ -86,11 +86,21 @@ func (wq *WriteQueue) AppendSync(
 	return qi.Wait(ctx)
 }
 
-func (wq *WriteQueue) Sync(
+func (wq *WriteQueue) Replace(
+	ctx context.Context,
+	p *page.Page,
+) {
+	select {
+	case wq.items <- newReplaceQueueItem(p):
+	case <-ctx.Done():
+	}
+}
+
+func (wq *WriteQueue) ReplaceSync(
 	ctx context.Context,
 	p *page.Page,
 ) error {
-	qi := newSyncQueueItem(p)
+	qi := newReplaceSyncQueueItem(p)
 
 	select {
 	case wq.items <- qi:

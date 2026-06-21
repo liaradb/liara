@@ -23,7 +23,8 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 
 	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.New(128, 16, 8))
 	wq.Append(t.Context(), record.NewLogSequenceNumber(1), page.New(128, 16, 8))
-	if err := wq.Sync(t.Context(), page.New(128, 16, 8)); err != nil {
+	wq.Replace(t.Context(), page.New(128, 16, 8))
+	if err := wq.ReplaceSync(t.Context(), page.New(128, 16, 8)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -35,8 +36,8 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 		t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 2)
 	}
 
-	if ps.syncCount != 1 {
-		t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
+	if ps.syncCount != 2 {
+		t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 2)
 	}
 }
 

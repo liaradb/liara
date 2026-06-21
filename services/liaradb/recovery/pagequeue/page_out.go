@@ -59,7 +59,7 @@ func (po *PageOut) Flush(ctx context.Context, current *page.Page) error {
 	shadow := po.pool.Get()
 	shadow.Fill(current.Data())
 	if po.flushed {
-		return po.wq.Sync(ctx, shadow)
+		return po.wq.ReplaceSync(ctx, shadow)
 	}
 
 	if err := po.wq.AppendSync(ctx, po.lsn, shadow); err != nil {

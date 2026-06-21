@@ -6,21 +6,21 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
-type syncQueueItem struct {
+type replaceSyncQueueItem struct {
 	page  *page.Page
 	reply chan error
 }
 
-func newSyncQueueItem(
+func newReplaceSyncQueueItem(
 	page *page.Page,
-) *syncQueueItem {
-	return &syncQueueItem{
+) *replaceSyncQueueItem {
+	return &replaceSyncQueueItem{
 		page:  page,
 		reply: make(chan error, 1),
 	}
 }
 
-func (qi *syncQueueItem) Wait(ctx context.Context) error {
+func (qi *replaceSyncQueueItem) Wait(ctx context.Context) error {
 	select {
 	case err := <-qi.reply:
 		return err
@@ -29,12 +29,12 @@ func (qi *syncQueueItem) Wait(ctx context.Context) error {
 	}
 }
 
-func (qi *syncQueueItem) Store(ps PageStorage) error {
+func (qi *replaceSyncQueueItem) Store(ps PageStorage) error {
 	err := ps.Replace(qi.page.Data())
 	qi.reply <- err
 	return nil
 }
 
-func (qi *syncQueueItem) Page() *page.Page {
+func (qi *replaceSyncQueueItem) Page() *page.Page {
 	return qi.page
 }
