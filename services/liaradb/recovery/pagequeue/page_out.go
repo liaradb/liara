@@ -45,7 +45,8 @@ func (po *PageOut) Append(
 		return nil, false
 	}
 
-	for _, p := range pgs[:l-1] {
+	po.appendCurrent(ctx, lsn, pgs[0])
+	for _, p := range pgs[1 : l-1] {
 		po.wq.Append(ctx, lsn, p)
 	}
 
@@ -53,6 +54,14 @@ func (po *PageOut) Append(
 	po.lsn = lsn
 
 	return pgs[l-1], true
+}
+
+func (po *PageOut) appendCurrent(ctx context.Context, lsn record.LogSequenceNumber, current *page.Page) {
+	if po.flushed {
+		po.wq.Replace(ctx, current)
+	} else {
+		po.wq.Append(ctx, lsn, current)
+	}
 }
 
 func (po *PageOut) Flush(ctx context.Context, current *page.Page) error {
