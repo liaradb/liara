@@ -27,7 +27,11 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if ps.appendCount != 2 {
+	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), page.New(128, 16, 8)); err != nil {
+		t.Fatal(err)
+	}
+
+	if ps.appendCount != 3 {
 		t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 2)
 	}
 
