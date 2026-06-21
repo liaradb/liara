@@ -70,7 +70,7 @@ func (ps *PageStorage) nextSegment(lsn record.LogSequenceNumber) error {
 	return nil
 }
 
-func (ps *PageStorage) Sync(data []byte) error {
+func (ps *PageStorage) Replace(data []byte) error {
 	return ps.write(data)
 }
 

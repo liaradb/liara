@@ -21,7 +21,7 @@ type queueItem interface {
 }
 
 type PageStorage interface {
-	Sync([]byte) error
+	Replace([]byte) error
 	Append(record.LogSequenceNumber, []byte) error
 	Init([]byte) error
 }

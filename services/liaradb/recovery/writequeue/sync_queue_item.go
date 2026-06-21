@@ -30,7 +30,7 @@ func (qi *syncQueueItem) Wait(ctx context.Context) error {
 }
 
 func (qi *syncQueueItem) Store(ps PageStorage) error {
-	err := ps.Sync(qi.page.Data())
+	err := ps.Replace(qi.page.Data())
 	qi.reply <- err
 	return nil
 }

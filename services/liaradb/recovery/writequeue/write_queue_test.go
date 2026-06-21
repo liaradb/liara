@@ -60,7 +60,7 @@ func (t *testPageStorage) Init([]byte) error {
 	return nil
 }
 
-func (t *testPageStorage) Sync([]byte) error {
+func (t *testPageStorage) Replace([]byte) error {
 	if t.errorOnSync {
 		return io.ErrShortWrite
 	}

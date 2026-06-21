@@ -30,7 +30,7 @@ func TestPageStorage(t *testing.T) {
 		page0[i] = 1
 	}
 
-	if err := ps.Sync(page0); err != nil {
+	if err := ps.Replace(page0); err != nil {
 		t.Error(err)
 	}
 
