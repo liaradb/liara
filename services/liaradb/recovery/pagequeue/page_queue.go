@@ -12,8 +12,17 @@ import (
 
 type PageQueue struct {
 	pool    pagepool.PagePool
+	wq      *writequeue.WriteQueue
 	current *page.Page
-	po      PageOut
+	flushed bool
+	lsn     record.LogSequenceNumber
+}
+
+// TODO: This is a duplicate
+type PageStorage interface {
+	Replace([]byte) error
+	Append(record.LogSequenceNumber, []byte) error
+	Init([]byte) error
 }
 
 func New(
@@ -31,18 +40,18 @@ func New(
 }
 
 func (pq *PageQueue) init(ps PageStorage) {
-	pq.po = newPageOut(ps, &pq.pool)
+	pq.wq = writequeue.New(100, ps, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 
 func (pq *PageQueue) Init(data []byte) {
 	pq.current.Fill(data)
-	pq.po.Init()
+	pq.flushed = true
 }
 
 // TODO: Test this error
 func (pq *PageQueue) Run(ctx context.Context) error {
-	return pq.po.Run(ctx)
+	return pq.wq.Run(ctx)
 }
 
 // # Append
@@ -70,9 +79,39 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 }
 
 func (pq *PageQueue) appendPages(ctx context.Context, lsn record.LogSequenceNumber, pgs []*page.Page) {
-	c, ok := pq.po.Append(ctx, lsn, pgs...)
+	c, ok := pq.append(ctx, lsn, pgs...)
 	if ok {
 		pq.replaceCurrent(c)
+	}
+}
+
+func (pq *PageQueue) append(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	pgs ...*page.Page,
+) (*page.Page, bool) {
+	// If only one page, do nothing
+	l := len(pgs)
+	if l <= 1 {
+		return nil, false
+	}
+
+	pq.flushCurrent(ctx, lsn, pgs[0])
+	for _, p := range pgs[1 : l-1] {
+		pq.wq.Append(ctx, lsn, p)
+	}
+
+	pq.flushed = false
+	pq.lsn = lsn
+
+	return pgs[l-1], true
+}
+
+func (pq *PageQueue) flushCurrent(ctx context.Context, lsn record.LogSequenceNumber, current *page.Page) {
+	if pq.flushed {
+		pq.wq.Replace(ctx, current)
+	} else {
+		pq.wq.Append(ctx, lsn, current)
 	}
 }
 
@@ -83,5 +122,16 @@ func (pq *PageQueue) replaceCurrent(p *page.Page) {
 // # Flushing
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
-	return pq.po.Flush(ctx, pq.current)
+	shadow := pq.pool.Get()
+	shadow.Fill(pq.current.Data())
+	if pq.flushed {
+		return pq.wq.ReplaceSync(ctx, shadow)
+	}
+
+	if err := pq.wq.AppendSync(ctx, pq.lsn, shadow); err != nil {
+		return err
+	}
+
+	pq.flushed = true
+	return nil
 }
