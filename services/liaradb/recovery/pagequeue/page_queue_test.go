@@ -282,4 +282,4 @@ func (t *testPageStorage) Replace([]byte) error {
 	return nil
 }
 
-var _ PageStorage = &testPageStorage{}
+var _ writequeue.PageStorage = &testPageStorage{}

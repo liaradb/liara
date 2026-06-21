@@ -18,15 +18,8 @@ type PageQueue struct {
 	lsn     record.LogSequenceNumber
 }
 
-// TODO: This is a duplicate
-type PageStorage interface {
-	Replace([]byte) error
-	Append(record.LogSequenceNumber, []byte) error
-	Init([]byte) error
-}
-
 func New(
-	ps PageStorage,
+	ps writequeue.PageStorage,
 	size int16,
 	headerSize int16,
 ) *PageQueue {
@@ -39,7 +32,7 @@ func New(
 	return pq
 }
 
-func (pq *PageQueue) init(ps PageStorage) {
+func (pq *PageQueue) init(ps writequeue.PageStorage) {
 	pq.wq = writequeue.New(100, ps, &pq.pool)
 	pq.current = pq.pool.Get()
 }
