@@ -38,12 +38,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				return
 			}
 
-			size, err := f.Size()
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
+			size := f.Size()
 			if size == 0 {
 				return
 			}
@@ -86,12 +81,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			size, err := f.Size()
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
+			size := f.Size()
 			if size == 0 {
 				continue
 			}

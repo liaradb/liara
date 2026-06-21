@@ -31,7 +31,7 @@ func TestPageIterator(t *testing.T) {
 			dir := "dir"
 
 			const (
-				size       = 128
+				size       = 128 // TODO: This does not work if the page is too small
 				headerSize = 4
 			)
 
@@ -94,7 +94,7 @@ func TestPageIterator(t *testing.T) {
 			dir := "dir"
 
 			const (
-				size       = 128
+				size       = 80
 				headerSize = 4
 			)
 

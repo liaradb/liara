@@ -14,6 +14,7 @@ type File struct {
 	pageSize    int64
 	segmentSize action.PageID
 	pageID      action.PageID
+	size        int64
 }
 
 func newFile(
@@ -21,16 +22,19 @@ func newFile(
 	sn SegmentName,
 	pageSize int64,
 	segmentSize action.PageID,
+	size int64,
 ) *File {
 	return &File{
 		file:        file,
 		sn:          sn,
 		pageSize:    pageSize,
 		segmentSize: segmentSize,
+		size:        size,
 	}
 }
 
 func (f *File) SegmentName() SegmentName { return f.sn }
+func (f *File) Size() int64              { return f.size }
 
 func (f *File) isCurrent(sn SegmentName) bool {
 	return f.sn == sn
@@ -57,7 +61,7 @@ func (f *File) Close() error {
 	return nil
 }
 
-func (f *File) Size() (int64, error) {
+func (f *File) refreshSize() (int64, error) {
 	stat, err := f.file.Stat()
 	if err != nil {
 		return 0, err
@@ -71,7 +75,7 @@ func (f *File) Stat() (fs.FileInfo, error) {
 }
 
 func (f *File) SeekTail() (int64, error) {
-	size, err := f.Size()
+	size, err := f.refreshSize()
 	if err != nil {
 		return 0, err
 	}
@@ -94,9 +98,15 @@ func (f *File) Read(data []byte) (int, error) {
 }
 
 func (f *File) Write(data []byte) error {
-	wr := io.NewOffsetWriter(f, f.position())
-	_, err := wr.Write(data)
+	off := f.position()
+	wr := io.NewOffsetWriter(f, off)
+	n, err := wr.Write(data)
+	f.size = max(f.size, off+int64(n))
 	return err
+}
+
+func (f *File) IsEmpty() bool {
+	return f.size == 0
 }
 
 func (f *File) NextPage() bool {
@@ -105,6 +115,7 @@ func (f *File) NextPage() bool {
 	}
 
 	f.pageID++
+	f.size += f.pageSize
 	return true
 }
 

@@ -10,8 +10,10 @@ import (
 )
 
 type PageOut struct {
-	pool *pagepool.PagePool
-	wq   *writequeue.WriteQueue
+	pool    *pagepool.PagePool
+	wq      *writequeue.WriteQueue
+	flushed bool
+	lsn     record.LogSequenceNumber
 }
 
 // TODO: This is a duplicate
@@ -47,11 +49,23 @@ func (po *PageOut) Append(
 		po.wq.Append(ctx, lsn, p)
 	}
 
+	po.flushed = false
+	po.lsn = lsn
+
 	return pgs[l-1], true
 }
 
 func (po *PageOut) Flush(ctx context.Context, current *page.Page) error {
 	shadow := po.pool.Get()
 	shadow.Fill(current.Data())
-	return po.wq.Sync(ctx, shadow)
+	if po.flushed {
+		return po.wq.Sync(ctx, shadow)
+	}
+
+	if err := po.wq.AppendSync(ctx, po.lsn, shadow); err != nil {
+		return err
+	}
+
+	po.flushed = true
+	return nil
 }

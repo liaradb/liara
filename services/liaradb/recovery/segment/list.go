@@ -193,7 +193,12 @@ func (l *List) openFile(sn SegmentName) (*File, error) {
 		return nil, err
 	}
 
-	file := newFile(f, sn, l.pageSize, l.segmentSize)
+	stat, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	file := newFile(f, sn, l.pageSize, l.segmentSize, stat.Size())
 	l.f = file
 	return file, nil
 }
