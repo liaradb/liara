@@ -463,8 +463,6 @@ func testLog_Recover(t *testing.T) {
 
 func TestLog_RecoverMany(t *testing.T) {
 	t.Parallel()
-	// TODO: Fix this test
-	t.Skip()
 	synctest.Test(t, testLog_RecoverMany)
 }
 
@@ -510,6 +508,7 @@ func testLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
 	{ // "should iterate"
 		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {
@@ -573,6 +572,7 @@ func testLog_RecoverMany(t *testing.T) {
 
 		synctest.Wait()
 	}
+
 	{ // "should iterate"
 		l := NewLog(256, 2, 256, fsys, dir)
 		if err := l.Open(t.Context()); err != nil {

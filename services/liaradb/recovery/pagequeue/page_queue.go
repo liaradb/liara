@@ -37,6 +37,7 @@ func (pq *PageQueue) init(ps PageStorage) {
 
 func (pq *PageQueue) Init(data []byte) {
 	pq.current.Fill(data)
+	pq.po.Init()
 }
 
 // TODO: Test this error

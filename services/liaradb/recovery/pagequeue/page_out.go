@@ -34,6 +34,10 @@ func (po *PageOut) Run(ctx context.Context) error {
 	return po.wq.Run(ctx)
 }
 
+func (po *PageOut) Init() {
+	po.flushed = true
+}
+
 func (po *PageOut) Append(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
