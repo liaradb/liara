@@ -136,12 +136,12 @@ func TestPageQueue(t *testing.T) {
 
 			synctest.Wait()
 
-			if ps.syncCount != 1 {
-				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
+			if ps.syncCount != 0 {
+				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 0)
 			}
 
-			if ps.appendCount != 0 {
-				t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 0)
+			if ps.appendCount != 1 {
+				t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 1)
 			}
 		})
 	})
@@ -159,7 +159,7 @@ func TestPageQueue(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			ps.errorOnSync = true
+			ps.errorOnAppend = true
 
 			if err := pq.Flush(t.Context()); err == nil {
 				t.Error("should return error")
@@ -188,12 +188,12 @@ func TestPageQueue(t *testing.T) {
 
 			synctest.Wait()
 
-			if ps.syncCount != 1 {
-				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 1)
+			if ps.syncCount != 0 {
+				t.Errorf("incorrect sync count: %v, expected: %v", ps.syncCount, 0)
 			}
 
-			if ps.appendCount != 2 {
-				t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 2)
+			if ps.appendCount != 3 {
+				t.Errorf("incorrect append count: %v, expected: %v", ps.appendCount, 3)
 			}
 		})
 	})
@@ -211,6 +211,10 @@ func TestPageQueue(t *testing.T) {
 				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Fatal(err)
 				}
+			}
+
+			if err := pq.Flush(t.Context()); err != nil {
+				t.Error(err)
 			}
 
 			ps.errorOnSync = true

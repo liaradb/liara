@@ -53,7 +53,7 @@ func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
 }
 
 func (ps *PageStorage) nextPage(lsn record.LogSequenceNumber) error {
-	if ps.f.NextPage() {
+	if ps.f.IsEmpty() || ps.f.NextPage() {
 		return nil
 	}
 
