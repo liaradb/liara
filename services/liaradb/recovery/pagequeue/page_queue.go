@@ -72,22 +72,15 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 	return nil
 }
 
-func (pq *PageQueue) appendPages(ctx context.Context, lsn record.LogSequenceNumber, pgs []*page.Page) {
-	c, ok := pq.append(ctx, lsn, pgs...)
-	if ok {
-		pq.replaceCurrent(c)
-	}
-}
-
-func (pq *PageQueue) append(
+func (pq *PageQueue) appendPages(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	pgs ...*page.Page,
-) (*page.Page, bool) {
+	pgs []*page.Page,
+) {
 	// If only one page, do nothing
 	l := len(pgs)
 	if l <= 1 {
-		return nil, false
+		return
 	}
 
 	pq.flushCurrent(ctx, lsn, pgs[0])
@@ -95,10 +88,7 @@ func (pq *PageQueue) append(
 		pq.wq.Append(ctx, lsn, p)
 	}
 
-	pq.flushed = false
-	pq.lsn = lsn
-
-	return pgs[l-1], true
+	pq.replaceCurrent(lsn, pgs[l-1])
 }
 
 func (pq *PageQueue) flushCurrent(ctx context.Context, lsn record.LogSequenceNumber, current *page.Page) {
@@ -106,11 +96,14 @@ func (pq *PageQueue) flushCurrent(ctx context.Context, lsn record.LogSequenceNum
 		pq.wq.Replace(ctx, current)
 	} else {
 		pq.wq.Append(ctx, lsn, current)
+		pq.flushed = true
 	}
 }
 
-func (pq *PageQueue) replaceCurrent(p *page.Page) {
+func (pq *PageQueue) replaceCurrent(lsn record.LogSequenceNumber, p *page.Page) {
+	pq.lsn = lsn
 	pq.current = p
+	pq.flushed = false
 }
 
 // # Flushing
