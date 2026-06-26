@@ -107,6 +107,151 @@ func (l *Log) Run(ctx context.Context) error {
 	return nil
 }
 
+func (l *Log) Close() error {
+	if l.cancel != nil {
+		l.cancel()
+	}
+
+	return l.sl.Close()
+}
+
+func (l *Log) StartWriter() error {
+	if err := l.initHighWater(); err != nil {
+		return err
+	}
+
+	// TODO: Don't create a page, just copy the data
+	data := make([]byte, l.pageSize)
+	if err := l.ps.Init(data); err != nil {
+		return err
+	}
+
+	l.pq.Init(data)
+	return nil
+}
+
+func (l *Log) initHighWater() error {
+	l.lowWater = record.NewLogSequenceNumber(0)
+	l.highWater = record.NewLogSequenceNumber(0)
+
+	hw := false
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return err
+		}
+
+		if !hw {
+			l.highWater = rc.LogSequenceNumber()
+			hw = true
+		}
+
+		if rc.Action() == record.ActionCheckpoint {
+			l.lowWater = rc.LogSequenceNumber()
+			break
+		}
+	}
+
+	return nil
+}
+
+func (l *Log) Start(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
+}
+
+func (l *Log) Commit(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
+	if err != nil {
+		return lsn, err
+	}
+
+	return lsn, l.requestFlush(ctx, lsn)
+}
+
+func (l *Log) Rollback(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+) (record.LogSequenceNumber, error) {
+	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
+	if err != nil {
+		return lsn, err
+	}
+
+	return lsn, l.requestFlush(ctx, lsn)
+}
+
+func (l *Log) Insert(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+	collection record.Collection,
+	data []byte,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
+}
+
+func (l *Log) Update(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+	collection record.Collection,
+	data []byte,
+	prev []byte,
+) (record.LogSequenceNumber, error) {
+	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
+}
+
+func (l *Log) FlushCheckpoint(
+	ctx context.Context,
+	now time.Time,
+	txids ...record.TransactionID,
+) (record.LogSequenceNumber, error) {
+	data := l.txIDsToData(txids)
+	lsn, err := l.append(
+		ctx,
+		value.TenantID{},
+		record.TransactionID{},
+		now,
+		record.ActionCheckpoint,
+		record.CollectionSystem,
+		data,
+		nil)
+	if err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	if err := l.flushPageQueue(ctx); err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	return lsn, nil
+}
+
+func (*Log) txIDsToData(txids []record.TransactionID) []byte {
+	data := make([]byte, len(txids)*record.TransactionIDSize)
+
+	data0 := data
+	for _, txid := range txids {
+		// There will always be enough space
+		data0, _ = txid.WriteData(data0)
+	}
+
+	return data
+}
+
 func (l *Log) run(ctx context.Context) {
 	timer := time.NewTimer(interval)
 	defer timer.Stop()
@@ -190,74 +335,6 @@ func (l *Log) append(
 	return l.highWater, nil
 }
 
-func (l *Log) Start(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
-}
-
-func (l *Log) Commit(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
-	if err != nil {
-		return lsn, err
-	}
-
-	return lsn, l.requestFlush(ctx, lsn)
-}
-
-func (l *Log) Rollback(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
-	if err != nil {
-		return lsn, err
-	}
-
-	return lsn, l.requestFlush(ctx, lsn)
-}
-
-func (l *Log) Insert(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-	collection record.Collection,
-	data []byte,
-) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
-}
-
-func (l *Log) Update(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-	collection record.Collection,
-	data []byte,
-	prev []byte,
-) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
-}
-
-func (l *Log) Close() error {
-	if l.cancel != nil {
-		l.cancel()
-	}
-
-	return l.sl.Close()
-}
-
 func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
 	return l.flushReqs.Send(ctx, lsn)
 }
@@ -330,81 +407,4 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 	return l.it.Reverse()
-}
-
-func (l *Log) initHighWater() error {
-	l.lowWater = record.NewLogSequenceNumber(0)
-	l.highWater = record.NewLogSequenceNumber(0)
-
-	hw := false
-	for rc, err := range l.it.Reverse() {
-		if err != nil {
-			return err
-		}
-
-		if !hw {
-			l.highWater = rc.LogSequenceNumber()
-			hw = true
-		}
-
-		if rc.Action() == record.ActionCheckpoint {
-			l.lowWater = rc.LogSequenceNumber()
-			break
-		}
-	}
-
-	return nil
-}
-
-func (l *Log) StartWriter() error {
-	if err := l.initHighWater(); err != nil {
-		return err
-	}
-
-	// TODO: Don't create a page, just copy the data
-	data := make([]byte, l.pageSize)
-	if err := l.ps.Init(data); err != nil {
-		return err
-	}
-
-	l.pq.Init(data)
-	return nil
-}
-
-func (l *Log) FlushCheckpoint(
-	ctx context.Context,
-	now time.Time,
-	txids ...record.TransactionID,
-) (record.LogSequenceNumber, error) {
-	data := l.txIDsToData(txids)
-	lsn, err := l.append(
-		ctx,
-		value.TenantID{},
-		record.TransactionID{},
-		now,
-		record.ActionCheckpoint,
-		record.CollectionSystem,
-		data,
-		nil)
-	if err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	if err := l.flushPageQueue(ctx); err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	return lsn, nil
-}
-
-func (*Log) txIDsToData(txids []record.TransactionID) []byte {
-	data := make([]byte, len(txids)*record.TransactionIDSize)
-
-	data0 := data
-	for _, txid := range txids {
-		// There will always be enough space
-		data0, _ = txid.WriteData(data0)
-	}
-
-	return data
 }
