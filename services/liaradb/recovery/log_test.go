@@ -390,7 +390,7 @@ func testLog_Recover(t *testing.T) {
 
 	{ // "should append and flush"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -431,7 +431,7 @@ func testLog_Recover(t *testing.T) {
 
 	{ //"should recover"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -481,7 +481,7 @@ func testLog_RecoverMany(t *testing.T) {
 
 	{ // "should append and flush"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -511,7 +511,7 @@ func testLog_RecoverMany(t *testing.T) {
 
 	{ // "should iterate"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -543,7 +543,7 @@ func testLog_RecoverMany(t *testing.T) {
 
 	{ // "should append and flush more"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -575,7 +575,7 @@ func testLog_RecoverMany(t *testing.T) {
 
 	{ // "should iterate"
 		l := NewLog(256, 2, 256, 100, fsys, dir)
-		if err := l.Open(t.Context()); err != nil {
+		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)
 		}
 
@@ -933,7 +933,7 @@ func createLog(t *testing.T,
 	t.Helper()
 
 	l := NewLog(pageSize, segmentSize, recordSize, 100, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
+	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 

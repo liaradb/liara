@@ -93,6 +93,20 @@ func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
 func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
 
+func (l *Log) Run(ctx context.Context) error {
+	if err := l.sl.Open(); err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	l.cancel = cancel
+	go l.run(ctx)
+	go func() {
+		_ = l.pq.Run(ctx)
+	}()
+	return nil
+}
+
 func (l *Log) run(ctx context.Context) {
 	timer := time.NewTimer(interval)
 	defer timer.Stop()
@@ -291,20 +305,6 @@ func (l *Log) completeFlush() {
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return l.it.Forward(lsn)
-}
-
-func (l *Log) Open(ctx context.Context) error {
-	if err := l.sl.Open(); err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	l.cancel = cancel
-	go l.run(ctx)
-	go func() {
-		_ = l.pq.Run(ctx)
-	}()
-	return nil
 }
 
 // Iterate in reverse until record type.

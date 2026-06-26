@@ -65,7 +65,7 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *recovery.Lo
 	t.Helper()
 
 	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
-	if err := l.Open(t.Context()); err != nil {
+	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 

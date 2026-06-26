@@ -1,8 +1,6 @@
 package recovery
 
-import (
-	"github.com/liaradb/liaradb/recovery/record"
-)
+import "github.com/liaradb/liaradb/recovery/record"
 
 type requestQueue struct {
 	items []*flushRequest

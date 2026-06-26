@@ -102,7 +102,7 @@ func (a *Application) run(ctx context.Context) error {
 
 	slog.Info("storage running")
 
-	if err := a.log.Open(ctx); err != nil {
+	if err := a.log.Run(ctx); err != nil {
 		return err
 	}
 
