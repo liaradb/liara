@@ -44,7 +44,6 @@ type Log struct {
 	lowWater      record.LogSequenceNumber
 	appendReqs    async.Handler[appendValue, record.LogSequenceNumber]
 	flushReqs     async.CommandHandler[record.LogSequenceNumber]
-	syncReqs      async.CommandHandler[record.LogSequenceNumber]
 	cancel        context.CancelFunc
 	queue         requestQueue
 	maxRecordSize int64
@@ -53,8 +52,6 @@ type Log struct {
 type flushRequest = async.Command[record.LogSequenceNumber]
 
 type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
-
-type syncRequest = async.Command[record.LogSequenceNumber]
 
 type appendValue struct {
 	tid        value.TenantID
@@ -84,7 +81,6 @@ func NewLog(
 		it:            pageiterator.New(sl, int16(pageSize), page.HeaderSize),
 		appendReqs:    make(chan *appendRequest),
 		flushReqs:     make(chan *flushRequest),
-		syncReqs:      make(chan *syncRequest),
 		maxRecordSize: maxRecordSize,
 	}
 }
@@ -267,8 +263,6 @@ func (l *Log) run(ctx context.Context) {
 			l.appendRequest(ctx, r)
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
-		case r := <-l.syncReqs:
-			l.syncRequest(r)
 		case <-timer.C:
 			l.flushOrPanic(ctx)
 		case <-ticker.C:
@@ -364,15 +358,6 @@ func (l *Log) flush(ctx context.Context) error {
 
 func (l *Log) flushPageQueue(ctx context.Context) error {
 	return l.pq.Flush(ctx)
-}
-
-func (l *Log) Sync(ctx context.Context, lsn record.LogSequenceNumber) error {
-	return l.syncReqs.Send(ctx, lsn)
-}
-
-func (l *Log) syncRequest(r *async.Command[record.LogSequenceNumber]) {
-	l.lowWater = r.Value()
-	l.queue.sendUpToLSN(l.lowWater)
 }
 
 func (l *Log) completeFlush() {
