@@ -13,6 +13,7 @@ import (
 type PageQueue struct {
 	pool    pagepool.PagePool
 	wq      *writequeue.WriteQueue
+	fl      writequeue.Flusher
 	current *logpage.LogPage
 	flushed bool
 	lsn     record.LogSequenceNumber
@@ -20,12 +21,14 @@ type PageQueue struct {
 
 func New(
 	ps writequeue.PageStorage,
+	fl writequeue.Flusher,
 	size int16,
 	headerSize int16,
 	writeQueueSize int,
 ) *PageQueue {
 	pq := &PageQueue{
 		pool: pagepool.New(size, headerSize, span.FragmentHeaderSize),
+		fl:   fl,
 	}
 
 	pq.init(writeQueueSize, ps)
@@ -124,5 +127,7 @@ func (pq *PageQueue) Flush(ctx context.Context) error {
 }
 
 func (pq *PageQueue) OnFlush(lsn record.LogSequenceNumber) {
-
+	if lsn.Value() != 0 {
+		pq.fl.OnFlush(lsn)
+	}
 }

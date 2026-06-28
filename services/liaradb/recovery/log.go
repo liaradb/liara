@@ -73,16 +73,18 @@ func NewLog(
 ) *Log {
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	ps := pagestorage.New(sl)
-	return &Log{
+	l := &Log{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New(ps, int16(pageSize), logpage.HeaderSize, writeQueueSize),
 		ps:            ps,
 		it:            pageiterator.New(sl, int16(pageSize), logpage.HeaderSize),
 		appendReqs:    make(chan *appendRequest),
 		flushReqs:     make(chan *flushRequest),
 		maxRecordSize: maxRecordSize,
 	}
+
+	l.pq = pagequeue.New(ps, l, int16(pageSize), logpage.HeaderSize, writeQueueSize)
+	return l
 }
 
 func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
@@ -385,4 +387,7 @@ func (l *Log) flushPageQueue(ctx context.Context) error {
 func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
 	l.queue.sendUpToLSN(l.highWater)
+}
+
+func (pq *Log) OnFlush(lsn record.LogSequenceNumber) {
 }

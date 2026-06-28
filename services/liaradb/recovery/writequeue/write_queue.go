@@ -59,7 +59,7 @@ func (wq *WriteQueue) Run(ctx context.Context) error {
 }
 
 func (wq *WriteQueue) run(qi queueItem) error {
-	if err := qi.Store(wq.ps, wq); err != nil {
+	if err := qi.Store(wq.ps, wq.fl); err != nil {
 		return err
 	}
 
@@ -115,10 +115,4 @@ func (wq *WriteQueue) ReplaceSync(
 	}
 
 	return qi.Wait(ctx)
-}
-
-func (wq *WriteQueue) OnFlush(lsn record.LogSequenceNumber) {
-	if lsn.Value() != 0 {
-		wq.fl.OnFlush(lsn)
-	}
 }
