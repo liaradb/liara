@@ -21,6 +21,8 @@ func NewLogPage(size int16, headerSize int16, slotHeaderSize int16) *LogPage {
 	}
 }
 
+func (lp *LogPage) LSN() record.LogSequenceNumber { return lp.lsn }
+
 func (lp *LogPage) SetLSN(lsn record.LogSequenceNumber) {
 	lp.lsn = lsn
 }

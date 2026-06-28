@@ -34,7 +34,7 @@ func New(
 }
 
 func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
-	pq.wq = writequeue.New(writeQueueSize, ps, &pq.pool)
+	pq.wq = writequeue.New(writeQueueSize, ps, pq, &pq.pool)
 	pq.current = pq.pool.Get()
 }
 
@@ -121,4 +121,8 @@ func (pq *PageQueue) Flush(ctx context.Context) error {
 
 	pq.flushed = true
 	return nil
+}
+
+func (pq *PageQueue) OnFlush(lsn record.LogSequenceNumber) {
+
 }

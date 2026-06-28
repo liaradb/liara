@@ -26,8 +26,13 @@ func (*appendQueueItem) Wait(context.Context) error {
 	return nil
 }
 
-func (qi *appendQueueItem) Store(ps PageStorage) error {
-	return ps.Append(qi.lsn, qi.page.Data())
+func (qi *appendQueueItem) Store(ps PageStorage, fl Flusher) error {
+	if err := ps.Append(qi.lsn, qi.page.Data()); err != nil {
+		return err
+	}
+
+	fl.OnFlush(qi.Page().LSN())
+	return nil
 }
 
 func (qi *appendQueueItem) Page() *logpage.LogPage {

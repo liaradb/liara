@@ -18,7 +18,7 @@ func TestWriteQueue(t *testing.T) {
 func testWriteQueueTestWriteQueue(t *testing.T) {
 	ps := &testPageStorage{}
 	pool := pagepool.New(12, 16, 8)
-	wq := New(10, ps, &pool)
+	wq := New(10, ps, &testFlusher{}, &pool)
 	go wq.Run(t.Context())
 
 	wq.Append(t.Context(), record.NewLogSequenceNumber(0), logpage.NewLogPage(128, 16, 8))
@@ -71,3 +71,10 @@ func (t *testPageStorage) Replace([]byte) error {
 }
 
 var _ PageStorage = &testPageStorage{}
+
+type testFlusher struct {
+}
+
+func (*testFlusher) OnFlush(record.LogSequenceNumber) {}
+
+var _ Flusher = &testFlusher{}

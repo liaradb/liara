@@ -22,8 +22,13 @@ func (*replaceQueueItem) Wait(context.Context) error {
 	return nil
 }
 
-func (qi *replaceQueueItem) Store(ps PageStorage) error {
-	return ps.Replace(qi.page.Data())
+func (qi *replaceQueueItem) Store(ps PageStorage, fl Flusher) error {
+	if err := ps.Replace(qi.page.Data()); err != nil {
+		return err
+	}
+
+	fl.OnFlush(qi.Page().LSN())
+	return nil
 }
 
 func (qi *replaceQueueItem) Page() *logpage.LogPage {

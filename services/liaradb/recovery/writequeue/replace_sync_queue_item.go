@@ -29,9 +29,14 @@ func (qi *replaceSyncQueueItem) Wait(ctx context.Context) error {
 	}
 }
 
-func (qi *replaceSyncQueueItem) Store(ps PageStorage) error {
+func (qi *replaceSyncQueueItem) Store(ps PageStorage, fl Flusher) error {
 	err := ps.Replace(qi.page.Data())
 	qi.reply <- err
+
+	if err == nil {
+		fl.OnFlush(qi.Page().LSN())
+	}
+
 	return nil
 }
 
