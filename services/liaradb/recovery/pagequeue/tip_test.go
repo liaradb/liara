@@ -3,7 +3,7 @@ package pagequeue
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/page"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/span"
 )
@@ -19,7 +19,7 @@ func TestTip(t *testing.T) {
 	t.Parallel()
 	pool := pagepool.New(pageSize, headerSize, span.FragmentHeaderSize)
 
-	current := page.New(pageSize, headerSize, span.FragmentHeaderSize)
+	current := page.NewLogPage(pageSize, headerSize, span.FragmentHeaderSize)
 	tip := NewTip(&pool, current)
 	var want int16 = 128
 	s := tip.Span(want)

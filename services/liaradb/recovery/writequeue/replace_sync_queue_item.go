@@ -3,16 +3,16 @@ package writequeue
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/page"
 )
 
 type replaceSyncQueueItem struct {
-	page  *page.Page
+	page  *page.LogPage
 	reply chan error
 }
 
 func newReplaceSyncQueueItem(
-	page *page.Page,
+	page *page.LogPage,
 ) *replaceSyncQueueItem {
 	return &replaceSyncQueueItem{
 		page:  page,
@@ -35,6 +35,6 @@ func (qi *replaceSyncQueueItem) Store(ps PageStorage) error {
 	return nil
 }
 
-func (qi *replaceSyncQueueItem) Page() *page.Page {
+func (qi *replaceSyncQueueItem) Page() *page.LogPage {
 	return qi.page
 }
