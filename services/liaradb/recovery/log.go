@@ -248,6 +248,33 @@ func (*Log) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
+func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+	return l.it.Forward(lsn)
+}
+
+// Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
+func (l *Log) Recover() (iter.Seq[*record.Record], error) {
+	rcs := list.New()
+
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return nil, err
+		}
+
+		if rc.IsCheckpoint() {
+			break
+		}
+
+		rcs.PushBack(rc)
+	}
+
+	return iterator.Reverse[*record.Record](rcs), nil
+}
+
+func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
+	return l.it.Reverse()
+}
+
 func (l *Log) run(ctx context.Context) {
 	timer := time.NewTimer(interval)
 	defer timer.Stop()
@@ -363,33 +390,4 @@ func (l *Log) flushPageQueue(ctx context.Context) error {
 func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
 	l.queue.sendUpToLSN(l.highWater)
-}
-
-func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.it.Forward(lsn)
-}
-
-// Iterate in reverse until record type.
-//
-// Then iterate forward entil end of log.
-func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	rcs := list.New()
-
-	for rc, err := range l.it.Reverse() {
-		if err != nil {
-			return nil, err
-		}
-
-		if rc.IsCheckpoint() {
-			break
-		}
-
-		rcs.PushBack(rc)
-	}
-
-	return iterator.Reverse[*record.Record](rcs), nil
-}
-
-func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.it.Reverse()
 }
