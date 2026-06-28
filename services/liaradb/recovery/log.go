@@ -276,9 +276,6 @@ func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
 }
 
 func (l *Log) run(ctx context.Context) {
-	timer := time.NewTimer(interval)
-	defer timer.Stop()
-
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -290,8 +287,6 @@ func (l *Log) run(ctx context.Context) {
 			l.appendRequest(ctx, r)
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
-		case <-timer.C:
-			l.flushOrPanic(ctx)
 		case <-ticker.C:
 			l.flushOrPanic(ctx)
 		}
