@@ -1,19 +1,19 @@
 package pagequeue
 
 import (
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type Tip struct {
 	pool    *pagepool.PagePool
-	current *page.LogPage
-	pages   []*page.LogPage
+	current *logpage.LogPage
+	pages   []*logpage.LogPage
 	sizes   []int16
 }
 
-func NewTip(pool *pagepool.PagePool, current *page.LogPage) Tip {
+func NewTip(pool *pagepool.PagePool, current *logpage.LogPage) Tip {
 	return Tip{
 		pool:    pool,
 		current: current,
@@ -50,7 +50,7 @@ func (t *Tip) Span(size int16) *span.Span {
 	return &s
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *page.LogPage, remaining int16) int16 {
+func (t *Tip) appendToSpan(s *span.Span, p *logpage.LogPage, remaining int16) int16 {
 	header, data := p.Next(remaining)
 	l := int16(len(data))
 	t.sizes = append(t.sizes, l)
@@ -62,13 +62,13 @@ func (t *Tip) appendToSpan(s *span.Span, p *page.LogPage, remaining int16) int16
 	return l
 }
 
-func (t *Tip) next() *page.LogPage {
+func (t *Tip) next() *logpage.LogPage {
 	p := t.pool.Get()
 	t.pages = append(t.pages, p)
 	return p
 }
 
-func (t *Tip) Commit() ([]*page.LogPage, bool) {
+func (t *Tip) Commit() ([]*logpage.LogPage, bool) {
 	ok := t.commitPages()
 	if !ok {
 		t.abortPages()
@@ -88,7 +88,7 @@ func (t *Tip) commitPages() bool {
 	return t.commitPage(t.current, 0)
 }
 
-func (t *Tip) commitPage(p *page.LogPage, i int) bool {
+func (t *Tip) commitPage(p *logpage.LogPage, i int) bool {
 	size := t.sizes[i]
 	if size == 0 {
 		return true

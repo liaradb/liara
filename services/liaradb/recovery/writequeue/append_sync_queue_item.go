@@ -3,19 +3,19 @@ package writequeue
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type appendSyncQueueItem struct {
 	lsn   record.LogSequenceNumber
-	page  *page.LogPage
+	page  *logpage.LogPage
 	reply chan error
 }
 
 func newAppendSyncQueueItem(
 	lsn record.LogSequenceNumber,
-	page *page.LogPage,
+	page *logpage.LogPage,
 ) *appendSyncQueueItem {
 	return &appendSyncQueueItem{
 		lsn:   lsn,
@@ -39,6 +39,6 @@ func (qi *appendSyncQueueItem) Store(ps PageStorage) error {
 	return nil
 }
 
-func (qi *appendSyncQueueItem) Page() *page.LogPage {
+func (qi *appendSyncQueueItem) Page() *logpage.LogPage {
 	return qi.page
 }

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -21,14 +21,14 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 	wq := New(10, ps, &pool)
 	go wq.Run(t.Context())
 
-	wq.Append(t.Context(), record.NewLogSequenceNumber(0), page.NewLogPage(128, 16, 8))
-	wq.Append(t.Context(), record.NewLogSequenceNumber(1), page.NewLogPage(128, 16, 8))
-	wq.Replace(t.Context(), page.NewLogPage(128, 16, 8))
-	if err := wq.ReplaceSync(t.Context(), page.NewLogPage(128, 16, 8)); err != nil {
+	wq.Append(t.Context(), record.NewLogSequenceNumber(0), logpage.NewLogPage(128, 16, 8))
+	wq.Append(t.Context(), record.NewLogSequenceNumber(1), logpage.NewLogPage(128, 16, 8))
+	wq.Replace(t.Context(), logpage.NewLogPage(128, 16, 8))
+	if err := wq.ReplaceSync(t.Context(), logpage.NewLogPage(128, 16, 8)); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), page.NewLogPage(128, 16, 8)); err != nil {
+	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), logpage.NewLogPage(128, 16, 8)); err != nil {
 		t.Fatal(err)
 	}
 

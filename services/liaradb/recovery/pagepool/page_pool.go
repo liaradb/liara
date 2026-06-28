@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/liaradb/liaradb/encoder/page"
-	logpage "github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 

@@ -1,4 +1,4 @@
-package page
+package logpage
 
 import (
 	"github.com/liaradb/liaradb/encoder/page"

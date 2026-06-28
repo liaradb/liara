@@ -3,7 +3,7 @@ package writequeue
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/recovery/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 )
@@ -17,7 +17,7 @@ type WriteQueue struct {
 type queueItem interface {
 	Wait(context.Context) error
 	Store(PageStorage) error
-	Page() *page.LogPage
+	Page() *logpage.LogPage
 }
 
 type PageStorage interface {
@@ -63,7 +63,7 @@ func (wq *WriteQueue) run(qi queueItem) error {
 func (wq *WriteQueue) Append(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	p *page.LogPage,
+	p *logpage.LogPage,
 ) {
 	select {
 	case wq.items <- newAppendQueueItem(lsn, p):
@@ -74,7 +74,7 @@ func (wq *WriteQueue) Append(
 func (wq *WriteQueue) AppendSync(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	p *page.LogPage,
+	p *logpage.LogPage,
 ) error {
 	qi := newAppendSyncQueueItem(lsn, p)
 
@@ -88,7 +88,7 @@ func (wq *WriteQueue) AppendSync(
 
 func (wq *WriteQueue) Replace(
 	ctx context.Context,
-	p *page.LogPage,
+	p *logpage.LogPage,
 ) {
 	select {
 	case wq.items <- newReplaceQueueItem(p):
@@ -98,7 +98,7 @@ func (wq *WriteQueue) Replace(
 
 func (wq *WriteQueue) ReplaceSync(
 	ctx context.Context,
-	p *page.LogPage,
+	p *logpage.LogPage,
 ) error {
 	qi := newReplaceSyncQueueItem(p)
 
