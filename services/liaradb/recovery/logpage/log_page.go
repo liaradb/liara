@@ -20,3 +20,7 @@ func NewLogPage(size int16, headerSize int16, slotHeaderSize int16) *LogPage {
 		Page: page.New(size, headerSize, slotHeaderSize),
 	}
 }
+
+func (lp *LogPage) SetLSN(lsn record.LogSequenceNumber) {
+	lp.lsn = lsn
+}

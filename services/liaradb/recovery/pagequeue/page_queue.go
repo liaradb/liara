@@ -63,7 +63,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 	}
 
 	s.Commit()
-	pgs, ok := t.Commit()
+	pgs, ok := t.Commit(rc.LogSequenceNumber())
 	if !ok {
 		return writequeue.ErrUnableToAppend
 	}

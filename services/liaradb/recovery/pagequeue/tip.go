@@ -3,6 +3,7 @@ package pagequeue
 import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
+	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
@@ -68,13 +69,14 @@ func (t *Tip) next() *logpage.LogPage {
 	return p
 }
 
-func (t *Tip) Commit() ([]*logpage.LogPage, bool) {
-	ok := t.commitPages()
-	if !ok {
+func (t *Tip) Commit(lsn record.LogSequenceNumber) ([]*logpage.LogPage, bool) {
+	if ok := t.commitPages(); !ok {
 		t.abortPages()
+		return nil, false
 	}
 
-	return t.pages, ok
+	t.pages[len(t.pages)-1].SetLSN(lsn)
+	return t.pages, true
 }
 
 // Commit pages before current to avoid a partial commit
@@ -97,8 +99,9 @@ func (t *Tip) commitPage(p *logpage.LogPage, i int) bool {
 	return p.Commit(size)
 }
 
+// Put everything after the first page back
 func (t *Tip) abortPages() {
-	for _, p := range t.pages {
+	for _, p := range t.pages[1:] {
 		t.pool.Put(p)
 	}
 }
