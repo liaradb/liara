@@ -51,18 +51,6 @@ type Log struct {
 
 type flushRequest = async.Command[record.LogSequenceNumber]
 
-type appendRequest = async.Request[appendValue, record.LogSequenceNumber]
-
-type appendValue struct {
-	tid        value.TenantID
-	txid       record.TransactionID
-	time       time.Time
-	action     record.Action
-	collection record.Collection
-	data       []byte
-	reverse    []byte
-}
-
 func NewLog(
 	pageSize int64,
 	segmentSize action.PageID,
@@ -217,16 +205,10 @@ func (l *Log) FlushCheckpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	data := l.txIDsToData(txids)
-	lsn, err := l.append(
+	lsn, err := l.appendCheckpoint(
 		ctx,
-		value.TenantID{},
-		record.TransactionID{},
 		now,
-		record.ActionCheckpoint,
-		record.CollectionSystem,
-		data,
-		nil)
+		txids...)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}
@@ -236,18 +218,6 @@ func (l *Log) FlushCheckpoint(
 	}
 
 	return lsn, nil
-}
-
-func (*Log) txIDsToData(txids []record.TransactionID) []byte {
-	data := make([]byte, len(txids)*record.TransactionIDSize)
-
-	data0 := data
-	for _, txid := range txids {
-		// There will always be enough space
-		data0, _ = txid.WriteData(data0)
-	}
-
-	return data
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
@@ -323,8 +293,14 @@ func (l *Log) appendRecord(
 
 func (l *Log) appendRequest(ctx context.Context, r *appendRequest) {
 	v := r.Value()
-	lsn, err := l.append(ctx, v.tid, v.txid, v.time, v.action, v.collection, v.data, v.reverse)
-	r.Reply(lsn, err)
+	h := l.highWater.Increment()
+
+	err := l.pq.Append(ctx, v.Record(h))
+	if err == nil {
+		l.highWater = h
+	}
+
+	r.Reply(l.highWater, err)
 }
 
 // # Append to PageQueue
@@ -332,18 +308,21 @@ func (l *Log) appendRequest(ctx context.Context, r *appendRequest) {
 //   - Otherwise, sync current page
 //   - For every page after, push new page to disk
 //   - For last page, store that as current
-func (l *Log) append(
+func (l *Log) appendCheckpoint(
 	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
 	time time.Time,
-	action record.Action,
-	collection record.Collection,
-	data []byte,
-	reverse []byte,
+	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	h := l.highWater.Increment()
-	rc := record.New(h, tid, txid, record.NewTime(time), action, collection, data, reverse)
+	data := l.txIDsToData(txids)
+	rc := record.New(h,
+		value.TenantID{},
+		record.TransactionID{},
+		record.NewTime(time),
+		record.ActionCheckpoint,
+		record.CollectionSystem,
+		data,
+		nil)
 
 	if err := l.pq.Append(ctx, rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
@@ -351,6 +330,18 @@ func (l *Log) append(
 
 	l.highWater = h
 	return l.highWater, nil
+}
+
+func (*Log) txIDsToData(txids []record.TransactionID) []byte {
+	data := make([]byte, len(txids)*record.TransactionIDSize)
+
+	data0 := data
+	for _, txid := range txids {
+		// There will always be enough space
+		data0, _ = txid.WriteData(data0)
+	}
+
+	return data
 }
 
 func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
