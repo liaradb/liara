@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/writequeue"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -44,7 +43,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, &testFlusher{}, size, headerSize, writeQueueSize)
+			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -108,7 +107,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, &testFlusher{}, size, headerSize, writeQueueSize)
+			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -155,10 +154,3 @@ func TestPageIterator(t *testing.T) {
 		})
 	})
 }
-
-type testFlusher struct {
-}
-
-func (*testFlusher) OnFlush(record.LogSequenceNumber) {}
-
-var _ writequeue.Flusher = &testFlusher{}

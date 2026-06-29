@@ -7,13 +7,11 @@ import (
 
 type LogPage struct {
 	*page.Page
-	lsn     record.LogSequenceNumber
 	handler func()
 }
 
 func (lp *LogPage) Clear(lsn record.LogSequenceNumber) {
 	lp.Page.Clear()
-	lp.lsn = lsn
 }
 
 func (lp *LogPage) Reset() {
@@ -31,17 +29,11 @@ func (lp *LogPage) Fill(data []byte, h func()) {
 	lp.SetHandler(h)
 }
 
-func (lp *LogPage) LSN() record.LogSequenceNumber { return lp.lsn }
-
 func (lp *LogPage) Complete() {
 	if lp.handler != nil {
 		lp.handler()
 		lp.handler = nil
 	}
-}
-
-func (lp *LogPage) SetLSN(lsn record.LogSequenceNumber) {
-	lp.lsn = lsn
 }
 
 func (lp *LogPage) Handler() func() {

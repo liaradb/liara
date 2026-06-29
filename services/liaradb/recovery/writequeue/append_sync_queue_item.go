@@ -33,13 +33,12 @@ func (qi *appendSyncQueueItem) Wait(ctx context.Context) error {
 	}
 }
 
-func (qi *appendSyncQueueItem) Store(ps PageStorage, fl Flusher) error {
+func (qi *appendSyncQueueItem) Store(ps PageStorage) error {
 	err := ps.Append(qi.lsn, qi.page.Data())
 	qi.reply <- err
 
 	if err == nil {
 		qi.Page().Complete()
-		fl.OnFlush(qi.Page().LSN())
 	}
 
 	return nil

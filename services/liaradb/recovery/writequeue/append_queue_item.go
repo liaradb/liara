@@ -26,13 +26,12 @@ func (*appendQueueItem) Wait(context.Context) error {
 	return nil
 }
 
-func (qi *appendQueueItem) Store(ps PageStorage, fl Flusher) error {
+func (qi *appendQueueItem) Store(ps PageStorage) error {
 	if err := ps.Append(qi.lsn, qi.page.Data()); err != nil {
 		return err
 	}
 
 	qi.Page().Complete()
-	fl.OnFlush(qi.Page().LSN())
 	return nil
 }
 

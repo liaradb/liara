@@ -65,7 +65,7 @@ func NewLog(
 		maxRecordSize: maxRecordSize,
 	}
 
-	l.pq = pagequeue.New(ps, l, int16(pageSize), logpage.HeaderSize, writeQueueSize)
+	l.pq = pagequeue.New(ps, int16(pageSize), logpage.HeaderSize, writeQueueSize)
 	return l
 }
 
@@ -361,7 +361,4 @@ func (l *Log) flushPageQueue(ctx context.Context) error {
 
 func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
-}
-
-func (l *Log) OnFlush(lsn record.LogSequenceNumber) {
 }

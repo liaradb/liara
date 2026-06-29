@@ -11,13 +11,12 @@ import (
 type WriteQueue struct {
 	items chan queueItem
 	ps    PageStorage
-	fl    Flusher
 	pool  *pagepool.PagePool
 }
 
 type queueItem interface {
 	Wait(context.Context) error
-	Store(PageStorage, Flusher) error
+	Store(PageStorage) error
 	Page() *logpage.LogPage
 }
 
@@ -27,20 +26,14 @@ type PageStorage interface {
 	Init([]byte) error
 }
 
-type Flusher interface {
-	OnFlush(record.LogSequenceNumber)
-}
-
 func New(
 	size int,
 	ps PageStorage,
-	fl Flusher,
 	pool *pagepool.PagePool,
 ) *WriteQueue {
 	return &WriteQueue{
 		items: make(chan queueItem, size),
 		ps:    ps,
-		fl:    fl,
 		pool:  pool,
 	}
 }
@@ -59,7 +52,7 @@ func (wq *WriteQueue) Run(ctx context.Context) error {
 }
 
 func (wq *WriteQueue) run(qi queueItem) error {
-	if err := qi.Store(wq.ps, wq.fl); err != nil {
+	if err := qi.Store(wq.ps); err != nil {
 		return err
 	}
 

@@ -76,7 +76,6 @@ func (t *Tip) Commit(lsn record.LogSequenceNumber, h func()) ([]*logpage.LogPage
 	}
 
 	t.pages[len(t.pages)-1].SetHandler(h)
-	t.pages[len(t.pages)-1].SetLSN(lsn)
 	return t.pages, true
 }
 
