@@ -42,7 +42,7 @@ type Log struct {
 	it            *pageiterator.PageIterator
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
-	appendReqs    async.Handler[appendValue, record.LogSequenceNumber]
+	appendReqs    pagequeue.AppendHandler
 	flushReqs     async.CommandHandler[record.LogSequenceNumber]
 	cancel        context.CancelFunc
 	queue         requestQueue
@@ -66,7 +66,7 @@ func NewLog(
 		sl:            sl,
 		ps:            ps,
 		it:            pageiterator.New(sl, int16(pageSize), logpage.HeaderSize),
-		appendReqs:    make(chan *appendRequest),
+		appendReqs:    pagequeue.NewAppendHandler(),
 		flushReqs:     make(chan *flushRequest),
 		maxRecordSize: maxRecordSize,
 	}
@@ -255,7 +255,7 @@ func (l *Log) run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case r := <-l.appendReqs:
+		case r := <-l.appendReqs.Reqs():
 			l.appendRequest(ctx, r)
 		case r := <-l.flushReqs:
 			l.flushRequest(r)
@@ -280,18 +280,18 @@ func (l *Log) appendRecord(
 		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
 	}
 
-	return l.appendReqs.Send(ctx, appendValue{
-		tid:        tid,
-		txid:       txid,
-		time:       time,
-		action:     action,
-		collection: collection,
-		data:       data,
-		reverse:    reverse,
-	})
+	return l.appendReqs.Append(ctx,
+		tid,
+		txid,
+		time,
+		action,
+		collection,
+		data,
+		reverse,
+	)
 }
 
-func (l *Log) appendRequest(ctx context.Context, r *appendRequest) {
+func (l *Log) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
 	v := r.Value()
 	h := l.highWater.Increment()
 
