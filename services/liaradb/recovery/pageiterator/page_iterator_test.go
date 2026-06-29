@@ -32,7 +32,6 @@ func TestPageIterator(t *testing.T) {
 
 			const (
 				size           = 128 // TODO: This does not work if the page is too small
-				headerSize     = 4
 				writeQueueSize = 100
 			)
 
@@ -43,7 +42,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
+			pq := pagequeue.New(ps, size, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -66,7 +65,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, size, headerSize)
+			pi := New(sl, size)
 
 			c := 0
 			for rc, err := range pi.Forward(record.NewLogSequenceNumber(0)) {
@@ -96,7 +95,6 @@ func TestPageIterator(t *testing.T) {
 
 			const (
 				size           = 80
-				headerSize     = 4
 				writeQueueSize = 100
 			)
 
@@ -107,7 +105,7 @@ func TestPageIterator(t *testing.T) {
 				t.Error(err)
 			}
 
-			pq := pagequeue.New(ps, size, headerSize, writeQueueSize)
+			pq := pagequeue.New(ps, size, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -130,7 +128,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, size, headerSize)
+			pi := New(sl, size)
 
 			c := 0
 			reverseIndex := numberOfRecords - 1

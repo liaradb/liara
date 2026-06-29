@@ -13,10 +13,10 @@ type PagePool struct {
 	pool sync.Pool
 }
 
-func New(size int16, headerSize int16, slotHeaderSize int16) PagePool {
+func New(size int16, slotHeaderSize int16) PagePool {
 	return PagePool{
 		pool: sync.Pool{New: func() any {
-			p := page.New(size, headerSize, slotHeaderSize)
+			p := page.New(size, logpage.HeaderSize, slotHeaderSize)
 			return &logpage.LogPage{
 				Page: p,
 			}

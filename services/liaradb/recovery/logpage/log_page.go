@@ -20,8 +20,8 @@ func (lp *LogPage) Reset() {
 	lp.handler = nil
 }
 
-func New(size int16, headerSize int16, slotHeaderSize int16) *LogPage {
-	page := page.New(size, headerSize, slotHeaderSize)
+func New(size int16, slotHeaderSize int16) *LogPage {
+	page := page.New(size, HeaderSize, slotHeaderSize)
 	header, _ := newHeader(page.Header())
 	return &LogPage{
 		Page:   page,

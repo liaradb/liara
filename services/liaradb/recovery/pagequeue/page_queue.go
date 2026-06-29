@@ -21,11 +21,10 @@ type PageQueue struct {
 func New(
 	ps writequeue.PageStorage,
 	size int16,
-	headerSize int16,
 	writeQueueSize int,
 ) *PageQueue {
 	pq := &PageQueue{
-		pool: pagepool.New(size, headerSize, span.FragmentHeaderSize),
+		pool: pagepool.New(size, span.FragmentHeaderSize),
 	}
 
 	pq.init(writeQueueSize, ps)

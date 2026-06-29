@@ -3,13 +3,15 @@ package pagepool
 import (
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 func TestPagePool(t *testing.T) {
-	pp := New(1024, 8, 4)
+	pp := New(1024, 4)
 
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8}
-	empty := make([]byte, 8)
+	empty := make([]byte, logpage.HeaderSize)
 
 	p0 := pp.Get()
 	h0 := p0.Header()

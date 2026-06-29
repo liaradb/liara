@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagestorage"
@@ -60,12 +59,12 @@ func NewLog(
 		pageSize:      pageSize,
 		sl:            sl,
 		ps:            ps,
-		it:            pageiterator.New(sl, int16(pageSize), logpage.HeaderSize),
+		it:            pageiterator.New(sl, int16(pageSize)),
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
 	}
 
-	l.pq = pagequeue.New(ps, int16(pageSize), logpage.HeaderSize, writeQueueSize)
+	l.pq = pagequeue.New(ps, int16(pageSize), writeQueueSize)
 	return l
 }
 

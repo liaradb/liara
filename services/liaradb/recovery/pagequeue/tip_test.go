@@ -12,15 +12,14 @@ import (
 const (
 	pageSize       = 64
 	largePageSize  = 256
-	headerSize     = 22
 	writeQueueSize = 100
 )
 
 func TestTip(t *testing.T) {
 	t.Parallel()
-	pool := pagepool.New(pageSize, headerSize, span.FragmentHeaderSize)
+	pool := pagepool.New(pageSize, span.FragmentHeaderSize)
 
-	current := logpage.New(pageSize, headerSize, span.FragmentHeaderSize)
+	current := logpage.New(pageSize, span.FragmentHeaderSize)
 	tip := NewTip(&pool, current)
 	var want int16 = 128
 	s := tip.Span(want)
