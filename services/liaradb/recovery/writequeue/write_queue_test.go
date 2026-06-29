@@ -17,18 +17,18 @@ func TestWriteQueue(t *testing.T) {
 
 func testWriteQueueTestWriteQueue(t *testing.T) {
 	ps := &testPageStorage{}
-	pool := pagepool.New(12, 16, 8)
+	pool := pagepool.New(12, logpage.HeaderSize, 8)
 	wq := New(10, ps, &pool)
 	go wq.Run(t.Context())
 
-	wq.Append(t.Context(), record.NewLogSequenceNumber(0), logpage.NewLogPage(128, 16, 8))
-	wq.Append(t.Context(), record.NewLogSequenceNumber(1), logpage.NewLogPage(128, 16, 8))
-	wq.Replace(t.Context(), logpage.NewLogPage(128, 16, 8))
-	if err := wq.ReplaceSync(t.Context(), logpage.NewLogPage(128, 16, 8)); err != nil {
+	wq.Append(t.Context(), record.NewLogSequenceNumber(0), logpage.New(128, logpage.HeaderSize, 8))
+	wq.Append(t.Context(), record.NewLogSequenceNumber(1), logpage.New(128, logpage.HeaderSize, 8))
+	wq.Replace(t.Context(), logpage.New(128, logpage.HeaderSize, 8))
+	if err := wq.ReplaceSync(t.Context(), logpage.New(128, logpage.HeaderSize, 8)); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), logpage.NewLogPage(128, 16, 8)); err != nil {
+	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), logpage.New(128, logpage.HeaderSize, 8)); err != nil {
 		t.Fatal(err)
 	}
 

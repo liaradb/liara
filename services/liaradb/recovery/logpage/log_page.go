@@ -7,20 +7,25 @@ import (
 
 type LogPage struct {
 	*page.Page
+	header  header
 	handler func()
 }
 
 func (lp *LogPage) Clear(lsn record.LogSequenceNumber) {
 	lp.Page.Clear()
+	lp.header.init()
 }
 
 func (lp *LogPage) Reset() {
 	lp.handler = nil
 }
 
-func NewLogPage(size int16, headerSize int16, slotHeaderSize int16) *LogPage {
+func New(size int16, headerSize int16, slotHeaderSize int16) *LogPage {
+	page := page.New(size, headerSize, slotHeaderSize)
+	header, _ := newHeader(page.Header())
 	return &LogPage{
-		Page: page.New(size, headerSize, slotHeaderSize),
+		Page:   page,
+		header: header,
 	}
 }
 
