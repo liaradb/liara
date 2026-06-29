@@ -42,7 +42,7 @@ func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
 }
 
 func (pq *PageQueue) Init(data []byte) {
-	pq.current.Fill(data)
+	pq.current.Fill(data, nil)
 	pq.flushed = true
 }
 
@@ -55,13 +55,27 @@ func (pq *PageQueue) AppendRequest(ctx context.Context, lsn record.LogSequenceNu
 	h := lsn.Increment()
 
 	v := r.Value()
-	err := pq.Append(ctx, v.Record(h))
-	r.Reply(h, err)
 
-	if err == nil {
-		return h
+	if v.wait {
+		err := pq.append(ctx, v.Record(h), func() {
+			r.Reply(h, nil)
+		})
+
+		if err == nil {
+			return h
+		} else {
+			r.Reply(lsn, err)
+			return lsn
+		}
 	} else {
-		return lsn
+		err := pq.append(ctx, v.Record(h), nil)
+		if err == nil {
+			r.Reply(h, err)
+			return h
+		} else {
+			r.Reply(lsn, err)
+			return lsn
+		}
 	}
 }
 
@@ -73,6 +87,10 @@ func (pq *PageQueue) AppendRequest(ctx context.Context, lsn record.LogSequenceNu
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
 func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
+	return pq.append(ctx, rc, nil)
+}
+
+func (pq *PageQueue) append(ctx context.Context, rc *record.Record, h func()) error {
 	t := NewTip(&pq.pool, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
@@ -80,7 +98,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 	}
 
 	s.Commit()
-	pgs, ok := t.Commit(rc.LogSequenceNumber())
+	pgs, ok := t.Commit(rc.LogSequenceNumber(), h)
 	if !ok {
 		return writequeue.ErrUnableToAppend
 	}
@@ -127,7 +145,7 @@ func (pq *PageQueue) replaceCurrent(lsn record.LogSequenceNumber, p *logpage.Log
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
 	shadow := pq.pool.Get()
-	shadow.Fill(pq.current.Data())
+	shadow.Fill(pq.current.Data(), pq.current.Handler())
 	if pq.flushed {
 		return pq.wq.ReplaceSync(ctx, shadow)
 	}

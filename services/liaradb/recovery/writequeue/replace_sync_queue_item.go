@@ -34,6 +34,7 @@ func (qi *replaceSyncQueueItem) Store(ps PageStorage, fl Flusher) error {
 	qi.reply <- err
 
 	if err == nil {
+		qi.Page().Complete()
 		fl.OnFlush(qi.Page().LSN())
 	}
 

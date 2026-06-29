@@ -6,7 +6,6 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
@@ -43,13 +42,9 @@ type Log struct {
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
 	appendReqs    pagequeue.AppendHandler
-	flushReqs     async.CommandHandler[record.LogSequenceNumber]
 	cancel        context.CancelFunc
-	queue         requestQueue
 	maxRecordSize int64
 }
-
-type flushRequest = async.Command[record.LogSequenceNumber]
 
 func NewLog(
 	pageSize int64,
@@ -67,7 +62,6 @@ func NewLog(
 		ps:            ps,
 		it:            pageiterator.New(sl, int16(pageSize), logpage.HeaderSize),
 		appendReqs:    pagequeue.NewAppendHandler(),
-		flushReqs:     make(chan *flushRequest),
 		maxRecordSize: maxRecordSize,
 	}
 
@@ -247,8 +241,6 @@ func (l *Log) run(ctx context.Context) {
 			return
 		case r := <-l.appendReqs.Reqs():
 			l.appendRequest(ctx, r)
-		case r := <-l.flushReqs:
-			l.flushRequest(r)
 		case <-ticker.C:
 			l.flushOrPanic(ctx)
 		}
@@ -259,15 +251,18 @@ func (l *Log) appendAndWait(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
+	time time.Time,
 	action record.Action,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendRecord(ctx, tid, txid, now, action, record.CollectionSystem, nil, nil)
-	if err != nil {
-		return lsn, err
-	}
-
-	return lsn, l.requestFlush(ctx, lsn)
+	return l.appendReqs.AppendAndWait(ctx,
+		tid,
+		txid,
+		time,
+		action,
+		record.CollectionSystem,
+		nil,
+		nil,
+	)
 }
 
 func (l *Log) appendRecord(
@@ -294,10 +289,6 @@ func (l *Log) appendRecord(
 		data,
 		reverse,
 	)
-}
-
-func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	return l.flushReqs.Send(ctx, lsn)
 }
 
 func (l *Log) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
@@ -345,10 +336,6 @@ func (*Log) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
-func (l *Log) flushRequest(r *flushRequest) {
-	l.queue.add(r)
-}
-
 func (l *Log) flushOrPanic(ctx context.Context) {
 	if err := l.flush(ctx); err != nil {
 		panic(err)
@@ -374,8 +361,7 @@ func (l *Log) flushPageQueue(ctx context.Context) error {
 
 func (l *Log) completeFlush() {
 	l.lowWater = l.highWater
-	l.queue.sendUpToLSN(l.highWater)
 }
 
-func (pq *Log) OnFlush(lsn record.LogSequenceNumber) {
+func (l *Log) OnFlush(lsn record.LogSequenceNumber) {
 }

@@ -27,6 +27,7 @@ func (qi *replaceQueueItem) Store(ps PageStorage, fl Flusher) error {
 		return err
 	}
 
+	qi.Page().Complete()
 	fl.OnFlush(qi.Page().LSN())
 	return nil
 }

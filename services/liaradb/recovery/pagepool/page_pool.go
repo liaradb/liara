@@ -37,5 +37,6 @@ func (pl *PagePool) GetLsn(lsn record.LogSequenceNumber) *logpage.LogPage {
 }
 
 func (pl *PagePool) Put(p *logpage.LogPage) {
+	p.Reset()
 	pl.pool.Put(p)
 }

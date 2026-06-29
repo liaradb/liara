@@ -31,6 +31,7 @@ func (qi *appendQueueItem) Store(ps PageStorage, fl Flusher) error {
 		return err
 	}
 
+	qi.Page().Complete()
 	fl.OnFlush(qi.Page().LSN())
 	return nil
 }

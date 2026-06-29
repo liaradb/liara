@@ -31,7 +31,7 @@ func TestTip(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, want)
 	}
 
-	pages, ok := tip.Commit(record.NewLogSequenceNumber(0))
+	pages, ok := tip.Commit(record.NewLogSequenceNumber(0), nil)
 	if !ok {
 		t.Error("should commit")
 	}

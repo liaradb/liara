@@ -46,6 +46,28 @@ func (h AppendHandler) Append(
 	})
 }
 
+func (h AppendHandler) AppendAndWait(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	time time.Time,
+	action record.Action,
+	collection record.Collection,
+	data []byte,
+	reverse []byte,
+) (record.LogSequenceNumber, error) {
+	return h.reqs.Send(ctx, AppendValue{
+		tid:        tid,
+		txid:       txid,
+		time:       time,
+		action:     action,
+		collection: collection,
+		data:       data,
+		reverse:    reverse,
+		wait:       true,
+	})
+}
+
 type AppendValue struct {
 	tid        value.TenantID
 	txid       record.TransactionID
@@ -54,6 +76,7 @@ type AppendValue struct {
 	collection record.Collection
 	data       []byte
 	reverse    []byte
+	wait       bool
 }
 
 func (av *AppendValue) Record(lsn record.LogSequenceNumber) *record.Record {
