@@ -155,12 +155,7 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionCommit, record.CollectionSystem, nil, nil)
-	if err != nil {
-		return lsn, err
-	}
-
-	return lsn, l.requestFlush(ctx, lsn)
+	return l.appendAndWait(ctx, tid, txid, now, record.ActionCommit)
 }
 
 func (l *Log) Rollback(
@@ -169,12 +164,7 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendRecord(ctx, tid, txid, now, record.ActionRollback, record.CollectionSystem, nil, nil)
-	if err != nil {
-		return lsn, err
-	}
-
-	return lsn, l.requestFlush(ctx, lsn)
+	return l.appendAndWait(ctx, tid, txid, now, record.ActionRollback)
 }
 
 func (l *Log) Insert(
@@ -265,6 +255,21 @@ func (l *Log) run(ctx context.Context) {
 	}
 }
 
+func (l *Log) appendAndWait(
+	ctx context.Context,
+	tid value.TenantID,
+	txid record.TransactionID,
+	now time.Time,
+	action record.Action,
+) (record.LogSequenceNumber, error) {
+	lsn, err := l.appendRecord(ctx, tid, txid, now, action, record.CollectionSystem, nil, nil)
+	if err != nil {
+		return lsn, err
+	}
+
+	return lsn, l.requestFlush(ctx, lsn)
+}
+
 func (l *Log) appendRecord(
 	ctx context.Context,
 	tid value.TenantID,
@@ -289,6 +294,10 @@ func (l *Log) appendRecord(
 		data,
 		reverse,
 	)
+}
+
+func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
+	return l.flushReqs.Send(ctx, lsn)
 }
 
 func (l *Log) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
@@ -334,10 +343,6 @@ func (*Log) txIDsToData(txids []record.TransactionID) []byte {
 	}
 
 	return data
-}
-
-func (l *Log) requestFlush(ctx context.Context, lsn record.LogSequenceNumber) error {
-	return l.flushReqs.Send(ctx, lsn)
 }
 
 func (l *Log) flushRequest(r *flushRequest) {
