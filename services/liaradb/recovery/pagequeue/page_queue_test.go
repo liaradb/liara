@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
-	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
 func TestPageQueue(t *testing.T) {

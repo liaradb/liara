@@ -5,9 +5,9 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
+	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
-	"github.com/liaradb/liaradb/recovery/writequeue"
 )
 
 type PageQueue struct {
