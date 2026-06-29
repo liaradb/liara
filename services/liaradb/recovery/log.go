@@ -292,15 +292,7 @@ func (l *Log) appendRecord(
 }
 
 func (l *Log) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	v := r.Value()
-	h := l.highWater.Increment()
-
-	err := l.pq.Append(ctx, v.Record(h))
-	if err == nil {
-		l.highWater = h
-	}
-
-	r.Reply(l.highWater, err)
+	l.highWater = l.pq.AppendRequest(ctx, l.highWater, r)
 }
 
 // # Append to PageQueue

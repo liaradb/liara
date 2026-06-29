@@ -51,6 +51,20 @@ func (pq *PageQueue) Run(ctx context.Context) error {
 	return pq.wq.Run(ctx)
 }
 
+func (pq *PageQueue) AppendRequest(ctx context.Context, lsn record.LogSequenceNumber, r *AppendRequest) record.LogSequenceNumber {
+	h := lsn.Increment()
+
+	v := r.Value()
+	err := pq.Append(ctx, v.Record(h))
+	r.Reply(h, err)
+
+	if err == nil {
+		return h
+	} else {
+		return lsn
+	}
+}
+
 // # Append
 //   - Compare size of new Record to remaining space in current Page
 //   - If it fits, append to the current Page
