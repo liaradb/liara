@@ -36,7 +36,10 @@ func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
 	pq.current = pq.pool.Get()
 }
 
-func (pq *PageQueue) Init(data []byte) error {
+func (pq *PageQueue) Init(pageSize int64) error {
+	// TODO: Is there another place we can get this parameter?
+	// TODO: Don't create a page, just copy the data
+	data := make([]byte, pageSize)
 	if err := pq.wq.Init(data); err != nil {
 		return err
 	}

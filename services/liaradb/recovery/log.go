@@ -1,6 +1,7 @@
 package recovery
 
 import (
+	"container/list"
 	"context"
 	"iter"
 	"time"
@@ -8,7 +9,12 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/pageiterator"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/recovery/span"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 // Append process
@@ -23,6 +29,7 @@ import (
 // Do we flush current page when closing segment?
 type Log struct {
 	lw logWriter
+	it *pageiterator.PageIterator
 }
 
 func NewLog(
@@ -33,14 +40,18 @@ func NewLog(
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
+	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
+	pl := pagepool.New(int16(pageSize), span.FragmentHeaderSize)
+	it := pageiterator.New(sl, pl)
 	return &Log{
 		lw: *newLogWriter(
 			pageSize,
-			segmentSize,
 			maxRecordSize,
 			writeQueueSize,
-			fsys,
-			dir),
+			sl,
+			pl,
+			it),
+		it: it,
 	}
 }
 
@@ -149,14 +160,28 @@ func (l *Log) FlushCheckpoint(
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.lw.Iterate(lsn)
+	return l.it.Forward(lsn)
 }
 
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	return l.lw.Recover()
+	rcs := list.New()
+
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return nil, err
+		}
+
+		if rc.IsCheckpoint() {
+			break
+		}
+
+		rcs.PushBack(rc)
+	}
+
+	return iterator.Reverse[*record.Record](rcs), nil
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.lw.Reverse()
+	return l.it.Reverse()
 }

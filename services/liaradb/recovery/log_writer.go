@@ -1,23 +1,17 @@
 package recovery
 
 import (
-	"container/list"
 	"context"
-	"iter"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
-	"github.com/liaradb/liaradb/util/iterator"
 )
 
 const (
@@ -48,19 +42,17 @@ type logWriter struct {
 
 func newLogWriter(
 	pageSize int64,
-	segmentSize action.PageID,
 	maxRecordSize int64,
 	writeQueueSize int,
-	fsys filecache.FileSystem,
-	dir string,
+	sl *segment.List,
+	pl *pagepool.PagePool,
+	it *pageiterator.PageIterator,
 ) *logWriter {
-	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	ps := pagestorage.New(sl)
-	pl := pagepool.New(int16(pageSize), span.FragmentHeaderSize)
 	l := &logWriter{
 		pageSize:      pageSize,
 		sl:            sl,
-		it:            pageiterator.New(sl, pl),
+		it:            it,
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
 	}
@@ -71,7 +63,7 @@ func newLogWriter(
 
 func (lw *logWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
 func (lw *logWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
-func (lw *logWriter) IsDirty() bool                       { return lw.lowWater != lw.highWater }
+func (lw *logWriter) isDirty() bool                       { return lw.lowWater != lw.highWater }
 
 func (lw *logWriter) Run(ctx context.Context) error {
 	if err := lw.sl.Open(); err != nil {
@@ -100,9 +92,7 @@ func (lw *logWriter) StartWriter() error {
 		return err
 	}
 
-	// TODO: Don't create a page, just copy the data
-	data := make([]byte, lw.pageSize)
-	return lw.pq.Init(data)
+	return lw.pq.Init(lw.pageSize)
 }
 
 func (lw *logWriter) initHighWater() error {
@@ -127,33 +117,6 @@ func (lw *logWriter) initHighWater() error {
 	}
 
 	return nil
-}
-
-func (lw *logWriter) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return lw.it.Forward(lsn)
-}
-
-// Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
-func (lw *logWriter) Recover() (iter.Seq[*record.Record], error) {
-	rcs := list.New()
-
-	for rc, err := range lw.it.Reverse() {
-		if err != nil {
-			return nil, err
-		}
-
-		if rc.IsCheckpoint() {
-			break
-		}
-
-		rcs.PushBack(rc)
-	}
-
-	return iterator.Reverse[*record.Record](rcs), nil
-}
-
-func (lw *logWriter) Reverse() iter.Seq2[*record.Record, error] {
-	return lw.it.Reverse()
 }
 
 func (lw *logWriter) run(ctx context.Context) {
@@ -288,7 +251,7 @@ func (lw *logWriter) flushOrPanic(ctx context.Context) {
 }
 
 func (lw *logWriter) flush(ctx context.Context) error {
-	if !lw.IsDirty() {
+	if !lw.isDirty() {
 		return nil
 	}
 
