@@ -32,7 +32,6 @@ type logWriter struct {
 	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
-	it            *pageiterator.PageIterator
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
 	appendReqs    pagequeue.AppendHandler
@@ -46,13 +45,11 @@ func newLogWriter(
 	writeQueueSize int,
 	sl *segment.List,
 	pl *pagepool.PagePool,
-	it *pageiterator.PageIterator,
 ) *logWriter {
 	ps := pagestorage.New(sl)
 	l := &logWriter{
 		pageSize:      pageSize,
 		sl:            sl,
-		it:            it,
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
 	}
@@ -87,20 +84,20 @@ func (lw *logWriter) Close() error {
 	return lw.sl.Close()
 }
 
-func (lw *logWriter) StartWriter() error {
-	if err := lw.initHighWater(); err != nil {
+func (lw *logWriter) StartWriter(it *pageiterator.PageIterator) error {
+	if err := lw.initHighWater(it); err != nil {
 		return err
 	}
 
 	return lw.pq.Init(lw.pageSize)
 }
 
-func (lw *logWriter) initHighWater() error {
+func (lw *logWriter) initHighWater(it *pageiterator.PageIterator) error {
 	lw.lowWater = record.NewLogSequenceNumber(0)
 	lw.highWater = record.NewLogSequenceNumber(0)
 
 	hw := false
-	for rc, err := range lw.it.Reverse() {
+	for rc, err := range it.Reverse() {
 		if err != nil {
 			return err
 		}

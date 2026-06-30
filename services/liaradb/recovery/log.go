@@ -49,8 +49,7 @@ func NewLog(
 			maxRecordSize,
 			writeQueueSize,
 			sl,
-			pl,
-			it),
+			pl),
 		it: it,
 	}
 }
@@ -67,7 +66,7 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) StartWriter() error {
-	return l.lw.StartWriter()
+	return l.lw.StartWriter(l.it)
 }
 
 func (l *Log) Start(
