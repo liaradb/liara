@@ -4,7 +4,7 @@ import "github.com/liaradb/liaradb/encoder/page"
 
 type LogPage struct {
 	*page.Page
-	header  header
+	header
 	handler func()
 }
 

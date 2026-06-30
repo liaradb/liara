@@ -33,24 +33,19 @@ func (h *header) init() {
 	h.magic.Set(int32(page.MagicPage))
 }
 
-func (h *header) reset(
-	timeLineID action.TimeLineID,
-) {
-	h.timeLineID.SetUnsigned(timeLineID.Value())
+// TODO: How do we use this?
+func (h *header) SetTimeLineID(tlid action.TimeLineID) {
+	h.timeLineID.SetUnsigned(tlid.Value())
 }
 
 func (h *header) TimeLineID() action.TimeLineID {
 	return action.TimeLineID(h.timeLineID.GetUnsigned())
 }
 
-func (h header) Size() int {
-	return HeaderSize
-}
-
-func (h *header) isEmpty() bool {
+func (h *header) IsEmpty() bool {
 	return page.Magic(h.magic.Get()).IsEmpty()
 }
 
-func (h *header) isPage() bool {
+func (h *header) IsPage() bool {
 	return page.Magic(h.magic.Get()).IsPage()
 }
