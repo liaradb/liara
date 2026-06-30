@@ -37,9 +37,14 @@ func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
 	pq.current = pq.pool.Get()
 }
 
-func (pq *PageQueue) Init(data []byte) {
+func (pq *PageQueue) Init(data []byte) error {
+	if err := pq.wq.Init(data); err != nil {
+		return err
+	}
+
 	pq.current.Fill(data, nil)
 	pq.flushed = true
+	return nil
 }
 
 // TODO: Test this error

@@ -38,6 +38,10 @@ func New(
 	}
 }
 
+func (wq *WriteQueue) Init(data []byte) error {
+	return wq.ps.Init(data)
+}
+
 func (wq *WriteQueue) Run(ctx context.Context) error {
 	for {
 		select {

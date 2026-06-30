@@ -12,7 +12,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
-	"github.com/liaradb/liaradb/recovery/pagestorage"
+	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -36,7 +36,6 @@ type Log struct {
 	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
-	ps            *pagestorage.PageStorage
 	it            *pageiterator.PageIterator
 	highWater     record.LogSequenceNumber
 	lowWater      record.LogSequenceNumber
@@ -58,7 +57,6 @@ func NewLog(
 	l := &Log{
 		pageSize:      pageSize,
 		sl:            sl,
-		ps:            ps,
 		it:            pageiterator.New(sl, int16(pageSize)),
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
@@ -101,12 +99,7 @@ func (l *Log) StartWriter() error {
 
 	// TODO: Don't create a page, just copy the data
 	data := make([]byte, l.pageSize)
-	if err := l.ps.Init(data); err != nil {
-		return err
-	}
-
-	l.pq.Init(data)
-	return nil
+	return l.pq.Init(data)
 }
 
 func (l *Log) initHighWater() error {
