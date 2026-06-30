@@ -11,10 +11,12 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
@@ -54,15 +56,16 @@ func newLogWriter(
 ) *logWriter {
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	ps := pagestorage.New(sl)
+	pl := pagepool.New(int16(pageSize), span.FragmentHeaderSize)
 	l := &logWriter{
 		pageSize:      pageSize,
 		sl:            sl,
-		it:            pageiterator.New(sl, int16(pageSize)),
+		it:            pageiterator.New(sl, pl),
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
 	}
 
-	l.pq = pagequeue.New(ps, int16(pageSize), writeQueueSize)
+	l.pq = pagequeue.New(ps, pl, writeQueueSize)
 	return l
 }
 
@@ -215,6 +218,26 @@ func (lw *logWriter) appendRecord(
 
 func (lw *logWriter) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
 	lw.highWater = lw.pq.AppendRequest(ctx, lw.highWater, r)
+}
+
+func (l *logWriter) flushCheckpoint(
+	ctx context.Context,
+	now time.Time,
+	txids ...record.TransactionID,
+) (record.LogSequenceNumber, error) {
+	lsn, err := l.appendCheckpoint(
+		ctx,
+		now,
+		txids...)
+	if err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	if err := l.flushPageQueue(ctx); err != nil {
+		return record.LogSequenceNumber{}, err
+	}
+
+	return lsn, nil
 }
 
 // # Append to PageQueue

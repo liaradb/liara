@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
@@ -31,7 +32,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 
 			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
@@ -97,7 +98,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 
 			if err := pq.Append(t.Context(), rc); err != nil {
 				t.Fatal(err)
@@ -123,7 +124,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 			go pq.Run(t.Context())
 
 			if err := pq.Append(t.Context(), rc); err != nil {
@@ -152,7 +153,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 			go pq.Run(t.Context())
 
 			if err := pq.Append(t.Context(), rc); err != nil {
@@ -173,7 +174,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 			go pq.Run(t.Context())
 
 			for range 6 {
@@ -204,7 +205,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 			go pq.Run(t.Context())
 
 			for range 6 {
@@ -236,7 +237,7 @@ func TestPageQueue(t *testing.T) {
 			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
 
 			ps := &testPageStorage{}
-			pq := New(ps, largePageSize, writeQueueSize)
+			pq := New(ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
 			go pq.Run(t.Context())
 
 			for range 6 {

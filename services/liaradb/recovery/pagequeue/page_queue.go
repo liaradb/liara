@@ -7,11 +7,10 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type PageQueue struct {
-	pool    pagepool.PagePool
+	pool    *pagepool.PagePool
 	wq      *writequeue.WriteQueue
 	current *logpage.LogPage
 	flushed bool
@@ -20,11 +19,11 @@ type PageQueue struct {
 
 func New(
 	ps writequeue.PageStorage,
-	size int16,
+	pl *pagepool.PagePool,
 	writeQueueSize int,
 ) *PageQueue {
 	pq := &PageQueue{
-		pool: pagepool.New(size, span.FragmentHeaderSize),
+		pool: pl,
 	}
 
 	pq.init(writeQueueSize, ps)
@@ -33,7 +32,7 @@ func New(
 }
 
 func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
-	pq.wq = writequeue.New(writeQueueSize, ps, &pq.pool)
+	pq.wq = writequeue.New(writeQueueSize, ps, pq.pool)
 	pq.current = pq.pool.Get()
 }
 
@@ -92,7 +91,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 }
 
 func (pq *PageQueue) append(ctx context.Context, rc *record.Record, h func()) error {
-	t := NewTip(&pq.pool, pq.current)
+	t := NewTip(pq.pool, pq.current)
 	s := t.Span(int16(rc.Size()))
 	if err := rc.Write(s); err != nil {
 		return err

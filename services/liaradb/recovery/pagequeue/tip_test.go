@@ -20,7 +20,7 @@ func TestTip(t *testing.T) {
 	pool := pagepool.New(pageSize, span.FragmentHeaderSize)
 
 	current := logpage.New(pageSize, span.FragmentHeaderSize)
-	tip := NewTip(&pool, current)
+	tip := NewTip(pool, current)
 	var want int16 = 128
 	s := tip.Span(want)
 

@@ -34,13 +34,18 @@ func NewLog(
 	dir string,
 ) *Log {
 	return &Log{
-		lw: *newLogWriter(pageSize, segmentSize, maxRecordSize, writeQueueSize, fsys, dir),
+		lw: *newLogWriter(
+			pageSize,
+			segmentSize,
+			maxRecordSize,
+			writeQueueSize,
+			fsys,
+			dir),
 	}
 }
 
 func (l *Log) HighWater() record.LogSequenceNumber { return l.lw.HighWater() }
 func (l *Log) LowWater() record.LogSequenceNumber  { return l.lw.LowWater() }
-func (l *Log) IsDirty() bool                       { return l.lw.IsDirty() }
 
 func (l *Log) Run(ctx context.Context) error {
 	return l.lw.Run(ctx)
@@ -60,7 +65,14 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
+	return l.lw.appendRecord(ctx,
+		tid,
+		txid,
+		now,
+		record.ActionStart,
+		record.CollectionSystem,
+		nil,
+		nil)
 }
 
 func (l *Log) Commit(
@@ -69,7 +81,11 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendAndWait(ctx, tid, txid, now, record.ActionCommit)
+	return l.lw.appendAndWait(ctx,
+		tid,
+		txid,
+		now,
+		record.ActionCommit)
 }
 
 func (l *Log) Rollback(
@@ -78,7 +94,11 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendAndWait(ctx, tid, txid, now, record.ActionRollback)
+	return l.lw.appendAndWait(ctx,
+		tid,
+		txid,
+		now,
+		record.ActionRollback)
 }
 
 func (l *Log) Insert(
@@ -89,7 +109,14 @@ func (l *Log) Insert(
 	collection record.Collection,
 	data []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
+	return l.lw.appendRecord(ctx,
+		tid,
+		txid,
+		now,
+		record.ActionInsert,
+		collection,
+		data,
+		nil)
 }
 
 func (l *Log) Update(
@@ -101,7 +128,14 @@ func (l *Log) Update(
 	data []byte,
 	prev []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
+	return l.lw.appendRecord(ctx,
+		tid,
+		txid,
+		now,
+		record.ActionUpdate,
+		collection,
+		data,
+		prev)
 }
 
 func (l *Log) FlushCheckpoint(
@@ -109,19 +143,9 @@ func (l *Log) FlushCheckpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.lw.appendCheckpoint(
-		ctx,
+	return l.lw.flushCheckpoint(ctx,
 		now,
 		txids...)
-	if err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	if err := l.lw.flushPageQueue(ctx); err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	return lsn, nil
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {

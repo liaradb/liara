@@ -11,19 +11,17 @@ import (
 )
 
 type PageIterator struct {
-	size int16
 	sl   *segment.List
-	pool pagepool.PagePool
+	pool *pagepool.PagePool
 }
 
 func New(
 	sl *segment.List,
-	size int16,
+	pl *pagepool.PagePool,
 ) *PageIterator {
 	return &PageIterator{
-		size: size,
 		sl:   sl,
-		pool: pagepool.New(size, span.FragmentHeaderSize),
+		pool: pl,
 	}
 }
 
