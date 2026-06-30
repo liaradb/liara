@@ -1,25 +1,14 @@
 package recovery
 
 import (
-	"container/list"
 	"context"
 	"iter"
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/pageiterator"
-	"github.com/liaradb/liaradb/recovery/pagequeue"
-	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/util/iterator"
-)
-
-const (
-	interval = 100 * time.Millisecond
 )
 
 // Append process
@@ -33,15 +22,7 @@ const (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type Log struct {
-	pageSize      int64
-	sl            *segment.List
-	pq            *pagequeue.PageQueue
-	it            *pageiterator.PageIterator
-	highWater     record.LogSequenceNumber
-	lowWater      record.LogSequenceNumber
-	appendReqs    pagequeue.AppendHandler
-	cancel        context.CancelFunc
-	maxRecordSize int64
+	lw logWriter
 }
 
 func NewLog(
@@ -52,78 +33,25 @@ func NewLog(
 	fsys filecache.FileSystem,
 	dir string,
 ) *Log {
-	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
-	ps := pagestorage.New(sl)
-	l := &Log{
-		pageSize:      pageSize,
-		sl:            sl,
-		it:            pageiterator.New(sl, int16(pageSize)),
-		appendReqs:    pagequeue.NewAppendHandler(),
-		maxRecordSize: maxRecordSize,
+	return &Log{
+		lw: *newLogWriter(pageSize, segmentSize, maxRecordSize, writeQueueSize, fsys, dir),
 	}
-
-	l.pq = pagequeue.New(ps, int16(pageSize), writeQueueSize)
-	return l
 }
 
-func (l *Log) HighWater() record.LogSequenceNumber { return l.highWater }
-func (l *Log) LowWater() record.LogSequenceNumber  { return l.lowWater }
-func (l *Log) IsDirty() bool                       { return l.lowWater != l.highWater }
+func (l *Log) HighWater() record.LogSequenceNumber { return l.lw.HighWater() }
+func (l *Log) LowWater() record.LogSequenceNumber  { return l.lw.LowWater() }
+func (l *Log) IsDirty() bool                       { return l.lw.IsDirty() }
 
 func (l *Log) Run(ctx context.Context) error {
-	if err := l.sl.Open(); err != nil {
-		return err
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	l.cancel = cancel
-	go l.run(ctx)
-	go func() {
-		_ = l.pq.Run(ctx)
-	}()
-	return nil
+	return l.lw.Run(ctx)
 }
 
 func (l *Log) Close() error {
-	if l.cancel != nil {
-		l.cancel()
-	}
-
-	return l.sl.Close()
+	return l.lw.Close()
 }
 
 func (l *Log) StartWriter() error {
-	if err := l.initHighWater(); err != nil {
-		return err
-	}
-
-	// TODO: Don't create a page, just copy the data
-	data := make([]byte, l.pageSize)
-	return l.pq.Init(data)
-}
-
-func (l *Log) initHighWater() error {
-	l.lowWater = record.NewLogSequenceNumber(0)
-	l.highWater = record.NewLogSequenceNumber(0)
-
-	hw := false
-	for rc, err := range l.it.Reverse() {
-		if err != nil {
-			return err
-		}
-
-		if !hw {
-			l.highWater = rc.LogSequenceNumber()
-			hw = true
-		}
-
-		if rc.Action() == record.ActionCheckpoint {
-			l.lowWater = rc.LogSequenceNumber()
-			break
-		}
-	}
-
-	return nil
+	return l.lw.StartWriter()
 }
 
 func (l *Log) Start(
@@ -132,7 +60,7 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
+	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionStart, record.CollectionSystem, nil, nil)
 }
 
 func (l *Log) Commit(
@@ -141,7 +69,7 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendAndWait(ctx, tid, txid, now, record.ActionCommit)
+	return l.lw.appendAndWait(ctx, tid, txid, now, record.ActionCommit)
 }
 
 func (l *Log) Rollback(
@@ -150,7 +78,7 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.appendAndWait(ctx, tid, txid, now, record.ActionRollback)
+	return l.lw.appendAndWait(ctx, tid, txid, now, record.ActionRollback)
 }
 
 func (l *Log) Insert(
@@ -161,7 +89,7 @@ func (l *Log) Insert(
 	collection record.Collection,
 	data []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
+	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionInsert, collection, data, nil)
 }
 
 func (l *Log) Update(
@@ -173,7 +101,7 @@ func (l *Log) Update(
 	data []byte,
 	prev []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
+	return l.lw.appendRecord(ctx, tid, txid, now, record.ActionUpdate, collection, data, prev)
 }
 
 func (l *Log) FlushCheckpoint(
@@ -181,7 +109,7 @@ func (l *Log) FlushCheckpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendCheckpoint(
+	lsn, err := l.lw.appendCheckpoint(
 		ctx,
 		now,
 		txids...)
@@ -189,7 +117,7 @@ func (l *Log) FlushCheckpoint(
 		return record.LogSequenceNumber{}, err
 	}
 
-	if err := l.flushPageQueue(ctx); err != nil {
+	if err := l.lw.flushPageQueue(ctx); err != nil {
 		return record.LogSequenceNumber{}, err
 	}
 
@@ -197,160 +125,14 @@ func (l *Log) FlushCheckpoint(
 }
 
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return l.it.Forward(lsn)
+	return l.lw.Iterate(lsn)
 }
 
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	rcs := list.New()
-
-	for rc, err := range l.it.Reverse() {
-		if err != nil {
-			return nil, err
-		}
-
-		if rc.IsCheckpoint() {
-			break
-		}
-
-		rcs.PushBack(rc)
-	}
-
-	return iterator.Reverse[*record.Record](rcs), nil
+	return l.lw.Recover()
 }
 
 func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.it.Reverse()
-}
-
-func (l *Log) run(ctx context.Context) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case r := <-l.appendReqs.Reqs():
-			l.appendRequest(ctx, r)
-		case <-ticker.C:
-			l.flushOrPanic(ctx)
-		}
-	}
-}
-
-func (l *Log) appendAndWait(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	time time.Time,
-	action record.Action,
-) (record.LogSequenceNumber, error) {
-	return l.appendReqs.AppendAndWait(ctx,
-		tid,
-		txid,
-		time,
-		action,
-		record.CollectionSystem,
-		nil,
-		nil,
-	)
-}
-
-func (l *Log) appendRecord(
-	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	time time.Time,
-	action record.Action,
-	collection record.Collection,
-	data []byte,
-	reverse []byte,
-) (record.LogSequenceNumber, error) {
-	// Verify that record can fit at all
-	if len(data) > int(l.maxRecordSize) {
-		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
-	}
-
-	return l.appendReqs.Append(ctx,
-		tid,
-		txid,
-		time,
-		action,
-		collection,
-		data,
-		reverse,
-	)
-}
-
-func (l *Log) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	l.highWater = l.pq.AppendRequest(ctx, l.highWater, r)
-}
-
-// # Append to PageQueue
-//   - If current page was full already, do not sync
-//   - Otherwise, sync current page
-//   - For every page after, push new page to disk
-//   - For last page, store that as current
-func (l *Log) appendCheckpoint(
-	ctx context.Context,
-	time time.Time,
-	txids ...record.TransactionID,
-) (record.LogSequenceNumber, error) {
-	h := l.highWater.Increment()
-	data := l.txIDsToData(txids)
-	rc := record.New(h,
-		value.TenantID{},
-		record.TransactionID{},
-		record.NewTime(time),
-		record.ActionCheckpoint,
-		record.CollectionSystem,
-		data,
-		nil)
-
-	if err := l.pq.Append(ctx, rc); err != nil {
-		return record.NewLogSequenceNumber(0), err
-	}
-
-	l.highWater = h
-	return l.highWater, nil
-}
-
-func (*Log) txIDsToData(txids []record.TransactionID) []byte {
-	data := make([]byte, len(txids)*record.TransactionIDSize)
-
-	data0 := data
-	for _, txid := range txids {
-		// There will always be enough space
-		data0, _ = txid.WriteData(data0)
-	}
-
-	return data
-}
-
-func (l *Log) flushOrPanic(ctx context.Context) {
-	if err := l.flush(ctx); err != nil {
-		panic(err)
-	}
-}
-
-func (l *Log) flush(ctx context.Context) error {
-	if !l.IsDirty() {
-		return nil
-	}
-
-	if err := l.flushPageQueue(ctx); err != nil {
-		return err
-	}
-
-	l.completeFlush()
-	return nil
-}
-
-func (l *Log) flushPageQueue(ctx context.Context) error {
-	return l.pq.Flush(ctx)
-}
-
-func (l *Log) completeFlush() {
-	l.lowWater = l.highWater
+	return l.lw.Reverse()
 }
