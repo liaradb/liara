@@ -42,7 +42,7 @@ func (pq *PageQueue) Init(data []byte) error {
 		return err
 	}
 
-	pq.current.Fill(data, nil)
+	pq.current.Fill(data)
 	pq.flushed = true
 	return nil
 }
@@ -146,7 +146,7 @@ func (pq *PageQueue) replaceCurrent(lsn record.LogSequenceNumber, p *logpage.Log
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
 	shadow := pq.pool.Get()
-	shadow.Fill(pq.current.Data(), pq.current.Handler())
+	shadow.Copy(pq.current)
 	if pq.flushed {
 		return pq.wq.ReplaceSync(ctx, shadow)
 	}

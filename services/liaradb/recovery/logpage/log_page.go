@@ -1,9 +1,6 @@
 package logpage
 
-import (
-	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/record"
-)
+import "github.com/liaradb/liaradb/encoder/page"
 
 type LogPage struct {
 	*page.Page
@@ -11,7 +8,7 @@ type LogPage struct {
 	handler func()
 }
 
-func (lp *LogPage) Clear(lsn record.LogSequenceNumber) {
+func (lp *LogPage) Clear() {
 	lp.Page.Clear()
 	lp.header.init()
 }
@@ -29,9 +26,9 @@ func New(size int16, slotHeaderSize int16) *LogPage {
 	}
 }
 
-func (lp *LogPage) Fill(data []byte, h func()) {
+func (lp *LogPage) Fill(data []byte) {
 	lp.Page.Fill(data)
-	lp.SetHandler(h)
+	lp.SetHandler(nil)
 }
 
 func (lp *LogPage) Complete() {
@@ -47,4 +44,9 @@ func (lp *LogPage) Handler() func() {
 
 func (lp *LogPage) SetHandler(handler func()) {
 	lp.handler = handler
+}
+
+func (lp *LogPage) Copy(base *LogPage) {
+	lp.Page.Fill(base.Data())
+	lp.handler = base.handler
 }
