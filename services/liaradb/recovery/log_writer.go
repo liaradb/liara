@@ -32,8 +32,7 @@ type logWriter struct {
 	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
-	highWater     record.LogSequenceNumber
-	lowWater      record.LogSequenceNumber
+	lf            logFlusher
 	appendReqs    pagequeue.AppendHandler
 	cancel        context.CancelFunc
 	maxRecordSize int64
@@ -58,9 +57,8 @@ func newLogWriter(
 	return l
 }
 
-func (lw *logWriter) HighWater() record.LogSequenceNumber { return lw.highWater }
-func (lw *logWriter) LowWater() record.LogSequenceNumber  { return lw.lowWater }
-func (lw *logWriter) isDirty() bool                       { return lw.lowWater != lw.highWater }
+func (lw *logWriter) HighWater() record.LogSequenceNumber { return lw.lf.HighWater() }
+func (lw *logWriter) LowWater() record.LogSequenceNumber  { return lw.lf.LowWater() }
 
 func (lw *logWriter) Run(ctx context.Context) error {
 	if err := lw.sl.Open(); err != nil {
@@ -85,35 +83,11 @@ func (lw *logWriter) Close() error {
 }
 
 func (lw *logWriter) StartWriter(it *pageiterator.PageIterator) error {
-	if err := lw.initHighWater(it); err != nil {
+	if err := lw.lf.initHighWater(it); err != nil {
 		return err
 	}
 
 	return lw.pq.Init(lw.pageSize)
-}
-
-func (lw *logWriter) initHighWater(it *pageiterator.PageIterator) error {
-	lw.lowWater = record.NewLogSequenceNumber(0)
-	lw.highWater = record.NewLogSequenceNumber(0)
-
-	hw := false
-	for rc, err := range it.Reverse() {
-		if err != nil {
-			return err
-		}
-
-		if !hw {
-			lw.highWater = rc.LogSequenceNumber()
-			hw = true
-		}
-
-		if rc.Action() == record.ActionCheckpoint {
-			lw.lowWater = rc.LogSequenceNumber()
-			break
-		}
-	}
-
-	return nil
 }
 
 func (lw *logWriter) run(ctx context.Context) {
@@ -177,7 +151,7 @@ func (lw *logWriter) appendRecord(
 }
 
 func (lw *logWriter) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	lw.highWater = lw.pq.AppendRequest(ctx, lw.highWater, r)
+	lw.lf.setHighWater(lw.pq.AppendRequest(ctx, lw.lf.HighWater(), r))
 }
 
 func (l *logWriter) flushCheckpoint(
@@ -210,7 +184,7 @@ func (lw *logWriter) appendCheckpoint(
 	time time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	h := lw.highWater.Increment()
+	h := lw.lf.HighWater().Increment()
 	data := lw.txIDsToData(txids)
 	rc := record.New(h,
 		value.TenantID{},
@@ -225,8 +199,8 @@ func (lw *logWriter) appendCheckpoint(
 		return record.NewLogSequenceNumber(0), err
 	}
 
-	lw.highWater = h
-	return lw.highWater, nil
+	lw.lf.setHighWater(h)
+	return h, nil
 }
 
 func (*logWriter) txIDsToData(txids []record.TransactionID) []byte {
@@ -248,7 +222,7 @@ func (lw *logWriter) flushOrPanic(ctx context.Context) {
 }
 
 func (lw *logWriter) flush(ctx context.Context) error {
-	if !lw.isDirty() {
+	if !lw.lf.isDirty() {
 		return nil
 	}
 
@@ -256,14 +230,10 @@ func (lw *logWriter) flush(ctx context.Context) error {
 		return err
 	}
 
-	lw.completeFlush()
+	lw.lf.completeFlush()
 	return nil
 }
 
 func (lw *logWriter) flushPageQueue(ctx context.Context) error {
 	return lw.pq.Flush(ctx)
-}
-
-func (lw *logWriter) completeFlush() {
-	lw.lowWater = lw.highWater
 }
