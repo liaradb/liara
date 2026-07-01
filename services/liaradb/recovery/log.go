@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/recordqueue"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -28,7 +29,7 @@ import (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type Log struct {
-	lw logWriter
+	rq recordqueue.RecordQueue
 	it *pageiterator.PageIterator
 }
 
@@ -44,7 +45,7 @@ func NewLog(
 	pl := pagepool.New(int16(pageSize), span.FragmentHeaderSize)
 	it := pageiterator.New(sl, pl)
 	return &Log{
-		lw: *newLogWriter(
+		rq: *recordqueue.New(
 			pageSize,
 			maxRecordSize,
 			writeQueueSize,
@@ -54,19 +55,19 @@ func NewLog(
 	}
 }
 
-func (l *Log) HighWater() record.LogSequenceNumber { return l.lw.HighWater() }
-func (l *Log) LowWater() record.LogSequenceNumber  { return l.lw.LowWater() }
+func (l *Log) HighWater() record.LogSequenceNumber { return l.rq.HighWater() }
+func (l *Log) LowWater() record.LogSequenceNumber  { return l.rq.LowWater() }
 
 func (l *Log) Run(ctx context.Context) error {
-	return l.lw.Run(ctx)
+	return l.rq.Run(ctx)
 }
 
 func (l *Log) Close() error {
-	return l.lw.Close()
+	return l.rq.Close()
 }
 
 func (l *Log) StartWriter() error {
-	return l.lw.StartWriter(l.it)
+	return l.rq.StartWriter(l.it)
 }
 
 func (l *Log) Start(
@@ -75,7 +76,7 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx,
+	return l.rq.AppendRecord(ctx,
 		tid,
 		txid,
 		now,
@@ -91,7 +92,7 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendAndWait(ctx,
+	return l.rq.AppendAndWait(ctx,
 		tid,
 		txid,
 		now,
@@ -104,7 +105,7 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendAndWait(ctx,
+	return l.rq.AppendAndWait(ctx,
 		tid,
 		txid,
 		now,
@@ -119,7 +120,7 @@ func (l *Log) Insert(
 	collection record.Collection,
 	data []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx,
+	return l.rq.AppendRecord(ctx,
 		tid,
 		txid,
 		now,
@@ -138,7 +139,7 @@ func (l *Log) Update(
 	data []byte,
 	prev []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.appendRecord(ctx,
+	return l.rq.AppendRecord(ctx,
 		tid,
 		txid,
 		now,
@@ -153,7 +154,7 @@ func (l *Log) FlushCheckpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	return l.lw.flushCheckpoint(ctx,
+	return l.rq.FlushCheckpoint(ctx,
 		now,
 		txids...)
 }

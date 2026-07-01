@@ -1,4 +1,4 @@
-package recovery
+package recordqueue
 
 import (
 	"context"
@@ -28,25 +28,25 @@ const (
 //
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
-type logWriter struct {
+type RecordQueue struct {
 	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
-	lf            logFlusher
+	fs            flushStatus
 	appendReqs    pagequeue.AppendHandler
 	cancel        context.CancelFunc
 	maxRecordSize int64
 }
 
-func newLogWriter(
+func New(
 	pageSize int64,
 	maxRecordSize int64,
 	writeQueueSize int,
 	sl *segment.List,
 	pl *pagepool.PagePool,
-) *logWriter {
+) *RecordQueue {
 	ps := pagestorage.New(sl)
-	l := &logWriter{
+	l := &RecordQueue{
 		pageSize:      pageSize,
 		sl:            sl,
 		appendReqs:    pagequeue.NewAppendHandler(),
@@ -57,10 +57,10 @@ func newLogWriter(
 	return l
 }
 
-func (lw *logWriter) HighWater() record.LogSequenceNumber { return lw.lf.HighWater() }
-func (lw *logWriter) LowWater() record.LogSequenceNumber  { return lw.lf.LowWater() }
+func (lw *RecordQueue) HighWater() record.LogSequenceNumber { return lw.fs.HighWater() }
+func (lw *RecordQueue) LowWater() record.LogSequenceNumber  { return lw.fs.LowWater() }
 
-func (lw *logWriter) Run(ctx context.Context) error {
+func (lw *RecordQueue) Run(ctx context.Context) error {
 	if err := lw.sl.Open(); err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (lw *logWriter) Run(ctx context.Context) error {
 	return nil
 }
 
-func (lw *logWriter) Close() error {
+func (lw *RecordQueue) Close() error {
 	if lw.cancel != nil {
 		lw.cancel()
 	}
@@ -82,15 +82,15 @@ func (lw *logWriter) Close() error {
 	return lw.sl.Close()
 }
 
-func (lw *logWriter) StartWriter(it *pageiterator.PageIterator) error {
-	if err := lw.lf.initHighWater(it); err != nil {
+func (lw *RecordQueue) StartWriter(it *pageiterator.PageIterator) error {
+	if err := lw.fs.initHighWater(it); err != nil {
 		return err
 	}
 
 	return lw.pq.Init(lw.pageSize)
 }
 
-func (lw *logWriter) run(ctx context.Context) {
+func (lw *RecordQueue) run(ctx context.Context) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -106,7 +106,7 @@ func (lw *logWriter) run(ctx context.Context) {
 	}
 }
 
-func (lw *logWriter) appendAndWait(
+func (lw *RecordQueue) AppendAndWait(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
@@ -124,7 +124,7 @@ func (lw *logWriter) appendAndWait(
 	)
 }
 
-func (lw *logWriter) appendRecord(
+func (lw *RecordQueue) AppendRecord(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
@@ -150,11 +150,11 @@ func (lw *logWriter) appendRecord(
 	)
 }
 
-func (lw *logWriter) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	lw.lf.setHighWater(lw.pq.AppendRequest(ctx, lw.lf.HighWater(), r))
+func (lw *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
+	lw.fs.setHighWater(lw.pq.AppendRequest(ctx, lw.fs.HighWater(), r))
 }
 
-func (l *logWriter) flushCheckpoint(
+func (l *RecordQueue) FlushCheckpoint(
 	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
@@ -179,12 +179,12 @@ func (l *logWriter) flushCheckpoint(
 //   - Otherwise, sync current page
 //   - For every page after, push new page to disk
 //   - For last page, store that as current
-func (lw *logWriter) appendCheckpoint(
+func (lw *RecordQueue) appendCheckpoint(
 	ctx context.Context,
 	time time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	h := lw.lf.HighWater().Increment()
+	h := lw.fs.HighWater().Increment()
 	data := lw.txIDsToData(txids)
 	rc := record.New(h,
 		value.TenantID{},
@@ -199,11 +199,11 @@ func (lw *logWriter) appendCheckpoint(
 		return record.NewLogSequenceNumber(0), err
 	}
 
-	lw.lf.setHighWater(h)
+	lw.fs.setHighWater(h)
 	return h, nil
 }
 
-func (*logWriter) txIDsToData(txids []record.TransactionID) []byte {
+func (*RecordQueue) txIDsToData(txids []record.TransactionID) []byte {
 	data := make([]byte, len(txids)*record.TransactionIDSize)
 
 	data0 := data
@@ -215,14 +215,14 @@ func (*logWriter) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
-func (lw *logWriter) flushOrPanic(ctx context.Context) {
+func (lw *RecordQueue) flushOrPanic(ctx context.Context) {
 	if err := lw.flush(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (lw *logWriter) flush(ctx context.Context) error {
-	if !lw.lf.isDirty() {
+func (lw *RecordQueue) flush(ctx context.Context) error {
+	if !lw.fs.isDirty() {
 		return nil
 	}
 
@@ -230,10 +230,10 @@ func (lw *logWriter) flush(ctx context.Context) error {
 		return err
 	}
 
-	lw.lf.completeFlush()
+	lw.fs.completeFlush()
 	return nil
 }
 
-func (lw *logWriter) flushPageQueue(ctx context.Context) error {
+func (lw *RecordQueue) flushPageQueue(ctx context.Context) error {
 	return lw.pq.Flush(ctx)
 }
