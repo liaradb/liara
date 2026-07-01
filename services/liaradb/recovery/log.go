@@ -208,7 +208,3 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 
 	return iterator.Reverse[*record.Record](rcs), nil
 }
-
-func (l *Log) Reverse() iter.Seq2[*record.Record, error] {
-	return l.it.Reverse()
-}

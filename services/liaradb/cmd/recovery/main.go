@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/action"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 var (
@@ -42,7 +41,12 @@ func run() error {
 		fsys,
 		path.Join(conf.Directory, "log"))
 
-	for rc, err := range log.Iterate(record.NewLogSequenceNumber(0)) {
+	it, err := log.Recover()
+	if err != nil {
+		slog.Error("recovery", "error", err)
+	}
+
+	for rc := range it {
 		if err != nil {
 			slog.Error("recovery", "error", err)
 		}

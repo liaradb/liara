@@ -2,7 +2,6 @@ package recovery
 
 import (
 	"reflect"
-	"slices"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -604,12 +603,12 @@ func testLog_RecoverMany(t *testing.T) {
 	}
 }
 
-func TestLog_Reverse(t *testing.T) {
+func TestLog_Recover__Iterate(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testLog_Reverse)
+	synctest.Test(t, testLog_Recover__Iterate)
 }
 
-func testLog_Reverse(t *testing.T) {
+func testLog_Recover__Iterate(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
@@ -640,13 +639,13 @@ func testLog_Reverse(t *testing.T) {
 
 	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
 
-	slices.Reverse(records)
-	i := 0
-	for rc, err := range l.Reverse() {
-		if err != nil {
-			t.Fatal(err)
-		}
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	i := 0
+	for rc := range it {
 		rec := records[i]
 
 		if !reflect.DeepEqual(rc, rec) {
