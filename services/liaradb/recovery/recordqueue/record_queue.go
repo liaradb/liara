@@ -6,7 +6,6 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
@@ -57,40 +56,37 @@ func New(
 	return l
 }
 
-func (lw *RecordQueue) HighWater() record.LogSequenceNumber { return lw.fs.HighWater() }
-func (lw *RecordQueue) LowWater() record.LogSequenceNumber  { return lw.fs.LowWater() }
+func (rq *RecordQueue) HighWater() record.LogSequenceNumber { return rq.fs.HighWater() }
+func (rq *RecordQueue) LowWater() record.LogSequenceNumber  { return rq.fs.LowWater() }
 
-func (lw *RecordQueue) Run(ctx context.Context) error {
-	if err := lw.sl.Open(); err != nil {
+func (rq *RecordQueue) Run(ctx context.Context) error {
+	if err := rq.sl.Open(); err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	lw.cancel = cancel
-	go lw.run(ctx)
+	rq.cancel = cancel
+	go rq.run(ctx)
 	go func() {
-		_ = lw.pq.Run(ctx)
+		_ = rq.pq.Run(ctx)
 	}()
 	return nil
 }
 
-func (lw *RecordQueue) Close() error {
-	if lw.cancel != nil {
-		lw.cancel()
+func (rq *RecordQueue) Close() error {
+	if rq.cancel != nil {
+		rq.cancel()
 	}
 
-	return lw.sl.Close()
+	return rq.sl.Close()
 }
 
-func (lw *RecordQueue) StartWriter(it *pageiterator.PageIterator) error {
-	if err := lw.fs.initHighWater(it); err != nil {
-		return err
-	}
-
-	return lw.pq.Init(lw.pageSize)
+func (rq *RecordQueue) Init(lw, hw record.LogSequenceNumber) error {
+	rq.fs.init(lw, hw)
+	return rq.pq.Init(rq.pageSize)
 }
 
-func (lw *RecordQueue) run(ctx context.Context) {
+func (rq *RecordQueue) run(ctx context.Context) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -98,22 +94,22 @@ func (lw *RecordQueue) run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case r := <-lw.appendReqs.Reqs():
-			lw.appendRequest(ctx, r)
+		case r := <-rq.appendReqs.Reqs():
+			rq.appendRequest(ctx, r)
 		case <-ticker.C:
-			lw.flushOrPanic(ctx)
+			rq.flushOrPanic(ctx)
 		}
 	}
 }
 
-func (lw *RecordQueue) AppendAndWait(
+func (rq *RecordQueue) AppendAndWait(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
 	action record.Action,
 ) (record.LogSequenceNumber, error) {
-	return lw.appendReqs.AppendAndWait(ctx,
+	return rq.appendReqs.AppendAndWait(ctx,
 		tid,
 		txid,
 		now,
@@ -124,7 +120,7 @@ func (lw *RecordQueue) AppendAndWait(
 	)
 }
 
-func (lw *RecordQueue) Append(
+func (rq *RecordQueue) Append(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
@@ -135,11 +131,11 @@ func (lw *RecordQueue) Append(
 	reverse []byte,
 ) (record.LogSequenceNumber, error) {
 	// Verify that record can fit at all
-	if len(data) > int(lw.maxRecordSize) {
+	if len(data) > int(rq.maxRecordSize) {
 		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
 	}
 
-	return lw.appendReqs.Append(ctx,
+	return rq.appendReqs.Append(ctx,
 		tid,
 		txid,
 		now,
@@ -150,16 +146,16 @@ func (lw *RecordQueue) Append(
 	)
 }
 
-func (lw *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	lw.fs.setHighWater(lw.pq.AppendRequest(ctx, lw.fs.HighWater(), r))
+func (rq *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
+	rq.fs.setHighWater(rq.pq.AppendRequest(ctx, rq.fs.HighWater(), r))
 }
 
-func (l *RecordQueue) FlushCheckpoint(
+func (rq *RecordQueue) FlushCheckpoint(
 	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := l.appendCheckpoint(
+	lsn, err := rq.appendCheckpoint(
 		ctx,
 		now,
 		txids...)
@@ -167,7 +163,7 @@ func (l *RecordQueue) FlushCheckpoint(
 		return record.LogSequenceNumber{}, err
 	}
 
-	if err := l.flushPageQueue(ctx); err != nil {
+	if err := rq.flushPageQueue(ctx); err != nil {
 		return record.LogSequenceNumber{}, err
 	}
 
@@ -179,13 +175,13 @@ func (l *RecordQueue) FlushCheckpoint(
 //   - Otherwise, sync current page
 //   - For every page after, push new page to disk
 //   - For last page, store that as current
-func (lw *RecordQueue) appendCheckpoint(
+func (rq *RecordQueue) appendCheckpoint(
 	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	h := lw.fs.HighWater().Increment()
-	data := lw.txIDsToData(txids)
+	h := rq.fs.HighWater().Increment()
+	data := rq.txIDsToData(txids)
 	rc := record.New(h,
 		value.TenantID{},
 		record.TransactionID{},
@@ -195,11 +191,11 @@ func (lw *RecordQueue) appendCheckpoint(
 		data,
 		nil)
 
-	if err := lw.pq.Append(ctx, rc); err != nil {
+	if err := rq.pq.Append(ctx, rc); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
 
-	lw.fs.setHighWater(h)
+	rq.fs.setHighWater(h)
 	return h, nil
 }
 
@@ -215,25 +211,25 @@ func (*RecordQueue) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
-func (lw *RecordQueue) flushOrPanic(ctx context.Context) {
-	if err := lw.flush(ctx); err != nil {
+func (rq *RecordQueue) flushOrPanic(ctx context.Context) {
+	if err := rq.flush(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (lw *RecordQueue) flush(ctx context.Context) error {
-	if !lw.fs.isDirty() {
+func (rq *RecordQueue) flush(ctx context.Context) error {
+	if !rq.fs.isDirty() {
 		return nil
 	}
 
-	if err := lw.flushPageQueue(ctx); err != nil {
+	if err := rq.flushPageQueue(ctx); err != nil {
 		return err
 	}
 
-	lw.fs.completeFlush()
+	rq.fs.completeFlush()
 	return nil
 }
 
-func (lw *RecordQueue) flushPageQueue(ctx context.Context) error {
-	return lw.pq.Flush(ctx)
+func (rq *RecordQueue) flushPageQueue(ctx context.Context) error {
+	return rq.pq.Flush(ctx)
 }

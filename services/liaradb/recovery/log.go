@@ -67,7 +67,34 @@ func (l *Log) Close() error {
 }
 
 func (l *Log) StartWriter() error {
-	return l.rq.StartWriter(l.it)
+	lw, hw, err := l.getFlushStatus()
+	if err != nil {
+		return err
+	}
+
+	return l.rq.Init(lw, hw)
+}
+
+func (l *Log) getFlushStatus() (lowWater, highWater record.LogSequenceNumber, err error) {
+	hw := false
+	var rc *record.Record
+	for rc, err = range l.it.Reverse() {
+		if err != nil {
+			return
+		}
+
+		if !hw {
+			highWater = rc.LogSequenceNumber()
+			hw = true
+		}
+
+		if rc.Action() == record.ActionCheckpoint {
+			lowWater = rc.LogSequenceNumber()
+			break
+		}
+	}
+
+	return
 }
 
 func (l *Log) Start(
