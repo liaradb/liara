@@ -110,13 +110,13 @@ func (lw *RecordQueue) AppendAndWait(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
-	time time.Time,
+	now time.Time,
 	action record.Action,
 ) (record.LogSequenceNumber, error) {
 	return lw.appendReqs.AppendAndWait(ctx,
 		tid,
 		txid,
-		time,
+		now,
 		action,
 		record.CollectionSystem,
 		nil,
@@ -124,11 +124,11 @@ func (lw *RecordQueue) AppendAndWait(
 	)
 }
 
-func (lw *RecordQueue) AppendRecord(
+func (lw *RecordQueue) Append(
 	ctx context.Context,
 	tid value.TenantID,
 	txid record.TransactionID,
-	time time.Time,
+	now time.Time,
 	action record.Action,
 	collection record.Collection,
 	data []byte,
@@ -142,7 +142,7 @@ func (lw *RecordQueue) AppendRecord(
 	return lw.appendReqs.Append(ctx,
 		tid,
 		txid,
-		time,
+		now,
 		action,
 		collection,
 		data,
@@ -181,7 +181,7 @@ func (l *RecordQueue) FlushCheckpoint(
 //   - For last page, store that as current
 func (lw *RecordQueue) appendCheckpoint(
 	ctx context.Context,
-	time time.Time,
+	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	h := lw.fs.HighWater().Increment()
@@ -189,7 +189,7 @@ func (lw *RecordQueue) appendCheckpoint(
 	rc := record.New(h,
 		value.TenantID{},
 		record.TransactionID{},
-		record.NewTime(time),
+		record.NewTime(now),
 		record.ActionCheckpoint,
 		record.CollectionSystem,
 		data,

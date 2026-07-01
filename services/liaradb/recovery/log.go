@@ -76,7 +76,7 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (record.LogSequenceNumber, error) {
-	return l.rq.AppendRecord(ctx,
+	return l.rq.Append(ctx,
 		tid,
 		txid,
 		now,
@@ -120,7 +120,7 @@ func (l *Log) Insert(
 	collection record.Collection,
 	data []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.rq.AppendRecord(ctx,
+	return l.rq.Append(ctx,
 		tid,
 		txid,
 		now,
@@ -139,7 +139,7 @@ func (l *Log) Update(
 	data []byte,
 	prev []byte,
 ) (record.LogSequenceNumber, error) {
-	return l.rq.AppendRecord(ctx,
+	return l.rq.Append(ctx,
 		tid,
 		txid,
 		now,
