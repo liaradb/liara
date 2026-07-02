@@ -45,6 +45,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 				p := pi.pool.Get()
 				if err := p.Replace(f); err != nil {
 					yield(nil, err)
+					pi.pool.Put(p)
 					return
 				}
 
@@ -53,6 +54,7 @@ func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.
 
 					if f.Index() == 0 {
 						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
+							pi.pool.Put(p)
 							return
 						}
 
@@ -78,15 +80,11 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				return
 			}
 
-			size := f.Size()
-			if size == 0 {
-				continue
-			}
-
-			// TODO: Combine these
-			if _, err := f.SeekTail(); err != nil {
+			if size, err := f.SeekTail(); err != nil {
 				yield(nil, err)
 				return
+			} else if size == 0 {
+				continue
 			}
 
 			for {
@@ -96,6 +94,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 					if err != io.EOF {
 						yield(nil, err)
 					}
+					pi.pool.Put(p)
 					return
 				}
 
@@ -106,6 +105,7 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 						s.Reverse()
 
 						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
+							pi.pool.Put(p)
 							return
 						}
 

@@ -6,7 +6,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
-// TODO: Can we implement this without sync.PagePool?
 type PagePool struct {
 	pool sync.Pool
 }

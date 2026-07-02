@@ -186,12 +186,14 @@ func (l *Log) FlushCheckpoint(
 		txids...)
 }
 
+// TODO: This is not used
 func (l *Log) Iterate(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return l.it.Forward(lsn)
 }
 
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
+	// TODO: Should we use a list, or just iterate forwards?
 	rcs := list.New()
 
 	for rc, err := range l.it.Reverse() {
