@@ -12,6 +12,7 @@ import (
 type PageQueue struct {
 	pool    *pagepool.PagePool
 	wq      *writequeue.WriteQueue
+	ps      writequeue.PageStorage
 	current *logpage.LogPage
 	flushed bool
 	lsn     record.LogSequenceNumber
@@ -22,28 +23,15 @@ func New(
 	pl *pagepool.PagePool,
 	writeQueueSize int,
 ) *PageQueue {
-	pq := &PageQueue{
-		pool: pl,
+	return &PageQueue{
+		pool:    pl,
+		wq:      writequeue.New(writeQueueSize, ps, pl),
+		ps:      ps,
+		current: pl.Get(),
 	}
-
-	pq.init(writeQueueSize, ps)
-
-	return pq
 }
 
-func (pq *PageQueue) init(writeQueueSize int, ps writequeue.PageStorage) {
-	pq.wq = writequeue.New(writeQueueSize, ps, pq.pool)
-	pq.current = pq.pool.Get()
-}
-
-func (pq *PageQueue) Init(pageSize int64) error {
-	// TODO: Is there another place we can get this parameter?
-	// TODO: Don't create a page, just copy the data
-	data := make([]byte, pageSize)
-	if err := pq.wq.Init(data); err != nil {
-		return err
-	}
-
+func (pq *PageQueue) Init(data []byte) error {
 	pq.current.Fill(data)
 	pq.flushed = true
 	return nil

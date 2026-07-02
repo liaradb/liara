@@ -31,6 +31,7 @@ type RecordQueue struct {
 	pageSize      int64
 	sl            *segment.List
 	pq            *pagequeue.PageQueue
+	ps            *pagestorage.PageStorage
 	fs            flushStatus
 	appendReqs    pagequeue.AppendHandler
 	cancel        context.CancelFunc
@@ -45,15 +46,14 @@ func New(
 	pl *pagepool.PagePool,
 ) *RecordQueue {
 	ps := pagestorage.New(sl)
-	l := &RecordQueue{
+	return &RecordQueue{
 		pageSize:      pageSize,
 		sl:            sl,
+		pq:            pagequeue.New(ps, pl, writeQueueSize),
+		ps:            ps,
 		appendReqs:    pagequeue.NewAppendHandler(),
 		maxRecordSize: maxRecordSize,
 	}
-
-	l.pq = pagequeue.New(ps, pl, writeQueueSize)
-	return l
 }
 
 func (rq *RecordQueue) HighWater() record.LogSequenceNumber { return rq.fs.HighWater() }
@@ -83,7 +83,14 @@ func (rq *RecordQueue) Close() error {
 
 func (rq *RecordQueue) Init(lw, hw record.LogSequenceNumber) error {
 	rq.fs.init(lw, hw)
-	return rq.pq.Init(rq.pageSize)
+
+	// TODO: Don't create a page, just copy the data
+	data := make([]byte, rq.pageSize)
+	if err := rq.ps.Init(data); err != nil {
+		return err
+	}
+
+	return rq.pq.Init(data)
 }
 
 func (rq *RecordQueue) run(ctx context.Context) {

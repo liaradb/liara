@@ -23,7 +23,6 @@ type queueItem interface {
 type PageStorage interface {
 	Replace([]byte) error
 	Append(record.LogSequenceNumber, []byte) error
-	Init([]byte) error
 }
 
 func New(
@@ -36,10 +35,6 @@ func New(
 		ps:    ps,
 		pool:  pool,
 	}
-}
-
-func (wq *WriteQueue) Init(data []byte) error {
-	return wq.ps.Init(data)
 }
 
 func (wq *WriteQueue) Run(ctx context.Context) error {
