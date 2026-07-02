@@ -1,11 +1,15 @@
 package logpage
 
-import "github.com/liaradb/liaradb/encoder/page"
+import (
+	"slices"
+
+	"github.com/liaradb/liaradb/encoder/page"
+)
 
 type LogPage struct {
 	*page.Page
 	header
-	handler func()
+	handlers []func()
 }
 
 func (lp *LogPage) Clear() {
@@ -14,7 +18,7 @@ func (lp *LogPage) Clear() {
 }
 
 func (lp *LogPage) Reset() {
-	lp.handler = nil
+	lp.handlers = nil
 }
 
 func New(size int16, slotHeaderSize int16) *LogPage {
@@ -28,25 +32,27 @@ func New(size int16, slotHeaderSize int16) *LogPage {
 
 func (lp *LogPage) Fill(data []byte) {
 	lp.Page.Fill(data)
-	lp.SetHandler(nil)
+	lp.handlers = nil
 }
 
 func (lp *LogPage) Complete() {
-	if lp.handler != nil {
-		lp.handler()
-		lp.handler = nil
+	for _, h := range lp.handlers {
+		h()
 	}
+	lp.handlers = nil
 }
 
-func (lp *LogPage) Handler() func() {
-	return lp.handler
+func (lp *LogPage) Handlers() []func() {
+	return lp.handlers
 }
 
-func (lp *LogPage) SetHandler(handler func()) {
-	lp.handler = handler
+func (lp *LogPage) AddHandler(handler func()) {
+	if handler != nil {
+		lp.handlers = append(lp.handlers, handler)
+	}
 }
 
 func (lp *LogPage) Copy(base *LogPage) {
 	lp.Page.Fill(base.Data())
-	lp.handler = base.handler
+	lp.handlers = slices.Clone(base.handlers)
 }

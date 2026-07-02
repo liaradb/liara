@@ -2,11 +2,11 @@ package logpage
 
 import "testing"
 
-func TestLogPage_Handler(t *testing.T) {
+func TestLogPage_AddHandler(t *testing.T) {
 	p := New(256, 8)
 
 	c := 0
-	p.SetHandler(func() {
+	p.AddHandler(func() {
 		c++
 	})
 
@@ -21,11 +21,45 @@ func TestLogPage_Handler(t *testing.T) {
 	}
 }
 
+func TestLogPage_AddHandler__Multiple(t *testing.T) {
+	p := New(256, 8)
+
+	a := 0
+	p.AddHandler(func() {
+		a++
+	})
+
+	b := 0
+	p.AddHandler(func() {
+		b++
+	})
+
+	p.AddHandler(nil)
+
+	p.Complete()
+	if a != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", a, 1)
+	}
+
+	if b != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", b, 1)
+	}
+
+	p.Complete()
+	if a != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", a, 1)
+	}
+
+	if b != 1 {
+		t.Errorf("incorrect count: %v, expected: %v", b, 1)
+	}
+}
+
 func TestLogPage_Reset(t *testing.T) {
 	p := New(256, 8)
 
 	c := 0
-	p.SetHandler(func() {
+	p.AddHandler(func() {
 		c++
 	})
 
