@@ -42,7 +42,8 @@ func NewLog(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
-	pl := pagepool.New(int16(pageSize), span.FragmentHeaderSize)
+	// TODO: Fix this cast
+	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
 	it := pageiterator.New(sl, pl)
 	return &Log{
 		rq: *recordqueue.New(

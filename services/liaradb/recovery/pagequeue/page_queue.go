@@ -83,7 +83,7 @@ func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
 
 func (pq *PageQueue) append(ctx context.Context, rc *record.Record, h func()) error {
 	t := NewTip(pq.pool, pq.current)
-	s := t.Span(int16(rc.Size()))
+	s := t.Span(rc.Size())
 	if err := rc.Write(s); err != nil {
 		return err
 	}

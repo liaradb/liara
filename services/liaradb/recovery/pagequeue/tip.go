@@ -11,7 +11,7 @@ type Tip struct {
 	pool    *pagepool.PagePool
 	current *logpage.LogPage
 	pages   []*logpage.LogPage
-	sizes   []int16
+	sizes   []int
 }
 
 func NewTip(pool *pagepool.PagePool, current *logpage.LogPage) Tip {
@@ -23,13 +23,13 @@ func NewTip(pool *pagepool.PagePool, current *logpage.LogPage) Tip {
 
 // Request Lease from current Page
 // If insufficient space is available, build list of Pages for remaining
-func (t *Tip) Span(size int16) *span.Span {
+func (t *Tip) Span(size int) *span.Span {
 	s := span.Span{}
 
 	t.pages = append(t.pages, t.current)
 
-	var available int16 = 0
-	var remaining int16 = size
+	available := 0
+	remaining := size
 
 	p := t.current
 
@@ -51,9 +51,9 @@ func (t *Tip) Span(size int16) *span.Span {
 	return &s
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *logpage.LogPage, remaining int16) int16 {
+func (t *Tip) appendToSpan(s *span.Span, p *logpage.LogPage, remaining int) int {
 	header, data := p.Next(remaining)
-	l := int16(len(data))
+	l := len(data)
 	t.sizes = append(t.sizes, l)
 	if l == 0 {
 		return l

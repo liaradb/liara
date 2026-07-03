@@ -12,7 +12,7 @@ type Span struct {
 	fragments []*Fragment
 }
 
-func (s Span) Length() (l int64) {
+func (s Span) Length() (l int) {
 	for _, f := range s.fragments {
 		l += f.length()
 	}

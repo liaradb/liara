@@ -21,12 +21,10 @@ func TestTip(t *testing.T) {
 
 	current := logpage.New(pageSize, span.FragmentHeaderSize)
 	tip := NewTip(pool, current)
-	var want int16 = 128
+	want := 128
 	s := tip.Span(want)
 
-	// TODO: Fix type
-	l := int16(s.Length())
-	if l != want {
+	if l := s.Length(); l != want {
 		t.Errorf("incorrect length: %v, expected: %v", l, want)
 	}
 
@@ -60,12 +58,10 @@ func TestTip__MultiplePerPage(t *testing.T) {
 	completeB := 0
 	{
 		tip := NewTip(pool, current)
-		var want int16 = 8
+		want := 8
 		s := tip.Span(want)
 
-		// TODO: Fix type
-		l := int16(s.Length())
-		if l != want {
+		if l := s.Length(); l != want {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
@@ -82,12 +78,10 @@ func TestTip__MultiplePerPage(t *testing.T) {
 	}
 	{
 		tip := NewTip(pool, current)
-		var want int16 = 8
+		want := 8
 		s := tip.Span(want)
 
-		// TODO: Fix type
-		l := int16(s.Length())
-		if l != want {
+		if l := s.Length(); l != want {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
