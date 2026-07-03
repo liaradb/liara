@@ -33,12 +33,13 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	c := 0
-	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != nil {
-			t.Fatal(err)
-		}
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	c := 0
+	for rc := range it {
 		if lsn := l.HighWater(); lsn != rc.LogSequenceNumber() {
 			t.Errorf("lsn does not match: %v, expected: %v", lsn, rc.LogSequenceNumber())
 		}
@@ -186,12 +187,13 @@ func testTransaction_Commit(t *testing.T) {
 	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionCommit}
 
-	c := 0
-	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != nil {
-			t.Fatal(err)
-		}
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	c := 0
+	for rc := range it {
 		if lsn := rc.LogSequenceNumber(); lsn != lsns[c] {
 			t.Errorf("lsn does not match: %v, expected: %v", lsn, lsns[c])
 		}
@@ -256,12 +258,13 @@ func testTransaction_Rollback(t *testing.T) {
 	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionRollback}
 
-	c := 0
-	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != nil {
-			t.Fatal(err)
-		}
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	c := 0
+	for rc := range it {
 		if lsn := rc.LogSequenceNumber(); lsn != lsns[c] {
 			t.Errorf("lsn does not match: %v, expected: %v", lsn, lsns[c])
 		}

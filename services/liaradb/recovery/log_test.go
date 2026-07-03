@@ -304,11 +304,13 @@ func TestLog_EmptyReader(t *testing.T) {
 func testLog_EmptyReader(t *testing.T) {
 	l := createLogStart(t, 320, 2, 320)
 
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	c := 0
-	for _, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != nil {
-			t.Error(err)
-		}
+	for range it {
 		c++
 	}
 
@@ -353,12 +355,13 @@ func testLog_Iterate(t *testing.T) {
 
 	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
 
-	i := 0
-	for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-		if err != nil {
-			t.Fatal(err)
-		}
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	i := 0
+	for rc := range it {
 		rec := records[i]
 
 		if !reflect.DeepEqual(rc, rec) {
@@ -514,12 +517,13 @@ func testLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		i := 0
-		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-			if err != nil {
-				t.Fatal(err)
-			}
+		it, err := l.Recover()
+		if err != nil {
+			t.Fatal(err)
+		}
 
+		i := 0
+		for rc := range it {
 			rec := records1[i]
 
 			if !reflect.DeepEqual(rc, rec) {
@@ -578,11 +582,13 @@ func testLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		it, err := l.Recover()
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		i := 0
-		for rc, err := range l.Iterate(record.NewLogSequenceNumber(0)) {
-			if err != nil {
-				t.Fatal(err)
-			}
+		for rc := range it {
 
 			rec := records[i]
 

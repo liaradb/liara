@@ -25,6 +25,7 @@ func New(
 	}
 }
 
+// TODO: This is not used.  It may be useful for in-place Recover.
 func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		var s span.Span
