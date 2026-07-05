@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/pagepool"
@@ -11,10 +12,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
-)
-
-const (
-	interval = 100 * time.Millisecond
 )
 
 // Append process
@@ -34,6 +31,7 @@ type RecordQueue struct {
 	ps            *pagestorage.PageStorage
 	fs            flushStatus
 	appendReqs    pagequeue.AppendHandler
+	flushReqs     async.CommandHandler[struct{}]
 	cancel        context.CancelFunc
 	maxRecordSize int64
 }
@@ -52,6 +50,7 @@ func New(
 		pq:            pagequeue.New(ps, pl, writeQueueSize),
 		ps:            ps,
 		appendReqs:    pagequeue.NewAppendHandler(),
+		flushReqs:     make(async.CommandHandler[struct{}], 1),
 		maxRecordSize: maxRecordSize,
 	}
 }
@@ -94,17 +93,14 @@ func (rq *RecordQueue) Init(lw, hw record.LogSequenceNumber) error {
 }
 
 func (rq *RecordQueue) run(ctx context.Context) {
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case r := <-rq.appendReqs.Reqs():
 			rq.appendRequest(ctx, r)
-		case <-ticker.C:
-			rq.flushOrPanic(ctx)
+		case r := <-rq.flushReqs:
+			rq.flushRequest(ctx, r)
 		}
 	}
 }
@@ -218,10 +214,15 @@ func (*RecordQueue) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
-func (rq *RecordQueue) flushOrPanic(ctx context.Context) {
-	if err := rq.flush(ctx); err != nil {
-		panic(err)
-	}
+func (rq *RecordQueue) Flush(ctx context.Context) error {
+	return rq.flushReqs.Send(ctx, struct{}{})
+}
+
+func (rq *RecordQueue) flushRequest(
+	ctx context.Context,
+	r *async.Command[struct{}],
+) {
+	r.Reply(rq.flush(ctx))
 }
 
 func (rq *RecordQueue) flush(ctx context.Context) error {

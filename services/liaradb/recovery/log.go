@@ -187,6 +187,10 @@ func (l *Log) FlushCheckpoint(
 		txids...)
 }
 
+func (l *Log) Flush(ctx context.Context) error {
+	return l.rq.Flush(ctx)
+}
+
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 	// TODO: Should we use a list, or just iterate forwards?

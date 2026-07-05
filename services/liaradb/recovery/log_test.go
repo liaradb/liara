@@ -121,7 +121,9 @@ func TestLog_Flush(t *testing.T) {
 
 			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
 
-			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -156,7 +158,9 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -182,7 +186,9 @@ func TestLog_Flush(t *testing.T) {
 				}
 			}
 
-			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
 
 			// if p := l.PageID(); p != 3 {
 			// 	t.Errorf("incorrect value: %v, expected: %v", p, 3)
@@ -227,7 +233,9 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
 
 			if _, err := l.Update(ctx,
 				tid,
@@ -240,7 +248,9 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
 
 			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
 		})
@@ -347,7 +357,9 @@ func testLog_Iterate(t *testing.T) {
 		}
 	}
 
-	time.Sleep(1 * time.Second)
+	if err := l.Flush(t.Context()); err != nil {
+		t.Error(err)
+	}
 
 	l.Close()
 
@@ -411,7 +423,9 @@ func testLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
 
 		if _, err := l.Update(ctx,
 			tid,
@@ -424,7 +438,9 @@ func testLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
 
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
@@ -504,7 +520,9 @@ func testLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
 
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
@@ -567,7 +585,9 @@ func testLog_RecoverMany(t *testing.T) {
 			}
 		}
 
-		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
 
 		if err := l.Close(); err != nil {
 			t.Fatal(err)
@@ -637,7 +657,9 @@ func testLog_Recover__Iterate(t *testing.T) {
 		}
 	}
 
-	time.Sleep(1 * time.Second)
+	if err := l.Flush(t.Context()); err != nil {
+		t.Error(err)
+	}
 
 	l.Close()
 
@@ -676,6 +698,13 @@ func testLog_Commit(t *testing.T) {
 
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	if lsn, err := l.Commit(ctx,
 		value.NewTenantID(),
@@ -737,7 +766,9 @@ func testLog_Insert(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	time.Sleep(1 * time.Second)
+	if err := l.Flush(t.Context()); err != nil {
+		t.Error(err)
+	}
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -769,6 +800,13 @@ func testLog_Rollback(t *testing.T) {
 
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
+
+	go func() {
+		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
+	}()
 
 	if lsn, err := l.Rollback(ctx,
 		value.NewTenantID(),
@@ -827,7 +865,9 @@ func testLog_Start(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	time.Sleep(1 * time.Second)
+	if err := l.Flush(t.Context()); err != nil {
+		t.Error(err)
+	}
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -877,7 +917,9 @@ func testLog_Update(t *testing.T) {
 
 	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
 
-	time.Sleep(1 * time.Second)
+	if err := l.Flush(t.Context()); err != nil {
+		t.Error(err)
+	}
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
