@@ -42,7 +42,11 @@ func (pq *PageQueue) Run(ctx context.Context) error {
 	return pq.wq.Run(ctx)
 }
 
-func (pq *PageQueue) AppendRequest(ctx context.Context, lsn record.LogSequenceNumber, r *AppendRequest) record.LogSequenceNumber {
+func (pq *PageQueue) AppendRequest(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *AppendRequest,
+) record.LogSequenceNumber {
 	h := lsn.Increment()
 
 	v := r.Value()

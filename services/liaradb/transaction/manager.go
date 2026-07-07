@@ -18,7 +18,7 @@ import (
 
 const (
 	returnSize = 100
-	interval   = 10 * time.Second
+	interval   = 100 * time.Millisecond
 )
 
 type Manager struct {

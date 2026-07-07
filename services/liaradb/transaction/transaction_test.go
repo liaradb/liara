@@ -3,6 +3,7 @@ package transaction
 import (
 	"errors"
 	"slices"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -11,7 +12,9 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestTransaction_Insert(t *testing.T) {
@@ -143,7 +146,21 @@ func TestTransaction_Commit(t *testing.T) {
 }
 
 func testTransaction_Commit(t *testing.T) {
-	m, l := createManager(t)
+	fsys, dir := createFiles()
+
+	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	if err := l.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
+	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
+	lt := createLockTable(t)
+	m := NewManager(l, s, lt)
+	m.Run(t.Context())
+
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
@@ -176,6 +193,14 @@ func testTransaction_Commit(t *testing.T) {
 	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
+	})
+
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
@@ -184,10 +209,17 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	wg.Wait()
+
+	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	if err := l2.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
 	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionCommit}
 
-	it, err := l.Recover()
+	it, err := l2.Recover()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,8 +255,6 @@ func testTransaction_Commit(t *testing.T) {
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
-
-	synctest.Wait()
 }
 
 func TestTransaction_Rollback(t *testing.T) {

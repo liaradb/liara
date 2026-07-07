@@ -177,6 +177,7 @@ func (l *Log) Update(
 		prev)
 }
 
+// Manager thread
 func (l *Log) FlushCheckpoint(
 	ctx context.Context,
 	now time.Time,

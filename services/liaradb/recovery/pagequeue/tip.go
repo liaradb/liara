@@ -75,6 +75,7 @@ func (t *Tip) Commit(lsn record.LogSequenceNumber, h func()) ([]*logpage.LogPage
 		return nil, false
 	}
 
+	// TODO: Should we check for nil h here?
 	t.pages[len(t.pages)-1].AddHandler(h)
 	return t.pages, true
 }

@@ -105,6 +105,7 @@ func (rq *RecordQueue) run(ctx context.Context) {
 	}
 }
 
+// Request thread
 func (rq *RecordQueue) AppendAndWait(
 	ctx context.Context,
 	tid value.TenantID,
@@ -123,6 +124,7 @@ func (rq *RecordQueue) AppendAndWait(
 	)
 }
 
+// Request thread
 func (rq *RecordQueue) Append(
 	ctx context.Context,
 	tid value.TenantID,
@@ -153,6 +155,7 @@ func (rq *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendReq
 	rq.fs.setHighWater(rq.pq.AppendRequest(ctx, rq.fs.HighWater(), r))
 }
 
+// Manager thread
 func (rq *RecordQueue) FlushCheckpoint(
 	ctx context.Context,
 	now time.Time,
@@ -214,6 +217,7 @@ func (*RecordQueue) txIDsToData(txids []record.TransactionID) []byte {
 	return data
 }
 
+// Manager thread
 func (rq *RecordQueue) Flush(ctx context.Context) error {
 	return rq.flushReqs.Send(ctx, struct{}{})
 }
