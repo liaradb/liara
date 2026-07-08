@@ -263,7 +263,21 @@ func TestTransaction_Rollback(t *testing.T) {
 }
 
 func testTransaction_Rollback(t *testing.T) {
-	m, l := createManager(t)
+	fsys, dir := createFiles()
+
+	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	if err := l.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
+	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
+	lt := createLockTable(t)
+	m := NewManager(l, s, lt)
+	m.Run(t.Context())
+
 	ctx := t.Context()
 
 	tid := value.NewTenantID()
@@ -277,6 +291,14 @@ func testTransaction_Rollback(t *testing.T) {
 	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
+		time.Sleep(1 * time.Second)
+		if err := l.Flush(t.Context()); err != nil {
+			t.Error(err)
+		}
+	})
+
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
 		t.Fatal(err)
 	}
@@ -285,10 +307,17 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	wg.Wait()
+
+	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	if err := l2.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
 	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionRollback}
 
-	it, err := l.Recover()
+	it, err := l2.Recover()
 	if err != nil {
 		t.Fatal(err)
 	}
