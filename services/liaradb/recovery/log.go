@@ -188,6 +188,7 @@ func (l *Log) FlushCheckpoint(
 		txids...)
 }
 
+// TODO: This is unused
 func (l *Log) Flush(ctx context.Context) error {
 	return l.rq.Flush(ctx)
 }

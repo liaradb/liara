@@ -1,6 +1,7 @@
 package replay
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -21,6 +22,14 @@ func TestReplay(t *testing.T) {
 		}
 
 		defer l.Close()
+
+		wg := sync.WaitGroup{}
+		wg.Go(func() {
+			time.Sleep(1 * time.Second)
+			if err := l.Flush(t.Context()); err != nil {
+				t.Error(err)
+			}
+		})
 
 		if err := l.StartWriter(); err != nil {
 			t.Fatal(err)
@@ -60,6 +69,8 @@ func TestReplay(t *testing.T) {
 		} else if lsn != record.NewLogSequenceNumber(3) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
+
+		wg.Wait()
 
 		if err := r.Recover(t.Context()); err != nil {
 			t.Fatal(err)

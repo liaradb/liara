@@ -3,7 +3,6 @@ package transaction
 import (
 	"errors"
 	"slices"
-	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -99,8 +98,6 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	}); !errors.Is(err, btree.ErrExists) {
 		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
-
-	synctest.Wait()
 }
 
 func TestTransaction_Insert__UniqueCurrent(t *testing.T) {
@@ -193,14 +190,6 @@ func testTransaction_Commit(t *testing.T) {
 	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
-	wg := sync.WaitGroup{}
-	wg.Go(func() {
-		time.Sleep(1 * time.Second)
-		if err := l.Flush(t.Context()); err != nil {
-			t.Error(err)
-		}
-	})
-
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
@@ -208,8 +197,6 @@ func testTransaction_Commit(t *testing.T) {
 	if err := tx.commit(ctx, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
-
-	wg.Wait()
 
 	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
 	if err := l2.Run(t.Context()); err != nil {
@@ -291,14 +278,6 @@ func testTransaction_Rollback(t *testing.T) {
 	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
-	wg := sync.WaitGroup{}
-	wg.Go(func() {
-		time.Sleep(1 * time.Second)
-		if err := l.Flush(t.Context()); err != nil {
-			t.Error(err)
-		}
-	})
-
 	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
 		t.Fatal(err)
 	}
@@ -306,8 +285,6 @@ func testTransaction_Rollback(t *testing.T) {
 	if err := tx.rollback(ctx, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
-
-	wg.Wait()
 
 	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
 	if err := l2.Run(t.Context()); err != nil {
