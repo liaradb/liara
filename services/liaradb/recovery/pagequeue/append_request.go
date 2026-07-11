@@ -89,3 +89,7 @@ func (av *AppendValue) Record(lsn record.LogSequenceNumber) *record.Record {
 		av.collection,
 		av.data, av.reverse)
 }
+
+func (av AppendValue) IsWait() bool {
+	return av.wait
+}

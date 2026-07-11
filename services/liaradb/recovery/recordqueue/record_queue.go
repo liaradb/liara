@@ -152,7 +152,56 @@ func (rq *RecordQueue) Append(
 }
 
 func (rq *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
-	rq.fs.setHighWater(rq.pq.AppendRequest(ctx, rq.fs.HighWater(), r))
+	hw := rq.AppendRequest(ctx, rq.fs.HighWater(), r)
+	rq.fs.setHighWater(hw)
+}
+
+func (rq *RecordQueue) AppendRequest(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *pagequeue.AppendRequest,
+) record.LogSequenceNumber {
+	if r.Value().IsWait() {
+		return rq.appendWait(ctx, lsn, r)
+	} else {
+		return rq.appendNoWait(ctx, lsn, r)
+	}
+}
+
+func (rq *RecordQueue) appendWait(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *pagequeue.AppendRequest,
+) record.LogSequenceNumber {
+	h := lsn.Increment()
+	v := r.Value()
+	err := rq.pq.AppendWait(ctx, v.Record(h), func() {
+		r.Reply(h, nil)
+	})
+
+	if err == nil {
+		return h
+	} else {
+		r.Reply(lsn, err)
+		return lsn
+	}
+}
+
+func (rq *RecordQueue) appendNoWait(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *pagequeue.AppendRequest,
+) record.LogSequenceNumber {
+	h := lsn.Increment()
+	v := r.Value()
+	err := rq.pq.Append(ctx, v.Record(h))
+	if err == nil {
+		r.Reply(h, err)
+		return h
+	} else {
+		r.Reply(lsn, err)
+		return lsn
+	}
 }
 
 // Manager thread

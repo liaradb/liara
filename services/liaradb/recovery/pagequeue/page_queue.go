@@ -42,54 +42,6 @@ func (pq *PageQueue) Run(ctx context.Context) error {
 	return pq.wq.Run(ctx)
 }
 
-func (pq *PageQueue) AppendRequest(
-	ctx context.Context,
-	lsn record.LogSequenceNumber,
-	r *AppendRequest,
-) record.LogSequenceNumber {
-	if r.Value().wait {
-		return pq.appendWait(ctx, lsn, r)
-	} else {
-		return pq.appendNoWait(ctx, lsn, r)
-	}
-}
-
-func (pq *PageQueue) appendWait(
-	ctx context.Context,
-	lsn record.LogSequenceNumber,
-	r *AppendRequest,
-) record.LogSequenceNumber {
-	h := lsn.Increment()
-	v := r.Value()
-	err := pq.append(ctx, v.Record(h), func() {
-		r.Reply(h, nil)
-	})
-
-	if err == nil {
-		return h
-	} else {
-		r.Reply(lsn, err)
-		return lsn
-	}
-}
-
-func (pq *PageQueue) appendNoWait(
-	ctx context.Context,
-	lsn record.LogSequenceNumber,
-	r *AppendRequest,
-) record.LogSequenceNumber {
-	h := lsn.Increment()
-	v := r.Value()
-	err := pq.append(ctx, v.Record(h), nil)
-	if err == nil {
-		r.Reply(h, err)
-		return h
-	} else {
-		r.Reply(lsn, err)
-		return lsn
-	}
-}
-
 // # Append
 //   - Compare size of new Record to remaining space in current Page
 //   - If it fits, append to the current Page
@@ -98,10 +50,10 @@ func (pq *PageQueue) appendNoWait(
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
 func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
-	return pq.append(ctx, rc, nil)
+	return pq.AppendWait(ctx, rc, nil)
 }
 
-func (pq *PageQueue) append(ctx context.Context, rc *record.Record, h func()) error {
+func (pq *PageQueue) AppendWait(ctx context.Context, rc *record.Record, h func()) error {
 	t := NewTip(pq.pool, pq.current)
 	s := t.Span(rc.Size())
 	if err := rc.Write(s); err != nil {
