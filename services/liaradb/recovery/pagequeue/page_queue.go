@@ -47,30 +47,46 @@ func (pq *PageQueue) AppendRequest(
 	lsn record.LogSequenceNumber,
 	r *AppendRequest,
 ) record.LogSequenceNumber {
-	h := lsn.Increment()
-
-	v := r.Value()
-
-	if v.wait {
-		err := pq.append(ctx, v.Record(h), func() {
-			r.Reply(h, nil)
-		})
-
-		if err == nil {
-			return h
-		} else {
-			r.Reply(lsn, err)
-			return lsn
-		}
+	if r.Value().wait {
+		return pq.appendWait(ctx, lsn, r)
 	} else {
-		err := pq.append(ctx, v.Record(h), nil)
-		if err == nil {
-			r.Reply(h, err)
-			return h
-		} else {
-			r.Reply(lsn, err)
-			return lsn
-		}
+		return pq.appendNoWait(ctx, lsn, r)
+	}
+}
+
+func (pq *PageQueue) appendWait(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *AppendRequest,
+) record.LogSequenceNumber {
+	h := lsn.Increment()
+	v := r.Value()
+	err := pq.append(ctx, v.Record(h), func() {
+		r.Reply(h, nil)
+	})
+
+	if err == nil {
+		return h
+	} else {
+		r.Reply(lsn, err)
+		return lsn
+	}
+}
+
+func (pq *PageQueue) appendNoWait(
+	ctx context.Context,
+	lsn record.LogSequenceNumber,
+	r *AppendRequest,
+) record.LogSequenceNumber {
+	h := lsn.Increment()
+	v := r.Value()
+	err := pq.append(ctx, v.Record(h), nil)
+	if err == nil {
+		r.Reply(h, err)
+		return h
+	} else {
+		r.Reply(lsn, err)
+		return lsn
 	}
 }
 
