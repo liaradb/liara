@@ -21,7 +21,7 @@ func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
 
 	synctest.Test(t, func(t *testing.T) {
 		fsys := filetesting.New(nil)
-		s := CreateStorageWithFileSystem(t, max, bs, fsys)
+		s := CreateStorageWithFileSystem(t, max, bs, fsys, ".")
 
 		t.Cleanup(func() {
 			if p := s.CountPinned(); p != 0 {
@@ -42,13 +42,13 @@ func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
 	t.Helper()
 
 	fsys := filetesting.New(nil)
-	return CreateStorageWithFileSystem(t, max, bs, fsys)
+	return CreateStorageWithFileSystem(t, max, bs, fsys, ".")
 }
 
-func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem) *storage.Storage {
+func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem, dir string) *storage.Storage {
 	t.Helper()
 
-	s := storage.New(fsys, lrupool.New(), max, bs, t.TempDir())
+	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	if err := s.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

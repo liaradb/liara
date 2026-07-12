@@ -53,7 +53,7 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir)
-	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys)
+	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 	lt := createLockTable(t)
 	m := NewManager(l, s, lt)
 	m.Run(t.Context())
