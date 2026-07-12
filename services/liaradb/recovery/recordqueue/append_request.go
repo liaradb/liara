@@ -1,4 +1,4 @@
-package pagequeue
+package recordqueue
 
 import (
 	"context"

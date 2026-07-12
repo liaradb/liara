@@ -30,7 +30,7 @@ type RecordQueue struct {
 	pq            *pagequeue.PageQueue
 	ps            *pagestorage.PageStorage
 	fs            flushStatus
-	appendReqs    pagequeue.AppendHandler
+	appendReqs    AppendHandler
 	flushReqs     async.CommandHandler[struct{}]
 	cancel        context.CancelFunc
 	maxRecordSize int64
@@ -49,7 +49,7 @@ func New(
 		sl:            sl,
 		pq:            pagequeue.New(ps, pl, writeQueueSize),
 		ps:            ps,
-		appendReqs:    pagequeue.NewAppendHandler(),
+		appendReqs:    NewAppendHandler(),
 		flushReqs:     make(async.CommandHandler[struct{}], 1),
 		maxRecordSize: maxRecordSize,
 	}
@@ -151,7 +151,7 @@ func (rq *RecordQueue) Append(
 	)
 }
 
-func (rq *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendRequest) {
+func (rq *RecordQueue) appendRequest(ctx context.Context, r *AppendRequest) {
 	hw := rq.AppendRequest(ctx, rq.fs.HighWater(), r)
 	rq.fs.setHighWater(hw)
 }
@@ -159,7 +159,7 @@ func (rq *RecordQueue) appendRequest(ctx context.Context, r *pagequeue.AppendReq
 func (rq *RecordQueue) AppendRequest(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	r *pagequeue.AppendRequest,
+	r *AppendRequest,
 ) record.LogSequenceNumber {
 	if r.Value().IsWait() {
 		return rq.appendWait(ctx, lsn, r)
@@ -171,7 +171,7 @@ func (rq *RecordQueue) AppendRequest(
 func (rq *RecordQueue) appendWait(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	r *pagequeue.AppendRequest,
+	r *AppendRequest,
 ) record.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
@@ -190,7 +190,7 @@ func (rq *RecordQueue) appendWait(
 func (rq *RecordQueue) appendNoWait(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
-	r *pagequeue.AppendRequest,
+	r *AppendRequest,
 ) record.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
