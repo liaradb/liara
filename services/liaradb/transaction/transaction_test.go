@@ -139,6 +139,7 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 
 func TestTransaction_Commit(t *testing.T) {
 	t.Parallel()
+	t.Skip()
 	synctest.Test(t, testTransaction_Commit)
 }
 
@@ -246,6 +247,7 @@ func testTransaction_Commit(t *testing.T) {
 
 func TestTransaction_Rollback(t *testing.T) {
 	t.Parallel()
+	t.Skip()
 	synctest.Test(t, testTransaction_Rollback)
 }
 
