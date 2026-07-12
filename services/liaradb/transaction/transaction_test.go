@@ -40,6 +40,7 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// TODO: This test does nothing
 	c := 0
 	for rc := range it {
 		if lsn := l.HighWater(); lsn != rc.LogSequenceNumber() {
@@ -139,14 +140,14 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 
 func TestTransaction_Commit(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testTransaction_Commit)
 }
 
 func testTransaction_Commit(t *testing.T) {
 	fsys, dir := createFiles()
+	logDir := "log"
 
-	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	l := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +200,13 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	time.Sleep(1 * time.Second)
+
+	if err := l.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
 	if err := l2.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -247,14 +254,14 @@ func testTransaction_Commit(t *testing.T) {
 
 func TestTransaction_Rollback(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testTransaction_Rollback)
 }
 
 func testTransaction_Rollback(t *testing.T) {
 	fsys, dir := createFiles()
+	logDir := "log"
 
-	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	l := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +295,13 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	l2 := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	time.Sleep(1 * time.Second)
+
+	if err := l.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	l2 := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
 	if err := l2.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

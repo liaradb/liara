@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	returnSize = 100
-	interval   = 100 * time.Millisecond
+	returnSize         = 100
+	flushinterval      = 100 * time.Millisecond
+	checkpointInterval = 10 * time.Second
 )
 
 type Manager struct {
@@ -55,13 +56,18 @@ func (m *Manager) Run(ctx context.Context) {
 
 func (m *Manager) run(ctx context.Context) {
 	// TODO: This may back up over time
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+	checkpointTicker := time.NewTicker(checkpointInterval)
+	defer checkpointTicker.Stop()
+
+	flushTicker := time.NewTicker(flushinterval)
+	defer flushTicker.Stop()
 
 	for {
 		select {
-		case t := <-ticker.C:
+		case t := <-checkpointTicker.C:
 			m.flushCheckpoint(ctx, t)
+		case <-flushTicker.C:
+			m.log.Flush(ctx)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
