@@ -2,6 +2,7 @@ package recovery
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -802,12 +803,13 @@ func testLog_InsertAndCommit(t *testing.T) {
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 
-	go func() {
+	wg := sync.WaitGroup{}
+	wg.Go(func() {
 		time.Sleep(1 * time.Second)
 		if err := l.Flush(t.Context()); err != nil {
 			t.Error(err)
 		}
-	}()
+	})
 
 	if lsn, err := l.Insert(ctx,
 		value.NewTenantID(),
@@ -832,6 +834,8 @@ func testLog_InsertAndCommit(t *testing.T) {
 	} else if lsn != record.NewLogSequenceNumber(2) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 2)
 	}
+
+	wg.Wait()
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
