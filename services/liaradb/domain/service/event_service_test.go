@@ -19,65 +19,69 @@ import (
 
 func TestEventService_Append(t *testing.T) {
 	t.Parallel()
+	t.Skip()
+	synctest.Test(t, testEventService_Append)
+}
 
-	t.Run("should not append invalid version", func(t *testing.T) {
-		es := NewEventService(nil)
+func testEventService_Append(t *testing.T) {
+	m, l := createManager(t)
+	l.Run(t.Context())
+	l.StartWriter()
+	m.Run(t.Context())
+	es := NewEventService(m)
 
-		aggregateID := value.NewAggregateID(uuid.NewString())
-		want := AppendEvent{
+	aggregateID := value.NewAggregateID(uuid.NewString())
+	if err := es.Append(
+		t.Context(),
+		value.NewTenantID(),
+		AppendOptions{},
+		value.NewPartitionID(0),
+		AppendEvent{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
-			Version:     value.NewVersion(0),
-		}
+			Version:     value.NewVersion(1),
+		},
+	); err != nil {
+		t.Fatal(err)
+	}
 
-		err := es.Append(context.Background(), value.NewTenantID(), AppendOptions{}, value.NewPartitionID(0), want)
-		if !errors.Is(err, value.ErrAggregateVersionInvalid) {
-			t.Error("should return error")
-		}
-	})
+	if err := es.Append(
+		t.Context(),
+		value.NewTenantID(),
+		AppendOptions{},
+		value.NewPartitionID(0),
+		AppendEvent{
+			AggregateName: value.NewAggregateName("example"),
+			// ID:            value.NewEventID(),
+			AggregateID: aggregateID,
+			Version:     value.NewVersion(2),
+		},
+	); err != nil {
+		t.Fatal(err)
+	}
+}
 
-	t.Run("should append", func(t *testing.T) {
-		t.Skip()
-		synctest.Test(t, func(t *testing.T) {
-			m, l := createManager(t)
-			l.Run(t.Context())
-			l.StartWriter()
-			m.Run(t.Context())
-			es := NewEventService(m)
+func TestEventService_Append__Invalid(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testEventService_Append__Invalid)
+}
 
-			aggregateID := value.NewAggregateID(uuid.NewString())
-			if err := es.Append(
-				t.Context(),
-				value.NewTenantID(),
-				AppendOptions{},
-				value.NewPartitionID(0),
-				AppendEvent{
-					AggregateName: value.NewAggregateName("example"),
-					// ID:            value.NewEventID(),
-					AggregateID: aggregateID,
-					Version:     value.NewVersion(1),
-				},
-			); err != nil {
-				t.Fatal(err)
-			}
+func testEventService_Append__Invalid(t *testing.T) {
+	es := NewEventService(nil)
 
-			if err := es.Append(
-				t.Context(),
-				value.NewTenantID(),
-				AppendOptions{},
-				value.NewPartitionID(0),
-				AppendEvent{
-					AggregateName: value.NewAggregateName("example"),
-					// ID:            value.NewEventID(),
-					AggregateID: aggregateID,
-					Version:     value.NewVersion(2),
-				},
-			); err != nil {
-				t.Fatal(err)
-			}
-		})
-	})
+	aggregateID := value.NewAggregateID(uuid.NewString())
+	want := AppendEvent{
+		AggregateName: value.NewAggregateName("example"),
+		// ID:            value.NewEventID(),
+		AggregateID: aggregateID,
+		Version:     value.NewVersion(0),
+	}
+
+	err := es.Append(context.Background(), value.NewTenantID(), AppendOptions{}, value.NewPartitionID(0), want)
+	if !errors.Is(err, value.ErrAggregateVersionInvalid) {
+		t.Error("should return error")
+	}
 }
 
 func createManager(t *testing.T) (*transaction.Manager, *recovery.Log) {
