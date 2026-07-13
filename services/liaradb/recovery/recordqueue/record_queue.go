@@ -25,15 +25,16 @@ import (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type RecordQueue struct {
-	pageSize      int64
-	sl            *segment.List
-	pq            *pagequeue.PageQueue
-	ps            *pagestorage.PageStorage
-	fs            flushStatus
-	appendReqs    AppendHandler
-	flushReqs     async.CommandHandler[struct{}]
-	cancel        context.CancelFunc
-	maxRecordSize int64
+	pageSize       int64
+	sl             *segment.List
+	pq             *pagequeue.PageQueue
+	ps             *pagestorage.PageStorage
+	fs             flushStatus
+	appendReqs     AppendHandler
+	flushReqs      async.CommandHandler[struct{}]
+	checkpointReqs CheckpointHandler
+	cancel         context.CancelFunc
+	maxRecordSize  int64
 }
 
 func New(
@@ -45,13 +46,14 @@ func New(
 ) *RecordQueue {
 	ps := pagestorage.New(sl)
 	return &RecordQueue{
-		pageSize:      pageSize,
-		sl:            sl,
-		pq:            pagequeue.New(ps, pl, writeQueueSize),
-		ps:            ps,
-		appendReqs:    NewAppendHandler(),
-		flushReqs:     make(async.CommandHandler[struct{}], 1),
-		maxRecordSize: maxRecordSize,
+		pageSize:       pageSize,
+		sl:             sl,
+		pq:             pagequeue.New(ps, pl, writeQueueSize),
+		ps:             ps,
+		appendReqs:     NewAppendHandler(),
+		flushReqs:      make(async.CommandHandler[struct{}], 1),
+		checkpointReqs: NewCheckpointHandler(),
+		maxRecordSize:  maxRecordSize,
 	}
 }
 
@@ -101,6 +103,8 @@ func (rq *RecordQueue) run(ctx context.Context) {
 			rq.appendRequest(ctx, r)
 		case r := <-rq.flushReqs:
 			rq.flushRequest(ctx, r)
+		case r := <-rq.checkpointReqs.Reqs():
+			rq.checkpointRequest(ctx, r)
 		}
 	}
 }
@@ -207,13 +211,30 @@ func (rq *RecordQueue) appendNoWait(
 // Manager thread
 func (rq *RecordQueue) FlushCheckpoint(
 	ctx context.Context,
-	now time.Time,
+	time time.Time,
 	txids ...record.TransactionID,
+) (record.LogSequenceNumber, error) {
+	return rq.checkpointReqs.Append(ctx, txids, time)
+}
+
+func (rq *RecordQueue) checkpointRequest(
+	ctx context.Context,
+	r *async.Request[CheckpointValue, record.LogSequenceNumber],
+) {
+	v := r.Value()
+	lsn, err := rq.flushCheckpoint(ctx, v.time, v.txids)
+	r.Reply(lsn, err)
+}
+
+func (rq *RecordQueue) flushCheckpoint(
+	ctx context.Context,
+	now time.Time,
+	txids []record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	lsn, err := rq.appendCheckpoint(
 		ctx,
 		now,
-		txids...)
+		txids)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}
@@ -233,7 +254,7 @@ func (rq *RecordQueue) FlushCheckpoint(
 func (rq *RecordQueue) appendCheckpoint(
 	ctx context.Context,
 	now time.Time,
-	txids ...record.TransactionID,
+	txids []record.TransactionID,
 ) (record.LogSequenceNumber, error) {
 	h := rq.fs.HighWater().Increment()
 	data := rq.txIDsToData(txids)

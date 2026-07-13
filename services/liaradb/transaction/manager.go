@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -67,7 +68,7 @@ func (m *Manager) run(ctx context.Context) {
 		case t := <-checkpointTicker.C:
 			m.flushCheckpoint(ctx, t)
 		case <-flushTicker.C:
-			m.log.Flush(ctx)
+			m.flushLog(ctx)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -126,10 +127,10 @@ func (m *Manager) flushCheckpoint(ctx context.Context, now time.Time) {
 	slog.Info("flushing...")
 
 	// TODO: What do we do with this error?
-	if err := m.flush(ctx, now); err != nil {
+	if err := m.flush(ctx, now); err != nil && !errors.Is(err, context.Canceled) {
 		slog.Error("unable to flush",
 			"error", err)
-		return
+		panic(err)
 	}
 
 	slog.Info("flushing complete")
@@ -154,6 +155,14 @@ func (m *Manager) flush(ctx context.Context, now time.Time) error {
 
 	m.setCheckpoint(lsn)
 	return nil
+}
+
+func (m *Manager) flushLog(ctx context.Context) {
+	if err := m.log.Flush(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		slog.Error("unable to flush",
+			"error", err)
+		panic(err)
+	}
 }
 
 func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
