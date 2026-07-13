@@ -222,19 +222,15 @@ func (rq *RecordQueue) checkpointRequest(
 	r *async.Request[CheckpointValue, record.LogSequenceNumber],
 ) {
 	v := r.Value()
-	lsn, err := rq.flushCheckpoint(ctx, v.time, v.txids)
+	lsn, err := rq.flushCheckpoint(ctx, &v)
 	r.Reply(lsn, err)
 }
 
 func (rq *RecordQueue) flushCheckpoint(
 	ctx context.Context,
-	now time.Time,
-	txids []record.TransactionID,
+	v *CheckpointValue,
 ) (record.LogSequenceNumber, error) {
-	lsn, err := rq.appendCheckpoint(
-		ctx,
-		now,
-		txids)
+	lsn, err := rq.appendCheckpoint(ctx, v)
 	if err != nil {
 		return record.LogSequenceNumber{}, err
 	}
@@ -253,38 +249,15 @@ func (rq *RecordQueue) flushCheckpoint(
 //   - For last page, store that as current
 func (rq *RecordQueue) appendCheckpoint(
 	ctx context.Context,
-	now time.Time,
-	txids []record.TransactionID,
+	v *CheckpointValue,
 ) (record.LogSequenceNumber, error) {
 	h := rq.fs.HighWater().Increment()
-	data := rq.txIDsToData(txids)
-	rc := record.New(h,
-		value.TenantID{},
-		record.TransactionID{},
-		record.NewTime(now),
-		record.ActionCheckpoint,
-		record.CollectionSystem,
-		data,
-		nil)
-
-	if err := rq.pq.Append(ctx, rc); err != nil {
+	if err := rq.pq.Append(ctx, v.Record(h)); err != nil {
 		return record.NewLogSequenceNumber(0), err
 	}
 
 	rq.fs.setHighWater(h)
 	return h, nil
-}
-
-func (*RecordQueue) txIDsToData(txids []record.TransactionID) []byte {
-	data := make([]byte, len(txids)*record.TransactionIDSize)
-
-	data0 := data
-	for _, txid := range txids {
-		// There will always be enough space
-		data0, _ = txid.WriteData(data0)
-	}
-
-	return data
 }
 
 // Manager thread

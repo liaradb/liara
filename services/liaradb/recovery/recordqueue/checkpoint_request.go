@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/async"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -38,4 +39,28 @@ func (h CheckpointHandler) Append(
 type CheckpointValue struct {
 	txids []record.TransactionID
 	time  time.Time
+}
+
+func (cv *CheckpointValue) Record(lsn record.LogSequenceNumber) *record.Record {
+	return record.New(
+		lsn,
+		value.TenantID{},
+		record.TransactionID{},
+		record.NewTime(cv.time),
+		record.ActionCheckpoint,
+		record.CollectionSystem,
+		cv.txIDsToData(),
+		nil)
+}
+
+func (cv *CheckpointValue) txIDsToData() []byte {
+	data := make([]byte, len(cv.txids)*record.TransactionIDSize)
+
+	data0 := data
+	for _, txid := range cv.txids {
+		// There will always be enough space
+		data0, _ = txid.WriteData(data0)
+	}
+
+	return data
 }
