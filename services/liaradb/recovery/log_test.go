@@ -286,7 +286,7 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	now := time.UnixMicro(1234567891)
 	txid := record.NewTransactionID(1)
 
-	_, err := l.FlushCheckpoint(t.Context(), now, txid)
+	_, err := l.Checkpoint(t.Context(), now, txid)
 	if err != nil {
 		t.Fatal(err)
 	}

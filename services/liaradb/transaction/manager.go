@@ -148,7 +148,7 @@ func (m *Manager) flush(ctx context.Context, now time.Time) error {
 		return err
 	}
 
-	lsn, err := m.log.FlushCheckpoint(ctx, now, m.Active()...)
+	lsn, err := m.log.Checkpoint(ctx, now, m.Active()...)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
 		return nil
 	}
 
-	lsn, err := m.log.FlushCheckpoint(ctx, now, m.Active()...)
+	lsn, err := m.log.Checkpoint(ctx, now, m.Active()...)
 	if err != nil {
 		return err
 	}

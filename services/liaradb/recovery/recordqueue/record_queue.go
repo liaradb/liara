@@ -25,16 +25,15 @@ import (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type RecordQueue struct {
-	pageSize       int64
-	sl             *segment.List
-	pq             *pagequeue.PageQueue
-	ps             *pagestorage.PageStorage
-	fs             flushStatus
-	appendReqs     AppendHandler
-	flushReqs      async.CommandHandler[struct{}]
-	checkpointReqs CheckpointHandler
-	cancel         context.CancelFunc
-	maxRecordSize  int64
+	pageSize      int64
+	sl            *segment.List
+	pq            *pagequeue.PageQueue
+	ps            *pagestorage.PageStorage
+	fs            flushStatus
+	appendReqs    AppendHandler
+	flushReqs     async.CommandHandler[struct{}]
+	cancel        context.CancelFunc
+	maxRecordSize int64
 }
 
 func New(
@@ -46,14 +45,13 @@ func New(
 ) *RecordQueue {
 	ps := pagestorage.New(sl)
 	return &RecordQueue{
-		pageSize:       pageSize,
-		sl:             sl,
-		pq:             pagequeue.New(ps, pl, writeQueueSize),
-		ps:             ps,
-		appendReqs:     NewAppendHandler(),
-		flushReqs:      make(async.CommandHandler[struct{}], 1),
-		checkpointReqs: NewCheckpointHandler(),
-		maxRecordSize:  maxRecordSize,
+		pageSize:      pageSize,
+		sl:            sl,
+		pq:            pagequeue.New(ps, pl, writeQueueSize),
+		ps:            ps,
+		appendReqs:    NewAppendHandler(),
+		flushReqs:     make(async.CommandHandler[struct{}], 1),
+		maxRecordSize: maxRecordSize,
 	}
 }
 
@@ -103,8 +101,6 @@ func (rq *RecordQueue) run(ctx context.Context) {
 			rq.appendRequest(ctx, r)
 		case r := <-rq.flushReqs:
 			rq.flushRequest(ctx, r)
-		case r := <-rq.checkpointReqs.Reqs():
-			rq.checkpointRequest(ctx, r)
 		}
 	}
 }
@@ -206,58 +202,6 @@ func (rq *RecordQueue) appendNoWait(
 		r.Reply(lsn, err)
 		return lsn
 	}
-}
-
-// Manager thread
-func (rq *RecordQueue) FlushCheckpoint(
-	ctx context.Context,
-	time time.Time,
-	txids ...record.TransactionID,
-) (record.LogSequenceNumber, error) {
-	return rq.checkpointReqs.Append(ctx, txids, time)
-}
-
-func (rq *RecordQueue) checkpointRequest(
-	ctx context.Context,
-	r *async.Request[CheckpointValue, record.LogSequenceNumber],
-) {
-	v := r.Value()
-	lsn, err := rq.flushCheckpoint(ctx, &v)
-	r.Reply(lsn, err)
-}
-
-func (rq *RecordQueue) flushCheckpoint(
-	ctx context.Context,
-	v *CheckpointValue,
-) (record.LogSequenceNumber, error) {
-	lsn, err := rq.appendCheckpoint(ctx, v)
-	if err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	if err := rq.flushPageQueue(ctx); err != nil {
-		return record.LogSequenceNumber{}, err
-	}
-
-	return lsn, nil
-}
-
-// # Append to PageQueue
-//   - If current page was full already, do not sync
-//   - Otherwise, sync current page
-//   - For every page after, push new page to disk
-//   - For last page, store that as current
-func (rq *RecordQueue) appendCheckpoint(
-	ctx context.Context,
-	v *CheckpointValue,
-) (record.LogSequenceNumber, error) {
-	h := rq.fs.HighWater().Increment()
-	if err := rq.pq.Append(ctx, v.Record(h)); err != nil {
-		return record.NewLogSequenceNumber(0), err
-	}
-
-	rq.fs.setHighWater(h)
-	return h, nil
 }
 
 // Manager thread

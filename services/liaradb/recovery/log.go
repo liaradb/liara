@@ -178,14 +178,33 @@ func (l *Log) Update(
 }
 
 // Manager thread
-func (l *Log) FlushCheckpoint(
+func (l *Log) Checkpoint(
 	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
 ) (record.LogSequenceNumber, error) {
-	return l.rq.FlushCheckpoint(ctx,
+	return l.rq.Append(ctx,
+		value.TenantID{},
+		record.TransactionID{},
 		now,
-		txids...)
+		record.ActionCheckpoint,
+		record.CollectionSystem,
+		l.txIDsToData(txids),
+		nil)
+}
+
+func (cv *Log) txIDsToData(
+	txids []record.TransactionID,
+) []byte {
+	data := make([]byte, len(txids)*record.TransactionIDSize)
+
+	data0 := data
+	for _, txid := range txids {
+		// There will always be enough space
+		data0, _ = txid.WriteData(data0)
+	}
+
+	return data
 }
 
 // Manager thread
