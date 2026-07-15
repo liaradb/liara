@@ -18,9 +18,8 @@ import (
 )
 
 const (
-	returnSize         = 100
-	flushinterval      = 100 * time.Millisecond
-	checkpointInterval = 10 * time.Second
+	returnSize = 100
+	interval   = 10 * time.Second
 )
 
 type Manager struct {
@@ -57,18 +56,13 @@ func (m *Manager) Run(ctx context.Context) {
 
 func (m *Manager) run(ctx context.Context) {
 	// TODO: This may back up over time
-	checkpointTicker := time.NewTicker(checkpointInterval)
-	defer checkpointTicker.Stop()
-
-	flushTicker := time.NewTicker(flushinterval)
-	defer flushTicker.Stop()
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
 	for {
 		select {
-		case t := <-checkpointTicker.C:
-			m.flushCheckpoint(ctx, t)
-		case <-flushTicker.C:
-			m.flushLog(ctx)
+		case t := <-ticker.C:
+			m.appendCheckpoint(ctx, t)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -118,7 +112,7 @@ func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
 }
 
-func (m *Manager) flushCheckpoint(ctx context.Context, now time.Time) {
+func (m *Manager) appendCheckpoint(ctx context.Context, now time.Time) {
 	m.drainEnd()
 	if !m.isDirty() {
 		return
@@ -155,14 +149,6 @@ func (m *Manager) flush(ctx context.Context, now time.Time) error {
 
 	m.setCheckpoint(lsn)
 	return nil
-}
-
-func (m *Manager) flushLog(ctx context.Context) {
-	if err := m.log.Flush(ctx); err != nil && !errors.Is(err, context.Canceled) {
-		slog.Error("unable to flush",
-			"error", err)
-		panic(err)
-	}
 }
 
 func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {

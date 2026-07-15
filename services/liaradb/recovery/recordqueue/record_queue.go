@@ -14,6 +14,10 @@ import (
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
+const (
+	interval = 100 * time.Millisecond
+)
+
 // Append process
 //  1. Append log record
 //  2. Fill page
@@ -93,6 +97,9 @@ func (rq *RecordQueue) Init(lw, hw record.LogSequenceNumber) error {
 }
 
 func (rq *RecordQueue) run(ctx context.Context) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -101,6 +108,8 @@ func (rq *RecordQueue) run(ctx context.Context) {
 			rq.appendRequest(ctx, r)
 		case r := <-rq.flushReqs:
 			rq.flushRequest(ctx, r)
+		case <-ticker.C:
+			rq.flushOrPanic(ctx)
 		}
 	}
 }
@@ -214,6 +223,12 @@ func (rq *RecordQueue) flushRequest(
 	r *async.Command[struct{}],
 ) {
 	r.Reply(rq.flush(ctx))
+}
+
+func (rq *RecordQueue) flushOrPanic(ctx context.Context) {
+	if err := rq.flush(ctx); err != nil {
+		panic(err)
+	}
 }
 
 func (rq *RecordQueue) flush(ctx context.Context) error {

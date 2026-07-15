@@ -700,13 +700,6 @@ func testLog_Commit(t *testing.T) {
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	go func() {
-		time.Sleep(1 * time.Second)
-		if err := l.Flush(t.Context()); err != nil {
-			t.Error(err)
-		}
-	}()
-
 	if lsn, err := l.Commit(ctx,
 		value.NewTenantID(),
 		record.NewTransactionID(2),
@@ -874,13 +867,6 @@ func testLog_Rollback(t *testing.T) {
 
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
-
-	go func() {
-		time.Sleep(1 * time.Second)
-		if err := l.Flush(t.Context()); err != nil {
-			t.Error(err)
-		}
-	}()
 
 	if lsn, err := l.Rollback(ctx,
 		value.NewTenantID(),
