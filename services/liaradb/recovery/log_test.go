@@ -699,20 +699,47 @@ func testLog_Commit(t *testing.T) {
 
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
+	tid := value.NewTenantID()
+	txid1 := record.NewTransactionID(1)
+	txid2 := record.NewTransactionID(2)
+
+	if _, err := l.Start(ctx,
+		tid,
+		txid1,
+		time.UnixMicro(1234567890)); err != nil {
+		t.Fatal(err)
+	}
 
 	if lsn, err := l.Commit(ctx,
-		value.NewTenantID(),
-		record.NewTransactionID(2),
+		tid,
+		txid1,
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
-		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
+	} else if lsn != record.NewLogSequenceNumber(2) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 2)
+	}
+
+	if _, err := l.Start(ctx,
+		tid,
+		txid2,
+		time.UnixMicro(1234567890)); err != nil {
+		t.Fatal(err)
+	}
+
+	if lsn, err := l.Commit(ctx,
+		tid,
+		txid2,
+		time.UnixMicro(1234567890),
+	); err != nil {
+		t.Error(err)
+	} else if lsn != record.NewLogSequenceNumber(4) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 4)
 	}
 
 	synctest.Wait()
 
-	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
+	testPosition(t, l, record.NewLogSequenceNumber(4), record.NewLogSequenceNumber(4))
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -724,13 +751,28 @@ func testLog_Commit(t *testing.T) {
 	count := 0
 	for r := range it {
 		count++
-		if a := r.Action(); a != record.ActionCommit {
-			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
+		switch count {
+		case 0:
+			if a := r.Action(); a != record.ActionCommit {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
+			}
+		case 1:
+			if a := r.Action(); a != record.ActionStart {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionStart)
+			}
+		case 2:
+			if a := r.Action(); a != record.ActionCommit {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
+			}
+		case 3:
+			if a := r.Action(); a != record.ActionStart {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionStart)
+			}
 		}
 	}
 
-	if count != 1 {
-		t.Errorf("incorrect count: %v, expected: %v", count, 1)
+	if count != 4 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 4)
 	}
 }
 
