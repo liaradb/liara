@@ -161,11 +161,11 @@ func (rq *RecordQueue) Append(
 }
 
 func (rq *RecordQueue) appendRequest(ctx context.Context, r *AppendRequest) {
-	hw := rq.AppendRequest(ctx, rq.fs.HighWater(), r)
+	hw := rq.append(ctx, rq.fs.HighWater(), r)
 	rq.fs.setHighWater(hw)
 }
 
-func (rq *RecordQueue) AppendRequest(
+func (rq *RecordQueue) append(
 	ctx context.Context,
 	lsn record.LogSequenceNumber,
 	r *AppendRequest,
