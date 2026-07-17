@@ -78,6 +78,7 @@ func (m *Manager) Active() []record.TransactionID {
 }
 
 // TODO: Should we use highWater or lowWater?
+// TODO: Maintain this internally
 func (m *Manager) isDirty() bool {
 	return m.log.HighWater().Value() > m.checkpoint.Value()
 }

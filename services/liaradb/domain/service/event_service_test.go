@@ -24,10 +24,7 @@ func TestEventService_Append(t *testing.T) {
 }
 
 func testEventService_Append(t *testing.T) {
-	m, l := createManager(t)
-	l.Run(t.Context())
-	l.StartWriter()
-	m.Run(t.Context())
+	m, _ := createManager(t)
 	es := NewEventService(m)
 
 	aggregateID := value.NewAggregateID(uuid.NewString())

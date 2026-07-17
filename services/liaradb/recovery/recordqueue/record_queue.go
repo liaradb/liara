@@ -213,7 +213,7 @@ func (rq *RecordQueue) appendNoWait(
 	}
 }
 
-// Manager thread
+// TODO: This is unused
 func (rq *RecordQueue) Flush(ctx context.Context) error {
 	return rq.flushReqs.Send(ctx, struct{}{})
 }

@@ -710,14 +710,23 @@ func testLog_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if _, err := l.Insert(ctx,
+		tid,
+		txid1,
+		time.UnixMicro(1234567890),
+		record.CollectionSystem,
+		make([]byte, 300)); err != nil {
+		t.Fatal(err)
+	}
+
 	if lsn, err := l.Commit(ctx,
 		tid,
 		txid1,
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(2) {
-		t.Errorf("incorrect value: %v, expected: %v", lsn, 2)
+	} else if lsn != record.NewLogSequenceNumber(3) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 3)
 	}
 
 	if _, err := l.Start(ctx,
@@ -727,19 +736,28 @@ func testLog_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if _, err := l.Insert(ctx,
+		tid,
+		txid2,
+		time.UnixMicro(1234567890),
+		record.CollectionSystem,
+		make([]byte, 300)); err != nil {
+		t.Fatal(err)
+	}
+
 	if lsn, err := l.Commit(ctx,
 		tid,
 		txid2,
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(4) {
-		t.Errorf("incorrect value: %v, expected: %v", lsn, 4)
+	} else if lsn != record.NewLogSequenceNumber(6) {
+		t.Errorf("incorrect value: %v, expected: %v", lsn, 6)
 	}
 
 	synctest.Wait()
 
-	testPosition(t, l, record.NewLogSequenceNumber(4), record.NewLogSequenceNumber(4))
+	testPosition(t, l, record.NewLogSequenceNumber(6), record.NewLogSequenceNumber(6))
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -750,15 +768,14 @@ func testLog_Commit(t *testing.T) {
 
 	count := 0
 	for r := range it {
-		count++
 		switch count {
 		case 0:
-			if a := r.Action(); a != record.ActionCommit {
-				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
-			}
-		case 1:
 			if a := r.Action(); a != record.ActionStart {
 				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionStart)
+			}
+		case 1:
+			if a := r.Action(); a != record.ActionInsert {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
 			}
 		case 2:
 			if a := r.Action(); a != record.ActionCommit {
@@ -768,11 +785,20 @@ func testLog_Commit(t *testing.T) {
 			if a := r.Action(); a != record.ActionStart {
 				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionStart)
 			}
+		case 4:
+			if a := r.Action(); a != record.ActionInsert {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
+			}
+		case 5:
+			if a := r.Action(); a != record.ActionCommit {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionCommit)
+			}
 		}
+		count++
 	}
 
-	if count != 4 {
-		t.Errorf("incorrect count: %v, expected: %v", count, 4)
+	if count != 6 {
+		t.Errorf("incorrect count: %v, expected: %v", count, 6)
 	}
 }
 
