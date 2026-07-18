@@ -76,7 +76,6 @@ func testEventService_Append(t *testing.T) {
 
 func TestEventService_Append__Large(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testEventService_Append__Large)
 }
 

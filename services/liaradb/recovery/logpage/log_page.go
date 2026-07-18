@@ -1,8 +1,6 @@
 package logpage
 
 import (
-	"slices"
-
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
@@ -42,17 +40,14 @@ func (lp *LogPage) Complete() {
 	lp.handlers = nil
 }
 
-func (lp *LogPage) Handlers() []func() {
-	return lp.handlers
-}
-
 func (lp *LogPage) AddHandler(handler func()) {
 	if handler != nil {
 		lp.handlers = append(lp.handlers, handler)
 	}
 }
 
-func (lp *LogPage) Copy(base *LogPage) {
+func (lp *LogPage) Shadow(base *LogPage) {
 	lp.Page.Fill(base.Data())
-	lp.handlers = slices.Clone(base.handlers)
+	lp.handlers = base.handlers
+	base.handlers = nil
 }

@@ -108,15 +108,18 @@ func (pq *PageQueue) replaceCurrent(lsn record.LogSequenceNumber, p *logpage.Log
 //   - Flush entire queue to Disk, including Current
 func (pq *PageQueue) Flush(ctx context.Context) error {
 	shadow := pq.pool.Get()
-	shadow.Copy(pq.current)
+	shadow.Shadow(pq.current)
 	if pq.flushed {
-		return pq.wq.ReplaceSync(ctx, shadow)
+		if err := pq.wq.ReplaceSync(ctx, shadow); err != nil {
+			return err
+		}
+	} else {
+		if err := pq.wq.AppendSync(ctx, pq.lsn, shadow); err != nil {
+			return err
+		}
+
+		pq.flushed = true
 	}
 
-	if err := pq.wq.AppendSync(ctx, pq.lsn, shadow); err != nil {
-		return err
-	}
-
-	pq.flushed = true
 	return nil
 }
