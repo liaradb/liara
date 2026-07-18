@@ -46,6 +46,7 @@ func (lp *LogPage) AddHandler(handler func()) {
 	}
 }
 
+// TODO: Swap receiver and parameter
 func (lp *LogPage) Shadow(base *LogPage) {
 	lp.Page.Fill(base.Data())
 	lp.handlers = base.handlers

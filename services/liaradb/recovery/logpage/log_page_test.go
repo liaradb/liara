@@ -6,6 +6,8 @@ import (
 )
 
 func TestLogPage_AddHandler(t *testing.T) {
+	t.Parallel()
+
 	p := New(256, 8)
 
 	c := 0
@@ -25,6 +27,8 @@ func TestLogPage_AddHandler(t *testing.T) {
 }
 
 func TestLogPage_AddHandler__Multiple(t *testing.T) {
+	t.Parallel()
+
 	p := New(256, 8)
 
 	a := 0
@@ -58,7 +62,46 @@ func TestLogPage_AddHandler__Multiple(t *testing.T) {
 	}
 }
 
+func TestLogPage_Clear(t *testing.T) {
+	t.Parallel()
+
+	p := New(258, 8)
+	if !p.IsEmpty() {
+		t.Error("should be empty")
+	}
+
+	if p.IsPage() {
+		t.Error("should not be page")
+	}
+
+	p.Clear()
+
+	if p.IsEmpty() {
+		t.Error("should not be empty")
+	}
+
+	if !p.IsPage() {
+		t.Error("should be page")
+	}
+
+	if tlid := p.TimeLineID(); tlid != 0 {
+		t.Errorf("incorrect timeline id: %v, expected: %v", tlid, 0)
+	}
+
+	p.SetTimeLineID(1)
+	if tlid := p.TimeLineID(); tlid != 1 {
+		t.Errorf("incorrect timeline id: %v, expected: %v", tlid, 1)
+	}
+
+	p.Clear()
+	if tlid := p.TimeLineID(); tlid != 0 {
+		t.Errorf("incorrect timeline id: %v, expected: %v", tlid, 0)
+	}
+}
+
 func TestLogPage_Reset(t *testing.T) {
+	t.Parallel()
+
 	p := New(256, 8)
 
 	c := 0
@@ -75,6 +118,8 @@ func TestLogPage_Reset(t *testing.T) {
 }
 
 func TestLogPage_Shadow(t *testing.T) {
+	t.Parallel()
+
 	p := New(256, 8)
 
 	c := 0
