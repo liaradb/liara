@@ -117,6 +117,36 @@ func TestLogPage_Reset(t *testing.T) {
 	}
 }
 
+func TestLogPage_Fill(t *testing.T) {
+	t.Parallel()
+
+	p := New(256, 8)
+
+	c := 0
+	p.AddHandler(func() {
+		c++
+	})
+
+	data := make([]byte, 256)
+
+	want := []byte{1, 2, 3, 4}
+	copy(data[:4], want)
+
+	if slices.Equal(p.Data()[:4], want) {
+		t.Error("should not equal new data")
+	}
+
+	p.Fill(data)
+	if !slices.Equal(p.Data()[:4], want) {
+		t.Errorf("incorrect data: %v, expected: %v", p.Data()[:4], data)
+	}
+
+	p.Complete()
+	if c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+}
+
 func TestLogPage_Shadow(t *testing.T) {
 	t.Parallel()
 
