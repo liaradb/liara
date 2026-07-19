@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -191,8 +190,8 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int
 	return l
 }
 
-func createLockTable(t *testing.T) *locktable.LockTable[action.ItemID] {
-	lt := locktable.New[action.ItemID](1)
+func createLockTable(t *testing.T) *locktable.LockTable[transaction.ItemID] {
+	lt := locktable.New[transaction.ItemID](1)
 	lt.Run(t.Context())
 	t.Cleanup(lt.Close)
 	return lt

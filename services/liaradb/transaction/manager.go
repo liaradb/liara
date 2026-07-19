@@ -11,7 +11,6 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/util/set"
@@ -26,7 +25,7 @@ type Manager struct {
 	log           *recovery.Log
 	storage       *storage.Storage
 	collections   *collection.Collections
-	lockTable     *locktable.LockTable[action.ItemID]
+	lockTable     *locktable.LockTable[ItemID]
 	transactionID record.TransactionID
 	txReqs        async.Handler[value.TenantID, *Transaction]
 	returns       chan record.TransactionID
@@ -37,7 +36,7 @@ type Manager struct {
 func NewManager(
 	log *recovery.Log,
 	storage *storage.Storage,
-	lockTable *locktable.LockTable[action.ItemID],
+	lockTable *locktable.LockTable[ItemID],
 ) *Manager {
 	return &Manager{
 		log:         log,

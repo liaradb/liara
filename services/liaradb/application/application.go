@@ -31,7 +31,7 @@ type Application struct {
 	collections *collection.Collections
 	txManager   *transaction.Manager
 	log         *recovery.Log
-	lockTable   *locktable.LockTable[action.ItemID]
+	lockTable   *locktable.LockTable[transaction.ItemID]
 	ot          openTelemetry
 }
 
@@ -51,7 +51,7 @@ func New(conf configuration) *Application {
 		conf.WriteQueueSize,
 		fsys,
 		path.Join(conf.Directory, "log"))
-	lt := locktable.New[action.ItemID](inSize)
+	lt := locktable.New[transaction.ItemID](inSize)
 
 	return &Application{
 		conf:        conf,
