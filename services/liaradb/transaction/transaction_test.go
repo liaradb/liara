@@ -156,8 +156,7 @@ func testTransaction_Commit(t *testing.T) {
 	}
 
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
-	lt := createLockTable(t)
-	m := NewManager(l, s, lt)
+	m := NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	ctx := t.Context()
@@ -270,8 +269,7 @@ func testTransaction_Rollback(t *testing.T) {
 	}
 
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
-	lt := createLockTable(t)
-	m := NewManager(l, s, lt)
+	m := NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	ctx := t.Context()

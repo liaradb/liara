@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -157,9 +156,8 @@ func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *recover
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir, pageSize)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
-	lt := createLockTable(t)
 
-	m := transaction.NewManager(l, s, lt)
+	m := transaction.NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	t.Cleanup(func() {
@@ -188,13 +186,6 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int
 	}
 
 	return l
-}
-
-func createLockTable(t *testing.T) *locktable.LockTable[transaction.ItemID] {
-	lt := locktable.New[transaction.ItemID](1)
-	lt.Run(t.Context())
-	t.Cleanup(lt.Close)
-	return lt
 }
 
 func createFiles() (filecache.FileSystem, string) {

@@ -21,7 +21,6 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/transaction/locktable"
 	"google.golang.org/grpc"
 )
 
@@ -31,7 +30,6 @@ type Application struct {
 	collections *collection.Collections
 	txManager   *transaction.Manager
 	log         *recovery.Log
-	lockTable   *locktable.LockTable[transaction.ItemID]
 	ot          openTelemetry
 }
 
@@ -51,15 +49,13 @@ func New(conf configuration) *Application {
 		conf.WriteQueueSize,
 		fsys,
 		path.Join(conf.Directory, "log"))
-	lt := locktable.New[transaction.ItemID](inSize)
 
 	return &Application{
 		conf:        conf,
 		storage:     s,
 		collections: collection.NewCollections(s),
-		txManager:   transaction.NewManager(log, s, lt),
+		txManager:   transaction.NewManager(log, s, inSize),
 		log:         log,
-		lockTable:   lt,
 	}
 }
 
@@ -96,6 +92,8 @@ func (a *Application) run(ctx context.Context) error {
 
 	a.txManager.Run(ctx)
 
+	slog.Info("transaction manager running")
+
 	if err := a.storage.Run(ctx); err != nil {
 		return err
 	}
@@ -119,10 +117,6 @@ func (a *Application) run(ctx context.Context) error {
 	}
 
 	slog.Info("log running")
-
-	a.lockTable.Run(ctx)
-
-	slog.Info("lock table running")
 
 	return nil
 }

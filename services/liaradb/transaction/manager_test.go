@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/record"
-	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -53,8 +52,7 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
-	lt := createLockTable(t)
-	m := NewManager(l, s, lt)
+	m := NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	return m, l
@@ -79,13 +77,6 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *recovery.Lo
 	}
 
 	return l
-}
-
-func createLockTable(t *testing.T) *locktable.LockTable[ItemID] {
-	lt := locktable.New[ItemID](1)
-	lt.Run(t.Context())
-	t.Cleanup(lt.Close)
-	return lt
 }
 
 func createFiles() (filecache.FileSystem, string) {

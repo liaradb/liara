@@ -1,8 +1,6 @@
 package locktable
 
-import (
-	"context"
-)
+import "context"
 
 type LockTable[K comparable] struct {
 	requestLists map[K]*lockRequestList[K]

@@ -36,13 +36,13 @@ type Manager struct {
 func NewManager(
 	log *recovery.Log,
 	storage *storage.Storage,
-	lockTable *locktable.LockTable[ItemID],
+	ltInSize int,
 ) *Manager {
 	return &Manager{
 		log:         log,
 		storage:     storage,
 		collections: collection.NewCollections(storage),
-		lockTable:   lockTable,
+		lockTable:   locktable.New[ItemID](ltInSize),
 		txReqs:      make(async.Handler[value.TenantID, *Transaction]),
 		returns:     make(chan record.TransactionID, returnSize),
 		active:      make(set.Set[record.TransactionID]),
@@ -50,6 +50,7 @@ func NewManager(
 }
 
 func (m *Manager) Run(ctx context.Context) {
+	go m.lockTable.Run(ctx)
 	go m.run(ctx)
 }
 
@@ -152,6 +153,8 @@ func (m *Manager) flush(ctx context.Context, now time.Time) error {
 }
 
 func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
+	m.lockTable.Close()
+
 	// TODO: How do we drain everything?
 	m.drainEnd()
 
