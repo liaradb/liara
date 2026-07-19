@@ -3,7 +3,6 @@ package logpage
 import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
-	"github.com/liaradb/liaradb/recovery/action"
 )
 
 const (
@@ -11,7 +10,7 @@ const (
 
 	HeaderSize = 0 +
 		page.MagicSize +
-		action.TimeLineIDSize
+		TimeLineIDSize
 )
 
 type header struct {
@@ -34,12 +33,12 @@ func (h *header) init() {
 }
 
 // TODO: How do we use this?
-func (h *header) SetTimeLineID(tlid action.TimeLineID) {
+func (h *header) SetTimeLineID(tlid TimeLineID) {
 	h.timeLineID.SetUnsigned(tlid.Value())
 }
 
-func (h *header) TimeLineID() action.TimeLineID {
-	return action.TimeLineID(h.timeLineID.GetUnsigned())
+func (h *header) TimeLineID() TimeLineID {
+	return TimeLineID(h.timeLineID.GetUnsigned())
 }
 
 func (h *header) IsEmpty() bool {
