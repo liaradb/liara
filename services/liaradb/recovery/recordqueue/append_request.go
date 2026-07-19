@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/util/async"
 )
 
 type AppendRequest = async.Request[AppendValue, record.LogSequenceNumber]

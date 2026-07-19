@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/pagepool"
@@ -12,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/util/async"
 )
 
 const (

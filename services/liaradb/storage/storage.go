@@ -6,9 +6,9 @@ import (
 	"path"
 	"sync"
 
-	"github.com/liaradb/liaradb/async"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/async"
 )
 
 type Storage struct {
