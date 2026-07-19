@@ -16,12 +16,12 @@ import (
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
+	"github.com/liaradb/liaradb/transaction/locktable"
 	"google.golang.org/grpc"
 )
 
