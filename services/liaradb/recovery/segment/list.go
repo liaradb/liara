@@ -6,7 +6,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
@@ -16,14 +15,14 @@ type List struct {
 	names       *list.List
 	f           *File
 	pageSize    int64
-	segmentSize action.PageID
+	segmentSize PageID
 }
 
 func NewList(
 	fsys filecache.FileSystem,
 	dir string,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize PageID,
 ) *List {
 	return &List{
 		dir:         dir,

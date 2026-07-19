@@ -1,4 +1,4 @@
-package action
+package segment
 
 import (
 	"io"
@@ -10,6 +10,7 @@ type PageID uint64
 
 const PageIDSize = 8
 
+// TODO: This is unused
 func NewPageIDFromSize(size int64, pageSize int64) PageID {
 	if pageSize == 0 {
 		return 0
@@ -18,7 +19,7 @@ func NewPageIDFromSize(size int64, pageSize int64) PageID {
 	return PageID(pid)
 }
 
-func NewActivePageIDFromSize(size int64, pageSize int64) PageID {
+func newActivePageIDFromSize(size int64, pageSize int64) PageID {
 	if pageSize == 0 || size == 0 {
 		return 0
 	}

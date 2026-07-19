@@ -8,7 +8,6 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -35,7 +34,7 @@ type Log struct {
 
 func NewLog(
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	maxRecordSize int64,
 	writeQueueSize int,
 	fsys filecache.FileSystem,

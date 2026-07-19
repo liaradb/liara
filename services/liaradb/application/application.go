@@ -18,7 +18,7 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/locktable"
 	"github.com/liaradb/liaradb/recovery"
-	"github.com/liaradb/liaradb/recovery/action"
+	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
@@ -46,7 +46,7 @@ func New(conf configuration) *Application {
 	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
 	log := recovery.NewLog(
 		int64(conf.BlockSize),
-		action.PageID(segmentSize),
+		segment.PageID(segmentSize),
 		int64(conf.RecordSize),
 		conf.WriteQueueSize,
 		fsys,

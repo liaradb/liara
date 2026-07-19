@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -271,7 +270,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 
 func createRecordQueueStart(t *testing.T,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	recordSize int64,
 ) *RecordQueue {
 	t.Helper()
@@ -287,7 +286,7 @@ func createRecordQueueStart(t *testing.T,
 
 func createRecordQueue(t *testing.T,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,

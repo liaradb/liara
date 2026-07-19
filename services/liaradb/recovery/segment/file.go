@@ -5,15 +5,14 @@ import (
 	"io/fs"
 
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 )
 
 type File struct {
 	file        filecache.File
 	sn          SegmentName
 	pageSize    int64
-	segmentSize action.PageID
-	pageID      action.PageID
+	segmentSize PageID
+	pageID      PageID
 	size        int64
 }
 
@@ -21,7 +20,7 @@ func newFile(
 	file filecache.File,
 	sn SegmentName,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize PageID,
 	size int64,
 ) *File {
 	return &File{
@@ -80,7 +79,7 @@ func (f *File) SeekTail() (int64, error) {
 		return 0, err
 	}
 
-	f.pageID = action.NewActivePageIDFromSize(size, f.pageSize)
+	f.pageID = newActivePageIDFromSize(size, f.pageSize)
 	return size, nil
 }
 
@@ -120,7 +119,7 @@ func (f *File) NextPage() bool {
 }
 
 func (f *File) NextPageUntilSize(size int64) bool {
-	segmentSize := action.NewActivePageIDFromSize(size, f.pageSize)
+	segmentSize := newActivePageIDFromSize(size, f.pageSize)
 	if f.pageID >= segmentSize {
 		return false
 	}

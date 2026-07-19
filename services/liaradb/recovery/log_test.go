@@ -10,8 +10,8 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/action"
 	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -1071,7 +1071,7 @@ func testLog_Update(t *testing.T) {
 
 func createLogStart(t *testing.T,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	recordSize int64,
 ) *Log {
 	t.Helper()
@@ -1087,7 +1087,7 @@ func createLogStart(t *testing.T,
 
 func createLogAllStart(t *testing.T,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
@@ -1104,7 +1104,7 @@ func createLogAllStart(t *testing.T,
 
 func createLog(t *testing.T,
 	pageSize int64,
-	segmentSize action.PageID,
+	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,

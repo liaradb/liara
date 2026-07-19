@@ -1,4 +1,4 @@
-package action
+package segment
 
 import (
 	"io"
@@ -91,7 +91,7 @@ func TestPageID_NewActivePageIDFromSize(t *testing.T) {
 				t.Skip()
 			}
 
-			id := NewActivePageIDFromSize(c.size, c.pageSize)
+			id := newActivePageIDFromSize(c.size, c.pageSize)
 			if id != c.id {
 				t.Errorf("%v: incorrect id: %v, expected: %v", message, id, c.id)
 			}
