@@ -8,8 +8,8 @@ import (
 
 	"github.com/liaradb/liaradb/application"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 var (
@@ -33,7 +33,7 @@ func run() error {
 	segmentSize := 1024
 	fsys := filecache.New()
 
-	log := recovery.NewLog(
+	log := log.New(
 		int64(conf.BlockSize),
 		segment.PageID(segmentSize),
 		int64(conf.RecordSize),

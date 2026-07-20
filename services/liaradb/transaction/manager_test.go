@@ -8,7 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -46,7 +46,7 @@ func testManager(t *testing.T) {
 	}
 }
 
-func createManager(t *testing.T) (*Manager, *recovery.Log) {
+func createManager(t *testing.T) (*Manager, *log.Log) {
 	t.Helper()
 
 	fsys, dir := createFiles()
@@ -58,10 +58,10 @@ func createManager(t *testing.T) (*Manager, *recovery.Log) {
 	return m, l
 }
 
-func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *recovery.Log {
+func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *log.Log {
 	t.Helper()
 
-	l := recovery.NewLog(256, 3, 256, 100, fsys, dir)
+	l := log.New(256, 3, 256, 100, fsys, dir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

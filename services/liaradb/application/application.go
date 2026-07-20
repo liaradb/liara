@@ -16,11 +16,11 @@ import (
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
+	"github.com/liaradb/liaradb/transaction/log"
 	"google.golang.org/grpc"
 )
 
@@ -29,7 +29,7 @@ type Application struct {
 	storage     *storage.Storage
 	collections *collection.Collections
 	txManager   *transaction.Manager
-	log         *recovery.Log
+	log         *log.Log
 	ot          openTelemetry
 }
 
@@ -42,7 +42,7 @@ func New(conf configuration) *Application {
 	fsys := filecache.New()
 
 	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
-	log := recovery.NewLog(
+	log := log.New(
 		int64(conf.BlockSize),
 		segment.PageID(segmentSize),
 		int64(conf.RecordSize),

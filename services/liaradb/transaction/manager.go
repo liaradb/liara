@@ -8,10 +8,10 @@ import (
 
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/locktable"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/async"
 	"github.com/liaradb/liaradb/util/set"
@@ -23,7 +23,7 @@ const (
 )
 
 type Manager struct {
-	log           *recovery.Log
+	log           *log.Log
 	storage       *storage.Storage
 	collections   *collection.Collections
 	lockTable     *locktable.LockTable[ItemID]
@@ -35,7 +35,7 @@ type Manager struct {
 }
 
 func NewManager(
-	log *recovery.Log,
+	log *log.Log,
 	storage *storage.Storage,
 	ltInSize int,
 ) *Manager {

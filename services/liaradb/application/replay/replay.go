@@ -8,18 +8,18 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type Replay struct {
 	collections *collection.Collections
-	log         *recovery.Log
+	log         *log.Log
 }
 
 func NewReplay(
 	collections *collection.Collections,
-	log *recovery.Log,
+	log *log.Log,
 ) *Replay {
 	return &Replay{
 		collections: collections,

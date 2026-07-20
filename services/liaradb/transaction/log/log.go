@@ -1,4 +1,4 @@
-package recovery
+package log
 
 import (
 	"container/list"
@@ -33,7 +33,7 @@ type Log struct {
 	it *pageiterator.PageIterator[*record.Record]
 }
 
-func NewLog(
+func New(
 	pageSize int64,
 	segmentSize segment.PageID,
 	maxRecordSize int64,

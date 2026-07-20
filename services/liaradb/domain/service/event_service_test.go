@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/transaction"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -150,7 +150,7 @@ func testEventService_Append__Invalid(t *testing.T) {
 	}
 }
 
-func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *recovery.Log) {
+func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *log.Log) {
 	t.Helper()
 
 	fsys, dir := createFiles()
@@ -167,10 +167,10 @@ func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *recover
 	return m, l
 }
 
-func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int64) *recovery.Log {
+func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int64) *log.Log {
 	t.Helper()
 
-	l := recovery.NewLog(pageSize, 10, pageSize, 100, fsys, dir)
+	l := log.New(pageSize, 10, pageSize, 100, fsys, dir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

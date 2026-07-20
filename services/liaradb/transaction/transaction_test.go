@@ -11,8 +11,8 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -148,7 +148,7 @@ func testTransaction_Commit(t *testing.T) {
 	fsys, dir := createFiles()
 	logDir := "log"
 
-	l := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
+	l := log.New(256, 3, 256, 100, fsys, logDir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +206,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	l2 := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
+	l2 := log.New(256, 3, 256, 100, fsys, logDir)
 	if err := l2.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -261,7 +261,7 @@ func testTransaction_Rollback(t *testing.T) {
 	fsys, dir := createFiles()
 	logDir := "log"
 
-	l := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
+	l := log.New(256, 3, 256, 100, fsys, logDir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -300,7 +300,7 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	l2 := recovery.NewLog(256, 3, 256, 100, fsys, logDir)
+	l2 := log.New(256, 3, 256, 100, fsys, logDir)
 	if err := l2.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

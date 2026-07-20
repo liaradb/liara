@@ -13,8 +13,8 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/recovery"
 	"github.com/liaradb/liaradb/transaction/locktable"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/set"
 )
@@ -22,7 +22,7 @@ import (
 type Transaction struct {
 	id             record.TransactionID
 	tid            value.TenantID
-	log            *recovery.Log
+	log            *log.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	collection     *collection.Collections
@@ -46,7 +46,7 @@ type valueItem struct {
 func newTransaction(
 	id record.TransactionID,
 	tid value.TenantID,
-	log *recovery.Log,
+	log *log.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID],
 	collection *collection.Collections,
