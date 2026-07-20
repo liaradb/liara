@@ -2,12 +2,19 @@ package pagequeue
 
 import (
 	"context"
+	"io"
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
 )
+
+type Record interface {
+	Size() int
+	Write(io.Writer) error
+	LogSequenceNumber() record.LogSequenceNumber
+}
 
 type PageQueue struct {
 	pool    *pagepool.PagePool
@@ -49,11 +56,11 @@ func (pq *PageQueue) Run(ctx context.Context) error {
 //   - Append Record as Span to the list
 //   - Append list to queue, up to but not including, current
 //   - If current Page is entirely full, append current to list and swap current for next Page
-func (pq *PageQueue) Append(ctx context.Context, rc *record.Record) error {
+func (pq *PageQueue) Append(ctx context.Context, rc Record) error {
 	return pq.AppendWait(ctx, rc, nil)
 }
 
-func (pq *PageQueue) AppendWait(ctx context.Context, rc *record.Record, h func()) error {
+func (pq *PageQueue) AppendWait(ctx context.Context, rc Record, h func()) error {
 	t := NewTip(pq.pool, pq.current)
 	s := t.Span(rc.Size())
 	if err := rc.Write(s); err != nil {
