@@ -70,7 +70,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, pl)
+			pi := New(sl, pl, func() *record.Record { return &record.Record{} })
 
 			c := 0
 			for rc, err := range pi.Forward(logpage.NewLogSequenceNumber(0)) {
@@ -135,7 +135,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			sl = segment.NewList(fsys, dir, size, 1)
-			pi := New(sl, pl)
+			pi := New(sl, pl, func() *record.Record { return &record.Record{} })
 
 			c := 0
 			reverseIndex := numberOfRecords - 1

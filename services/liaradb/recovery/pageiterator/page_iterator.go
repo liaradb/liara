@@ -6,34 +6,41 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
-type PageIterator struct {
-	sl   *segment.List
-	pool *pagepool.PagePool
+type PageIterator[R Record] struct {
+	sl     *segment.List
+	pool   *pagepool.PagePool
+	create func() R
 }
 
-func New(
+type Record interface {
+	Read(r io.Reader) error
+}
+
+func New[R Record](
 	sl *segment.List,
 	pl *pagepool.PagePool,
-) *PageIterator {
-	return &PageIterator{
-		sl:   sl,
-		pool: pl,
+	create func() R,
+) *PageIterator[R] {
+	return &PageIterator[R]{
+		sl:     sl,
+		pool:   pl,
+		create: create,
 	}
 }
 
 // TODO: This is not used.  It may be useful for in-place Recover.
-func (pi *PageIterator) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[*record.Record, error] {
-	return func(yield func(*record.Record, error) bool) {
+func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, error] {
+	return func(yield func(R, error) bool) {
 		var s span.Span
 
 		for f, err := range pi.sl.IterateFromLSN(lsn) {
 			if err != nil {
-				yield(nil, err)
+				var r R
+				yield(r, err)
 				return
 			}
 
@@ -46,7 +53,8 @@ func (pi *PageIterator) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[*record
 				// TODO: Return Page
 				p := pi.pool.Get()
 				if err := p.Replace(f); err != nil {
-					yield(nil, err)
+					var r R
+					yield(r, err)
 					pi.pool.Put(p)
 					return
 				}
@@ -72,18 +80,20 @@ func (pi *PageIterator) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[*record
 	}
 }
 
-func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
-	return func(yield func(*record.Record, error) bool) {
+func (pi *PageIterator[R]) Reverse() iter.Seq2[R, error] {
+	return func(yield func(R, error) bool) {
 		var s span.Span
 
 		for f, err := range pi.sl.Reverse() {
 			if err != nil {
-				yield(nil, err)
+				var r R
+				yield(r, err)
 				return
 			}
 
 			if size, err := f.SeekTail(); err != nil {
-				yield(nil, err)
+				var r R
+				yield(r, err)
 				return
 			} else if size == 0 {
 				continue
@@ -94,7 +104,8 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 				p := pi.pool.Get()
 				if err := p.Replace(f); err != nil {
 					if err != io.EOF {
-						yield(nil, err)
+						var r R
+						yield(r, err)
 					}
 					pi.pool.Put(p)
 					return
@@ -123,11 +134,12 @@ func (pi *PageIterator) Reverse() iter.Seq2[*record.Record, error] {
 	}
 }
 
-func (*PageIterator) ToRecord(s span.Span) (*record.Record, error) {
-	rc := record.Record{}
+func (pi *PageIterator[R]) ToRecord(s span.Span) (R, error) {
+	rc := pi.create()
 	if err := rc.Read(s); err != nil {
-		return nil, err
+		var r R
+		return r, err
 	}
 
-	return &rc, nil
+	return rc, nil
 }

@@ -30,7 +30,7 @@ import (
 // Do we flush current page when closing segment?
 type Log struct {
 	rq recordqueue.RecordQueue[*record.Record]
-	it *pageiterator.PageIterator
+	it *pageiterator.PageIterator[*record.Record]
 }
 
 func NewLog(
@@ -44,7 +44,7 @@ func NewLog(
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	// TODO: Fix this cast
 	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
-	it := pageiterator.New(sl, pl)
+	it := pageiterator.New(sl, pl, func() *record.Record { return &record.Record{} })
 	return &Log{
 		rq: *recordqueue.New[*record.Record](
 			pageSize,
