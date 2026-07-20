@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/recovery"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type Replay struct {

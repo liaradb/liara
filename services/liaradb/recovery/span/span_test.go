@@ -8,7 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/transaction/record"
 )
 
 func TestSpan_Write(t *testing.T) {
