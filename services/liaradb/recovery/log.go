@@ -105,7 +105,6 @@ func (l *Log) Start(
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
 		record.NewTime(now),
@@ -122,7 +121,6 @@ func (l *Log) Commit(
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
 		record.NewTime(now),
@@ -139,7 +137,6 @@ func (l *Log) Rollback(
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
 		record.NewTime(now),
@@ -158,7 +155,6 @@ func (l *Log) Insert(
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
 		record.NewTime(now),
@@ -178,7 +174,6 @@ func (l *Log) Update(
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
 		record.NewTime(now),
@@ -195,7 +190,6 @@ func (l *Log) Checkpoint(
 	txids ...record.TransactionID,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		value.TenantID{},
 		record.TransactionID{},
 		record.NewTime(now),

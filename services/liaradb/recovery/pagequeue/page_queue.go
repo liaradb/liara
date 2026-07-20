@@ -13,6 +13,7 @@ type Record interface {
 	Size() int
 	Write(io.Writer) error
 	LogSequenceNumber() logpage.LogSequenceNumber
+	SetLogSequenceNumber(logpage.LogSequenceNumber)
 }
 
 type PageQueue[R Record] struct {

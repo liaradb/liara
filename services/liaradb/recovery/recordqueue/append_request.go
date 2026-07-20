@@ -49,6 +49,7 @@ type AppendValue[R pagequeue.Record] struct {
 }
 
 func (av *AppendValue[R]) Record(lsn logpage.LogSequenceNumber) R {
+	av.record.SetLogSequenceNumber(lsn)
 	return av.record
 }
 

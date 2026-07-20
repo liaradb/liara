@@ -43,8 +43,7 @@ type CheckpointValue struct {
 }
 
 func (cv *CheckpointValue) Record(lsn logpage.LogSequenceNumber) *record.Record {
-	return record.New(
-		lsn,
+	rc := record.New(
 		value.TenantID{},
 		record.TransactionID{},
 		record.NewTime(cv.time),
@@ -52,6 +51,8 @@ func (cv *CheckpointValue) Record(lsn logpage.LogSequenceNumber) *record.Record 
 		record.CollectionSystem,
 		cv.txIDsToData(),
 		nil)
+	rc.SetLogSequenceNumber(lsn)
+	return rc
 }
 
 func (cv *CheckpointValue) txIDsToData() []byte {

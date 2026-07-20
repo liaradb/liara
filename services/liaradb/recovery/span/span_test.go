@@ -23,7 +23,8 @@ func TestSpan_Write(t *testing.T) {
 	data := []byte("abcdef")
 	reverse := []byte("fghij")
 
-	rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+	rc := record.New(tid, txid, now, action, collection, data, reverse)
+	rc.SetLogSequenceNumber(lsn)
 
 	size := float64(rc.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))

@@ -716,7 +716,7 @@ func testLog_Commit(t *testing.T) {
 		txid1,
 		time.UnixMicro(1234567890),
 		record.CollectionSystem,
-		make([]byte, 300)); err != nil {
+		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -742,7 +742,7 @@ func testLog_Commit(t *testing.T) {
 		txid2,
 		time.UnixMicro(1234567890),
 		record.CollectionSystem,
-		make([]byte, 300)); err != nil {
+		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1143,15 +1143,16 @@ func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, 
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
-		records = append(records, record.New(
-			logpage.NewLogSequenceNumber(i+1+offset),
+		rc := record.New(
 			tid,
 			record.NewTransactionID(2),
 			record.NewTime(time.UnixMicro(1234567890)),
 			record.ActionUpdate,
 			record.CollectionValue,
 			data,
-			reverse))
+			reverse)
+		rc.SetLogSequenceNumber(logpage.NewLogSequenceNumber(i + 1 + offset))
+		records = append(records, rc)
 	}
 	return records, logpage.NewLogSequenceNumber(count).Decrement()
 }

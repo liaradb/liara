@@ -20,7 +20,6 @@ type Record struct {
 }
 
 func New(
-	lsn logpage.LogSequenceNumber,
 	tid value.TenantID,
 	txid TransactionID,
 	time Time,
@@ -30,14 +29,13 @@ func New(
 	reverse []byte,
 ) *Record {
 	return &Record{
-		logSequenceNumber: lsn,
-		tenantID:          tid,
-		transactionID:     txid,
-		time:              time,
-		action:            action,
-		collection:        collection,
-		data:              LogData{data},
-		reverse:           LogData{reverse},
+		tenantID:      tid,
+		transactionID: txid,
+		time:          time,
+		action:        action,
+		collection:    collection,
+		data:          LogData{data},
+		reverse:       LogData{reverse},
 	}
 }
 
@@ -50,6 +48,10 @@ func (rc *Record) Collection() Collection                       { return rc.coll
 func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                              { return rc.reverse.Bytes() }
 func (rc *Record) IsCheckpoint() bool                           { return rc.action == ActionCheckpoint }
+
+func (rc *Record) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
+	rc.logSequenceNumber = lsn
+}
 
 func (rc *Record) Size() int {
 	return serializer.Size(

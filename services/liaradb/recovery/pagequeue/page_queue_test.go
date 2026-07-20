@@ -30,7 +30,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should run", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -96,7 +97,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should run next", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -122,7 +124,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should flush one", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -151,7 +154,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should handle error on flush one", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -172,7 +176,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should flush many", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -203,7 +208,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should handle error on flush many", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)
@@ -235,7 +241,8 @@ func TestPageQueue(t *testing.T) {
 	t.Run("should clear", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
-			rc := record.New(lsn, tid, txid, now, action, collection, data, reverse)
+			rc := record.New(tid, txid, now, action, collection, data, reverse)
+			rc.SetLogSequenceNumber(lsn)
 
 			ps := &testPageStorage{}
 			pq := New[*record.Record](ps, pagepool.New(largePageSize, span.FragmentHeaderSize), writeQueueSize)

@@ -40,7 +40,6 @@ func testRecordQueue_Append(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if lsn, err := rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		record.NewTime(time.UnixMicro(1234567890)),
@@ -73,7 +72,6 @@ func testRecordQueue_Append__Large(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if _, err := rq.Append(ctx, record.New(
-		logpage.NewLogSequenceNumber(0),
 		value.NewTenantID(),
 		record.NewTransactionID(2),
 		record.NewTime(time.UnixMicro(1234567890)),
@@ -102,7 +100,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			tid := value.NewTenantID()
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -117,7 +114,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -147,7 +143,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			tid := value.NewTenantID()
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -160,7 +155,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			}
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -189,7 +183,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			count := 14
 			for range count {
 				if _, err := rq.Append(ctx, record.New(
-					logpage.NewLogSequenceNumber(0),
 					tid,
 					record.NewTransactionID(2),
 					record.NewTime(time.UnixMicro(1234567890)),
@@ -219,7 +212,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			rq := createRecordQueueStart(t, 48, 1, 2)
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				value.NewTenantID(),
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -241,7 +233,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			tid := value.NewTenantID()
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),
@@ -258,7 +249,6 @@ func TestRecordQueue_Flush(t *testing.T) {
 			}
 
 			if _, err := rq.Append(ctx, record.New(
-				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
 				record.NewTime(time.UnixMicro(1234567890)),

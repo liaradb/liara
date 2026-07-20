@@ -23,7 +23,8 @@ func TestRecord(t *testing.T) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
+	rc := New(tid, txid, now, action, collection, data, reverse)
+	rc.SetLogSequenceNumber(lsn)
 
 	if i := rc.LogSequenceNumber(); i != lsn {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
@@ -74,7 +75,8 @@ func TestRecord_Write(t *testing.T) {
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(lsn, tid, txid, now, action, collection, data, reverse)
+	rc := New(tid, txid, now, action, collection, data, reverse)
+	rc.SetLogSequenceNumber(lsn)
 
 	r, w := newReaderWriter()
 
@@ -132,7 +134,6 @@ func TestRecord_Write(t *testing.T) {
 func TestRecord_Compare(t *testing.T) {
 	t.Parallel()
 
-	lsn := logpage.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
 	now := NewTime(time.UnixMicro(1234567890))
@@ -160,13 +161,13 @@ func TestRecord_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should equal same values": {
-			a:     New(lsn, tid, txid, now, action, collection, data, reverse),
-			b:     New(lsn, tid, txid, now, action, collection, data, reverse),
+			a:     New(tid, txid, now, action, collection, data, reverse),
+			b:     New(tid, txid, now, action, collection, data, reverse),
 			equal: true,
 		},
 		"should not equal different values": {
-			a:     New(lsn, tid, txid, now, action, collection, data, reverse),
-			b:     New(lsn, value.NewTenantID(), txid, now, action, collection, data, reverse),
+			a:     New(tid, txid, now, action, collection, data, reverse),
+			b:     New(value.NewTenantID(), txid, now, action, collection, data, reverse),
 			equal: false,
 		},
 	} {
