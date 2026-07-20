@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -39,7 +39,7 @@ func TestPageStorage(t *testing.T) {
 		page1[i] = 2
 	}
 
-	if err := ps.Append(record.NewLogSequenceNumber(1), page1); err != nil {
+	if err := ps.Append(logpage.NewLogSequenceNumber(1), page1); err != nil {
 		t.Error(err)
 	}
 

@@ -4,17 +4,16 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type appendSyncQueueItem struct {
-	lsn   record.LogSequenceNumber
+	lsn   logpage.LogSequenceNumber
 	page  *logpage.LogPage
 	reply chan error
 }
 
 func newAppendSyncQueueItem(
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	page *logpage.LogPage,
 ) *appendSyncQueueItem {
 	return &appendSyncQueueItem{

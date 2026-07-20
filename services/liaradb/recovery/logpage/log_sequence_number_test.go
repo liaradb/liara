@@ -1,6 +1,8 @@
-package record
+package logpage
 
 import (
+	"bufio"
+	"bytes"
 	"io"
 	"testing"
 )
@@ -58,4 +60,9 @@ func TestLogSequenceNumber_Increment_Decrement(t *testing.T) {
 	if v := lsn4.Value(); v != want4 {
 		t.Errorf("incorrect value: %v, expected: %v", v, want4)
 	}
+}
+
+func newReaderWriter() (*bufio.Reader, *bytes.Buffer) {
+	buffer := bytes.NewBuffer(nil)
+	return bufio.NewReader(buffer), buffer
 }

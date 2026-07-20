@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -55,8 +56,8 @@ func NewLog(
 	}
 }
 
-func (l *Log) HighWater() record.LogSequenceNumber { return l.rq.HighWater() }
-func (l *Log) LowWater() record.LogSequenceNumber  { return l.rq.LowWater() }
+func (l *Log) HighWater() logpage.LogSequenceNumber { return l.rq.HighWater() }
+func (l *Log) LowWater() logpage.LogSequenceNumber  { return l.rq.LowWater() }
 
 func (l *Log) Run(ctx context.Context) error {
 	return l.rq.Run(ctx)
@@ -75,7 +76,7 @@ func (l *Log) StartWriter() error {
 	return l.rq.Init(lw, hw)
 }
 
-func (l *Log) getFlushStatus() (lowWater, highWater record.LogSequenceNumber, err error) {
+func (l *Log) getFlushStatus() (lowWater, highWater logpage.LogSequenceNumber, err error) {
 	hw := false
 	var rc *record.Record
 	for rc, err = range l.it.Reverse() {
@@ -102,7 +103,7 @@ func (l *Log) Start(
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx,
 		tid,
 		txid,
@@ -118,7 +119,7 @@ func (l *Log) Commit(
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx,
 		tid,
 		txid,
@@ -131,7 +132,7 @@ func (l *Log) Rollback(
 	tid value.TenantID,
 	txid record.TransactionID,
 	now time.Time,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx,
 		tid,
 		txid,
@@ -146,7 +147,7 @@ func (l *Log) Insert(
 	now time.Time,
 	collection record.Collection,
 	data []byte,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx,
 		tid,
 		txid,
@@ -165,7 +166,7 @@ func (l *Log) Update(
 	collection record.Collection,
 	data []byte,
 	prev []byte,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx,
 		tid,
 		txid,
@@ -181,7 +182,7 @@ func (l *Log) Checkpoint(
 	ctx context.Context,
 	now time.Time,
 	txids ...record.TransactionID,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx,
 		value.TenantID{},
 		record.TransactionID{},

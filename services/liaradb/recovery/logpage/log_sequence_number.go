@@ -1,6 +1,10 @@
-package record
+package logpage
 
 import "github.com/liaradb/liaradb/encoder/base"
+
+type (
+	baseUint64 = base.Uint64
+)
 
 type LogSequenceNumber struct {
 	baseUint64

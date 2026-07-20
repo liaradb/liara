@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
@@ -59,8 +60,8 @@ func New(
 	}
 }
 
-func (rq *RecordQueue) HighWater() record.LogSequenceNumber { return rq.fs.HighWater() }
-func (rq *RecordQueue) LowWater() record.LogSequenceNumber  { return rq.fs.LowWater() }
+func (rq *RecordQueue) HighWater() logpage.LogSequenceNumber { return rq.fs.HighWater() }
+func (rq *RecordQueue) LowWater() logpage.LogSequenceNumber  { return rq.fs.LowWater() }
 
 func (rq *RecordQueue) Run(ctx context.Context) error {
 	if err := rq.sl.Open(); err != nil {
@@ -84,7 +85,7 @@ func (rq *RecordQueue) Close() error {
 	return rq.sl.Close()
 }
 
-func (rq *RecordQueue) Init(lw, hw record.LogSequenceNumber) error {
+func (rq *RecordQueue) Init(lw, hw logpage.LogSequenceNumber) error {
 	rq.fs.init(lw, hw)
 
 	// TODO: Don't create a page, just copy the data
@@ -121,7 +122,7 @@ func (rq *RecordQueue) AppendAndWait(
 	txid record.TransactionID,
 	now time.Time,
 	action record.Action,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return rq.appendReqs.AppendAndWait(ctx,
 		tid,
 		txid,
@@ -143,10 +144,10 @@ func (rq *RecordQueue) Append(
 	collection record.Collection,
 	data []byte,
 	reverse []byte,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	// Verify that record can fit at all
 	if len(data) > int(rq.maxRecordSize) {
-		return record.LogSequenceNumber{}, raw.ErrInsufficientSpace
+		return logpage.LogSequenceNumber{}, raw.ErrInsufficientSpace
 	}
 
 	return rq.appendReqs.Append(ctx,
@@ -167,9 +168,9 @@ func (rq *RecordQueue) appendRequest(ctx context.Context, r *AppendRequest) {
 
 func (rq *RecordQueue) append(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	r *AppendRequest,
-) record.LogSequenceNumber {
+) logpage.LogSequenceNumber {
 	if r.Value().IsWait() {
 		return rq.appendWait(ctx, lsn, r)
 	} else {
@@ -179,9 +180,9 @@ func (rq *RecordQueue) append(
 
 func (rq *RecordQueue) appendWait(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	r *AppendRequest,
-) record.LogSequenceNumber {
+) logpage.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
 	err := rq.pq.AppendWait(ctx, v.Record(h), func() {
@@ -198,9 +199,9 @@ func (rq *RecordQueue) appendWait(
 
 func (rq *RecordQueue) appendNoWait(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	r *AppendRequest,
-) record.LogSequenceNumber {
+) logpage.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
 	err := rq.pq.Append(ctx, v.Record(h))

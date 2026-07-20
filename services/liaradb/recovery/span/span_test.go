@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestSpan_Write(t *testing.T) {
 	t.Parallel()
 
-	lsn := record.NewLogSequenceNumber(1)
+	lsn := logpage.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := record.NewTransactionID(2)
 	now := record.NewTime(time.UnixMicro(1234567890))

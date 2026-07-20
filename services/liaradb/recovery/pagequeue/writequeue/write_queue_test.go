@@ -7,7 +7,6 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 func TestWriteQueue(t *testing.T) {
@@ -21,14 +20,14 @@ func testWriteQueueTestWriteQueue(t *testing.T) {
 	wq := New(10, ps, pool)
 	go wq.Run(t.Context())
 
-	wq.Append(t.Context(), record.NewLogSequenceNumber(0), logpage.New(128, 8))
-	wq.Append(t.Context(), record.NewLogSequenceNumber(1), logpage.New(128, 8))
+	wq.Append(t.Context(), logpage.NewLogSequenceNumber(0), logpage.New(128, 8))
+	wq.Append(t.Context(), logpage.NewLogSequenceNumber(1), logpage.New(128, 8))
 	wq.Replace(t.Context(), logpage.New(128, 8))
 	if err := wq.ReplaceSync(t.Context(), logpage.New(128, 8)); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := wq.AppendSync(t.Context(), record.NewLogSequenceNumber(2), logpage.New(128, 8)); err != nil {
+	if err := wq.AppendSync(t.Context(), logpage.NewLogSequenceNumber(2), logpage.New(128, 8)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,7 +47,7 @@ type testPageStorage struct {
 	appendCount   int
 }
 
-func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
+func (t *testPageStorage) Append(logpage.LogSequenceNumber, []byte) error {
 	if t.errorOnAppend {
 		return ErrUnableToAppend
 	}

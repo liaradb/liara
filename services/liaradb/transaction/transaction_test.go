@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -210,7 +211,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
+	lsns := []logpage.LogSequenceNumber{logpage.NewLogSequenceNumber(1), logpage.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionCommit}
 
 	it, err := l2.Recover()
@@ -304,7 +305,7 @@ func testTransaction_Rollback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lsns := []record.LogSequenceNumber{record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(2)}
+	lsns := []logpage.LogSequenceNumber{logpage.NewLogSequenceNumber(1), logpage.NewLogSequenceNumber(2)}
 	actions := []record.Action{record.ActionInsert, record.ActionRollback}
 
 	it, err := l2.Recover()

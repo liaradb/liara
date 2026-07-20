@@ -5,7 +5,6 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
@@ -29,7 +28,7 @@ func TestTip(t *testing.T) {
 	}
 
 	complete := 0
-	pages, ok := tip.Commit(record.NewLogSequenceNumber(0), func() {
+	pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
 		complete++
 	})
 	if !ok {
@@ -65,7 +64,7 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(record.NewLogSequenceNumber(0), func() {
+		pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
 			completeA++
 		})
 		if !ok {
@@ -85,7 +84,7 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(record.NewLogSequenceNumber(0), func() {
+		pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
 			completeB++
 		})
 		if !ok {

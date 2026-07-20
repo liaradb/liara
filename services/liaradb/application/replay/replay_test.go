@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -44,7 +45,7 @@ func TestReplay(t *testing.T) {
 			time.UnixMicro(1234567890),
 		); err != nil {
 			t.Error(err)
-		} else if lsn != record.NewLogSequenceNumber(1) {
+		} else if lsn != logpage.NewLogSequenceNumber(1) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
 
@@ -56,7 +57,7 @@ func TestReplay(t *testing.T) {
 			[]byte{1, 2, 3, 4, 5},
 		); err != nil {
 			t.Error(err)
-		} else if lsn != record.NewLogSequenceNumber(2) {
+		} else if lsn != logpage.NewLogSequenceNumber(2) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
 
@@ -66,7 +67,7 @@ func TestReplay(t *testing.T) {
 			time.UnixMicro(1234567890),
 		); err != nil {
 			t.Error(err)
-		} else if lsn != record.NewLogSequenceNumber(3) {
+		} else if lsn != logpage.NewLogSequenceNumber(3) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
 

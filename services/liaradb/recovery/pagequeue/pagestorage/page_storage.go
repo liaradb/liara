@@ -3,7 +3,7 @@ package pagestorage
 import (
 	"errors"
 
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/segment"
 )
 
@@ -44,7 +44,7 @@ func (ps *PageStorage) Init(data []byte) error {
 	return nil
 }
 
-func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
+func (ps *PageStorage) Append(lsn logpage.LogSequenceNumber, data []byte) error {
 	if err := ps.nextPage(lsn); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (ps *PageStorage) Append(lsn record.LogSequenceNumber, data []byte) error {
 	return ps.write(data)
 }
 
-func (ps *PageStorage) nextPage(lsn record.LogSequenceNumber) error {
+func (ps *PageStorage) nextPage(lsn logpage.LogSequenceNumber) error {
 	if ps.f.IsEmpty() || ps.f.NextPage() {
 		return nil
 	}
@@ -60,7 +60,7 @@ func (ps *PageStorage) nextPage(lsn record.LogSequenceNumber) error {
 	return ps.nextSegment(lsn)
 }
 
-func (ps *PageStorage) nextSegment(lsn record.LogSequenceNumber) error {
+func (ps *PageStorage) nextSegment(lsn logpage.LogSequenceNumber) error {
 	f, err := ps.sl.OpenNextSegment(lsn)
 	if err != nil {
 		return err

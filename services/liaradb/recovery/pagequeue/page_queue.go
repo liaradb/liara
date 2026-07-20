@@ -7,13 +7,12 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type Record interface {
 	Size() int
 	Write(io.Writer) error
-	LogSequenceNumber() record.LogSequenceNumber
+	LogSequenceNumber() logpage.LogSequenceNumber
 }
 
 type PageQueue struct {
@@ -22,7 +21,7 @@ type PageQueue struct {
 	ps      writequeue.PageStorage
 	current *logpage.LogPage
 	flushed bool
-	lsn     record.LogSequenceNumber
+	lsn     logpage.LogSequenceNumber
 }
 
 func New(
@@ -79,7 +78,7 @@ func (pq *PageQueue) AppendWait(ctx context.Context, rc Record, h func()) error 
 
 func (pq *PageQueue) appendPages(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	pgs []*logpage.LogPage,
 ) {
 	// If only one page, do nothing
@@ -96,7 +95,7 @@ func (pq *PageQueue) appendPages(
 	pq.replaceCurrent(lsn, pgs[l-1])
 }
 
-func (pq *PageQueue) flushCurrent(ctx context.Context, lsn record.LogSequenceNumber, current *logpage.LogPage) {
+func (pq *PageQueue) flushCurrent(ctx context.Context, lsn logpage.LogSequenceNumber, current *logpage.LogPage) {
 	if pq.flushed {
 		pq.wq.Replace(ctx, current)
 	} else {
@@ -105,7 +104,7 @@ func (pq *PageQueue) flushCurrent(ctx context.Context, lsn record.LogSequenceNum
 	}
 }
 
-func (pq *PageQueue) replaceCurrent(lsn record.LogSequenceNumber, p *logpage.LogPage) {
+func (pq *PageQueue) replaceCurrent(lsn logpage.LogSequenceNumber, p *logpage.LogPage) {
 	pq.lsn = lsn
 	pq.current = p
 	pq.flushed = false

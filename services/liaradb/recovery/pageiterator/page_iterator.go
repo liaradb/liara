@@ -4,6 +4,7 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -26,7 +27,7 @@ func New(
 }
 
 // TODO: This is not used.  It may be useful for in-place Recover.
-func (pi *PageIterator) Forward(lsn record.LogSequenceNumber) iter.Seq2[*record.Record, error] {
+func (pi *PageIterator) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		var s span.Span
 

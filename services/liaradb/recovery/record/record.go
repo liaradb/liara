@@ -5,10 +5,11 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 type Record struct {
-	logSequenceNumber LogSequenceNumber
+	logSequenceNumber logpage.LogSequenceNumber
 	tenantID          value.TenantID
 	transactionID     TransactionID
 	time              Time
@@ -19,7 +20,7 @@ type Record struct {
 }
 
 func New(
-	lsn LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	tid value.TenantID,
 	txid TransactionID,
 	time Time,
@@ -40,15 +41,15 @@ func New(
 	}
 }
 
-func (rc *Record) LogSequenceNumber() LogSequenceNumber { return rc.logSequenceNumber }
-func (rc *Record) TenantID() value.TenantID             { return rc.tenantID }
-func (rc *Record) TransactionID() TransactionID         { return rc.transactionID }
-func (rc *Record) Time() Time                           { return rc.time }
-func (rc *Record) Action() Action                       { return rc.action }
-func (rc *Record) Collection() Collection               { return rc.collection }
-func (rc *Record) Data() []byte                         { return rc.data.Bytes() }
-func (rc *Record) Reverse() []byte                      { return rc.reverse.Bytes() }
-func (rc *Record) IsCheckpoint() bool                   { return rc.action == ActionCheckpoint }
+func (rc *Record) LogSequenceNumber() logpage.LogSequenceNumber { return rc.logSequenceNumber }
+func (rc *Record) TenantID() value.TenantID                     { return rc.tenantID }
+func (rc *Record) TransactionID() TransactionID                 { return rc.transactionID }
+func (rc *Record) Time() Time                                   { return rc.time }
+func (rc *Record) Action() Action                               { return rc.action }
+func (rc *Record) Collection() Collection                       { return rc.collection }
+func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
+func (rc *Record) Reverse() []byte                              { return rc.reverse.Bytes() }
+func (rc *Record) IsCheckpoint() bool                           { return rc.action == ActionCheckpoint }
 
 func (rc *Record) Size() int {
 	return serializer.Size(

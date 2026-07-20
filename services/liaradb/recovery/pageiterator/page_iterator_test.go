@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
@@ -51,7 +52,7 @@ func TestPageIterator(t *testing.T) {
 			numberOfRecords := 100
 
 			for i := range numberOfRecords {
-				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
+				rc := record.New(logpage.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
 				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Fatal(err)
 				}
@@ -71,7 +72,7 @@ func TestPageIterator(t *testing.T) {
 			pi := New(sl, pl)
 
 			c := 0
-			for rc, err := range pi.Forward(record.NewLogSequenceNumber(0)) {
+			for rc, err := range pi.Forward(logpage.NewLogSequenceNumber(0)) {
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -115,7 +116,7 @@ func TestPageIterator(t *testing.T) {
 			numberOfRecords := 100
 
 			for i := range numberOfRecords {
-				rc := record.New(record.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
+				rc := record.New(logpage.NewLogSequenceNumber(uint64(i)), tid, txid, now, action, collection, data, reverse)
 				if err := pq.Append(t.Context(), rc); err != nil {
 					t.Error(err)
 				}

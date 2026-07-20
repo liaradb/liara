@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
 	"github.com/liaradb/liaradb/recovery/record"
@@ -17,7 +18,7 @@ import (
 func TestPageQueue(t *testing.T) {
 	t.Parallel()
 
-	lsn := record.NewLogSequenceNumber(1)
+	lsn := logpage.NewLogSequenceNumber(1)
 	tid := value.NewTenantID()
 	txid := record.NewTransactionID(2)
 	now := record.NewTime(time.UnixMicro(1234567890))
@@ -261,7 +262,7 @@ type testPageStorage struct {
 	appendCount   int
 }
 
-func (t *testPageStorage) Append(record.LogSequenceNumber, []byte) error {
+func (t *testPageStorage) Append(logpage.LogSequenceNumber, []byte) error {
 	if t.errorOnAppend {
 		return writequeue.ErrUnableToAppend
 	}

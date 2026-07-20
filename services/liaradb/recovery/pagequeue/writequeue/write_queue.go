@@ -5,7 +5,6 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type WriteQueue struct {
@@ -22,7 +21,7 @@ type queueItem interface {
 
 type PageStorage interface {
 	Replace([]byte) error
-	Append(record.LogSequenceNumber, []byte) error
+	Append(logpage.LogSequenceNumber, []byte) error
 }
 
 func New(
@@ -61,7 +60,7 @@ func (wq *WriteQueue) run(qi queueItem) error {
 
 func (wq *WriteQueue) Append(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	p *logpage.LogPage,
 ) {
 	select {
@@ -72,7 +71,7 @@ func (wq *WriteQueue) Append(
 
 func (wq *WriteQueue) AppendSync(
 	ctx context.Context,
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	p *logpage.LogPage,
 ) error {
 	qi := newAppendSyncQueueItem(lsn, p)

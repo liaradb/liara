@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
@@ -23,7 +24,7 @@ func TestLog_Default(t *testing.T) {
 func testLog_Default(t *testing.T) {
 	l := createLogStart(t, 320, 3, 320)
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(0))
 }
 
 func TestLog_Append(t *testing.T) {
@@ -47,11 +48,11 @@ func testLog_Append(t *testing.T) {
 		reverse,
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 }
 
 func TestLog_Append__Large(t *testing.T) {
@@ -80,7 +81,7 @@ func testLog_Append__Large(t *testing.T) {
 		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(0))
 }
 
 func TestLog_Flush(t *testing.T) {
@@ -107,7 +108,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+			testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 			if _, err := l.Update(ctx,
 				tid,
@@ -120,13 +121,13 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
+			testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(2))
 
 			if err := l.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
 
-			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, l, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 
@@ -163,7 +164,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, l, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 
@@ -253,7 +254,7 @@ func TestLog_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, l, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, l, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 }
@@ -491,8 +492,8 @@ func testLog_RecoverMany(t *testing.T) {
 	fsys, dir := createFiles()
 	tid := value.NewTenantID()
 
-	var aCount1 = record.NewLogSequenceNumber(1)
-	var aCount2 = record.NewLogSequenceNumber(1)
+	var aCount1 = logpage.NewLogSequenceNumber(1)
+	var aCount2 = logpage.NewLogSequenceNumber(1)
 	aCount := aCount1.Value() + aCount2.Value()
 	records1, _ := createRecords(tid, 1, 0)
 	records2, _ := createRecords(tid, 1, 1)
@@ -725,7 +726,7 @@ func testLog_Commit(t *testing.T) {
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(3) {
+	} else if lsn != logpage.NewLogSequenceNumber(3) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 3)
 	}
 
@@ -751,13 +752,13 @@ func testLog_Commit(t *testing.T) {
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(6) {
+	} else if lsn != logpage.NewLogSequenceNumber(6) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 6)
 	}
 
 	synctest.Wait()
 
-	testPosition(t, l, record.NewLogSequenceNumber(6), record.NewLogSequenceNumber(6))
+	testPosition(t, l, logpage.NewLogSequenceNumber(6), logpage.NewLogSequenceNumber(6))
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -822,11 +823,11 @@ func testLog_Insert(t *testing.T) {
 		data,
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 	if err := l.Flush(t.Context()); err != nil {
 		t.Error(err)
@@ -880,11 +881,11 @@ func testLog_InsertAndCommit(t *testing.T) {
 		data,
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 	if lsn, err := l.Commit(ctx,
 		value.NewTenantID(),
@@ -892,7 +893,7 @@ func testLog_InsertAndCommit(t *testing.T) {
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(2) {
+	} else if lsn != logpage.NewLogSequenceNumber(2) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 2)
 	}
 
@@ -942,13 +943,13 @@ func testLog_Rollback(t *testing.T) {
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
 	synctest.Wait()
 
-	testPosition(t, l, record.NewLogSequenceNumber(1), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(1), logpage.NewLogSequenceNumber(1))
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
@@ -987,11 +988,11 @@ func testLog_Start(t *testing.T) {
 		time.UnixMicro(1234567890),
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 	if err := l.Flush(t.Context()); err != nil {
 		t.Error(err)
@@ -1039,11 +1040,11 @@ func testLog_Update(t *testing.T) {
 		reverse,
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, l, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 	if err := l.Flush(t.Context()); err != nil {
 		t.Error(err)
@@ -1136,14 +1137,14 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, record.LogSequenceNumber) {
+func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, logpage.LogSequenceNumber) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
 		records = append(records, record.New(
-			record.NewLogSequenceNumber(i+1+offset),
+			logpage.NewLogSequenceNumber(i+1+offset),
 			tid,
 			record.NewTransactionID(2),
 			record.NewTime(time.UnixMicro(1234567890)),
@@ -1152,10 +1153,10 @@ func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, 
 			data,
 			reverse))
 	}
-	return records, record.NewLogSequenceNumber(count).Decrement()
+	return records, logpage.NewLogSequenceNumber(count).Decrement()
 }
 
-func testPosition(t *testing.T, l *Log, lw, hw record.LogSequenceNumber) {
+func testPosition(t *testing.T, l *Log, lw, hw logpage.LogSequenceNumber) {
 	t.Helper()
 
 	if h := l.HighWater(); h != hw {

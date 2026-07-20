@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -23,7 +24,7 @@ func TestRecordQueue_Default(t *testing.T) {
 func testRecordQueue_Default(t *testing.T) {
 	rq := createRecordQueueStart(t, 320, 3, 320)
 
-	testPosition(t, rq, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
+	testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(0))
 }
 
 func TestRecordQueue_Append(t *testing.T) {
@@ -48,11 +49,11 @@ func testRecordQueue_Append(t *testing.T) {
 		reverse,
 	); err != nil {
 		t.Error(err)
-	} else if lsn != record.NewLogSequenceNumber(1) {
+	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 	}
 
-	testPosition(t, rq, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+	testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 }
 
 func TestRecordQueue_Append__Large(t *testing.T) {
@@ -82,7 +83,7 @@ func testRecordQueue_Append__Large(t *testing.T) {
 		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
-	testPosition(t, rq, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0))
+	testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(0))
 }
 
 func TestRecordQueue_Flush(t *testing.T) {
@@ -110,7 +111,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, rq, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(1))
+			testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 			if _, err := rq.Append(ctx,
 				tid,
@@ -124,13 +125,13 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, rq, record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(2))
+			testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(2))
 
 			if err := rq.Flush(t.Context()); err != nil {
 				t.Error(err)
 			}
 
-			testPosition(t, rq, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, rq, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 
@@ -169,7 +170,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, rq, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, rq, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 
@@ -263,7 +264,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			testPosition(t, rq, record.NewLogSequenceNumber(2), record.NewLogSequenceNumber(2))
+			testPosition(t, rq, logpage.NewLogSequenceNumber(2), logpage.NewLogSequenceNumber(2))
 		})
 	})
 }
@@ -277,7 +278,7 @@ func createRecordQueueStart(t *testing.T,
 
 	fsys, dir := createFiles()
 	rq := createRecordQueue(t, pageSize, segmentSize, recordSize, fsys, dir)
-	if err := rq.Init(record.NewLogSequenceNumber(0), record.NewLogSequenceNumber(0)); err != nil {
+	if err := rq.Init(logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(0)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -322,7 +323,7 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func testPosition(t *testing.T, l *RecordQueue, lw, hw record.LogSequenceNumber) {
+func testPosition(t *testing.T, l *RecordQueue, lw, hw logpage.LogSequenceNumber) {
 	t.Helper()
 
 	if h := l.HighWater(); h != hw {

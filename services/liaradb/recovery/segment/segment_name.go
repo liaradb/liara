@@ -6,17 +6,17 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 var segmentRegexp = regexp.MustCompile("segment_([0-9a-f]*)_([0-9a-f]*).lr")
 
 type SegmentName struct {
 	id  SegmentID
-	lsn record.LogSequenceNumber
+	lsn logpage.LogSequenceNumber
 }
 
-func NewSegmentName(id SegmentID, lsn record.LogSequenceNumber) SegmentName {
+func NewSegmentName(id SegmentID, lsn logpage.LogSequenceNumber) SegmentName {
 	return SegmentName{
 		id:  id,
 		lsn: lsn,
@@ -32,13 +32,13 @@ func ParseSegmentName(value string) SegmentName {
 	i, _ := strconv.ParseUint(matches[1], 16, 64)
 	l, _ := strconv.ParseUint(matches[2], 16, 64)
 
-	return NewSegmentName(SegmentID(i), record.NewLogSequenceNumber(l))
+	return NewSegmentName(SegmentID(i), logpage.NewLogSequenceNumber(l))
 }
 
-func (sn SegmentName) ID() SegmentID                               { return sn.id }
-func (sn SegmentName) LogSequenceNumber() record.LogSequenceNumber { return sn.lsn }
+func (sn SegmentName) ID() SegmentID                                { return sn.id }
+func (sn SegmentName) LogSequenceNumber() logpage.LogSequenceNumber { return sn.lsn }
 
-func (sn SegmentName) Next(lsn record.LogSequenceNumber) SegmentName {
+func (sn SegmentName) Next(lsn logpage.LogSequenceNumber) SegmentName {
 	return SegmentName{
 		id:  sn.id.Next(),
 		lsn: lsn,

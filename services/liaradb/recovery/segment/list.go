@@ -6,7 +6,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/filecache"
-	"github.com/liaradb/liaradb/recovery/record"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 type List struct {
@@ -102,7 +102,7 @@ func (l *List) OpenLatestSegment() (*File, error) {
 	return f, err
 }
 
-func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (*File, error) {
+func (l *List) OpenNextSegment(lsn logpage.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func (l *List) OpenNextSegment(lsn record.LogSequenceNumber) (*File, error) {
 	return f, err
 }
 
-func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (*File, error) {
+func (l *List) OpenSegmentBeforeLSN(lsn logpage.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (l *List) OpenSegmentBeforeLSN(lsn record.LogSequenceNumber) (*File, error)
 }
 
 // TODO: This is not used
-func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[*File, error] {
+func (l *List) IterateFromLSN(lsn logpage.LogSequenceNumber) iter.Seq2[*File, error] {
 	return func(yield func(*File, error) bool) {
 		if err := l.init(); err != nil {
 			yield(nil, err)
@@ -157,7 +157,7 @@ func (l *List) IterateFromLSN(lsn record.LogSequenceNumber) iter.Seq2[*File, err
 	}
 }
 
-func (l *List) OpenSegmentForLSN(lsn record.LogSequenceNumber) (*File, error) {
+func (l *List) OpenSegmentForLSN(lsn logpage.LogSequenceNumber) (*File, error) {
 	if err := l.init(); err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func (l *List) isCurrentAndOpen(sn SegmentName) (*File, bool) {
 	return nil, false
 }
 
-func (l *List) RemoveSegmentBeforeLSN(lsn record.LogSequenceNumber) error {
+func (l *List) RemoveSegmentBeforeLSN(lsn logpage.LogSequenceNumber) error {
 	if err := l.init(); err != nil {
 		return err
 	}
@@ -293,7 +293,7 @@ func (l *List) getLatestSegment() (SegmentName, bool) {
 	return e.Value.(SegmentName), true
 }
 
-func (l *List) getNextSegment(lsn record.LogSequenceNumber) SegmentName {
+func (l *List) getNextSegment(lsn logpage.LogSequenceNumber) SegmentName {
 	sn, ok := l.getLatestSegment()
 	if !ok {
 		return SegmentName{}
@@ -302,7 +302,7 @@ func (l *List) getNextSegment(lsn record.LogSequenceNumber) SegmentName {
 	return sn.Next(lsn)
 }
 
-func (l *List) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
+func (l *List) getSegmentBeforeLSN(lsn logpage.LogSequenceNumber) (SegmentName, *list.Element, bool) {
 	for n, e := range l.reverse() {
 		if lsn.Value() >= n.lsn.Value() {
 			e = e.Prev()
@@ -317,7 +317,7 @@ func (l *List) getSegmentBeforeLSN(lsn record.LogSequenceNumber) (SegmentName, *
 	return SegmentName{}, nil, false
 }
 
-func (l *List) getSegmentForLSN(lsn record.LogSequenceNumber) (SegmentName, *list.Element, bool) {
+func (l *List) getSegmentForLSN(lsn logpage.LogSequenceNumber) (SegmentName, *list.Element, bool) {
 	for n, e := range l.reverse() {
 		if lsn.Value() >= n.lsn.Value() {
 			return n, e, true

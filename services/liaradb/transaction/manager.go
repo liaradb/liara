@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/locktable"
@@ -30,7 +31,7 @@ type Manager struct {
 	txReqs        async.Handler[value.TenantID, *Transaction]
 	returns       chan record.TransactionID
 	active        set.Set[record.TransactionID]
-	checkpoint    record.LogSequenceNumber
+	checkpoint    logpage.LogSequenceNumber
 }
 
 func NewManager(
@@ -83,7 +84,7 @@ func (m *Manager) isDirty() bool {
 	return m.log.HighWater().Value() > m.checkpoint.Value()
 }
 
-func (m *Manager) setCheckpoint(cp record.LogSequenceNumber) {
+func (m *Manager) setCheckpoint(cp logpage.LogSequenceNumber) {
 	m.checkpoint = cp
 }
 

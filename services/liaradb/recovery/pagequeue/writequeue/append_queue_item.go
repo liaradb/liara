@@ -4,16 +4,15 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/recovery/record"
 )
 
 type appendQueueItem struct {
-	lsn  record.LogSequenceNumber
+	lsn  logpage.LogSequenceNumber
 	page *logpage.LogPage
 }
 
 func newAppendQueueItem(
-	lsn record.LogSequenceNumber,
+	lsn logpage.LogSequenceNumber,
 	page *logpage.LogPage,
 ) *appendQueueItem {
 	return &appendQueueItem{

@@ -5,23 +5,24 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/util/async"
 )
 
-type AppendRequest = async.Request[AppendValue, record.LogSequenceNumber]
+type AppendRequest = async.Request[AppendValue, logpage.LogSequenceNumber]
 
 type AppendHandler struct {
-	reqs async.Handler[AppendValue, record.LogSequenceNumber]
+	reqs async.Handler[AppendValue, logpage.LogSequenceNumber]
 }
 
 func NewAppendHandler() AppendHandler {
 	return AppendHandler{
-		reqs: make(async.Handler[AppendValue, record.LogSequenceNumber]),
+		reqs: make(async.Handler[AppendValue, logpage.LogSequenceNumber]),
 	}
 }
 
-func (h AppendHandler) Reqs() async.Handler[AppendValue, record.LogSequenceNumber] {
+func (h AppendHandler) Reqs() async.Handler[AppendValue, logpage.LogSequenceNumber] {
 	return h.reqs
 }
 
@@ -34,7 +35,7 @@ func (h AppendHandler) Append(
 	collection record.Collection,
 	data []byte,
 	reverse []byte,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return h.reqs.Send(ctx, AppendValue{
 		tid:        tid,
 		txid:       txid,
@@ -55,7 +56,7 @@ func (h AppendHandler) AppendAndWait(
 	collection record.Collection,
 	data []byte,
 	reverse []byte,
-) (record.LogSequenceNumber, error) {
+) (logpage.LogSequenceNumber, error) {
 	return h.reqs.Send(ctx, AppendValue{
 		tid:        tid,
 		txid:       txid,
@@ -79,7 +80,7 @@ type AppendValue struct {
 	wait       bool
 }
 
-func (av *AppendValue) Record(lsn record.LogSequenceNumber) *record.Record {
+func (av *AppendValue) Record(lsn logpage.LogSequenceNumber) *record.Record {
 	return record.New(
 		lsn,
 		av.tid,

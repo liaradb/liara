@@ -3,7 +3,6 @@ package pagequeue
 import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/span"
 )
 
@@ -69,7 +68,7 @@ func (t *Tip) next() *logpage.LogPage {
 	return p
 }
 
-func (t *Tip) Commit(lsn record.LogSequenceNumber, h func()) ([]*logpage.LogPage, bool) {
+func (t *Tip) Commit(lsn logpage.LogSequenceNumber, h func()) ([]*logpage.LogPage, bool) {
 	if ok := t.commitPages(); !ok {
 		t.abortPages()
 		return nil, false
