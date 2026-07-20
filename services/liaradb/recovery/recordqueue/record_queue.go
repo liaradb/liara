@@ -32,7 +32,7 @@ const (
 type RecordQueue struct {
 	pageSize      int64
 	sl            *segment.List
-	pq            *pagequeue.PageQueue
+	pq            *pagequeue.PageQueue[*record.Record]
 	ps            *pagestorage.PageStorage
 	fs            flushStatus
 	appendReqs    AppendHandler
@@ -52,7 +52,7 @@ func New(
 	return &RecordQueue{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New(ps, pl, writeQueueSize),
+		pq:            pagequeue.New[*record.Record](ps, pl, writeQueueSize),
 		ps:            ps,
 		appendReqs:    NewAppendHandler(),
 		flushReqs:     make(async.CommandHandler[struct{}], 1),

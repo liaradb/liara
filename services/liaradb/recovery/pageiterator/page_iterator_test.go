@@ -46,7 +46,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pl := pagepool.New(size, span.FragmentHeaderSize)
-			pq := pagequeue.New(ps, pl, writeQueueSize)
+			pq := pagequeue.New[*record.Record](ps, pl, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -110,7 +110,7 @@ func TestPageIterator(t *testing.T) {
 			}
 
 			pl := pagepool.New(size, span.FragmentHeaderSize)
-			pq := pagequeue.New(ps, pl, writeQueueSize)
+			pq := pagequeue.New[*record.Record](ps, pl, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
