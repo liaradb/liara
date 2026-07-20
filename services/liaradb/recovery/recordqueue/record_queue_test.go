@@ -39,15 +39,16 @@ func testRecordQueue_Append(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := rq.Append(ctx,
+	if lsn, err := rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		record.NewTime(time.UnixMicro(1234567890)),
 		record.ActionUpdate,
 		record.CollectionValue,
 		data,
 		reverse,
-	); err != nil {
+	)); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -71,15 +72,16 @@ func testRecordQueue_Append__Large(t *testing.T) {
 	}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := rq.Append(ctx,
+	if _, err := rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		record.NewTime(time.UnixMicro(1234567890)),
 		record.ActionUpdate,
 		record.CollectionValue,
 		data,
 		reverse,
-	); err != raw.ErrInsufficientSpace {
+	)); err != raw.ErrInsufficientSpace {
 		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
@@ -99,29 +101,31 @@ func TestRecordQueue_Flush(t *testing.T) {
 			rq := createRecordQueueStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
 			testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
@@ -142,27 +146,29 @@ func TestRecordQueue_Flush(t *testing.T) {
 			rq := createRecordQueueStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
@@ -182,15 +188,16 @@ func TestRecordQueue_Flush(t *testing.T) {
 			tid := value.NewTenantID()
 			count := 14
 			for range count {
-				if _, err := rq.Append(ctx,
+				if _, err := rq.Append(ctx, record.New(
+					logpage.NewLogSequenceNumber(0),
 					tid,
 					record.NewTransactionID(2),
-					time.UnixMicro(1234567890),
+					record.NewTime(time.UnixMicro(1234567890)),
 					record.ActionUpdate,
 					record.CollectionValue,
 					data,
 					reverse,
-				); err != nil {
+				)); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -211,15 +218,16 @@ func TestRecordQueue_Flush(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 48, 1, 2)
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				value.NewTenantID(),
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err == nil {
+			)); err == nil {
 				t.Fatal("should return error")
 			}
 		})
@@ -232,15 +240,16 @@ func TestRecordQueue_Flush(t *testing.T) {
 			rq := createRecordQueueStart(t, 320, 3, 320)
 			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
@@ -248,15 +257,16 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if _, err := rq.Append(ctx,
+			if _, err := rq.Append(ctx, record.New(
+				logpage.NewLogSequenceNumber(0),
 				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				record.NewTime(time.UnixMicro(1234567890)),
 				record.ActionUpdate,
 				record.CollectionValue,
 				data,
 				reverse,
-			); err != nil {
+			)); err != nil {
 				t.Error(err)
 			}
 
@@ -273,7 +283,7 @@ func createRecordQueueStart(t *testing.T,
 	pageSize int64,
 	segmentSize segment.PageID,
 	recordSize int64,
-) *RecordQueue {
+) *RecordQueue[*record.Record] {
 	t.Helper()
 
 	fsys, dir := createFiles()
@@ -291,14 +301,14 @@ func createRecordQueue(t *testing.T,
 	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
-) *RecordQueue {
+) *RecordQueue[*record.Record] {
 	t.Helper()
 
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	// TODO: Fix this cast
 	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
 
-	rq := New(pageSize, recordSize, 100, sl, pl)
+	rq := New[*record.Record](pageSize, recordSize, 100, sl, pl)
 	if err := rq.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -308,7 +318,7 @@ func createRecordQueue(t *testing.T,
 	return rq
 }
 
-func cleanupRecordQueue(t *testing.T, l *RecordQueue) {
+func cleanupRecordQueue(t *testing.T, l *RecordQueue[*record.Record]) {
 	t.Helper()
 
 	t.Cleanup(func() {
@@ -323,7 +333,7 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func testPosition(t *testing.T, l *RecordQueue, lw, hw logpage.LogSequenceNumber) {
+func testPosition(t *testing.T, l *RecordQueue[*record.Record], lw, hw logpage.LogSequenceNumber) {
 	t.Helper()
 
 	if h := l.HighWater(); h != hw {

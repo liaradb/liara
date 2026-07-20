@@ -29,7 +29,7 @@ import (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type Log struct {
-	rq recordqueue.RecordQueue
+	rq recordqueue.RecordQueue[*record.Record]
 	it *pageiterator.PageIterator
 }
 
@@ -46,7 +46,7 @@ func NewLog(
 	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
 	it := pageiterator.New(sl, pl)
 	return &Log{
-		rq: *recordqueue.New(
+		rq: *recordqueue.New[*record.Record](
 			pageSize,
 			maxRecordSize,
 			writeQueueSize,
@@ -104,14 +104,15 @@ func (l *Log) Start(
 	txid record.TransactionID,
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.Append(ctx,
+	return l.rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
-		now,
+		record.NewTime(now),
 		record.ActionStart,
 		record.CollectionSystem,
 		nil,
-		nil)
+		nil))
 }
 
 func (l *Log) Commit(
@@ -120,11 +121,15 @@ func (l *Log) Commit(
 	txid record.TransactionID,
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.AppendAndWait(ctx,
+	return l.rq.AppendAndWait(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
-		now,
-		record.ActionCommit)
+		record.NewTime(now),
+		record.ActionCommit,
+		record.CollectionSystem,
+		nil,
+		nil))
 }
 
 func (l *Log) Rollback(
@@ -133,11 +138,15 @@ func (l *Log) Rollback(
 	txid record.TransactionID,
 	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.AppendAndWait(ctx,
+	return l.rq.AppendAndWait(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
-		now,
-		record.ActionRollback)
+		record.NewTime(now),
+		record.ActionRollback,
+		record.CollectionSystem,
+		nil,
+		nil))
 }
 
 func (l *Log) Insert(
@@ -148,14 +157,15 @@ func (l *Log) Insert(
 	collection record.Collection,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.Append(ctx,
+	return l.rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
-		now,
+		record.NewTime(now),
 		record.ActionInsert,
 		collection,
 		data,
-		nil)
+		nil))
 }
 
 func (l *Log) Update(
@@ -167,14 +177,15 @@ func (l *Log) Update(
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.Append(ctx,
+	return l.rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		tid,
 		txid,
-		now,
+		record.NewTime(now),
 		record.ActionUpdate,
 		collection,
 		data,
-		prev)
+		prev))
 }
 
 // Manager thread
@@ -183,14 +194,15 @@ func (l *Log) Checkpoint(
 	now time.Time,
 	txids ...record.TransactionID,
 ) (logpage.LogSequenceNumber, error) {
-	return l.rq.Append(ctx,
+	return l.rq.Append(ctx, record.New(
+		logpage.NewLogSequenceNumber(0),
 		value.TenantID{},
 		record.TransactionID{},
-		now,
+		record.NewTime(now),
 		record.ActionCheckpoint,
 		record.CollectionSystem,
 		l.txIDsToData(txids),
-		nil)
+		nil))
 }
 
 func (cv *Log) txIDsToData(

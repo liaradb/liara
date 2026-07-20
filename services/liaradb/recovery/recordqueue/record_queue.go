@@ -4,13 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
-	"github.com/liaradb/liaradb/recovery/record"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/async"
 )
@@ -29,41 +27,41 @@ const (
 //
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
-type RecordQueue struct {
+type RecordQueue[R pagequeue.Record] struct {
 	pageSize      int64
 	sl            *segment.List
-	pq            *pagequeue.PageQueue[*record.Record]
+	pq            *pagequeue.PageQueue[R]
 	ps            *pagestorage.PageStorage
 	fs            flushStatus
-	appendReqs    AppendHandler
+	appendReqs    AppendHandler[R]
 	flushReqs     async.CommandHandler[struct{}]
 	cancel        context.CancelFunc
 	maxRecordSize int64
 }
 
-func New(
+func New[R pagequeue.Record](
 	pageSize int64,
 	maxRecordSize int64,
 	writeQueueSize int,
 	sl *segment.List,
 	pl *pagepool.PagePool,
-) *RecordQueue {
+) *RecordQueue[R] {
 	ps := pagestorage.New(sl)
-	return &RecordQueue{
+	return &RecordQueue[R]{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New[*record.Record](ps, pl, writeQueueSize),
+		pq:            pagequeue.New[R](ps, pl, writeQueueSize),
 		ps:            ps,
-		appendReqs:    NewAppendHandler(),
+		appendReqs:    NewAppendHandler[R](),
 		flushReqs:     make(async.CommandHandler[struct{}], 1),
 		maxRecordSize: maxRecordSize,
 	}
 }
 
-func (rq *RecordQueue) HighWater() logpage.LogSequenceNumber { return rq.fs.HighWater() }
-func (rq *RecordQueue) LowWater() logpage.LogSequenceNumber  { return rq.fs.LowWater() }
+func (rq *RecordQueue[R]) HighWater() logpage.LogSequenceNumber { return rq.fs.HighWater() }
+func (rq *RecordQueue[R]) LowWater() logpage.LogSequenceNumber  { return rq.fs.LowWater() }
 
-func (rq *RecordQueue) Run(ctx context.Context) error {
+func (rq *RecordQueue[R]) Run(ctx context.Context) error {
 	if err := rq.sl.Open(); err != nil {
 		return err
 	}
@@ -77,7 +75,7 @@ func (rq *RecordQueue) Run(ctx context.Context) error {
 	return nil
 }
 
-func (rq *RecordQueue) Close() error {
+func (rq *RecordQueue[R]) Close() error {
 	if rq.cancel != nil {
 		rq.cancel()
 	}
@@ -85,7 +83,7 @@ func (rq *RecordQueue) Close() error {
 	return rq.sl.Close()
 }
 
-func (rq *RecordQueue) Init(lw, hw logpage.LogSequenceNumber) error {
+func (rq *RecordQueue[R]) Init(lw, hw logpage.LogSequenceNumber) error {
 	rq.fs.init(lw, hw)
 
 	// TODO: Don't create a page, just copy the data
@@ -97,7 +95,7 @@ func (rq *RecordQueue) Init(lw, hw logpage.LogSequenceNumber) error {
 	return rq.pq.Init(data)
 }
 
-func (rq *RecordQueue) run(ctx context.Context) {
+func (rq *RecordQueue[R]) run(ctx context.Context) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -116,60 +114,35 @@ func (rq *RecordQueue) run(ctx context.Context) {
 }
 
 // Request thread
-func (rq *RecordQueue) AppendAndWait(
+func (rq *RecordQueue[R]) AppendAndWait(
 	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-	action record.Action,
+	record R,
 ) (logpage.LogSequenceNumber, error) {
-	return rq.appendReqs.AppendAndWait(ctx,
-		tid,
-		txid,
-		now,
-		action,
-		record.CollectionSystem,
-		nil,
-		nil,
-	)
+	return rq.appendReqs.AppendAndWait(ctx, record)
 }
 
 // Request thread
-func (rq *RecordQueue) Append(
+func (rq *RecordQueue[R]) Append(
 	ctx context.Context,
-	tid value.TenantID,
-	txid record.TransactionID,
-	now time.Time,
-	action record.Action,
-	collection record.Collection,
-	data []byte,
-	reverse []byte,
+	record R,
 ) (logpage.LogSequenceNumber, error) {
 	// Verify that record can fit at all
-	if len(data) > int(rq.maxRecordSize) {
+	if record.Size() > int(rq.maxRecordSize) {
 		return logpage.LogSequenceNumber{}, raw.ErrInsufficientSpace
 	}
 
-	return rq.appendReqs.Append(ctx,
-		tid,
-		txid,
-		now,
-		action,
-		collection,
-		data,
-		reverse,
-	)
+	return rq.appendReqs.Append(ctx, record)
 }
 
-func (rq *RecordQueue) appendRequest(ctx context.Context, r *AppendRequest) {
+func (rq *RecordQueue[R]) appendRequest(ctx context.Context, r *AppendRequest[R]) {
 	hw := rq.append(ctx, rq.fs.HighWater(), r)
 	rq.fs.setHighWater(hw)
 }
 
-func (rq *RecordQueue) append(
+func (rq *RecordQueue[R]) append(
 	ctx context.Context,
 	lsn logpage.LogSequenceNumber,
-	r *AppendRequest,
+	r *AppendRequest[R],
 ) logpage.LogSequenceNumber {
 	if r.Value().IsWait() {
 		return rq.appendWait(ctx, lsn, r)
@@ -178,10 +151,10 @@ func (rq *RecordQueue) append(
 	}
 }
 
-func (rq *RecordQueue) appendWait(
+func (rq *RecordQueue[R]) appendWait(
 	ctx context.Context,
 	lsn logpage.LogSequenceNumber,
-	r *AppendRequest,
+	r *AppendRequest[R],
 ) logpage.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
@@ -197,10 +170,10 @@ func (rq *RecordQueue) appendWait(
 	}
 }
 
-func (rq *RecordQueue) appendNoWait(
+func (rq *RecordQueue[R]) appendNoWait(
 	ctx context.Context,
 	lsn logpage.LogSequenceNumber,
-	r *AppendRequest,
+	r *AppendRequest[R],
 ) logpage.LogSequenceNumber {
 	h := lsn.Increment()
 	v := r.Value()
@@ -215,24 +188,24 @@ func (rq *RecordQueue) appendNoWait(
 }
 
 // TODO: This is unused
-func (rq *RecordQueue) Flush(ctx context.Context) error {
+func (rq *RecordQueue[R]) Flush(ctx context.Context) error {
 	return rq.flushReqs.Send(ctx, struct{}{})
 }
 
-func (rq *RecordQueue) flushRequest(
+func (rq *RecordQueue[R]) flushRequest(
 	ctx context.Context,
 	r *async.Command[struct{}],
 ) {
 	r.Reply(rq.flush(ctx))
 }
 
-func (rq *RecordQueue) flushOrPanic(ctx context.Context) {
+func (rq *RecordQueue[R]) flushOrPanic(ctx context.Context) {
 	if err := rq.flush(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (rq *RecordQueue) flush(ctx context.Context) error {
+func (rq *RecordQueue[R]) flush(ctx context.Context) error {
 	if !rq.fs.isDirty() {
 		return nil
 	}
@@ -245,6 +218,6 @@ func (rq *RecordQueue) flush(ctx context.Context) error {
 	return nil
 }
 
-func (rq *RecordQueue) flushPageQueue(ctx context.Context) error {
+func (rq *RecordQueue[R]) flushPageQueue(ctx context.Context) error {
 	return rq.pq.Flush(ctx)
 }
