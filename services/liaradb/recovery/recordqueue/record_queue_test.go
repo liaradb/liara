@@ -3,16 +3,13 @@ package recordqueue
 import (
 	"testing"
 	"testing/synctest"
-	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
-	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 
@@ -36,18 +33,8 @@ func testRecordQueue_Append(t *testing.T) {
 	ctx := t.Context()
 
 	rq := createRecordQueueStart(t, 320, 3, 320)
-	var data = []byte{0, 1, 2, 3, 4, 5}
-	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if lsn, err := rq.Append(ctx, record.New(
-		value.NewTenantID(),
-		record.NewTransactionID(2),
-		record.NewTime(time.UnixMicro(1234567890)),
-		record.ActionUpdate,
-		record.CollectionValue,
-		data,
-		reverse,
-	)); err != nil {
+	if lsn, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -69,17 +56,8 @@ func testRecordQueue_Append__Large(t *testing.T) {
 	for i := range 1024 {
 		data = append(data, byte(i%255))
 	}
-	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
-	if _, err := rq.Append(ctx, record.New(
-		value.NewTenantID(),
-		record.NewTransactionID(2),
-		record.NewTime(time.UnixMicro(1234567890)),
-		record.ActionUpdate,
-		record.CollectionValue,
-		data,
-		reverse,
-	)); err != raw.ErrInsufficientSpace {
+	if _, err := rq.Append(ctx, newTestRecordData(data)); err != raw.ErrInsufficientSpace {
 		t.Errorf("should return %v", raw.ErrInsufficientSpace)
 	}
 
@@ -89,39 +67,19 @@ func testRecordQueue_Append__Large(t *testing.T) {
 func TestRecordQueue_Flush(t *testing.T) {
 	t.Parallel()
 
-	var data = []byte{0, 1, 2, 3, 4, 5}
-	var reverse = []byte{6, 7, 8, 9, 10, 11}
-
 	t.Run("should flush", func(t *testing.T) {
 		t.Parallel()
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 				t.Error(err)
 			}
 
 			testPosition(t, rq, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 				t.Error(err)
 			}
 
@@ -140,29 +98,12 @@ func TestRecordQueue_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 				t.Error(err)
 			}
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 				t.Error(err)
 			}
 
@@ -179,18 +120,10 @@ func TestRecordQueue_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 352, 4, 352)
-			tid := value.NewTenantID()
+
 			count := 14
 			for range count {
-				if _, err := rq.Append(ctx, record.New(
-					tid,
-					record.NewTransactionID(2),
-					record.NewTime(time.UnixMicro(1234567890)),
-					record.ActionUpdate,
-					record.CollectionValue,
-					data,
-					reverse,
-				)); err != nil {
+				if _, err := rq.Append(ctx, newTestRecord(100)); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -211,15 +144,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 48, 1, 2)
 
-			if _, err := rq.Append(ctx, record.New(
-				value.NewTenantID(),
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err == nil {
+			if _, err := rq.Append(ctx, newTestRecord(100)); err == nil {
 				t.Fatal("should return error")
 			}
 		})
@@ -230,17 +155,8 @@ func TestRecordQueue_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			rq := createRecordQueueStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(10)); err != nil {
 				t.Error(err)
 			}
 
@@ -248,15 +164,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 				t.Error(err)
 			}
 
-			if _, err := rq.Append(ctx, record.New(
-				tid,
-				record.NewTransactionID(2),
-				record.NewTime(time.UnixMicro(1234567890)),
-				record.ActionUpdate,
-				record.CollectionValue,
-				data,
-				reverse,
-			)); err != nil {
+			if _, err := rq.Append(ctx, newTestRecord(10)); err != nil {
 				t.Error(err)
 			}
 
@@ -273,7 +181,7 @@ func createRecordQueueStart(t *testing.T,
 	pageSize int64,
 	segmentSize segment.PageID,
 	recordSize int64,
-) *RecordQueue[*record.Record] {
+) *RecordQueue[*testRecord] {
 	t.Helper()
 
 	fsys, dir := createFiles()
@@ -291,14 +199,14 @@ func createRecordQueue(t *testing.T,
 	recordSize int64,
 	fsys filecache.FileSystem,
 	dir string,
-) *RecordQueue[*record.Record] {
+) *RecordQueue[*testRecord] {
 	t.Helper()
 
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
 	// TODO: Fix this cast
 	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
 
-	rq := New[*record.Record](pageSize, recordSize, 100, sl, pl)
+	rq := New[*testRecord](pageSize, recordSize, 100, sl, pl)
 	if err := rq.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -308,7 +216,7 @@ func createRecordQueue(t *testing.T,
 	return rq
 }
 
-func cleanupRecordQueue(t *testing.T, l *RecordQueue[*record.Record]) {
+func cleanupRecordQueue(t *testing.T, l *RecordQueue[*testRecord]) {
 	t.Helper()
 
 	t.Cleanup(func() {
@@ -323,7 +231,7 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func testPosition(t *testing.T, l *RecordQueue[*record.Record], lw, hw logpage.LogSequenceNumber) {
+func testPosition(t *testing.T, l *RecordQueue[*testRecord], lw, hw logpage.LogSequenceNumber) {
 	t.Helper()
 
 	if h := l.HighWater(); h != hw {
