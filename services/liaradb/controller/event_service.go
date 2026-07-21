@@ -4,18 +4,15 @@ import (
 	"context"
 	"iter"
 
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
 type EventService interface {
 	Append(
 		ctx context.Context,
-		tenantID value.TenantID,
-		options service.AppendOptions,
-		pid value.PartitionID,
-		e ...service.AppendEvent,
+		cmd command.AppendEvent,
 	) error
 
 	CreateOutbox(

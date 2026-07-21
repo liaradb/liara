@@ -38,11 +38,12 @@ func (esc *EventSourceController) Append(
 		return nil, err
 	}
 
-	if err := esc.eventService.Append(ctx,
-		tid,
-		o,
-		value.NewPartitionID(request.PartitionId),
-		mapSlice(request.Events, dtoToAppendEvent)...); err != nil {
+	if err := esc.eventService.Append(ctx, command.AppendEvent{
+		TenantID:    tid,
+		Options:     o,
+		PartitionID: value.NewPartitionID(request.PartitionId),
+		Events:      mapSlice(request.Events, dtoToAppendEvent),
+	}); err != nil {
 		return nil, err
 	}
 

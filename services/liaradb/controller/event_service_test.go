@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/cardboardrobots/baseerror"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -23,19 +23,16 @@ var _ EventService = (*testEventService)(nil)
 
 func (es *testEventService) Append(
 	ctx context.Context,
-	tenantID value.TenantID,
-	options service.AppendOptions,
-	pid value.PartitionID,
-	e ...service.AppendEvent,
+	cmd command.AppendEvent,
 ) error {
-	rid, ok := options.RequestID()
+	rid, ok := cmd.Options.RequestID()
 	if ok {
 		if _, ok := es.requests[rid]; ok {
 			return baseerror.ErrAlreadyExists
 		}
 	}
 
-	for _, event := range e {
+	for _, event := range cmd.Events {
 		id, err := value.NewEventIDFromString(event.ID)
 		if err != nil {
 			return err
@@ -44,7 +41,7 @@ func (es *testEventService) Append(
 		es.version = value.NewGlobalVersion(es.version.Value() + 1)
 		es.events = append(es.events, &entity.Event{
 			GlobalVersion: es.version,
-			PartitionID:   pid,
+			PartitionID:   cmd.PartitionID,
 			AggregateID:   event.AggregateID,
 			AggregateName: event.AggregateName,
 			Name:          event.Name,

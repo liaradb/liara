@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
@@ -28,23 +29,20 @@ func NewEventService(
 
 func (es *EventService) Append(
 	ctx context.Context,
-	tenantID value.TenantID,
-	options AppendOptions,
-	pid value.PartitionID,
-	e ...AppendEvent,
+	cmd command.AppendEvent,
 ) error {
-	if len(e) == 0 {
+	if len(cmd.Events) == 0 {
 		return nil
 	}
 
-	if err := es.validateAppend(e); err != nil {
+	if err := es.validateAppend(cmd.Events); err != nil {
 		return err
 	}
 
-	return es.append(ctx, tenantID, options, pid, e...)
+	return es.append(ctx, cmd.TenantID, cmd.Options, cmd.PartitionID, cmd.Events...)
 }
 
-func (es *EventService) validateAppend(e []AppendEvent) error {
+func (es *EventService) validateAppend(e []command.EventOptions) error {
 	errs := make([]error, 0)
 	for _, em := range e {
 		if err := em.Valid(); err != nil {
@@ -57,14 +55,10 @@ func (es *EventService) validateAppend(e []AppendEvent) error {
 func (es *EventService) append(
 	ctx context.Context,
 	tid value.TenantID,
-	options AppendOptions,
+	options command.AppendOptions,
 	pid value.PartitionID,
-	evs ...AppendEvent,
+	evs ...command.EventOptions,
 ) error {
-	if options.time.IsZero() {
-		options.time = time.Now()
-	}
-
 	tx, err := es.txManager.Next(ctx, tid)
 	if err != nil {
 		return err
@@ -85,7 +79,7 @@ func (es *EventService) append(
 		buf := bytes.NewBuffer(nil)
 
 		for _, em := range evs {
-			e, err := em.toEvent(pid, options)
+			e, err := em.ToEvent(pid, options)
 			if err != nil {
 				return err
 			}

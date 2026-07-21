@@ -1,13 +1,13 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"testing/synctest"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/transaction"
@@ -26,48 +26,45 @@ func testEventService_Append(t *testing.T) {
 	es := NewEventService(m)
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(1),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(2),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(3),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -82,48 +79,45 @@ func testEventService_Append__Large(t *testing.T) {
 	es := NewEventService(m)
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(1),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(2),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := es.Append(
-		t.Context(),
-		value.NewTenantID(),
-		AppendOptions{},
-		value.NewPartitionID(0),
-		AppendEvent{
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events: []command.EventOptions{{
 			AggregateName: value.NewAggregateName("example"),
 			// ID:            value.NewEventID(),
 			AggregateID: aggregateID,
 			Version:     value.NewVersion(3),
-		},
-	); err != nil {
+		}},
+	}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -137,15 +131,19 @@ func testEventService_Append__Invalid(t *testing.T) {
 	es := NewEventService(nil)
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
-	want := AppendEvent{
+	want := command.EventOptions{
 		AggregateName: value.NewAggregateName("example"),
 		// ID:            value.NewEventID(),
 		AggregateID: aggregateID,
 		Version:     value.NewVersion(0),
 	}
 
-	err := es.Append(context.Background(), value.NewTenantID(), AppendOptions{}, value.NewPartitionID(0), want)
-	if !errors.Is(err, value.ErrAggregateVersionInvalid) {
+	if err := es.Append(t.Context(), command.AppendEvent{
+		TenantID:    value.NewTenantID(),
+		Options:     command.AppendOptions{},
+		PartitionID: value.NewPartitionID(0),
+		Events:      []command.EventOptions{want}},
+	); !errors.Is(err, value.ErrAggregateVersionInvalid) {
 		t.Error("should return error")
 	}
 }

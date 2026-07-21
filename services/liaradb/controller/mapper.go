@@ -2,8 +2,8 @@ package controller
 
 import (
 	pb "github.com/liaradb/eventsource_go/generated"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -23,8 +23,8 @@ func eventToDTO(e *entity.Event) *pb.Event {
 	}
 }
 
-func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
-	return service.AppendEvent{
+func dtoToAppendEvent(dto *pb.AppendEvent) command.EventOptions {
+	return command.EventOptions{
 		ID:            dto.Id,
 		AggregateName: value.NewAggregateName(dto.AggregateName),
 		AggregateID:   value.NewAggregateID(dto.AggregateId),
@@ -35,9 +35,9 @@ func dtoToAppendEvent(dto *pb.AppendEvent) service.AppendEvent {
 	}
 }
 
-func dtoToAppendOptions(dto *pb.AppendOptions) (service.AppendOptions, error) {
+func dtoToAppendOptions(dto *pb.AppendOptions) (command.AppendOptions, error) {
 	if dto == nil {
-		return service.AppendOptions{}, nil
+		return command.AppendOptions{}, nil
 	}
 
 	var rid *value.RequestID
@@ -45,13 +45,13 @@ func dtoToAppendOptions(dto *pb.AppendOptions) (service.AppendOptions, error) {
 	if dto.RequestId != "" {
 		r, err := value.NewRequestIDFromString(dto.RequestId)
 		if err != nil {
-			return service.AppendOptions{}, err
+			return command.AppendOptions{}, err
 		}
 
 		rid = &r
 	}
 
-	return service.NewAppendOptions(
+	return command.NewAppendOptions(
 		rid,
 		value.NewCorrelationID(dto.CorrelationId),
 		value.NewClientVersion(dto.ClientVersion),
