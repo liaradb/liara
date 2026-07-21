@@ -5,8 +5,8 @@ import (
 	"iter"
 
 	"github.com/cardboardrobots/baseerror"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -16,7 +16,7 @@ type testTenantService struct {
 
 var _ TenantService = (*testTenantService)(nil)
 
-func (ts *testTenantService) Create(ctx context.Context, cmd service.CreateTenantCommand) (value.TenantID, error) {
+func (ts *testTenantService) Create(ctx context.Context, cmd command.CreateTenant) (value.TenantID, error) {
 	id := value.NewTenantID()
 	if ts.tenants == nil {
 		ts.tenants = make(map[value.TenantID]*entity.Tenant)
@@ -25,7 +25,7 @@ func (ts *testTenantService) Create(ctx context.Context, cmd service.CreateTenan
 	return id, nil
 }
 
-func (ts *testTenantService) Delete(ctx context.Context, cmd service.DeleteTenantCommand) error {
+func (ts *testTenantService) Delete(ctx context.Context, cmd command.DeleteTenant) error {
 	_, ok := ts.tenants[cmd.TenantID]
 	if !ok {
 		return baseerror.ErrNotFound
@@ -54,7 +54,7 @@ func (ts *testTenantService) List(ctx context.Context, limit int, offset int) it
 	}
 }
 
-func (ts *testTenantService) Rename(ctx context.Context, cmd service.RenameTenantCommand) error {
+func (ts *testTenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
 	t, ok := ts.tenants[cmd.TenantID]
 	if !ok {
 		return baseerror.ErrNotFound

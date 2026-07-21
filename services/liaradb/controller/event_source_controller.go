@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pb "github.com/liaradb/eventsource_go/generated"
-	"github.com/liaradb/liaradb/domain/service"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -249,7 +249,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 }
 
 func (esc *EventSourceController) CreateTenant(ctx context.Context, request *pb.CreateTenantRequest) (*pb.CreateTenantReponse, error) {
-	id, err := esc.tenantService.Create(ctx, service.CreateTenantCommand{
+	id, err := esc.tenantService.Create(ctx, command.CreateTenant{
 		TenantName: value.NewTenantName(request.Name),
 	})
 	if err != nil {
@@ -267,7 +267,7 @@ func (esc *EventSourceController) DeleteTenant(ctx context.Context, request *pb.
 		return nil, err
 	}
 
-	if err := esc.tenantService.Delete(ctx, service.DeleteTenantCommand{
+	if err := esc.tenantService.Delete(ctx, command.DeleteTenant{
 		TenantID: tid,
 	}); err != nil {
 		return nil, err
@@ -282,7 +282,7 @@ func (esc *EventSourceController) RenameTenant(ctx context.Context, request *pb.
 		return nil, err
 	}
 
-	if err := esc.tenantService.Rename(ctx, service.RenameTenantCommand{
+	if err := esc.tenantService.Rename(ctx, command.RenameTenant{
 		TenantID:   tid,
 		TenantName: value.NewTenantName(request.Name),
 	}); err != nil {

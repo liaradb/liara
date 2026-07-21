@@ -4,20 +4,20 @@ import (
 	"context"
 	"iter"
 
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
 type TenantService interface {
 	Create(
 		ctx context.Context,
-		cmd service.CreateTenantCommand,
+		cmd command.CreateTenant,
 	) (value.TenantID, error)
 
 	Delete(
 		ctx context.Context,
-		cmd service.DeleteTenantCommand,
+		cmd command.DeleteTenant,
 	) error
 
 	Get(
@@ -33,6 +33,6 @@ type TenantService interface {
 
 	Rename(
 		ctx context.Context,
-		cmd service.RenameTenantCommand,
+		cmd command.RenameTenant,
 	) error
 }

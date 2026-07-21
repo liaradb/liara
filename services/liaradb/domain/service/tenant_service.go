@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tenant"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 )
@@ -22,12 +23,8 @@ func NewTenantService(
 	}
 }
 
-type CreateTenantCommand struct {
-	TenantName value.TenantName
-}
-
 // TODO: Create transaction
-func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (value.TenantID, error) {
+func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (value.TenantID, error) {
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
 
@@ -64,11 +61,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd CreateTenantCommand) (v
 	// return id, nil
 }
 
-type DeleteTenantCommand struct {
-	TenantID value.TenantID
-}
-
-func (ts *TenantService) Delete(ctx context.Context, cmd DeleteTenantCommand) error {
+func (ts *TenantService) Delete(ctx context.Context, cmd command.DeleteTenant) error {
 	panic("unimplemented")
 	// return ts.transactionContainer.Run(ctx, func() error {
 	// 	if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
@@ -87,13 +80,8 @@ func (ts *TenantService) Delete(ctx context.Context, cmd DeleteTenantCommand) er
 	// })
 }
 
-type RenameTenantCommand struct {
-	TenantID   value.TenantID
-	TenantName value.TenantName
-}
-
 // TODO: Create transaction
-func (ts *TenantService) Rename(ctx context.Context, cmd RenameTenantCommand) error {
+func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
 	tnt, err := ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID)
 	if err != nil {
 		return err
