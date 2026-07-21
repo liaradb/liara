@@ -11,7 +11,7 @@ type LogData struct {
 	data []byte
 }
 
-const LogDataHeaderSize = 4
+const LogDataHeaderSize = raw.HeaderSize
 
 func NewLogData(data []byte) *LogData {
 	return &LogData{
