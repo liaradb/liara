@@ -5,7 +5,7 @@ import "context"
 type CommandHandler[T any] chan *Command[T]
 
 func (h CommandHandler[T]) Send(ctx context.Context, t T) error {
-	r := newCommand(ctx, t)
+	r := newCommand(t)
 	if !h.send(ctx, r) {
 		return context.Canceled
 	}

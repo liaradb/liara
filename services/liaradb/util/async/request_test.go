@@ -39,6 +39,45 @@ func testRequest(t *testing.T) {
 	}
 }
 
+func TestRequest__DoubleReply(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testRequest__DoubleReply)
+}
+
+func testRequest__DoubleReply(t *testing.T) {
+	h := make(Handler[string, int])
+	var errValue = errors.New("error value")
+
+	go func() {
+		if r, ok := h.Listen(t.Context()); ok {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("should panic")
+				}
+			}()
+
+			if v := r.Value(); v != "a" {
+				t.Errorf("incorrect value: %v, expected: %v", v, "a")
+			}
+
+			if c := r.Context(); c != t.Context() {
+				t.Errorf("incorrect context: %v, expected: %v", c, t.Context())
+			}
+
+			r.Reply(2, errValue)
+			r.Reply(2, errValue)
+		}
+	}()
+
+	v, err := h.Send(t.Context(), "a")
+	if v != 2 {
+		t.Errorf("incorrect result: %v, expected: %v", v, 2)
+	}
+	if !errors.Is(err, errValue) {
+		t.Errorf("incorrect error: %v, expected: %v", err, errValue)
+	}
+}
+
 func TestRequest_Listen__Canceled(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testRequest_Listen__Canceled)

@@ -3,14 +3,12 @@ package async
 import "context"
 
 type Command[T any] struct {
-	ctx      context.Context
 	value    T
 	response chan response[T, struct{}]
 }
 
-func newCommand[T any](ctx context.Context, value T) *Command[T] {
+func newCommand[T any](value T) *Command[T] {
 	return &Command[T]{
-		ctx:      ctx,
 		value:    value,
 		response: make(chan response[T, struct{}], 1),
 	}
@@ -19,10 +17,8 @@ func newCommand[T any](ctx context.Context, value T) *Command[T] {
 func (r *Command[T]) Value() T { return r.value }
 
 func (r *Command[T]) Reply(err error) {
-	select {
-	case r.response <- response[T, struct{}]{err: err}:
-	case <-r.ctx.Done():
-	}
+	r.response <- response[T, struct{}]{err: err}
+	close(r.response)
 }
 
 func (r *Command[T]) wait(ctx context.Context) error {

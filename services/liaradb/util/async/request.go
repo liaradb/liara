@@ -30,6 +30,7 @@ func (r *Request[T, U]) Reply(value U, err error) {
 	r.response <- response[T, U]{
 		value: value,
 		err:   err}
+	close(r.response)
 }
 
 func (r *Request[T, U]) wait(ctx context.Context) (U, error) {

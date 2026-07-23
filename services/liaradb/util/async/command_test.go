@@ -32,6 +32,38 @@ func testCommand(t *testing.T) {
 	}
 }
 
+func TestCommand__DoubleReply(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testCommand__DoubleReply)
+}
+
+func testCommand__DoubleReply(t *testing.T) {
+	h := make(CommandHandler[string])
+	var errValue = errors.New("error value")
+
+	go func() {
+		if r, ok := h.Listen(t.Context()); ok {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("should panic")
+				}
+			}()
+
+			if v := r.Value(); v != "a" {
+				t.Errorf("incorrect value: %v, expected: %v", v, "a")
+			}
+
+			r.Reply(errValue)
+			r.Reply(errValue)
+		}
+	}()
+
+	err := h.Send(t.Context(), "a")
+	if !errors.Is(err, errValue) {
+		t.Errorf("incorrect error: %v, expected: %v", err, errValue)
+	}
+}
+
 func TestCommand_Listen__Canceled(t *testing.T) {
 	t.Parallel()
 	synctest.Test(t, testCommand_Listen__Canceled)
