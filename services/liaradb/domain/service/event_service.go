@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -79,18 +80,17 @@ func (es *EventService) Append(
 
 func (es *EventService) TestIdempotency(
 	ctx context.Context,
-	tid value.TenantID,
-	id value.RequestID,
+	qry query.TestIdempotency,
 ) (result bool, err error) {
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx, qry.TenantID)
 	if err != nil {
 		return false, err
 	}
 
 	now := time.Now()
 	return transaction.RunResult(ctx, tx, now, func() (bool, error) {
-		tn := tablename.New(tid)
-		return tx.TestRequestID(ctx, tn, id)
+		tn := tablename.New(qry.TenantID)
+		return tx.TestRequestID(ctx, tn, qry.RequestID)
 	})
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -64,8 +65,7 @@ type EventService interface {
 
 	TestIdempotency(
 		ctx context.Context,
-		tid value.TenantID,
-		id value.RequestID,
+		qry query.TestIdempotency,
 	) (result bool, err error)
 
 	UpdateOutboxPosition(

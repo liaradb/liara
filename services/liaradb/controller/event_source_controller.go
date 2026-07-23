@@ -5,6 +5,7 @@ import (
 
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/domain/command"
+	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -64,9 +65,9 @@ func (esc *EventSourceController) TestIdempotency(
 		return nil, err
 	}
 
-	ok, err := esc.eventService.TestIdempotency(ctx,
-		tid,
-		rid)
+	ok, err := esc.eventService.TestIdempotency(ctx, query.TestIdempotency{
+		TenantID:  tid,
+		RequestID: rid})
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/cardboardrobots/baseerror"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -165,10 +166,9 @@ func (es *testEventService) ListOutboxes(
 
 func (es *testEventService) TestIdempotency(
 	ctx context.Context,
-	tid value.TenantID,
-	id value.RequestID,
+	qry query.TestIdempotency,
 ) (result bool, err error) {
-	_, ok := es.requests[id]
+	_, ok := es.requests[qry.RequestID]
 	return !ok, nil
 }
 
