@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"iter"
 	"time"
 
@@ -31,35 +30,11 @@ func (es *EventService) Append(
 	ctx context.Context,
 	cmd command.AppendEvent,
 ) error {
-	if len(cmd.Events) == 0 {
-		return nil
-	}
-
-	if err := es.validateAppend(cmd.Events); err != nil {
+	if err := cmd.Valid(); err != nil {
 		return err
 	}
 
-	return es.append(ctx, cmd.TenantID, cmd.Options, cmd.PartitionID, cmd.Events...)
-}
-
-func (es *EventService) validateAppend(e []command.EventOptions) error {
-	errs := make([]error, 0)
-	for _, em := range e {
-		if err := em.Valid(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
-}
-
-func (es *EventService) append(
-	ctx context.Context,
-	tid value.TenantID,
-	options command.AppendOptions,
-	pid value.PartitionID,
-	evs ...command.EventOptions,
-) error {
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -67,8 +42,8 @@ func (es *EventService) append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return transaction.Run(ctx, tx, now, func() error {
-		tn := tablename.New(tid)
-		if rqid, ok := options.RequestID(); ok {
+		tn := tablename.New(cmd.TenantID)
+		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
 			// TODO: What should this return if requestID is present?
 			if ok, err := tx.TestRequestID(ctx, tn, rqid); err != nil || !ok {
@@ -78,8 +53,8 @@ func (es *EventService) append(
 
 		buf := bytes.NewBuffer(nil)
 
-		for _, em := range evs {
-			e, err := em.ToEvent(pid, options)
+		for _, em := range cmd.Events {
+			e, err := em.ToEvent(cmd.PartitionID, cmd.Options)
 			if err != nil {
 				return err
 			}
@@ -93,7 +68,7 @@ func (es *EventService) append(
 			}
 		}
 
-		if rqid, ok := options.RequestID(); ok {
+		if rqid, ok := cmd.Options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
 			return tx.InsertRequestID(ctx, tn, rqid, value.NewTime(now))
 		}
