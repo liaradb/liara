@@ -26,16 +26,11 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	collection     *collection.Collections
-	events         []eventItem
+	eventLog       EventLogTransaction
 	values         []valueItem
 	keys           set.Set[key.Key]
 	forceRollback  bool
 	manager        *Manager
-}
-
-type eventItem struct {
-	e    *entity.Event
-	data []byte
 }
 
 type valueItem struct {
@@ -59,6 +54,7 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		collection:     collection,
+		eventLog:       EventLogTransaction{el: collection.EventLog},
 		keys:           set.Set[key.Key]{},
 		manager:        manager,
 	}
@@ -190,10 +186,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	t.events = append(t.events, eventItem{
-		e:    e,
-		data: data,
-	})
+	t.eventLog.Append(e, data)
 
 	return nil
 }
@@ -307,21 +300,8 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.appendToEventLog(ctx); err != nil {
+	if err := t.eventLog.Commit(ctx, t.tid); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (t *Transaction) appendToEventLog(ctx context.Context) error {
-	tn := tablename.New(t.tid)
-	for _, item := range t.events {
-		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		err := t.collection.EventLog.AppendEvent(ctx, tn, item.e.PartitionID, k, item.data)
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil
