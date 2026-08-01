@@ -13,18 +13,18 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestEventLog_Append(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testEventLog_Append)
+	storagetesting.SyncTest(t, 2, 1024, testEventLog_Append)
 }
 
-func testEventLog_Append(t *testing.T) {
+func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	el := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 
@@ -79,14 +79,13 @@ func testEventLog_Append(t *testing.T) {
 }
 
 func TestEventLog_Find(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testEventLog_Find)
+	storagetesting.SyncTest(t, 2, 1024, testEventLog_Find)
 }
 
-func testEventLog_Find(t *testing.T) {
+func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	el := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 
@@ -136,14 +135,13 @@ func testEventLog_Find(t *testing.T) {
 }
 
 func TestEventLog_GetAggregate(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testEventLog_GetAggregate)
+	storagetesting.SyncTest(t, 2, 1024, testEventLog_GetAggregate)
 }
 
-func testEventLog_GetAggregate(t *testing.T) {
+func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	el := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 
 	aggregateID := value.NewAggregateID(uuid.NewString())
@@ -205,14 +203,13 @@ func testEventLog_GetAggregate(t *testing.T) {
 }
 
 func TestEventLog_AppendEvent(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testEventLog_AppendEvent)
+	storagetesting.SyncTest(t, 2, 1024, testEventLog_AppendEvent)
 }
 
-func testEventLog_AppendEvent(t *testing.T) {
+func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 1024)
-	el := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	el := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 	pid := value.NewPartitionID(0)
 

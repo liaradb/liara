@@ -16,18 +16,18 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestFixedCollection(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testFixedCollection)
+	storagetesting.SyncTest(t, 6, 110, testFixedCollection)
 }
 
-func testFixedCollection(t *testing.T) {
+func testFixedCollection(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 6, 110)
-	fc := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 	fn := link.NewFileName("testfile")
 	fnIdx := link.NewFileName("testindex")
 	pid := value.NewPartitionID(0)
@@ -46,14 +46,13 @@ func testFixedCollection(t *testing.T) {
 }
 
 func TestRequestLog__LargeBuffer(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testRequestLog__LargeBuffer)
+	storagetesting.SyncTest(t, 2, 256, testRequestLog__LargeBuffer)
 }
 
-func testRequestLog__LargeBuffer(t *testing.T) {
+func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 256)
-	fc := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 	fn := link.NewFileName("testfile")
 	fnIdx := link.NewFileName("testindex")
 	pid := value.NewPartitionID(0)

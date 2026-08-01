@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -29,16 +30,15 @@ func TestKeyValue(t *testing.T) {
 		},
 	} {
 		t.Run(message, func(t *testing.T) {
-			t.Parallel()
 			if c.skip {
 				t.Skip()
 			}
 
-			synctest.Test(t, func(t *testing.T) {
+			storagetesting.SyncTest(t, 8, 84, func(t *testing.T, s storagetesting.Storage) {
 				ctx := t.Context()
 
-				s := storagetesting.CreateStorage(t, 8, 84)
-				kv := New(s, btree.NewCursor(s))
+				l := log.New(256, 2, 256, 100, s.FSys, "dir")
+				kv := New(s.Storage, btree.NewCursor(s.Storage), l)
 				tn := tablename.NewFromString("testfile")
 				pid := value.NewPartitionID(0)
 
@@ -56,14 +56,13 @@ func TestKeyValue(t *testing.T) {
 }
 
 func TestKeyValue__LargeBuffer(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testKeyValue__LargeBuffer)
+	storagetesting.SyncTest(t, 2, 256, testKeyValue__LargeBuffer)
 }
 
-func testKeyValue__LargeBuffer(t *testing.T) {
+func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 256)
-	kv := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	kv := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 

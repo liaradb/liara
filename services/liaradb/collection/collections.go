@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/schema"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 type Collections struct {
@@ -25,16 +26,17 @@ type Collections struct {
 
 func NewCollections(
 	storage *storage.Storage,
+	log *log.Log,
 ) *Collections {
 	cursor := btree.NewCursor(storage)
-	kv := keyvalue.New(storage, cursor)
+	kv := keyvalue.New(storage, cursor, log)
 	return &Collections{
 		storage:     storage,
 		manager:     manager.New(kv),
-		tenant:      tenant.New(storage, cursor),
-		EventLog:    eventlog.New(storage, cursor),
+		tenant:      tenant.New(storage, cursor, log),
+		EventLog:    eventlog.New(storage, cursor, log),
 		keyValue:    kv,
-		Outbox:      outbox.New(storage, cursor),
-		Idempotency: idempotency.New(storage, cursor),
+		Outbox:      outbox.New(storage, cursor, log),
+		Idempotency: idempotency.New(storage, cursor, log),
 	}
 }

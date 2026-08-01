@@ -12,18 +12,18 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestTenant(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testTenant)
+	storagetesting.SyncTest(t, 5, 296, testTenant)
 }
 
-func testTenant(t *testing.T) {
+func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 5, 296)
-	o := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
@@ -41,14 +41,13 @@ func testTenant(t *testing.T) {
 }
 
 func TestTenant__LargeBuffer(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testTenant__LargeBuffer)
+	storagetesting.SyncTest(t, 2, 1024, testTenant__LargeBuffer)
 }
 
-func testTenant__LargeBuffer(t *testing.T) {
+func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 1024)
-	o := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 

@@ -10,15 +10,16 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 type KeyValue struct {
 	fc *fixed.FixedCollection
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *KeyValue {
+func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 	return &KeyValue{
-		fc: fixed.New(s, c),
+		fc: fixed.New(s, c, l),
 	}
 }
 

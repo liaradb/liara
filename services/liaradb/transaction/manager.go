@@ -42,7 +42,7 @@ func NewManager(
 	return &Manager{
 		log:         log,
 		storage:     storage,
-		collections: collection.NewCollections(storage),
+		collections: collection.NewCollections(storage, log),
 		lockTable:   locktable.New[ItemID](ltInSize),
 		txReqs:      make(async.Handler[value.TenantID, *Transaction]),
 		returns:     make(chan record.TransactionID, returnSize),

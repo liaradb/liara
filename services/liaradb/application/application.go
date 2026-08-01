@@ -53,7 +53,7 @@ func New(conf configuration) *Application {
 	return &Application{
 		conf:        conf,
 		storage:     s,
-		collections: collection.NewCollections(s),
+		collections: collection.NewCollections(s, log),
 		txManager:   transaction.NewManager(log, s, inSize),
 		log:         log,
 	}
@@ -176,7 +176,7 @@ func (a *Application) initService() *grpc.Server {
 			a.txManager,
 		),
 		service.NewTenantService(
-			tenant.New(a.storage, btree.NewCursor(a.storage))),
+			tenant.New(a.storage, btree.NewCursor(a.storage), a.log)),
 	))
 
 	return s

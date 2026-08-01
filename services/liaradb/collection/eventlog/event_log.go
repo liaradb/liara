@@ -16,6 +16,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 // TODO: Create latching
@@ -23,13 +24,15 @@ type EventLog struct {
 	fc      *fixed.FixedCollection
 	storage *storage.Storage
 	cursor  *btree.Cursor
+	l       *log.Log
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *EventLog {
+func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 	return &EventLog{
-		fc:      fixed.New(s, c),
+		fc:      fixed.New(s, c, l),
 		storage: s,
 		cursor:  c,
+		l:       l,
 	}
 }
 

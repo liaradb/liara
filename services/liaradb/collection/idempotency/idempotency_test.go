@@ -15,18 +15,18 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestIdempotency(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testIdempotency)
+	storagetesting.SyncTest(t, 6, 110, testIdempotency)
 }
 
-func testIdempotency(t *testing.T) {
+func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 6, 110)
-	o := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
@@ -44,14 +44,13 @@ func testIdempotency(t *testing.T) {
 }
 
 func TestRequestLog__LargeBuffer(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testRequestLog__LargeBuffer)
+	storagetesting.SyncTest(t, 2, 256, testRequestLog__LargeBuffer)
 }
 
-func testRequestLog__LargeBuffer(t *testing.T) {
+func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	s := storagetesting.CreateStorage(t, 2, 256)
-	o := New(s, btree.NewCursor(s))
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 

@@ -10,17 +10,17 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestManager(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testManager)
+	storagetesting.SyncTest(t, 2, 256, testManager)
 }
 
-func testManager(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	m := New(keyvalue.New(s, btree.NewCursor(s)))
+func testManager(t *testing.T, s storagetesting.Storage) {
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage), l))
 	pid := value.NewPartitionID(0)
 
 	data := createData()

@@ -12,18 +12,21 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 // TODO: Create latching
 type FixedCollection struct {
 	s *storage.Storage
 	c *btree.Cursor
+	l *log.Log
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *FixedCollection {
+func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 	return &FixedCollection{
 		s: s,
 		c: c,
+		l: l,
 	}
 }
 

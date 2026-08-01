@@ -12,15 +12,16 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/transaction/log"
 )
 
 type Idempotency struct {
 	fc *fixed.FixedCollection
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *Idempotency {
+func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 	return &Idempotency{
-		fc: fixed.New(s, c),
+		fc: fixed.New(s, c, l),
 	}
 }
 
