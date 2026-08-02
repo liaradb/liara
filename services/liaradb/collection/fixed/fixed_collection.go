@@ -75,8 +75,11 @@ func (fc *FixedCollection) getItem(ctx context.Context, fn link.FileName, rid li
 
 	defer b.Release()
 
-	n := node.New(b)
+	return fc.getItemFromBuffer(b, rid)
+}
 
+func (*FixedCollection) getItemFromBuffer(b *storage.Buffer, rid link.RecordLocator) ([]byte, error) {
+	n := node.New(b)
 	if !n.IsPage() {
 		return nil, page.ErrNotPage
 	}
@@ -180,7 +183,7 @@ func (fc *FixedCollection) Replace(
 
 	n := node.New(b)
 
-	if n.IsPage() {
+	if !n.IsPage() {
 		return page.ErrNotPage
 	}
 
