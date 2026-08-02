@@ -55,12 +55,7 @@ func testStorage(t *testing.T) {
 	}
 
 	data := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
-
-	if n, err := b.Write(data); err != nil {
-		t.Fatal(err)
-	} else if n != 16 {
-		t.Fatalf("incorrect length: %v, expected: %v", n, 16)
-	}
+	b.Fill(data)
 
 	if bytes := b.Raw(); !slices.Equal(bytes, data) {
 		t.Errorf("incorrect raw value: %v, expected: %v", bytes, data)
@@ -203,9 +198,7 @@ func testStorage_Pinned(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	if _, err := b.Write([]byte{1}); err != nil {
-		t.Fatal(err)
-	}
+	b.Fill([]byte{1})
 
 	if !b.Dirty() {
 		t.Error("should be dirty")
@@ -270,9 +263,7 @@ func testStorage_Flush(t *testing.T) {
 	}
 
 	data := []byte{1, 2}
-	if _, err := b1.Write(data); err != nil {
-		t.Fatal(err)
-	}
+	b1.Fill(data)
 
 	if !b1.Dirty() {
 		t.Fatal("should be dirty")
@@ -314,7 +305,7 @@ func testStorage_Flush(t *testing.T) {
 	}
 
 	result := make([]byte, 2)
-	_, err = b1.Read(result)
+	copy(result, b1.Raw())
 	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)
 	}
@@ -573,7 +564,7 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b0.Write([]byte{1})
+	b0.Fill([]byte{1})
 	if !b0.Dirty() {
 		t.Error("should be dirty")
 	}
@@ -583,7 +574,7 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b1.Write([]byte{1})
+	b1.Fill([]byte{1})
 	if !b1.Dirty() {
 		t.Error("should be dirty")
 	}

@@ -4,14 +4,13 @@ import (
 	"io"
 	"sync"
 
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Buffer struct {
 	blockID link.BlockID
 	oldBID  link.BlockID
-	buffer  *buffer.Buffer
+	data    []byte
 	status  BufferStatus
 	s       *Storage
 	pins    int
@@ -22,8 +21,8 @@ type Buffer struct {
 
 func newBuffer(s *Storage) *Buffer {
 	return &Buffer{
-		buffer: buffer.New(s.BufferSize()),
-		s:      s,
+		data: make([]byte, s.BufferSize()),
+		s:    s,
 	}
 }
 
@@ -32,8 +31,7 @@ func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int             { return b.pins }
 func (b *Buffer) Reads() uint           { return b.reads }
 func (b *Buffer) Size() int64           { return b.s.BufferSize() }
-func (b *Buffer) Raw() []byte           { return b.buffer.Bytes() }
-func (b *Buffer) Cursor() int64         { return b.buffer.Cursor() }
+func (b *Buffer) Raw() []byte           { return b.data }
 func (b *Buffer) Status() BufferStatus  { return b.status }
 
 // TODO: Test these
@@ -123,7 +121,7 @@ func (b *Buffer) flushIfDirtyBeforeLoad() error {
 
 func (b *Buffer) clearOrLoad(next bool) error {
 	if next {
-		b.buffer.Clear()
+		clear(b.data)
 		return nil
 	}
 
@@ -145,7 +143,7 @@ func (b *Buffer) loadOnce() error {
 }
 
 func (b *Buffer) read(r io.ReaderAt) error {
-	n, err := r.ReadAt(b.buffer.Bytes(), b.offset())
+	n, err := r.ReadAt(b.data, b.offset())
 	if err != nil {
 		// Ignore EOF
 		if err != io.EOF {
@@ -153,11 +151,10 @@ func (b *Buffer) read(r io.ReaderAt) error {
 		}
 
 		// Clear the remainder of the buffer
-		b.buffer.ClearAfter(n)
+		clear(b.data[n:])
 	}
 
-	_, err = b.buffer.Seek(0, io.SeekStart)
-	return err
+	return nil
 }
 
 func (b *Buffer) flushIfDirty() error {
@@ -182,38 +179,27 @@ func (b *Buffer) flush() error {
 		return err
 	}
 
-	_, err = w.WriteAt(b.buffer.Bytes(), b.offsetOld())
+	_, err = w.WriteAt(b.data, b.offsetOld())
 	return err
 }
 
 func (b *Buffer) offset() int64 {
-	return b.blockID.Offset(b.buffer.Length()).Value()
+	return b.blockID.Offset(int64(len(b.data))).Value()
 }
 
 func (b *Buffer) offsetOld() int64 {
-	return b.oldBID.Offset(b.buffer.Length()).Value()
+	return b.oldBID.Offset(int64(len(b.data))).Value()
 }
 
 func (b *Buffer) Clear() {
-	b.buffer.Clear()
+	clear(b.data)
 	b.status = BufferStatusUninitialized
 }
 
-func (b *Buffer) Read(p []byte) (int, error) {
-	return b.buffer.Read(p)
-}
-
-func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
-	return b.buffer.Seek(offset, whence)
-}
-
-func (b *Buffer) Write(p []byte) (int, error) {
-	n, err := b.buffer.Write(p)
-	if n != 0 {
-		b.SetDirty()
-	}
-
-	return n, err
+func (b *Buffer) Fill(data []byte) {
+	n := copy(b.data, data)
+	clear(b.data[n:])
+	b.SetDirty()
 }
 
 func (b *Buffer) Clone(o *Buffer) {

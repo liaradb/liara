@@ -463,10 +463,7 @@ func testNode_Clear(t *testing.T) {
 	copy(empty, []byte("PAGE"))
 
 	data := slices.Clone(base)
-	if _, err := b.Write(data); err != nil {
-		t.Fatal(err)
-	}
-
+	b.Fill(base)
 	if !slices.Equal(data, base) {
 		t.Error("should not change data")
 	}
