@@ -1,9 +1,9 @@
 package pagequeue
 
 import (
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
-	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type Tip struct {

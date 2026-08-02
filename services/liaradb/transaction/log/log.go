@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/recordqueue"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/iterator"
 )

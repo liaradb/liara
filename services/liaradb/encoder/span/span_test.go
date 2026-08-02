@@ -7,8 +7,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 func TestSpan_Write(t *testing.T) {
@@ -17,7 +17,7 @@ func TestSpan_Write(t *testing.T) {
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
-		lsn:  logpage.NewLogSequenceNumber(2),
+		id:   base.Uint64(2),
 		data: slices.Clone(want),
 	}
 
@@ -57,7 +57,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
-		lsn:  logpage.NewLogSequenceNumber(2),
+		id:   base.Uint64(2),
 		data: slices.Clone(want),
 	}
 

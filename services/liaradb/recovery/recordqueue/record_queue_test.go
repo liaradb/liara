@@ -5,11 +5,11 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/encoder/raw"
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue/writequeue"
-	"github.com/liaradb/liaradb/recovery/span"
 )
 
 func TestPageQueue(t *testing.T) {

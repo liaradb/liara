@@ -4,12 +4,12 @@ import (
 	"testing"
 	"testing/synctest"
 
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
 	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
 

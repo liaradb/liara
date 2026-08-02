@@ -4,10 +4,10 @@ import (
 	"io"
 	"iter"
 
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/segment"
-	"github.com/liaradb/liaradb/recovery/span"
 )
 
 type PageIterator[R Record] struct {
