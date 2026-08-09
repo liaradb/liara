@@ -18,9 +18,9 @@ type BufferPage struct {
 	buffer *storage.Buffer
 }
 
-func (lp *BufferPage) Clear() {
-	lp.Page.Clear()
-	lp.header.init()
+func (bp *BufferPage) Clear() {
+	bp.Page.Clear()
+	bp.header.init()
 }
 
 func New(b *storage.Buffer) *BufferPage {
@@ -29,13 +29,18 @@ func New(b *storage.Buffer) *BufferPage {
 	return &BufferPage{
 		Page:   page,
 		header: header,
+		buffer: b,
 	}
 }
 
-func (lp *BufferPage) Fill(data []byte) {
-	lp.Page.Fill(data)
+func (bp *BufferPage) Fill(data []byte) {
+	bp.Page.Fill(data)
 }
 
-func (lp *BufferPage) Shadow(base *BufferPage) {
-	lp.Page.Fill(base.Data())
+func (bp *BufferPage) Shadow(base *BufferPage) {
+	bp.Page.Fill(base.Data())
+}
+
+func (bp *BufferPage) Release() {
+	bp.buffer.Release()
 }
