@@ -28,7 +28,7 @@ func TestTip(t *testing.T) {
 	}
 
 	complete := 0
-	pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
+	pages, ok := tip.Commit(func() {
 		complete++
 	})
 	if !ok {
@@ -64,7 +64,7 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
+		pages, ok := tip.Commit(func() {
 			completeA++
 		})
 		if !ok {
@@ -84,7 +84,7 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(logpage.NewLogSequenceNumber(0), func() {
+		pages, ok := tip.Commit(func() {
 			completeB++
 		})
 		if !ok {

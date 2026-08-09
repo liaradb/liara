@@ -68,7 +68,7 @@ func (t *Tip) next() *logpage.LogPage {
 	return p
 }
 
-func (t *Tip) Commit(lsn logpage.LogSequenceNumber, h func()) ([]*logpage.LogPage, bool) {
+func (t *Tip) Commit(h func()) ([]*logpage.LogPage, bool) {
 	if ok := t.commitPages(); !ok {
 		t.abortPages()
 		return nil, false
