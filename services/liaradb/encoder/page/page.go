@@ -157,3 +157,7 @@ func (p *Page) Clear() {
 	p.list.Clear()
 	p.initNext()
 }
+
+func (p *Page) Count() int16 {
+	return p.list.Count()
+}

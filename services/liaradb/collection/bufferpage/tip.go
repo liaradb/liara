@@ -14,6 +14,8 @@ type Tip struct {
 	current *BufferPage
 	pages   []*BufferPage
 	sizes   []int
+	blockID link.BlockID
+	slot    link.RecordPosition
 }
 
 func NewTip(s *storage.Storage, fn link.FileName) Tip {
@@ -32,6 +34,8 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	}
 
 	t.current = New(b)
+	t.blockID = b.BlockID()
+	t.slot = link.RecordPosition(t.current.Count())
 
 	t.pages = append(t.pages, t.current)
 
@@ -118,4 +122,8 @@ func (t *Tip) abortPages() {
 	for _, p := range t.pages[1:] {
 		p.Release()
 	}
+}
+
+func (t *Tip) RecordID() link.RecordID {
+	return link.NewRecordID(t.blockID, t.slot)
 }
