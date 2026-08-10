@@ -18,12 +18,20 @@ func TestFixedCollection(t *testing.T) {
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
 		// pid := value.NewPartitionID(0)
+		k := key.NewKey([]byte("abcde"))
+		want := []byte{1, 2, 3, 4, 5}
 
-		if err := fc.Insert(t.Context(), fn, fnIdx,
-			key.NewKey([]byte("abcde")),
-			[]byte{1, 2, 3, 4, 5},
-		); err != nil {
+		if err := fc.Insert(t.Context(), fn, fnIdx, k, want); err != nil {
 			t.Fatal(err)
 		}
+
+		// result, err := fc.Get(t.Context(), fn, fnIdx, k)
+		// if err != nil {
+		// 	t.Fatal(err)
+		// }
+
+		// if !slices.Equal(result, want) {
+		// 	t.Errorf("incorrect result: %v, expected: %v", result, want)
+		// }
 	})
 }

@@ -31,3 +31,10 @@ func (b BlockID) RecordID(position RecordPosition) RecordID {
 		position: position,
 	}
 }
+
+func (b BlockID) Next() BlockID {
+	return BlockID{
+		fileName: b.fileName,
+		position: b.position + 1,
+	}
+}
