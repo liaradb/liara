@@ -37,9 +37,7 @@ func TestTip(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, 3)
 		}
 
-		for _, p := range pages {
-			p.Release()
-		}
+		tip.Release()
 
 		// last := pages[len(pages)-1]
 		// last.Complete()

@@ -26,29 +26,31 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 	}
 }
 
-func (f *FixedCollection) Insert(
+func (fc *FixedCollection) Insert(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
 	v []byte,
-) (link.RecordID, error) {
-	t := bufferpage.NewTip(f.s, fn)
+) error {
+	t := bufferpage.NewTip(fc.s, fn)
 	s, err := t.Span(ctx, len(v))
 	if err != nil {
-		return link.RecordID{}, err
+		return err
 	}
 
 	if _, err := s.Write(v); err != nil {
-		return link.RecordID{}, err
+		return err
 	}
 
 	s.Commit()
 
 	_, ok := t.Commit()
 	if !ok {
-		return link.RecordID{}, errors.New("could not commit")
+		return errors.New("could not commit")
 	}
 
-	return t.RecordID(), nil
+	t.Release()
+
+	return fc.c.Insert(ctx, fnIdx, k, t.RecordLocator())
 }

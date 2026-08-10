@@ -124,6 +124,12 @@ func (t *Tip) abortPages() {
 	}
 }
 
-func (t *Tip) RecordID() link.RecordID {
-	return link.NewRecordID(t.blockID, t.slot)
+func (t *Tip) Release() {
+	for _, p := range t.pages {
+		p.Release()
+	}
+}
+
+func (t *Tip) RecordLocator() link.RecordLocator {
+	return link.NewRecordLocator(t.blockID.Position(), t.slot)
 }
