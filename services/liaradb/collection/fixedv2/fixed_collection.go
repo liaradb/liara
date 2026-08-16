@@ -36,6 +36,8 @@ func (fc *FixedCollection) Insert(
 	v []byte,
 ) error {
 	t := bufferpage.NewTip(fc.s, fn)
+	defer t.Release()
+
 	s, err := t.Span(ctx, len(v))
 	if err != nil {
 		return err
@@ -51,8 +53,6 @@ func (fc *FixedCollection) Insert(
 	if !ok {
 		return errors.New("could not commit")
 	}
-
-	t.Release()
 
 	return fc.c.Insert(ctx, fnIdx, k, t.RecordLocator())
 }

@@ -1,6 +1,7 @@
 package fixedv2
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -13,6 +14,10 @@ import (
 func TestFixedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
 		l := log.New(256, 2, 256, 100, s.FSys, "dir")
+		if err := l.Run(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 
 		fn := link.NewFileName("testfile")
@@ -25,13 +30,13 @@ func TestFixedCollection(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// result, err := fc.Get(t.Context(), fn, fnIdx, k)
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
+		result, err := fc.Get(t.Context(), fn, fnIdx, k)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		// if !slices.Equal(result, want) {
-		// 	t.Errorf("incorrect result: %v, expected: %v", result, want)
-		// }
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
 	})
 }
