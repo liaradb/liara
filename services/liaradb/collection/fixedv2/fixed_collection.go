@@ -63,12 +63,8 @@ func (fc *FixedCollection) Get(
 	fnIdx link.FileName,
 	k key.Key,
 ) ([]byte, error) {
-	buffers := make([]*storage.Buffer, 0)
-	defer func() {
-		for _, b := range buffers {
-			b.Release()
-		}
-	}()
+	var bs bufferSlice
+	defer bs.Release()
 
 	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
@@ -81,7 +77,7 @@ func (fc *FixedCollection) Get(
 		return nil, err
 	}
 
-	buffers = append(buffers, b)
+	bs.Append(b)
 
 	p := bufferpage.New(b)
 	var s span.Span
@@ -98,7 +94,7 @@ func (fc *FixedCollection) Get(
 			return nil, err
 		}
 
-		buffers = append(buffers, b)
+		bs.Append(b)
 
 		p = bufferpage.New(b)
 		h, d, ok := p.Slot(0)
