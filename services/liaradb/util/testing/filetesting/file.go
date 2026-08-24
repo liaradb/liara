@@ -36,12 +36,10 @@ func NewMockFile(name string, delay time.Duration, mod time.Time) *File {
 func NewMockFileWithFileSystem(name string, delay time.Duration, fsys *FileSystem, mod time.Time) *File {
 	return &File{
 		fileInner: &fileInner{
-			name: name,
-			MapFile: fstest.MapFile{
-				ModTime: mod,
-			},
-			delay: delay,
-			fsys:  fsys,
+			name:    name,
+			ModTime: mod,
+			delay:   delay,
+			fsys:    fsys,
 		},
 	}
 }
