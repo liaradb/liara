@@ -78,7 +78,7 @@ func (t *Tip) appendToSpan(s *span.Span, p *BufferPage, remaining int) int {
 }
 
 func (t *Tip) next(ctx context.Context) (*BufferPage, error) {
-	b, err := t.s.RequestCurrent(ctx, t.fn)
+	b, err := t.s.RequestNext(ctx, t.fn)
 	if err != nil {
 		return nil, err
 	}
