@@ -187,3 +187,75 @@ func (fc *FixedCollection) getItem(
 
 	return buffer, nil
 }
+
+// TODO: Use io.Writer?
+func (fc *FixedCollection) Replace(
+	ctx context.Context,
+	fn link.FileName,
+	fnIdx link.FileName,
+	pid value.PartitionID,
+	k key.Key,
+	v []byte,
+) error {
+	var bs bufferSlice
+	defer bs.Release()
+
+	rl, err := fc.c.Search(ctx, fnIdx, k)
+	if err != nil {
+		return err
+	}
+
+	bid := fn.BlockID(rl.Block())
+	b, err := fc.s.Request(ctx, bid)
+	if err != nil {
+		return err
+	}
+
+	bs.Append(b)
+
+	p := bufferpage.New(b)
+	var s span.Span
+
+	h, d, ok := p.Slot(rl.Position())
+	if !ok {
+		return errors.New(" could not read slot")
+	}
+	f := s.Append(h, d)
+	for f.Index() != 0 {
+		bid = bid.Next()
+		b, err := fc.s.Request(ctx, bid)
+		if err != nil {
+			return err
+		}
+
+		bs.Append(b)
+
+		p = bufferpage.New(b)
+		h, d, ok := p.Slot(0)
+		if !ok {
+			return errors.New(" could not read slot")
+		}
+
+		f = s.Append(h, d)
+	}
+
+	_, err = s.Write(v)
+	return err
+}
+
+func (fc *FixedCollection) Test(
+	ctx context.Context,
+	fnIdx link.FileName,
+	k key.Key,
+) (bool, error) {
+	_, err := fc.c.Search(ctx, fnIdx, k)
+	if errors.Is(err, btree.ErrNotFound) {
+		return true, nil
+	}
+
+	if err == nil {
+		return false, btree.ErrExists
+	}
+
+	return false, err
+}
