@@ -93,7 +93,7 @@ func (*FixedCollection) getItemFromBuffer(b *storage.Buffer, rid link.RecordLoca
 }
 
 // TODO: Use io.Writer?
-func (fc *FixedCollection) Set(
+func (fc *FixedCollection) Insert(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,

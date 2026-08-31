@@ -47,7 +47,7 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 }
 
 func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, data []byte) error {
-	return l.fc.Set(ctx, tn.EventLog(pid), tn.Index(0, pid), k, data)
+	return l.fc.Insert(ctx, tn.EventLog(pid), tn.Index(0, pid), k, data)
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {

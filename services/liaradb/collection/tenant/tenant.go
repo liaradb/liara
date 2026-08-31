@@ -83,7 +83,7 @@ func (t *Tenant) Set(
 	}
 
 	k := key.NewKey(tid.Bytes())
-	return t.fc.Set(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return t.fc.Insert(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (t *Tenant) Replace(

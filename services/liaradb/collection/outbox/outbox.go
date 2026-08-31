@@ -83,7 +83,7 @@ func (o *Outbox) Set(
 	}
 
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Set(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return o.fc.Insert(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (o *Outbox) Replace(

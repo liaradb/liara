@@ -95,7 +95,7 @@ func insertData(ctx context.Context, fc *FixedCollection, fn link.FileName, fnId
 		}
 
 		k := key.NewKey(i.value.ID().Bytes())
-		if err := fc.Set(ctx, fn, fnIdx, k, d); err != nil {
+		if err := fc.Insert(ctx, fn, fnIdx, k, d); err != nil {
 			return err
 		}
 	}

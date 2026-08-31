@@ -83,7 +83,7 @@ func (i *Idempotency) Set(
 	}
 
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Set(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return i.fc.Insert(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (i *Idempotency) Test(

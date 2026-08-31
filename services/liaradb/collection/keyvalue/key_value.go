@@ -47,5 +47,5 @@ func (kv *KeyValue) Set(
 	k key.Key,
 	v []byte,
 ) error {
-	return kv.fc.Set(ctx, tn.KeyValue(pid), tn.Index(0, pid), k, v)
+	return kv.fc.Insert(ctx, tn.KeyValue(pid), tn.Index(0, pid), k, v)
 }
