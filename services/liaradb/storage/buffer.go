@@ -79,9 +79,7 @@ func (b *Buffer) initLoader(
 	b.loader = sync.OnceValue(b.createLoader(next))
 }
 
-func (b *Buffer) createLoader(
-	next bool,
-) func() error {
+func (b *Buffer) createLoader(next bool) func() error {
 	return func() error {
 		if err := b.flushAndLoad(next); err != nil {
 			b.initLoader(next)
@@ -92,9 +90,7 @@ func (b *Buffer) createLoader(
 	}
 }
 
-func (b *Buffer) flushAndLoad(
-	next bool,
-) error {
+func (b *Buffer) flushAndLoad(next bool) error {
 	if err := b.flushIfDirtyBeforeLoad(); err != nil {
 		return err
 	}

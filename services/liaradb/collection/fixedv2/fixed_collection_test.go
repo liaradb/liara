@@ -61,7 +61,7 @@ func TestFixedCollection(t *testing.T) {
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
-		// pid := value.NewPartitionID(0)
+		pid := value.NewPartitionID(0)
 
 		data := createData()
 		slices.Reverse(data)
@@ -70,8 +70,8 @@ func TestFixedCollection(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// testGet(ctx, t, fc, fn, fnIdx, data)
-		// testList(ctx, t, data, fc, fn, fnIdx, pid)
+		testGet(ctx, t, fc, fn, fnIdx, data)
+		testList(ctx, t, data, fc, fn, fnIdx, pid)
 
 		synctest.Wait()
 	})

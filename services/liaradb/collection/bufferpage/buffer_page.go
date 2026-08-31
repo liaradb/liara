@@ -44,3 +44,13 @@ func (bp *BufferPage) Shadow(base *BufferPage) {
 func (bp *BufferPage) Release() {
 	bp.buffer.Release()
 }
+
+func (bp *BufferPage) Commit(size int) bool {
+	ok := bp.Page.Commit(size)
+	if ok {
+		// TODO: Verify this the correct time to do this
+		bp.buffer.SetDirty()
+	}
+
+	return ok
+}

@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"iter"
 	"path"
 	"sync"
 
@@ -80,8 +81,7 @@ func (s *Storage) requestBuffer(r *bufferRequest) {
 	if bid, err := s.getBufferID(r.Value()); err != nil {
 		r.Reply(nil, err)
 	} else {
-		b, err := s.getBuffer(r.Context(), bid, r.Value().isNext())
-		r.Reply(b, err)
+		r.Reply(s.getBuffer(r.Context(), bid, r.Value().isNext()))
 	}
 }
 
@@ -327,17 +327,27 @@ func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
 }
 
 func (s *Storage) FlushAll() error {
-	for _, b := range s.pinned {
-		if err := b.flushIfDirty(); err != nil {
-			return err
-		}
-	}
-
-	for b := range s.unpinned.Iterate() {
+	for b := range s.getAll() {
 		if err := b.flushIfDirty(); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (s *Storage) getAll() iter.Seq[*Buffer] {
+	return func(yield func(*Buffer) bool) {
+		for _, b := range s.pinned {
+			if !yield(b) {
+				return
+			}
+		}
+
+		for b := range s.unpinned.Iterate() {
+			if !yield(b) {
+				return
+			}
+		}
+	}
 }
