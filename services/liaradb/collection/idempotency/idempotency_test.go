@@ -20,7 +20,7 @@ import (
 )
 
 func TestIdempotency(t *testing.T) {
-	storagetesting.SyncTest(t, 6, 110, testIdempotency)
+	storagetesting.SyncTest(t, 8, 110, testIdempotency)
 }
 
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
@@ -44,7 +44,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestRequestLog__LargeBuffer(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 256, testRequestLog__LargeBuffer)
+	storagetesting.SyncTest(t, 3, 256, testRequestLog__LargeBuffer)
 }
 
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {

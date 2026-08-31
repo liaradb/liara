@@ -19,7 +19,7 @@ import (
 )
 
 func TestOutbox(t *testing.T) {
-	storagetesting.SyncTest(t, 7, 110, testOutbox)
+	storagetesting.SyncTest(t, 8, 110, testOutbox)
 }
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
@@ -43,7 +43,7 @@ func testOutbox(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestOutbox__LargeBuffer(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 256, testOutbox__LargeBuffer)
+	storagetesting.SyncTest(t, 3, 256, testOutbox__LargeBuffer)
 }
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {

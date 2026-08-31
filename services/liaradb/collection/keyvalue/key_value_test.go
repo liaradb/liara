@@ -34,7 +34,7 @@ func TestKeyValue(t *testing.T) {
 				t.Skip()
 			}
 
-			storagetesting.SyncTest(t, 8, 84, func(t *testing.T, s storagetesting.Storage) {
+			storagetesting.SyncTest(t, 8, 128, func(t *testing.T, s storagetesting.Storage) {
 				ctx := t.Context()
 
 				l := log.New(256, 2, 256, 100, s.FSys, "dir")
