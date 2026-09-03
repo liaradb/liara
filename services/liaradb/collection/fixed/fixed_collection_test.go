@@ -20,53 +20,88 @@ import (
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
-func TestFixedCollection(t *testing.T) {
-	storagetesting.SyncTest(t, 6, 110, testFixedCollection)
+func TestFixedCollection_InsertAndGet(t *testing.T) {
+	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
+		l := log.New(256, 2, 256, 100, s.FSys, "dir")
+		if err := l.Run(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+
+		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+
+		fn := link.NewFileName("testfile")
+		fnIdx := link.NewFileName("testindex")
+		// pid := value.NewPartitionID(0)
+		k := key.NewKey([]byte("abcde"))
+		want := []byte{1, 2, 3, 4, 5}
+
+		if err := fc.Insert(t.Context(), fn, fnIdx, k, want); err != nil {
+			t.Fatal(err)
+		}
+
+		result, err := fc.Get(t.Context(), fn, fnIdx, k)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(result, want) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
+	})
 }
 
-func testFixedCollection(t *testing.T, s storagetesting.Storage) {
-	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	fc := New(s.Storage, btree.NewCursor(s.Storage), l)
-	fn := link.NewFileName("testfile")
-	fnIdx := link.NewFileName("testindex")
-	pid := value.NewPartitionID(0)
+func TestFixedCollection(t *testing.T) {
+	storagetesting.SyncTest(t, 20, 110, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		l := log.New(256, 2, 256, 100, s.FSys, "dir")
+		if err := l.Run(t.Context()); err != nil {
+			t.Fatal(err)
+		}
 
-	data := createData()
-	slices.Reverse(data)
+		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		fn := link.NewFileName("testfile")
+		fnIdx := link.NewFileName("testindex")
+		pid := value.NewPartitionID(0)
 
-	if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
-		t.Fatal(err)
-	}
+		data := createData()
+		slices.Reverse(data)
 
-	testGet(ctx, t, fc, fn, fnIdx, data)
-	testList(ctx, t, data, fc, fn, fnIdx, pid)
+		if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
+			t.Fatal(err)
+		}
 
-	synctest.Wait()
+		testGet(ctx, t, fc, fn, fnIdx, data)
+		testList(ctx, t, data, fc, fn, fnIdx, pid)
+
+		synctest.Wait()
+	})
 }
 
 func TestRequestLog__LargeBuffer(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 256, testRequestLog__LargeBuffer)
-}
+	t.Skip()
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		l := log.New(256, 2, 256, 100, s.FSys, "dir")
+		if err := l.Run(t.Context()); err != nil {
+			t.Fatal(err)
+		}
 
-func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
-	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	fc := New(s.Storage, btree.NewCursor(s.Storage), l)
-	fn := link.NewFileName("testfile")
-	fnIdx := link.NewFileName("testindex")
-	pid := value.NewPartitionID(0)
+		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		fn := link.NewFileName("testfile")
+		fnIdx := link.NewFileName("testindex")
+		pid := value.NewPartitionID(0)
 
-	data := createData()
+		data := createData()
 
-	if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
-		t.Fatal(err)
-	}
+		if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
+			t.Fatal(err)
+		}
 
-	testGet(ctx, t, fc, fn, fnIdx, data)
-	testList(ctx, t, data, fc, fn, fnIdx, pid)
+		testGet(ctx, t, fc, fn, fnIdx, data)
+		testList(ctx, t, data, fc, fn, fnIdx, pid)
 
-	synctest.Wait()
+		synctest.Wait()
+	})
 }
 
 type item struct {

@@ -1,4 +1,4 @@
-package fixedv2
+package fixed
 
 import "github.com/liaradb/liaradb/storage"
 

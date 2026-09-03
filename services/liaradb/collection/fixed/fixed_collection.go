@@ -7,15 +7,15 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/node"
+	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/encoder/span"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 )
 
-// TODO: Create latching
+// TODO: Create a shared goroutine for each file to manage storage
 type FixedCollection struct {
 	s *storage.Storage
 	c *btree.Cursor
@@ -30,19 +30,50 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 	}
 }
 
-// TODO: Use io.Reader?
+func (fc *FixedCollection) Insert(
+	ctx context.Context,
+	fn link.FileName,
+	fnIdx link.FileName,
+	k key.Key,
+	v []byte,
+) error {
+	t := bufferpage.NewTip(fc.s, fn)
+	defer t.Release()
+
+	s, err := t.Span(ctx, len(v))
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.Write(v); err != nil {
+		return err
+	}
+
+	s.Commit()
+
+	_, ok := t.Commit()
+	if !ok {
+		return errors.New("could not commit")
+	}
+
+	return fc.c.Insert(ctx, fnIdx, k, t.RecordLocator())
+}
+
 func (fc *FixedCollection) Get(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
 ) ([]byte, error) {
-	rid, err := fc.c.Search(ctx, fnIdx, k)
+	var bs bufferSlice
+	defer bs.Release()
+
+	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return fc.getItem(ctx, fn, rid)
+	return fc.GetItemByRecordLocator(ctx, fn, rl)
 }
 
 func (fc *FixedCollection) List(
@@ -58,7 +89,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			i, err := fc.getItem(ctx, fn, rid)
+			i, err := fc.GetItemByRecordLocator(ctx, fn, rid)
 			if !yield(i, err) {
 				return
 			}
@@ -66,97 +97,55 @@ func (fc *FixedCollection) List(
 	}
 }
 
-func (fc *FixedCollection) getItem(ctx context.Context, fn link.FileName, rid link.RecordLocator) ([]byte, error) {
-	bid := fn.BlockID(rid.Block())
+func (fc *FixedCollection) GetItemByRecordLocator(
+	ctx context.Context,
+	fn link.FileName,
+	rl link.RecordLocator,
+) ([]byte, error) {
+	var bs bufferSlice
+	defer bs.Release()
+
+	bid := fn.BlockID(rl.Block())
 	b, err := fc.s.Request(ctx, bid)
 	if err != nil {
 		return nil, err
 	}
 
-	defer b.Release()
+	bs.Append(b)
 
-	return fc.getItemFromBuffer(b, rid)
-}
+	p := bufferpage.New(b)
+	var s span.Span
 
-func (*FixedCollection) getItemFromBuffer(b *storage.Buffer, rid link.RecordLocator) ([]byte, error) {
-	n := node.New(b)
-	if !n.IsPage() {
-		return nil, page.ErrNotPage
-	}
-
-	d, ok := n.Child(rid.Position())
+	h, d, ok := p.Slot(rl.Position())
 	if !ok {
-		return nil, btree.ErrNotFound
+		return nil, errors.New(" could not read slot")
 	}
-
-	return d, nil
-}
-
-// TODO: Use io.Writer?
-func (fc *FixedCollection) Insert(
-	ctx context.Context,
-	fn link.FileName,
-	fnIdx link.FileName,
-	k key.Key,
-	v []byte,
-) error {
-	crc := page.NewCRC(v)
-
-	rid, ok, err := fc.setCurrent(ctx, fn, v, crc)
-	if err != nil {
-		return err
-	} else if !ok {
-		rid, ok, err = fc.setNext(ctx, fn, v, crc)
+	f := s.Append(h, d)
+	for f.Index() != 0 {
+		bid = bid.Next()
+		b, err := fc.s.Request(ctx, bid)
 		if err != nil {
-			return err
-		} else if !ok {
-			return btree.ErrNoInsert
+			return nil, err
 		}
+
+		bs.Append(b)
+
+		p = bufferpage.New(b)
+		h, d, ok := p.Slot(0)
+		if !ok {
+			return nil, errors.New(" could not read slot")
+		}
+
+		f = s.Append(h, d)
 	}
 
-	return fc.c.Insert(ctx, fnIdx, k, rid)
-}
-
-func (fc *FixedCollection) setCurrent(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := fc.s.RequestCurrent(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
+	// Read Span
+	buffer := make([]byte, s.Length())
+	if _, err := s.Read(buffer); err != nil {
+		return nil, err
 	}
 
-	defer b.Release()
-
-	n := node.New(b)
-	if !n.IsPage() {
-		return link.RecordLocator{}, false, page.ErrNotPage
-	}
-
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
-}
-
-func (fc *FixedCollection) setNext(ctx context.Context, fn link.FileName, v []byte, crc page.CRC) (link.RecordLocator, bool, error) {
-	b, err := fc.s.RequestNext(ctx, fn)
-	if err != nil {
-		return link.RecordLocator{}, false, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-	rp, d, ok := n.Append(int16(len(v)), crc)
-	if !ok {
-		return link.RecordLocator{}, false, nil
-	}
-
-	copy(d, v)
-
-	return link.NewRecordLocator(b.BlockID().Position(), rp), true, nil
+	return buffer, nil
 }
 
 // TODO: Use io.Writer?
@@ -168,30 +157,50 @@ func (fc *FixedCollection) Replace(
 	k key.Key,
 	v []byte,
 ) error {
-	rid, err := fc.c.Search(ctx, fnIdx, k)
+	var bs bufferSlice
+	defer bs.Release()
+
+	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return err
 	}
 
-	bid := fn.BlockID(rid.Block())
+	bid := fn.BlockID(rl.Block())
 	b, err := fc.s.Request(ctx, bid)
 	if err != nil {
 		return err
 	}
 
-	defer b.Release()
+	bs.Append(b)
 
-	n := node.New(b)
+	p := bufferpage.New(b)
+	var s span.Span
 
-	if !n.IsPage() {
-		return page.ErrNotPage
+	h, d, ok := p.Slot(rl.Position())
+	if !ok {
+		return errors.New(" could not read slot")
+	}
+	f := s.Append(h, d)
+	for f.Index() != 0 {
+		bid = bid.Next()
+		b, err := fc.s.Request(ctx, bid)
+		if err != nil {
+			return err
+		}
+
+		bs.Append(b)
+
+		p = bufferpage.New(b)
+		h, d, ok := p.Slot(0)
+		if !ok {
+			return errors.New(" could not read slot")
+		}
+
+		f = s.Append(h, d)
 	}
 
-	if !n.ReplaceChild(int16(rid.Position()), v) {
-		return btree.ErrNoUpdate
-	}
-
-	return nil
+	_, err = s.Write(v)
+	return err
 }
 
 func (fc *FixedCollection) Test(
