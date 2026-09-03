@@ -7,15 +7,13 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
-	"github.com/liaradb/liaradb/collection/node"
+	fixed "github.com/liaradb/liaradb/collection/fixedv2"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 )
 
@@ -87,54 +85,33 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid
 				return
 			}
 
-			e, err := l.getEventByRecordLocator(ctx, fn, rl)
+			d, err := l.fc.GetItemByRecordLocator(ctx, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if e.AggregateID != id || !yield(e, nil) {
+			var buf buffer.Buffer
+			buf.Reset(d)
+
+			var e entity.Event
+			if err := e.Read(&buf); err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if e.AggregateID != id || !yield(&e, nil) {
 				return
 			}
 		}
 	}
 }
 
-func (l *EventLog) getEventByRecordLocator(ctx context.Context, fn link.FileName, rl link.RecordLocator) (*entity.Event, error) {
-	b, err := l.storage.Request(ctx, link.NewBlockID(fn, rl.Block()))
-	if err != nil {
-		return nil, err
-	}
-
-	defer b.Release()
-
-	n := node.New(b)
-
-	if !n.IsPage() {
-		return nil, page.ErrNotPage
-	}
-
-	data, ok := n.Child(int16(rl.Position()))
-	if !ok {
-		return nil, btree.ErrNotFound
-	}
-
-	var buf buffer.Buffer
-	buf.Reset(data)
-
-	var e entity.Event
-	if err := e.Read(&buf); err != nil {
-		return nil, err
-	}
-
-	return &e, nil
-}
-
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		buf := buffer.NewFromSlice(nil)
 
-		for i, err := range l.items(ctx, tn, pid) {
+		for i, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -164,7 +141,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	return func(yield func(*entity.Event, error) bool) {
 		buf := buffer.NewFromSlice(nil)
 
-		for i, err := range l.items(ctx, tn, pid) {
+		for i, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -190,66 +167,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	}
 }
 
-func (l *EventLog) items(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
-		for n, err := range l.Iterate(ctx, tn, pid) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(n, nil) {
-				return
-			}
-		}
-	}
-}
-
+// TODO: Iterate until highwater
 func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
-		fn := tn.EventLog(pid)
-		highBid, err := l.storage.Highwater(ctx, fn)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
-
-		bid := fn.BlockID(0)
-		for bid.Position() <= highBid.Position() {
-			children, p, err := l.handleIteration(ctx, bid)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			for c := range children {
-				if !yield(c, nil) {
-					return
-				}
-			}
-
-			bid.SetPosition(p)
-		}
-	}
-}
-
-func (l *EventLog) handleIteration(ctx context.Context, bid link.BlockID) (iter.Seq[[]byte], link.FilePosition, error) {
-	b, err := l.storage.Request(ctx, bid)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	n := node.New(b)
-	if !n.IsPage() {
-		return nil, 0, page.ErrNotPage
-	}
-
-	return func(yield func([]byte) bool) {
-		defer n.Release()
-		for c := range n.Children() {
-			if !yield(c) {
-				return
-			}
-		}
-	}, bid.Position() + 1, nil
+	return l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid)
 }

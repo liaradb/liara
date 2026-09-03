@@ -67,6 +67,8 @@ func testEventService_Append(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+
+	synctest.Wait()
 }
 
 func TestEventService_Append__Large(t *testing.T) {
@@ -120,6 +122,8 @@ func testEventService_Append__Large(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+
+	synctest.Wait()
 }
 
 func TestEventService_Append__Invalid(t *testing.T) {
@@ -146,6 +150,8 @@ func testEventService_Append__Invalid(t *testing.T) {
 	); !errors.Is(err, value.ErrAggregateVersionInvalid) {
 		t.Error("should return error")
 	}
+
+	synctest.Wait()
 }
 
 func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *log.Log) {

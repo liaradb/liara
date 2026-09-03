@@ -33,7 +33,7 @@ func testRecovery(t *testing.T) {
 	pid := value.NewPartitionID(0)
 
 	var max int = 2
-	var bs int64 = 256
+	var bs int64 = 1024
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),

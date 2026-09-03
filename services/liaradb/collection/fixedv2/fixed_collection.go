@@ -73,47 +73,7 @@ func (fc *FixedCollection) Get(
 		return nil, err
 	}
 
-	bid := fn.BlockID(rl.Block())
-	b, err := fc.s.Request(ctx, bid)
-	if err != nil {
-		return nil, err
-	}
-
-	bs.Append(b)
-
-	p := bufferpage.New(b)
-	var s span.Span
-
-	h, d, ok := p.Slot(rl.Position())
-	if !ok {
-		return nil, errors.New(" could not read slot")
-	}
-	f := s.Append(h, d)
-	for f.Index() != 0 {
-		bid = bid.Next()
-		b, err := fc.s.Request(ctx, bid)
-		if err != nil {
-			return nil, err
-		}
-
-		bs.Append(b)
-
-		p = bufferpage.New(b)
-		h, d, ok := p.Slot(0)
-		if !ok {
-			return nil, errors.New(" could not read slot")
-		}
-
-		f = s.Append(h, d)
-	}
-
-	// Read Span
-	buffer := make([]byte, s.Length())
-	if _, err := s.Read(buffer); err != nil {
-		return nil, err
-	}
-
-	return buffer, nil
+	return fc.GetItemByRecordLocator(ctx, fn, rl)
 }
 
 func (fc *FixedCollection) List(
@@ -129,7 +89,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			i, err := fc.getItem(ctx, fn, rid)
+			i, err := fc.GetItemByRecordLocator(ctx, fn, rid)
 			if !yield(i, err) {
 				return
 			}
@@ -137,7 +97,7 @@ func (fc *FixedCollection) List(
 	}
 }
 
-func (fc *FixedCollection) getItem(
+func (fc *FixedCollection) GetItemByRecordLocator(
 	ctx context.Context,
 	fn link.FileName,
 	rl link.RecordLocator,
