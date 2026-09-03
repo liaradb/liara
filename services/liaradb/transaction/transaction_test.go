@@ -250,6 +250,8 @@ func testTransaction_Commit(t *testing.T) {
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
+
+	synctest.Wait()
 }
 
 func TestTransaction_Rollback(t *testing.T) {
