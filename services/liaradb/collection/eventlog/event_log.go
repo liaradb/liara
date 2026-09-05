@@ -41,10 +41,18 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, tn, pid, k, e.ID, b.Bytes()[:b.Cursor()])
+	return l.AppendEvent(ctx, tn, pid, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
 }
 
-func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, id value.EventID, v []byte) error {
+func (l *EventLog) AppendEvent(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+	k key.Key,
+	gV value.GlobalVersion,
+	id value.EventID,
+	v []byte,
+) error {
 	t := bufferpage.NewTip(l.storage, tn.EventLog(pid))
 	defer t.Release()
 
@@ -68,7 +76,11 @@ func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid 
 		return err
 	}
 
-	return l.cursor.Insert(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator())
+	if err := l.cursor.Insert(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator()); err != nil {
+		return err
+	}
+
+	return l.cursor.Insert(ctx, tn.Index(2, pid), key.NewKey(gV.Bytes()), t.RecordLocator())
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {
@@ -168,7 +180,14 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	return func(yield func(*entity.Event, error) bool) {
 		buf := buffer.NewFromSlice(nil)
 
-		for i, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
+		fn := tn.EventLog(pid)
+		for rl, err := range l.cursor.SearchRange(ctx, tn.Index(2, pid), key.NewKey(version.Bytes()), 0, 0) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			i, err := l.fc.GetItemByRecordLocator(ctx, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -180,11 +199,6 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			if err := e.Read(buf); err != nil {
 				yield(nil, err)
 				return
-			}
-
-			// TODO: Use Index to skip
-			if e.GlobalVersion.Value() < version.Value() {
-				continue
 			}
 
 			if !yield(&e, nil) {

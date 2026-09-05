@@ -78,6 +78,68 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	}
 }
 
+func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
+	t.Skip()
+	storagetesting.SyncTest(t, 2, 1024, testEventLog_EventsAfterGlobalVersion)
+}
+
+func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storage) {
+	ctx := t.Context()
+	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	el := New(s.Storage, btree.NewCursor(s.Storage), l)
+	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
+	pid := value.NewPartitionID(0)
+
+	records := []*entity.Event{{
+		GlobalVersion: value.NewGlobalVersion(0),
+		ID:            value.NewEventID(),
+		Version:       value.NewVersion(0),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(1),
+		ID:            value.NewEventID(),
+		Version:       value.NewVersion(1),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(2),
+		ID:            value.NewEventID(),
+		Version:       value.NewVersion(2),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(3),
+		ID:            value.NewEventID(),
+		Version:       value.NewVersion(3),
+		Data:          value.NewData([]byte{}),
+	}, {
+		GlobalVersion: value.NewGlobalVersion(4),
+		ID:            value.NewEventID(),
+		Version:       value.NewVersion(4),
+		Data:          value.NewData([]byte{}),
+	}}
+
+	for _, r := range records {
+		if err := el.Append(ctx, tn, pid, r); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	partialResults := make([]*entity.Event, 0)
+
+	for n, err := range el.EventsAfterGlobalVersion(ctx, tn, pid, value.NewGlobalVersion(3)) {
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		partialResults = append(partialResults, n)
+	}
+
+	if !slices.EqualFunc(partialResults, records[:2], func(a, b *entity.Event) bool {
+		return reflect.DeepEqual(a, b)
+	}) {
+		t.Errorf("incorrect result: %v, expected: %v", partialResults, records[:2])
+	}
+}
+
 func TestEventLog_Find(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 1024, testEventLog_Find)
 }
@@ -222,7 +284,7 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 
 	for i, r := range records {
 		k := key.NewKey2([]byte(""), int64(i))
-		if err := el.AppendEvent(ctx, tn, pid, k, value.NewEventID(), r); err != nil {
+		if err := el.AppendEvent(ctx, tn, pid, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 
@@ -24,6 +25,12 @@ func (b Uint64) Value() uint64  { return uint64(b) }
 func (b Uint64) Signed() int64  { return int64(b) }
 func (b Uint64) Size() int      { return Uint64Size }
 func (b Uint64) String() string { return fmt.Sprintf("%016x", b.Value()) }
+
+func (b Uint64) Bytes() []byte {
+	var data [8]byte
+	binary.BigEndian.PutUint64(data[:], uint64(b))
+	return data[:]
+}
 
 func (b Uint64) Write(w io.Writer) error {
 	return raw.WriteInt64(w, b)
