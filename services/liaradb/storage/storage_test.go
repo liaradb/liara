@@ -539,6 +539,12 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache
 	}
 
 	t.Cleanup(func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		s.Run(ctx)
+		s.FlushUnpinned(ctx)
+
 		synctest.Wait()
 
 		if p := s.CountPinned(); p != 0 {
@@ -549,12 +555,12 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache
 	return s
 }
 
-func TestStorage_FlushAll(t *testing.T) {
+func TestStorage_FlushUnpinned(t *testing.T) {
 	t.Parallel()
-	synctest.Test(t, testStorage_FlushAll)
+	synctest.Test(t, testStorage_FlushUnpinned)
 }
 
-func testStorage_FlushAll(t *testing.T) {
+func testStorage_FlushUnpinned(t *testing.T) {
 	s, fsys := createStorageAndFileSystem(t, 3, 16, 0)
 	ctx := t.Context()
 
@@ -594,12 +600,12 @@ func testStorage_FlushAll(t *testing.T) {
 
 	synctest.Wait()
 
-	if err := s.FlushAll(); err != nil {
+	if err := s.FlushUnpinned(ctx); err != nil {
 		t.Fatal(err)
 	}
 
-	if b0.Dirty() {
-		t.Error("should not be dirty")
+	if !b0.Dirty() {
+		t.Error("should be dirty")
 	}
 
 	if b1.Dirty() {
@@ -624,8 +630,8 @@ func testStorage_FlushAll(t *testing.T) {
 		t.Fatal("incorrect type")
 	}
 
-	if wc := mf.WriteCount(); wc != 2 {
-		t.Errorf("incorrect write count: %v, expected: %v", wc, 2)
+	if wc := mf.WriteCount(); wc != 1 {
+		t.Errorf("incorrect write count: %v, expected: %v", wc, 1)
 	}
 }
 

@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"iter"
 	"path"
 	"sync"
 
@@ -20,6 +19,7 @@ type Storage struct {
 	unpinned   FreePool
 	bufferReqs async.Handler[bufferQuery, *Buffer]
 	highWReqs  async.Handler[link.FileName, link.BlockID]
+	flushReqs  async.CommandHandler[struct{}]
 	returns    chan *Buffer
 	max        int
 	highWater  map[link.FileName]link.FilePosition
@@ -33,6 +33,7 @@ func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int64, dir stri
 		dir:        dir,
 		bufferReqs: make(chan *bufferRequest),
 		highWReqs:  make(async.Handler[link.FileName, link.BlockID]),
+		flushReqs:  make(async.CommandHandler[struct{}]),
 		returns:    make(chan *Buffer, max),
 		pinned:     make(map[link.BlockID]*Buffer, max),
 		unpinned:   unpinned,
@@ -69,6 +70,8 @@ func (s *Storage) run(ctx context.Context) {
 			s.requestBuffer(r)
 		case r := <-s.highWReqs:
 			s.getHighWater(r)
+		case r := <-s.flushReqs:
+			s.flush(r)
 		case b := <-s.returns:
 			s.returnBuffer(b)
 		case <-ctx.Done():
@@ -207,6 +210,38 @@ func (s *Storage) getHighWater(r *async.Request[link.FileName, link.BlockID]) {
 	r.Reply(s.highBlockID(fn), nil)
 }
 
+func (s *Storage) FlushUnpinned(ctx context.Context) error {
+	return s.flushReqs.Send(ctx, struct{}{})
+}
+
+// TODO: Don't block the Storage thread while flushing
+func (s *Storage) flush(r *async.Command[struct{}]) {
+	r.Reply(s.flushUnpinned())
+}
+
+func (s *Storage) drainReturns() {
+	for {
+		select {
+		case b := <-s.returns:
+			s.returnBuffer(b)
+		default:
+			return
+		}
+	}
+}
+
+func (s *Storage) flushUnpinned() error {
+	s.drainReturns()
+
+	for b := range s.unpinned.Iterate() {
+		if err := b.flushIfDirty(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Doesn't change BlockID
 func (s *Storage) returnBuffer(b *Buffer) {
 	if b.unpin() {
@@ -324,30 +359,4 @@ func (s *Storage) highBlockID(fn link.FileName) link.BlockID {
 	defer s.hwMux.RUnlock()
 
 	return fn.BlockID(s.highWater[fn])
-}
-
-func (s *Storage) FlushAll() error {
-	for b := range s.getAll() {
-		if err := b.flushIfDirty(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s *Storage) getAll() iter.Seq[*Buffer] {
-	return func(yield func(*Buffer) bool) {
-		for _, b := range s.pinned {
-			if !yield(b) {
-				return
-			}
-		}
-
-		for b := range s.unpinned.Iterate() {
-			if !yield(b) {
-				return
-			}
-		}
-	}
 }

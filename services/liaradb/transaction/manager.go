@@ -140,7 +140,8 @@ func (m *Manager) drainEnd() {
 }
 
 func (m *Manager) flush(ctx context.Context, now time.Time) error {
-	if err := m.storage.FlushAll(); err != nil {
+	// TODO: How do we checkpoint things that were re-pinned and never flushed?
+	if err := m.storage.FlushUnpinned(ctx); err != nil {
 		return err
 	}
 
@@ -159,7 +160,7 @@ func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
 	// TODO: How do we drain everything?
 	m.drainEnd()
 
-	if err := m.storage.FlushAll(); err != nil {
+	if err := m.storage.FlushUnpinned(ctx); err != nil {
 		return err
 	}
 

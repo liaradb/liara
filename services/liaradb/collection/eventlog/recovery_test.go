@@ -84,6 +84,7 @@ func write(
 	el := New(s, btree.NewCursor(s), l)
 
 	ctx, cancel := context.WithCancel(baseCtx)
+	defer cancel()
 
 	if err := s.Run(ctx); err != nil {
 		t.Fatal(err)
@@ -95,9 +96,7 @@ func write(
 		}
 	}
 
-	cancel()
-
-	if err := s.FlushAll(); err != nil {
+	if err := s.FlushUnpinned(baseCtx); err != nil {
 		t.Fatal(err)
 	}
 }
