@@ -65,9 +65,6 @@ func (fc *FixedCollection) Get(
 	fnIdx link.FileName,
 	k key.Key,
 ) ([]byte, error) {
-	var bs bufferSlice
-	defer bs.Release()
-
 	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err

@@ -222,7 +222,7 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 
 	for i, r := range records {
 		k := key.NewKey2([]byte(""), int64(i))
-		if err := el.AppendEvent(ctx, tn, pid, k, r); err != nil {
+		if err := el.AppendEvent(ctx, tn, pid, k, value.NewEventID(), r); err != nil {
 			t.Fatal(err)
 		}
 	}

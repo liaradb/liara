@@ -7,12 +7,12 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
 )
@@ -41,11 +41,34 @@ func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, tn, pid, k, b.Bytes()[:b.Cursor()])
+	return l.AppendEvent(ctx, tn, pid, k, e.ID, b.Bytes()[:b.Cursor()])
 }
 
-func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, data []byte) error {
-	return l.fc.Insert(ctx, tn.EventLog(pid), tn.Index(0, pid), k, data)
+func (l *EventLog) AppendEvent(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key, id value.EventID, v []byte) error {
+	t := bufferpage.NewTip(l.storage, tn.EventLog(pid))
+	defer t.Release()
+
+	s, err := t.Span(ctx, len(v))
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.Write(v); err != nil {
+		return err
+	}
+
+	s.Commit()
+
+	_, ok := t.Commit()
+	if !ok {
+		return errors.New("could not commit")
+	}
+
+	if err := l.cursor.Insert(ctx, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
+		return err
+	}
+
+	return l.cursor.Insert(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator())
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {
@@ -63,17 +86,21 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid va
 }
 
 func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.EventID) (*entity.Event, error) {
-	for e, err := range l.Events(ctx, tn, pid) {
-		if err != nil {
-			return nil, err
-		}
-
-		if e.ID == id {
-			return e, nil
-		}
+	rl, err := l.cursor.Search(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()))
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, page.ErrNotFound
+	d, err := l.fc.GetItemByRecordLocator(ctx, tn.EventLog(pid), rl)
+
+	var buf buffer.Buffer
+	buf.Reset(d)
+	var e entity.Event
+	if err := e.Read(&buf); err != nil {
+		return nil, err
+	}
+
+	return &e, nil
 }
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
