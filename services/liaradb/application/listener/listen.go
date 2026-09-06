@@ -1,7 +1,6 @@
 package listener
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -9,18 +8,13 @@ import (
 	"google.golang.org/grpc"
 )
 
-func Listen(ctx context.Context, port int, server *grpc.Server) error {
+func Listen(port int, server *grpc.Server) error {
 	listener, err := getListener(port)
 	if err != nil {
 		return err
 	}
 
 	go listen(listener, server)
-
-	<-ctx.Done()
-	slog.Info("closing gRPC connections...")
-	server.GracefulStop()
-	slog.Info("closing gRPC connections complete")
 
 	return nil
 }

@@ -26,6 +26,7 @@ import (
 
 type Application struct {
 	conf        configuration
+	s           *grpc.Server
 	storage     *storage.Storage
 	collections *collection.Collections
 	txManager   *transaction.Manager
@@ -70,19 +71,23 @@ func (a *Application) Run(ctx context.Context) error {
 		return err
 	}
 
-	defer a.close(ctx)
 	defer func() {
 		slog.Info("shutting down...")
+		a.stopListener()
+		a.close(ctx)
 		cancelMain()
 	}()
 
-	ctxMain, cancelListen := WithSignal(ctxMain)
+	ctxListen, cancelListen := WithSignal(ctxMain)
 	defer cancelListen()
 
-	if err := a.listen(ctxMain); err != nil {
+	a.initService()
+	if err := a.listen(); err != nil {
 		slog.Error("failed to listen",
 			"error", err)
 	}
+
+	<-ctxListen.Done()
 
 	return nil
 }
@@ -126,8 +131,14 @@ func (a *Application) recover(ctx context.Context) error {
 	return r.Recover(ctx)
 }
 
-func (a *Application) listen(ctx context.Context) error {
-	return listener.Listen(ctx, a.conf.Port, a.initService())
+func (a *Application) listen() error {
+	return listener.Listen(a.conf.Port, a.s)
+}
+
+func (a *Application) stopListener() {
+	slog.Info("closing gRPC connections...")
+	a.s.GracefulStop()
+	slog.Info("closing gRPC connections complete")
 }
 
 // Closing Process
@@ -136,6 +147,9 @@ func (a *Application) listen(ctx context.Context) error {
 //   - Flush Log
 //   - Flush Buffers
 func (a *Application) close(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	slog.Info("flushing...")
 	if err := a.txManager.Shutdown(ctx, time.Now()); err != nil {
 		slog.Error("unable to flush",
@@ -152,7 +166,7 @@ func (a *Application) close(ctx context.Context) {
 	slog.Info("shutdown complete")
 }
 
-func (a *Application) initService() *grpc.Server {
+func (a *Application) initService() {
 	s := listener.NewServerBuilder().
 		AddUnary(
 			listener.LogGRPC(),
@@ -179,7 +193,7 @@ func (a *Application) initService() *grpc.Server {
 			tenant.New(a.storage, btree.NewCursor(a.storage), a.log)),
 	))
 
-	return s
+	a.s = s
 }
 
 type repositories struct {

@@ -219,17 +219,6 @@ func (s *Storage) flush(r *async.Command[struct{}]) {
 	r.Reply(s.flushUnpinned())
 }
 
-func (s *Storage) drainReturns() {
-	for {
-		select {
-		case b := <-s.returns:
-			s.returnBuffer(b)
-		default:
-			return
-		}
-	}
-}
-
 func (s *Storage) flushUnpinned() error {
 	s.drainReturns()
 
@@ -240,6 +229,17 @@ func (s *Storage) flushUnpinned() error {
 	}
 
 	return nil
+}
+
+func (s *Storage) drainReturns() {
+	for {
+		select {
+		case b := <-s.returns:
+			s.returnBuffer(b)
+		default:
+			return
+		}
+	}
 }
 
 // Doesn't change BlockID

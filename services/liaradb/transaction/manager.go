@@ -139,6 +139,17 @@ func (m *Manager) drainEnd() {
 	}
 }
 
+func (m *Manager) drainAll() {
+	for {
+		select {
+		case txid := <-m.returns:
+			m.end(txid)
+		default:
+			return
+		}
+	}
+}
+
 func (m *Manager) flush(ctx context.Context, now time.Time) error {
 	// TODO: How do we checkpoint things that were re-pinned and never flushed?
 	if err := m.storage.FlushUnpinned(ctx); err != nil {
@@ -157,8 +168,7 @@ func (m *Manager) flush(ctx context.Context, now time.Time) error {
 func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
 	m.lockTable.Close()
 
-	// TODO: How do we drain everything?
-	m.drainEnd()
+	m.drainAll()
 
 	if err := m.storage.FlushUnpinned(ctx); err != nil {
 		return err

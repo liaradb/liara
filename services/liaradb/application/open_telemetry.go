@@ -80,6 +80,10 @@ func (ot *openTelemetry) initGlobal() {
 }
 
 func (ot *openTelemetry) shutdown(ctx context.Context) error {
+	if ot.mp == nil || ot.tp == nil {
+		return nil
+	}
+
 	return errors.Join(
 		ot.tp.Shutdown(ctx),
 		ot.mp.Shutdown(ctx),
