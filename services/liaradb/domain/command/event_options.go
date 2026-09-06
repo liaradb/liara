@@ -23,7 +23,7 @@ func (eo *EventOptions) Valid() error {
 	return nil
 }
 
-func (eo *EventOptions) ToEvent(pid value.PartitionID, options AppendOptions) (entity.Event, error) {
+func (eo *EventOptions) ToEvent(pid value.PartitionID, options AppendOptions, gv value.GlobalVersion) (entity.Event, error) {
 	var id value.EventID
 	if eo.ID == "" {
 		id = value.NewEventID()
@@ -36,7 +36,7 @@ func (eo *EventOptions) ToEvent(pid value.PartitionID, options AppendOptions) (e
 	}
 
 	return entity.Event{
-		GlobalVersion: value.NewGlobalVersion(0),
+		GlobalVersion: gv,
 		ID:            id,
 		AggregateName: eo.AggregateName,
 		AggregateID:   eo.AggregateID,

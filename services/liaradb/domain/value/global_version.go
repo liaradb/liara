@@ -11,3 +11,7 @@ type GlobalVersion struct {
 func NewGlobalVersion(value uint64) GlobalVersion {
 	return GlobalVersion{baseUint64(value)}
 }
+
+func (gv GlobalVersion) Increment() GlobalVersion {
+	return NewGlobalVersion(gv.Value() + 1)
+}

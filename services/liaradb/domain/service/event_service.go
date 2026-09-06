@@ -17,13 +17,17 @@ import (
 
 type EventService struct {
 	txManager *transaction.Manager
+	gvg       *GlobalVersionGenerator
 }
 
 func NewEventService(
 	txManager *transaction.Manager,
 ) *EventService {
+	// TODO: Restore from disk
+	gvg := GlobalVersionGenerator{}
 	return &EventService{
 		txManager: txManager,
+		gvg:       &gvg,
 	}
 }
 
@@ -55,7 +59,7 @@ func (es *EventService) Append(
 		buf := bytes.NewBuffer(nil)
 
 		for _, em := range cmd.Events {
-			e, err := em.ToEvent(cmd.PartitionID, cmd.Options)
+			e, err := em.ToEvent(cmd.PartitionID, cmd.Options, es.gvg.Next(tn))
 			if err != nil {
 				return err
 			}
