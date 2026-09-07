@@ -2,6 +2,8 @@
 
 **_Event Sourcing database_**
 
+[![LiaraDB on StartupScores](https://startupscores.com/badge/liaradb.svg?style=shield&v=combo&theme=dark)](https://startupscores.com/open-source/liaradb)
+
 Event-native database, to power Event Sourced workflows for Microservices with Domain Driven Design.
 
 ## Run
