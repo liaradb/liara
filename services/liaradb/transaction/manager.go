@@ -139,6 +139,7 @@ func (m *Manager) drainEnd() {
 	}
 }
 
+// TODO: Wait for everything to return
 func (m *Manager) drainAll() {
 	for {
 		select {

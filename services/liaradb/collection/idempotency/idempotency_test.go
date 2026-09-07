@@ -20,7 +20,7 @@ import (
 )
 
 func TestIdempotency(t *testing.T) {
-	storagetesting.SyncTest(t, 8, 110, testIdempotency)
+	storagetesting.SyncTest(t, 8, 256, testIdempotency)
 }
 
 func testIdempotency(t *testing.T, s storagetesting.Storage) {

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	pageSize       = 64
+	pageSize       = 72
 	largePageSize  = 256
 	writeQueueSize = 100
 )

@@ -19,7 +19,7 @@ import (
 )
 
 func TestOutbox(t *testing.T) {
-	storagetesting.SyncTest(t, 8, 110, testOutbox)
+	storagetesting.SyncTest(t, 8, 256, testOutbox)
 }
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {

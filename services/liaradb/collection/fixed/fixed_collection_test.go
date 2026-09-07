@@ -51,7 +51,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 }
 
 func TestFixedCollection(t *testing.T) {
-	storagetesting.SyncTest(t, 20, 110, func(t *testing.T, s storagetesting.Storage) {
+	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		l := log.New(256, 2, 256, 100, s.FSys, "dir")
 		if err := l.Run(t.Context()); err != nil {
