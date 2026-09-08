@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Span struct {
@@ -16,7 +17,7 @@ type Span struct {
 }
 
 type Log interface {
-	Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error)
+	Append(context.Context, link.SlotID, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(l Log) *Span {

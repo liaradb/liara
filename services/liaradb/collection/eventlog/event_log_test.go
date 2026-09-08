@@ -15,6 +15,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -311,6 +312,6 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 type testLog struct {
 }
 
-func (t *testLog) Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(context.Context, link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

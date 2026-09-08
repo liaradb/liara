@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
@@ -33,7 +34,7 @@ func newLogger(
 
 func (l *Logger) Append(
 	ctx context.Context,
-	slot int16,
+	slot link.SlotID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,
@@ -46,6 +47,7 @@ func (l *Logger) Append(
 
 func (l *Logger) Update(
 	ctx context.Context,
+	slot link.SlotID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {

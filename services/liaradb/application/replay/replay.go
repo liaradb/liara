@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
@@ -221,6 +222,6 @@ func (re *Replay) recoverUpdateValue(ctx context.Context, r *record.Record) erro
 type testLog struct {
 }
 
-func (t *testLog) Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(context.Context, link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }
