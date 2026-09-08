@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
@@ -103,7 +104,8 @@ func (re *Replay) recoverInsertEvent(ctx context.Context, r *record.Record) erro
 
 	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
 	tn := tablename.New(r.TenantID())
-	return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &e)
+	// TODO: This should not use a logger
+	return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &testLog{}, &e)
 }
 
 func (re *Replay) recoverInsertGraph(ctx context.Context, r *record.Record) error {
@@ -213,4 +215,12 @@ func (re *Replay) recoverUpdateRequest(ctx context.Context, r *record.Record) er
 func (re *Replay) recoverUpdateValue(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	return nil
+}
+
+// TODO: Remove this logger
+type testLog struct {
+}
+
+func (t *testLog) Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

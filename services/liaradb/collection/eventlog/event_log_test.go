@@ -1,6 +1,7 @@
 package eventlog
 
 import (
+	"context"
 	"path"
 	"reflect"
 	"slices"
@@ -13,6 +14,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -56,7 +58,7 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -118,7 +120,7 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -179,7 +181,7 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -239,7 +241,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 
 	pid := value.NewPartitionID(0)
 	for _, r := range records {
-		if err := el.Append(ctx, tn, pid, r); err != nil {
+		if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -284,7 +286,7 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 
 	for i, r := range records {
 		k := key.NewKey2([]byte(""), int64(i))
-		if err := el.AppendEvent(ctx, tn, pid, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
+		if err := el.AppendEvent(ctx, tn, pid, &testLog{}, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -304,4 +306,11 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 	}
 
 	synctest.Wait()
+}
+
+type testLog struct {
+}
+
+func (t *testLog) Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

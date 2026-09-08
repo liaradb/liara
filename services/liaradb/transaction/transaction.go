@@ -300,7 +300,7 @@ func (t *Transaction) commit(
 		return err
 	}
 
-	if err := t.eventLog.Commit(ctx, t.tid); err != nil {
+	if err := t.eventLog.Commit(ctx, t); err != nil {
 		return err
 	}
 

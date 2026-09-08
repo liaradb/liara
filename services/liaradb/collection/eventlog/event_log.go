@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -34,20 +35,27 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 	}
 }
 
-func (l *EventLog) Append(ctx context.Context, tn tablename.TableName, pid value.PartitionID, e *entity.Event) error {
+func (l *EventLog) Append(
+	ctx context.Context,
+	tn tablename.TableName,
+	pid value.PartitionID,
+	log span.Log,
+	e *entity.Event,
+) error {
 	b := buffer.New(l.storage.BufferSize())
 	if err := e.Write(b); err != nil {
 		return err
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, tn, pid, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
+	return l.AppendEvent(ctx, tn, pid, log, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
 }
 
 func (l *EventLog) AppendEvent(
 	ctx context.Context,
 	tn tablename.TableName,
 	pid value.PartitionID,
+	log span.Log,
 	k key.Key,
 	gV value.GlobalVersion,
 	id value.EventID,

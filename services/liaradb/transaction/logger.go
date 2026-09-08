@@ -31,8 +31,9 @@ func newLogger(
 	}
 }
 
-func (l *Logger) Insert(
+func (l *Logger) Append(
 	ctx context.Context,
+	slot int16,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,

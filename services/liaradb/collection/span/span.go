@@ -1,6 +1,7 @@
 package span
 
 import (
+	"context"
 	"io"
 	"slices"
 
@@ -15,7 +16,7 @@ type Span struct {
 }
 
 type Log interface {
-	Append(int16, []byte) (logpage.LogSequenceNumber, error)
+	Append(context.Context, int16, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(l Log) *Span {
