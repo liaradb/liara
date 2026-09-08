@@ -6,10 +6,22 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 type Span struct {
+	l         Log
 	fragments []*Fragment
+}
+
+type Log interface {
+	Append(int16, []byte) (logpage.LogSequenceNumber, error)
+}
+
+func New(l Log) *Span {
+	return &Span{
+		l: l,
+	}
 }
 
 func (s Span) Length() (l int) {
@@ -30,7 +42,7 @@ func (s Span) valid() bool {
 
 // TODO: Ensure fragments are sorted by BlockID
 func (s *Span) Append(b BufferPage, header []byte, data []byte) *Fragment {
-	f := newFragment(b, header, data)
+	f := newFragment(s.l, b, header, data)
 	s.fragments = append(s.fragments, f)
 	return f
 }

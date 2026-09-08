@@ -27,7 +27,7 @@ func NewTip(s *storage.Storage, fn link.FileName) Tip {
 }
 
 func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
-	s := span.Span{}
+	s := span.New(nil) // TODO: Use Log
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {
@@ -45,7 +45,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 
 	p := t.current
 
-	l := t.appendToSpan(&s, p, remaining)
+	l := t.appendToSpan(s, p, remaining)
 
 	available = l
 	remaining -= l
@@ -56,14 +56,14 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 			return nil, err
 		}
 
-		l := t.appendToSpan(&s, p, remaining)
+		l := t.appendToSpan(s, p, remaining)
 
 		available += l
 		remaining -= l
 	}
 
 	s.InitIndexes()
-	return &s, nil
+	return s, nil
 }
 
 func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int) int {

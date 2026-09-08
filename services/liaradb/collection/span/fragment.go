@@ -15,6 +15,7 @@ const (
 )
 
 type Fragment struct {
+	l      Log
 	p      BufferPage
 	count  wrap.Int16
 	index  wrap.Int16
@@ -26,11 +27,17 @@ type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 }
 
-func newFragment(p BufferPage, header []byte, data []byte) *Fragment {
+func newFragment(
+	l Log,
+	p BufferPage,
+	header []byte,
+	data []byte,
+) *Fragment {
 	count, header0 := wrap.NewInt16(header)
 	index, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
 	return &Fragment{
+		l:      l,
 		p:      p,
 		count:  count,
 		index:  index,

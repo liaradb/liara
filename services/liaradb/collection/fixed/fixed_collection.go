@@ -112,7 +112,7 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 	bs.Append(b)
 
 	p := bufferpage.New(b)
-	var s span.Span
+	s := span.New(nil) // TODO: Use Log
 
 	h, d, ok := p.Slot(rl.Position())
 	if !ok {
@@ -172,7 +172,7 @@ func (fc *FixedCollection) Replace(
 	bs.Append(b)
 
 	p := bufferpage.New(b)
-	var s span.Span
+	s := span.New(nil) // TODO: Use Log
 
 	h, d, ok := p.Slot(rl.Position())
 	if !ok {
