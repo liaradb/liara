@@ -5,6 +5,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 const (
@@ -14,17 +15,23 @@ const (
 )
 
 type Fragment struct {
+	p      BufferPage
 	count  wrap.Int16
 	index  wrap.Int16
 	crc    wrap.Int32
 	buffer *buffer.Buffer
 }
 
-func newFragment(header []byte, data []byte) *Fragment {
+type BufferPage interface {
+	SetLogSequenceNumber(logpage.LogSequenceNumber)
+}
+
+func newFragment(p BufferPage, header []byte, data []byte) *Fragment {
 	count, header0 := wrap.NewInt16(header)
 	index, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
 	return &Fragment{
+		p:      p,
 		count:  count,
 		index:  index,
 		crc:    crc,

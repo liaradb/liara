@@ -9,6 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 )
 
 func TestSpan_Write(t *testing.T) {
@@ -25,8 +26,8 @@ func TestSpan_Write(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := Span{}
-	s.Append(make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(make([]byte, FragmentHeaderSize), make([]byte, b))
+	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, a))
+	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {
@@ -65,8 +66,8 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := Span{}
-	s.Append(make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(make([]byte, FragmentHeaderSize), make([]byte, b))
+	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, a))
+	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {
@@ -87,4 +88,10 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	if err := tr1.Read(s); !errors.Is(err, page.ErrInvalidCRC) {
 		t.Errorf("incorrect error: %v, expected: %v", err, page.ErrInvalidCRC)
 	}
+}
+
+type testBufferPage struct {
+}
+
+func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }

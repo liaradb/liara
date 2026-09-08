@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -37,7 +38,7 @@ func (fc *FixedCollection) Insert(
 	k key.Key,
 	v []byte,
 ) error {
-	t := bufferpage.NewTip(fc.s, fn)
+	t := tip.NewTip(fc.s, fn)
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))
@@ -117,7 +118,7 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 	if !ok {
 		return nil, errors.New(" could not read slot")
 	}
-	f := s.Append(h, d)
+	f := s.Append(p, h, d)
 	for f.Index() != 0 {
 		bid = bid.Next()
 		b, err := fc.s.Request(ctx, bid)
@@ -133,7 +134,7 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 			return nil, errors.New(" could not read slot")
 		}
 
-		f = s.Append(h, d)
+		f = s.Append(p, h, d)
 	}
 
 	// Read Span
@@ -177,7 +178,7 @@ func (fc *FixedCollection) Replace(
 	if !ok {
 		return errors.New(" could not read slot")
 	}
-	f := s.Append(h, d)
+	f := s.Append(p, h, d)
 	for f.Index() != 0 {
 		bid = bid.Next()
 		b, err := fc.s.Request(ctx, bid)
@@ -193,7 +194,7 @@ func (fc *FixedCollection) Replace(
 			return errors.New(" could not read slot")
 		}
 
-		f = s.Append(h, d)
+		f = s.Append(p, h, d)
 	}
 
 	_, err = s.Write(v)

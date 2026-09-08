@@ -1,4 +1,4 @@
-package bufferpage
+package tip
 
 import (
 	"testing"

@@ -1,8 +1,9 @@
-package bufferpage
+package tip
 
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -11,8 +12,8 @@ import (
 type Tip struct {
 	s       *storage.Storage
 	fn      link.FileName
-	current *BufferPage
-	pages   []*BufferPage
+	current *bufferpage.BufferPage
+	pages   []*bufferpage.BufferPage
 	sizes   []int
 	blockID link.BlockID
 	slot    link.RecordPosition
@@ -33,7 +34,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 		return nil, err
 	}
 
-	t.current = New(b)
+	t.current = bufferpage.New(b)
 	t.blockID = b.BlockID()
 	t.slot = link.RecordPosition(t.current.Count())
 
@@ -65,7 +66,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	return &s, nil
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *BufferPage, remaining int) int {
+func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int) int {
 	header, data := p.Next(remaining)
 	l := len(data)
 	t.sizes = append(t.sizes, l)
@@ -73,22 +74,22 @@ func (t *Tip) appendToSpan(s *span.Span, p *BufferPage, remaining int) int {
 		return l
 	}
 
-	_ = s.Append(header, data)
+	_ = s.Append(p, header, data)
 	return l
 }
 
-func (t *Tip) next(ctx context.Context) (*BufferPage, error) {
+func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 	b, err := t.s.RequestNext(ctx, t.fn)
 	if err != nil {
 		return nil, err
 	}
 
-	p := New(b)
+	p := bufferpage.New(b)
 	t.pages = append(t.pages, p)
 	return p, nil
 }
 
-func (t *Tip) Commit() ([]*BufferPage, bool) {
+func (t *Tip) Commit() ([]*bufferpage.BufferPage, bool) {
 	if ok := t.commitPages(); !ok {
 		t.abortPages()
 		return nil, false
@@ -108,7 +109,7 @@ func (t *Tip) commitPages() bool {
 	return t.commitPage(t.current, 0)
 }
 
-func (t *Tip) commitPage(p *BufferPage, i int) bool {
+func (t *Tip) commitPage(p *bufferpage.BufferPage, i int) bool {
 	size := t.sizes[i]
 	if size == 0 {
 		return true

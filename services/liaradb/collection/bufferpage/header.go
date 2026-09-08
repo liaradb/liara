@@ -42,4 +42,5 @@ func (h *header) isPage() bool {
 	return page.Magic(h.magic.Get()).IsPage()
 }
 
-func (h *header) LogSequenceNumber() logpage.LogSequenceNumber { return h.lsn }
+func (h *header) LogSequenceNumber() logpage.LogSequenceNumber       { return h.lsn }
+func (h *header) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) { h.lsn = lsn }

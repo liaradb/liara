@@ -7,9 +7,9 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
@@ -53,7 +53,7 @@ func (l *EventLog) AppendEvent(
 	id value.EventID,
 	v []byte,
 ) error {
-	t := bufferpage.NewTip(l.storage, tn.EventLog(pid))
+	t := tip.NewTip(l.storage, tn.EventLog(pid))
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))
