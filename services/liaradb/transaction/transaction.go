@@ -423,3 +423,7 @@ func (t *Transaction) TestRequestID(
 ) (bool, error) {
 	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
+
+func (t *Transaction) Logger(c record.Collection) *Logger {
+	return newLogger(t.tid, t.id, c, t.log)
+}
