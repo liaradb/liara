@@ -17,6 +17,10 @@ func NewBlockID(fn FileName, position FilePosition) BlockID {
 	}
 }
 
+func (b BlockID) Size() int {
+	return b.position.Size() + b.fileName.Size()
+}
+
 func (b BlockID) Offset(bufferSize int64) page.Offset {
 	return b.position.Offset(bufferSize)
 }
