@@ -3,7 +3,7 @@ package bufferpage
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/encoder/span"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
