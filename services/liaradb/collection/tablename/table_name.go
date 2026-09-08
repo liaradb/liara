@@ -3,35 +3,42 @@ package tablename
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-const defaultTenantID = "default"
+var defaultTenantID = value.NewTenantIDFromUUID(uuid.Nil)
 
 type TableName struct {
-	value string
+	tenantID value.TenantID
+	name     string
 }
 
 func New(tenantID value.TenantID) TableName {
 	return TableName{
-		value: tenantID.String(),
+		tenantID: tenantID,
+		name:     "",
 	}
 }
 
-func NewFromString(value string) TableName {
+// TODO: Should this be used?
+func NewFromString(name string) TableName {
 	return TableName{
-		value: value,
+		tenantID: defaultTenantID,
+		name:     name,
 	}
 }
+
+func (tn *TableName) TenantID() value.TenantID { return tn.tenantID }
 
 func (tn *TableName) String() string {
-	if tn.value == "" {
-		return defaultTenantID
+	if tn.name == "" {
+		return tn.tenantID.String()
 	}
 
-	return string(tn.value)
+	return fmt.Sprintf("%v--%v", tn.tenantID, tn.name)
 }
 
 func (tn *TableName) KeyValue(pid value.PartitionID) link.FileName {

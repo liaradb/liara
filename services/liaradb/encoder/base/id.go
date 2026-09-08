@@ -16,6 +16,10 @@ func NewID() ID {
 	return ID{uuid.New()}
 }
 
+func NewIDFromUUID(id uuid.UUID) ID {
+	return ID{id}
+}
+
 func NewIDFromString(value string) (ID, error) {
 	if id, err := uuid.Parse(value); err != nil {
 		return ID{}, err

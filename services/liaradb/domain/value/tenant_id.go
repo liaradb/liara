@@ -1,6 +1,9 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/base"
+import (
+	"github.com/google/uuid"
+	"github.com/liaradb/liaradb/encoder/base"
+)
 
 type TenantID struct {
 	baseID
@@ -8,6 +11,12 @@ type TenantID struct {
 
 func NewTenantID() TenantID {
 	return TenantID{base.NewID()}
+}
+
+func NewTenantIDFromUUID(id uuid.UUID) TenantID {
+	return TenantID{
+		baseID: base.NewIDFromUUID(id),
+	}
 }
 
 func NewTenantIDFromString(value string) (TenantID, error) {
