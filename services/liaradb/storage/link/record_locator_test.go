@@ -11,7 +11,7 @@ func TestRecordLocator_Defaults(t *testing.T) {
 		t.Errorf("incorrect block: %v, expected: %v", b, 0)
 	}
 
-	if p := id.Position(); p != 0 {
+	if p := id.SlotID(); p != 0 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 0)
 	}
 
@@ -29,8 +29,8 @@ func TestRecordLocator_New(t *testing.T) {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
 	}
 
-	if p := id.Position(); p != 2 {
-		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	if s := id.SlotID(); s != 2 {
+		t.Errorf("incorrect slot id: %v, expected: %v", s, 2)
 	}
 }
 
@@ -49,7 +49,7 @@ func TestRecordLocator_WriteRead(t *testing.T) {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
 	}
 
-	if p := id0.Position(); p != 2 {
-		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	if s := id0.SlotID(); s != 2 {
+		t.Errorf("incorrect slot id: %v, expected: %v", s, 2)
 	}
 }

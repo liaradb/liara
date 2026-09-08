@@ -15,8 +15,8 @@ func TestRecordID(t *testing.T) {
 		t.Errorf("incorrect block id: %v, expected: %v", b, bid)
 	}
 
-	if p := rid.Position(); p != 2 {
-		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	if s := rid.SlotID(); s != 2 {
+		t.Errorf("incorrect slot id: %v, expected: %v", s, 2)
 	}
 }
 

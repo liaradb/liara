@@ -25,10 +25,10 @@ func (b *BlockID) SetPosition(p FilePosition) {
 	b.position = p
 }
 
-func (b BlockID) RecordID(position RecordPosition) RecordID {
+func (b BlockID) RecordID(slotID SlotID) RecordID {
 	return RecordID{
-		blockID:  b,
-		position: position,
+		blockID: b,
+		slotID:  slotID,
 	}
 }
 

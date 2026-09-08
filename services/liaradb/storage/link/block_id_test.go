@@ -26,11 +26,11 @@ func TestBlockID(t *testing.T) {
 func TestBlockID_RecordID(t *testing.T) {
 	fn := NewFileName("testfile")
 	fPos := FilePosition(1)
-	rPos := RecordPosition(2)
+	rSID := SlotID(2)
 	bid := NewBlockID(fn, fPos)
-	rid := NewRecordID(bid, rPos)
+	rid := NewRecordID(bid, rSID)
 
-	if r := bid.RecordID(rPos); r != rid {
+	if r := bid.RecordID(rSID); r != rid {
 		t.Errorf("incorrect record id: %v, expected: %v", r, rid)
 	}
 }

@@ -3,23 +3,23 @@ package link
 import "github.com/liaradb/liaradb/encoder/page"
 
 type RecordID struct {
-	blockID  BlockID
-	position RecordPosition
+	blockID BlockID
+	slotID  SlotID
 }
 
 func NewRecordID(
 	blockID BlockID,
-	position RecordPosition,
+	slotID SlotID,
 ) RecordID {
 	return RecordID{
-		blockID:  blockID,
-		position: position,
+		blockID: blockID,
+		slotID:  slotID,
 	}
 }
 
-func (i RecordID) BlockID() BlockID         { return i.blockID }
-func (i RecordID) Position() RecordPosition { return i.position }
+func (i RecordID) BlockID() BlockID { return i.blockID }
+func (i RecordID) SlotID() SlotID   { return i.slotID }
 
 func (i RecordID) Offset(bufferSize int64) page.Offset {
-	return i.blockID.Offset(bufferSize) * page.Offset(i.position)
+	return i.blockID.Offset(bufferSize) * page.Offset(i.slotID)
 }

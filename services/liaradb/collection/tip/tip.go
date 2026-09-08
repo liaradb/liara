@@ -17,7 +17,7 @@ type Tip struct {
 	pages   []*bufferpage.BufferPage
 	sizes   []int
 	blockID link.BlockID
-	slot    link.RecordPosition
+	slotID  link.SlotID
 }
 
 func NewTip(s *storage.Storage, l span.Log, fn link.FileName) Tip {
@@ -38,7 +38,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 
 	t.current = bufferpage.New(b)
 	t.blockID = b.BlockID()
-	t.slot = link.RecordPosition(t.current.Count())
+	t.slotID = link.SlotID(t.current.Count())
 
 	t.pages = append(t.pages, t.current)
 
@@ -134,5 +134,5 @@ func (t *Tip) Release() {
 }
 
 func (t *Tip) RecordLocator() link.RecordLocator {
-	return link.NewRecordLocator(t.blockID.Position(), t.slot)
+	return link.NewRecordLocator(t.blockID.Position(), t.slotID)
 }

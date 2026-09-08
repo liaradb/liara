@@ -1,21 +1,21 @@
 package link
 
-const RecordLocatorSize = FilePositionSize + RecordPositionSize
+const RecordLocatorSize = FilePositionSize + SlotIDSize
 
 type RecordLocator struct {
-	block    FilePosition
-	position RecordPosition
+	block  FilePosition
+	slotID SlotID
 }
 
-func NewRecordLocator(block FilePosition, position RecordPosition) RecordLocator {
+func NewRecordLocator(block FilePosition, slotID SlotID) RecordLocator {
 	return RecordLocator{
-		block:    block,
-		position: position,
+		block:  block,
+		slotID: slotID,
 	}
 }
 
 func (i RecordLocator) Block() FilePosition { return i.block }
-func (i RecordLocator) Position() int16     { return i.position.Value() }
+func (i RecordLocator) SlotID() int16       { return i.slotID.Value() }
 func (i RecordLocator) Size() int           { return RecordLocatorSize }
 
 func (le RecordLocator) Write(data []byte) ([]byte, bool) {
@@ -24,7 +24,7 @@ func (le RecordLocator) Write(data []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	return le.position.WriteData(data0)
+	return le.slotID.WriteData(data0)
 }
 
 func (le *RecordLocator) Read(data []byte) ([]byte, bool) {
@@ -33,5 +33,5 @@ func (le *RecordLocator) Read(data []byte) ([]byte, bool) {
 		return nil, false
 	}
 
-	return le.position.ReadData(data0)
+	return le.slotID.ReadData(data0)
 }

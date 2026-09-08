@@ -114,7 +114,7 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 	p := bufferpage.New(b)
 	s := span.New(nil) // TODO: Use Log
 
-	h, d, ok := p.Slot(rl.Position())
+	h, d, ok := p.Slot(rl.SlotID())
 	if !ok {
 		return nil, errors.New(" could not read slot")
 	}
@@ -174,7 +174,7 @@ func (fc *FixedCollection) Replace(
 	p := bufferpage.New(b)
 	s := span.New(nil) // TODO: Use Log
 
-	h, d, ok := p.Slot(rl.Position())
+	h, d, ok := p.Slot(rl.SlotID())
 	if !ok {
 		return errors.New(" could not read slot")
 	}
