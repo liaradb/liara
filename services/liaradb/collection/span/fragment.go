@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	FragmentHeaderSize = base.Uint16Size +
+	FragmentHeaderSize = 0 +
+		base.Uint16Size +
 		base.Uint16Size +
 		page.CrcSize
 )

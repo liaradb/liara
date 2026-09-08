@@ -38,7 +38,7 @@ func (fc *FixedCollection) Insert(
 	k key.Key,
 	v []byte,
 ) error {
-	t := tip.NewTip(fc.s, fn)
+	t := tip.NewTip(fc.s, nil, fn) // TODO: Use Log
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))

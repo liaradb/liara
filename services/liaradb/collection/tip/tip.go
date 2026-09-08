@@ -11,6 +11,7 @@ import (
 
 type Tip struct {
 	s       *storage.Storage
+	l       span.Log
 	fn      link.FileName
 	current *bufferpage.BufferPage
 	pages   []*bufferpage.BufferPage
@@ -19,15 +20,16 @@ type Tip struct {
 	slot    link.RecordPosition
 }
 
-func NewTip(s *storage.Storage, fn link.FileName) Tip {
+func NewTip(s *storage.Storage, l span.Log, fn link.FileName) Tip {
 	return Tip{
 		s:  s,
+		l:  l,
 		fn: fn,
 	}
 }
 
 func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
-	s := span.New(nil) // TODO: Use Log
+	s := span.New(t.l)
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {
