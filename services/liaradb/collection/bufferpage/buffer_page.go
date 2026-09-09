@@ -1,15 +1,9 @@
 package bufferpage
 
 import (
-	"github.com/liaradb/liaradb/encoder/base"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
-)
-
-const (
-	FragmentHeaderSize = base.Uint16Size +
-		base.Uint16Size +
-		page.CrcSize
 )
 
 type BufferPage struct {
@@ -24,7 +18,7 @@ func (bp *BufferPage) Clear() {
 }
 
 func New(b *storage.Buffer) *BufferPage {
-	page := page.NewFromSlice(b.Raw(), headerSize, FragmentHeaderSize)
+	page := page.NewFromSlice(b.Raw(), headerSize, span.FragmentHeaderSize)
 	header, _ := newHeader(page.Header())
 	return &BufferPage{
 		Page:   page,

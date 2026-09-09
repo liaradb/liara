@@ -57,7 +57,7 @@ func (s *Span) InitIndexes() {
 	c := len(s.fragments)
 	l := c - 1
 	for i, f := range s.fragments {
-		f.setCount(int16(c))
+		f.setCount(int64(c))
 		f.setIndex(int16(l - i))
 	}
 }

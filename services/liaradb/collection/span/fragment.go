@@ -6,11 +6,12 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 const (
 	FragmentHeaderSize = 0 +
-		base.Uint16Size +
+		base.Uint64Size +
 		base.Uint16Size +
 		page.CrcSize
 )
@@ -18,7 +19,7 @@ const (
 type Fragment struct {
 	l      Log
 	p      BufferPage
-	count  wrap.Int16
+	count  wrap.Int64
 	index  wrap.Int16
 	crc    wrap.Int32
 	buffer *buffer.Buffer
@@ -34,7 +35,7 @@ func newFragment(
 	header []byte,
 	data []byte,
 ) *Fragment {
-	count, header0 := wrap.NewInt16(header)
+	count, header0 := wrap.NewInt64(header)
 	index, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
 	return &Fragment{
@@ -48,9 +49,19 @@ func newFragment(
 }
 
 // TODO: Fix this cast
-func (f Fragment) length() int  { return int(f.buffer.Length()) }
-func (f Fragment) Count() int16 { return f.count.Get() }
-func (f Fragment) Index() int16 { return f.index.Get() }
+func (f Fragment) length() int                 { return int(f.buffer.Length()) }
+func (f Fragment) Count() int64                { return f.count.Get() }
+func (f Fragment) Index() int16                { return f.index.Get() }
+func (f Fragment) Position() link.FilePosition { return link.FilePosition(f.count.Get()) }
+func (f Fragment) SlotID() link.SlotID         { return link.SlotID(f.index.Get()) }
+
+func (f Fragment) BlockID(fn link.FileName) link.BlockID {
+	return link.NewBlockID(fn, f.Position())
+}
+
+func (f Fragment) RecordID(fn link.FileName) link.RecordID {
+	return link.NewRecordID(f.BlockID(fn), f.SlotID())
+}
 
 func (f Fragment) valid() bool {
 	return page.RestoreCRC(f.crc.Get()).
@@ -62,12 +73,20 @@ func (f Fragment) commit() {
 	f.crc.Set(int32(crc.Value()))
 }
 
-func (f Fragment) setCount(v int16) {
+func (f Fragment) setCount(v int64) {
 	f.count.Set(v)
 }
 
 func (f Fragment) setIndex(v int16) {
 	f.index.Set(v)
+}
+
+func (f Fragment) setPosition(p link.FilePosition) {
+	f.count.Set(p.Value())
+}
+
+func (f Fragment) setSlotID(i link.SlotID) {
+	f.index.Set(i.Value())
 }
 
 func (f Fragment) Read(p []byte) (int, error) {
