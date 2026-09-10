@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/slotlist"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Page struct {
@@ -71,7 +72,7 @@ func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
 
-func (p *Page) Slot(i int16) ([]byte, []byte, bool) {
+func (p *Page) Slot(i link.SlotID) ([]byte, []byte, bool) {
 	slot, ok := p.list.Slot(i)
 	if !ok {
 		return nil, nil, false

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/encoder/scan"
 )
@@ -17,8 +16,8 @@ func (p FilePosition) Value() int64   { return int64(p) }
 func (FilePosition) Size() int        { return FilePositionSize }
 func (p FilePosition) String() string { return fmt.Sprintf("%v", p.Value()) }
 
-func (p FilePosition) Offset(bufferSize int64) page.Offset {
-	return page.Offset(p) * page.Offset(bufferSize)
+func (p FilePosition) Offset(bufferSize int64) Offset {
+	return Offset(p) * Offset(bufferSize)
 }
 
 func (p FilePosition) Write(w io.Writer) error {

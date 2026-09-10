@@ -1,10 +1,6 @@
 package link
 
-import (
-	"io"
-
-	"github.com/liaradb/liaradb/encoder/page"
-)
+import "io"
 
 type RecordID struct {
 	blockID BlockID
@@ -28,8 +24,8 @@ func (i RecordID) Size() int {
 	return i.blockID.Size() + i.slotID.Size()
 }
 
-func (i RecordID) Offset(bufferSize int64) page.Offset {
-	return i.blockID.Offset(bufferSize) * page.Offset(i.slotID)
+func (i RecordID) Offset(bufferSize int64) Offset {
+	return i.blockID.Offset(bufferSize) * Offset(i.slotID)
 }
 
 // TODO: Implement this

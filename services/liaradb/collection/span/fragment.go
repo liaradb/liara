@@ -33,6 +33,7 @@ type BufferPage interface {
 func newFragment(
 	l Log,
 	p BufferPage,
+	sid link.SlotID,
 	header []byte,
 	data []byte,
 ) *Fragment {

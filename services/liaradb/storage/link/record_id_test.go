@@ -1,10 +1,6 @@
 package link
 
-import (
-	"testing"
-
-	"github.com/liaradb/liaradb/encoder/page"
-)
+import "testing"
 
 func TestRecordID(t *testing.T) {
 	fn := NewFileName("testfile")
@@ -25,7 +21,7 @@ func TestRecordID_Offset(t *testing.T) {
 	bid := NewBlockID(fn, 1)
 	rid := NewRecordID(bid, 2)
 
-	want := page.Offset(123 * 2)
+	want := Offset(123 * 2)
 	if o := rid.Offset(123); o != want {
 		t.Errorf("incorrect offset: %v, expected: %v", o, want)
 	}

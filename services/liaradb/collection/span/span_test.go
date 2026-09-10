@@ -27,8 +27,8 @@ func TestSpan_Write(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := Span{}
-	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, b))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {
@@ -67,8 +67,8 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := Span{}
-	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(&testBufferPage{}, make([]byte, FragmentHeaderSize), make([]byte, b))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {

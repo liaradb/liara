@@ -1,8 +1,6 @@
 package link
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestBlockID(t *testing.T) {
 	fn := NewFileName("testfile")

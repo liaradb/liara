@@ -76,7 +76,7 @@ func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int
 		return l
 	}
 
-	_ = s.Append(p, header, data)
+	_ = s.Append(p, 0, header, data)
 	return l
 }
 

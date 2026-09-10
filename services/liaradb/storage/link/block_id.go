@@ -1,7 +1,5 @@
 package link
 
-import "github.com/liaradb/liaradb/encoder/page"
-
 type BlockID struct {
 	fileName FileName
 	position FilePosition
@@ -21,7 +19,7 @@ func (b BlockID) Size() int {
 	return b.position.Size() + b.fileName.Size()
 }
 
-func (b BlockID) Offset(bufferSize int64) page.Offset {
+func (b BlockID) Offset(bufferSize int64) Offset {
 	return b.position.Offset(bufferSize)
 }
 

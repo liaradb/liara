@@ -113,12 +113,12 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 
 	p := bufferpage.New(b)
 	s := span.New(nil) // TODO: Use Log
-
-	h, d, ok := p.Slot(rl.SlotID())
+	sid := rl.SlotID()
+	h, d, ok := p.Slot(sid)
 	if !ok {
 		return nil, errors.New(" could not read slot")
 	}
-	f := s.Append(p, h, d)
+	f := s.Append(p, sid, h, d)
 	for f.Position() != 0 {
 		bid.SetPosition(f.Position())
 		b, err := fc.s.Request(ctx, bid)
@@ -129,12 +129,13 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 		bs.Append(b)
 
 		p = bufferpage.New(b)
-		h, d, ok := p.Slot(0)
+		sid := link.SlotID(0)
+		h, d, ok := p.Slot(sid)
 		if !ok {
 			return nil, errors.New(" could not read slot")
 		}
 
-		f = s.Append(p, h, d)
+		f = s.Append(p, sid, h, d)
 	}
 
 	// Read Span
@@ -174,11 +175,12 @@ func (fc *FixedCollection) Replace(
 	p := bufferpage.New(b)
 	s := span.New(nil) // TODO: Use Log
 
-	h, d, ok := p.Slot(rl.SlotID())
+	sid := rl.SlotID()
+	h, d, ok := p.Slot(sid)
 	if !ok {
 		return errors.New(" could not read slot")
 	}
-	f := s.Append(p, h, d)
+	f := s.Append(p, sid, h, d)
 	for f.Position() != 0 {
 		bid.SetPosition(f.Position())
 		b, err := fc.s.Request(ctx, bid)
@@ -189,12 +191,13 @@ func (fc *FixedCollection) Replace(
 		bs.Append(b)
 
 		p = bufferpage.New(b)
-		h, d, ok := p.Slot(0)
+		sid := link.SlotID(0)
+		h, d, ok := p.Slot(sid)
 		if !ok {
 			return errors.New(" could not read slot")
 		}
 
-		f = s.Append(p, h, d)
+		f = s.Append(p, sid, h, d)
 	}
 
 	_, err = s.Write(v)

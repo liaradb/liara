@@ -15,7 +15,7 @@ func NewRecordLocator(block FilePosition, slotID SlotID) RecordLocator {
 }
 
 func (i RecordLocator) Block() FilePosition { return i.block }
-func (i RecordLocator) SlotID() int16       { return i.slotID.Value() }
+func (i RecordLocator) SlotID() SlotID      { return i.slotID }
 func (i RecordLocator) Size() int           { return RecordLocatorSize }
 
 func (le RecordLocator) Write(data []byte) ([]byte, bool) {

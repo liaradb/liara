@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type tuple struct {
@@ -242,8 +244,8 @@ func TestSlotList_SlotsRange(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip  bool
 		want  []tuple
-		start int16
-		end   int16
+		start link.SlotID
+		end   link.SlotID
 	}{
 		"should iterate the range": {
 			want: []tuple{
@@ -297,7 +299,7 @@ func TestSlotList_Insert(t *testing.T) {
 		data   []tuple
 		want   []tuple
 		insert tuple
-		index  int16
+		index  link.SlotID
 	}{
 		"should insert into beginning": {
 			data: []tuple{
@@ -375,7 +377,7 @@ func TestSlotList_Insert(t *testing.T) {
 		l := New(make([]byte, 6))
 		for i, slot := range []tuple{
 			{10, 60}} {
-			if _, ok := l.Insert(slot.a, slot.b, int16(i)); !ok {
+			if _, ok := l.Insert(slot.a, slot.b, link.SlotID(i)); !ok {
 				t.Fatal("should insert")
 			}
 		}

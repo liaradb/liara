@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"io"
 	"testing"
-
-	"github.com/liaradb/liaradb/encoder/page"
 )
 
 func TestFilePosition(t *testing.T) {
@@ -72,7 +70,7 @@ func TestFilePosition_Offset(t *testing.T) {
 	t.Parallel()
 
 	var p FilePosition = 123
-	want := page.Offset(2 * 123)
+	want := Offset(2 * 123)
 	if o := p.Offset(2); o != want {
 		t.Errorf("incorrect offset: %v, expected: %v", o, want)
 	}

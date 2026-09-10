@@ -43,8 +43,8 @@ func (s Span) valid() bool {
 }
 
 // TODO: Ensure fragments are sorted by BlockID
-func (s *Span) Append(b BufferPage, header []byte, data []byte) *Fragment {
-	f := newFragment(s.l, b, header, data)
+func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
+	f := newFragment(s.l, b, sid, header, data)
 	s.fragments = append(s.fragments, f)
 	return f
 }
