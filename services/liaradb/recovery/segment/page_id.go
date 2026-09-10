@@ -10,15 +10,7 @@ type PageID uint64
 
 const PageIDSize = 8
 
-// TODO: This is unused
-func NewPageIDFromSize(size int64, pageSize int64) PageID {
-	if pageSize == 0 {
-		return 0
-	}
-	pid := size / pageSize
-	return PageID(pid)
-}
-
+// TODO: This is private
 func newActivePageIDFromSize(size int64, pageSize int64) PageID {
 	if pageSize == 0 || size == 0 {
 		return 0

@@ -1,13 +1,13 @@
-package bytelist
+package slice
 
 import "testing"
 
-func TestByteList(t *testing.T) {
+func TestSlice(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 16))
+	data := make([]byte, 16)
 
-	b, ok := l.Slice(0, 16)
+	b, ok := Slice(data, 0, 16)
 	if !ok {
 		t.Error("should get a buffer")
 	}
@@ -16,21 +16,21 @@ func TestByteList(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 16)
 	}
 
-	if _, ok := l.Slice(16, 16); ok {
+	if _, ok := Slice(data, 16, 16); ok {
 		t.Error("should not get a buffer starting beyond length")
 	}
 
-	if _, ok := l.Slice(0, 20); ok {
+	if _, ok := Slice(data, 0, 20); ok {
 		t.Error("should not get a buffer ending beyond length")
 	}
 }
 
-func TestByteList_Empty(t *testing.T) {
+func TestSlice_Empty(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 16))
+	data := make([]byte, 16)
 
-	b, ok := l.Slice(2, 0)
+	b, ok := Slice(data, 2, 0)
 	if !ok {
 		t.Error("should get a buffer")
 	}

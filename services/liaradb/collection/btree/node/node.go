@@ -3,9 +3,9 @@ package node
 import (
 	"iter"
 
-	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/tuplelist"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/util/slice"
 )
 
 const (
@@ -14,10 +14,10 @@ const (
 
 type Node struct {
 	header
-	buffer   *storage.Buffer
-	data     []byte
-	list     tuplelist.TupleList
-	byteList bytelist.ByteList
+	buffer *storage.Buffer
+	data   []byte
+	body   []byte
+	list   tuplelist.TupleList
 }
 
 func New(buffer *storage.Buffer) Node {
@@ -29,11 +29,11 @@ func New(buffer *storage.Buffer) Node {
 	}
 
 	return Node{
-		header:   header,
-		buffer:   buffer,
-		data:     data,
-		list:     tuplelist.New(data0),
-		byteList: bytelist.New(data0),
+		header: header,
+		buffer: buffer,
+		data:   data,
+		body:   data0,
+		list:   tuplelist.New(data0),
 	}
 }
 
@@ -73,7 +73,7 @@ func (n *Node) Append(size int16) (int16, []byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := n.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.slice(offset, size)
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -94,7 +94,7 @@ func (n *Node) Insert(size int16, index int16) (int16, []byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := n.byteList.Slice(int64(offset), int64(size))
+	b, ok := n.slice(offset, size)
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -136,13 +136,13 @@ func (n Node) Child(index int16) ([]byte, bool) {
 		return nil, false
 	}
 
-	return n.byteList.Slice(int64(offset), int64(size))
+	return n.slice(offset, size)
 }
 
 func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range n.list.Items() {
-			b, ok := n.byteList.Slice(int64(offset), int64(size))
+			b, ok := n.slice(offset, size)
 			if !ok || !yield(b) {
 				return
 			}
@@ -153,10 +153,14 @@ func (n Node) Children() iter.Seq[[]byte] {
 func (n Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for offset, size := range n.list.ItemsRange(start, end) {
-			b, ok := n.byteList.Slice(int64(offset), int64(size))
+			b, ok := n.slice(offset, size)
 			if !ok || !yield(b) {
 				return
 			}
 		}
 	}
+}
+
+func (n Node) slice(offset, size int16) ([]byte, bool) {
+	return slice.Slice(n.body, int64(offset), int64(size))
 }

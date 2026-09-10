@@ -4,7 +4,6 @@ import (
 	"io"
 	"iter"
 
-	"github.com/liaradb/liaradb/encoder/bytelist"
 	"github.com/liaradb/liaradb/encoder/slotlist"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -15,7 +14,6 @@ type Page struct {
 	data           []byte
 	body           []byte
 	list           slotlist.SlotList
-	byteList       bytelist.ByteList
 	next           int
 }
 
@@ -41,7 +39,6 @@ func NewFromSlice(
 		data:           data,
 		body:           data[headerSize:],
 		list:           slotlist.New(data[headerSize:]),
-		byteList:       bytelist.New(data[headerSize:]),
 	}
 	p.initNext()
 	return &p
