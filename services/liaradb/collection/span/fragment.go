@@ -27,6 +27,7 @@ type Fragment struct {
 
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
+	BlockID() link.BlockID
 }
 
 func newFragment(
@@ -50,8 +51,6 @@ func newFragment(
 
 // TODO: Fix this cast
 func (f Fragment) length() int                 { return int(f.buffer.Length()) }
-func (f Fragment) Count() int64                { return f.count.Get() }
-func (f Fragment) Index() int16                { return f.index.Get() }
 func (f Fragment) Position() link.FilePosition { return link.FilePosition(f.count.Get()) }
 func (f Fragment) SlotID() link.SlotID         { return link.SlotID(f.index.Get()) }
 
@@ -71,14 +70,6 @@ func (f Fragment) valid() bool {
 func (f Fragment) commit() {
 	crc := page.NewCRC(f.buffer.Bytes())
 	f.crc.Set(int32(crc.Value()))
-}
-
-func (f Fragment) setCount(v int64) {
-	f.count.Set(v)
-}
-
-func (f Fragment) setIndex(v int16) {
-	f.index.Set(v)
 }
 
 func (f Fragment) setPosition(p link.FilePosition) {

@@ -54,11 +54,14 @@ func (s *Span) Reverse() {
 }
 
 func (s *Span) InitIndexes() {
-	c := len(s.fragments)
-	l := c - 1
-	for i, f := range s.fragments {
-		f.setCount(int64(c))
-		f.setIndex(int16(l - i))
+	if len(s.fragments) < 2 {
+		return
+	}
+
+	for i, f := range s.fragments[:len(s.fragments)-1] {
+		next := s.fragments[i+1]
+		f.setPosition(next.p.BlockID().Position())
+		// f.setSlotID()
 	}
 }
 

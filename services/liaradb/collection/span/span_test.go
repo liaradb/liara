@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestSpan_Write(t *testing.T) {
@@ -93,5 +94,6 @@ func TestSpan_Read__Invalid(t *testing.T) {
 type testBufferPage struct {
 }
 
+func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }

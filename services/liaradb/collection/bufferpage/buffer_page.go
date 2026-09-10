@@ -4,6 +4,7 @@ import (
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type BufferPage struct {
@@ -26,6 +27,8 @@ func New(b *storage.Buffer) *BufferPage {
 		buffer: b,
 	}
 }
+
+func (bp *BufferPage) BlockID() link.BlockID { return bp.buffer.BlockID() }
 
 func (bp *BufferPage) Fill(data []byte) {
 	bp.Page.Fill(data)
