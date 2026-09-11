@@ -22,12 +22,10 @@ func New(data []byte) SlotList {
 	l := int16list.New(data)
 	count, _ := l.Get(0)
 
-	sl := SlotList{
+	return SlotList{
 		count: count,
 		list:  l,
 	}
-
-	return sl
 }
 
 func (*SlotList) position(i link.SlotID) int16 {
