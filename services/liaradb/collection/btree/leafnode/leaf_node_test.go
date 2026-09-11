@@ -145,8 +145,8 @@ func testLeafNode_Child(t *testing.T) {
 	}
 
 	result := make([]leafEntry, 0, len(data))
-	for i := range len(data) {
-		c, ok := ln.Child(int16(i))
+	for i := range link.SlotID(len(data)) {
+		c, ok := ln.Child(i)
 		if !ok {
 			t.Fatal("should get child")
 		}

@@ -82,14 +82,13 @@ func (n *Node) Append(size int16) (int16, []byte, bool) {
 	return i, b, true
 }
 
-// TODO: Change to SlotID
-func (n *Node) Insert(size int16, index int16) (int16, []byte, bool) {
+func (n *Node) Insert(size int16, index link.SlotID) (int16, []byte, bool) {
 	if !n.hasSpace(size) {
 		return 0, nil, false
 	}
 
 	offset := n.next() - size
-	i, ok := n.list.Insert(offset, size, link.SlotID(index))
+	i, ok := n.list.Insert(offset, size, index)
 	if !ok {
 		return 0, nil, false
 	}
@@ -108,7 +107,7 @@ func (n Node) Length() int16 {
 	return int16(len(n.data))
 }
 
-func (n Node) Count() int16 {
+func (n Node) Count() link.SlotID {
 	return n.list.Count()
 }
 
@@ -132,9 +131,8 @@ func (n Node) hasSpace(size int16) bool {
 	return size <= s
 }
 
-// TODO: Change to SlotID
-func (n Node) Child(index int16) ([]byte, bool) {
-	slot, ok := n.list.Slot(link.SlotID(index))
+func (n Node) Child(index link.SlotID) ([]byte, bool) {
+	slot, ok := n.list.Slot(index)
 	if !ok {
 		return nil, false
 	}
@@ -153,10 +151,9 @@ func (n Node) Children() iter.Seq[[]byte] {
 	}
 }
 
-// TODO: Change to SlotID
-func (n Node) ChildrenRange(start, end int16) iter.Seq[[]byte] {
+func (n Node) ChildrenRange(start, end link.SlotID) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for slot := range n.list.SlotsRange(link.SlotID(start), link.SlotID(end)) {
+		for slot := range n.list.SlotsRange(start, end) {
 			b, ok := n.slice(slot.Offset(), slot.Size())
 			if !ok || !yield(b) {
 				return

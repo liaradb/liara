@@ -118,16 +118,16 @@ func (ln *LeafNode) Replace(rightID link.FilePosition, entries Iterator) {
 	ln.node.SetDirty()
 }
 
-func (ln *LeafNode) split(i int16, le leafEntry) (Iterator, Iterator) {
+func (ln *LeafNode) split(i link.SlotID, le leafEntry) (Iterator, Iterator) {
 	mid := ln.mid()
 	return ln.first(i, mid, le), ln.second(i, mid, le)
 }
 
-func (ln *LeafNode) mid() int16 {
+func (ln *LeafNode) mid() link.SlotID {
 	return ln.node.Count() / 2
 }
 
-func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
+func (ln *LeafNode) first(i, mid link.SlotID, le leafEntry) Iterator {
 	// Iterate the first half
 	if i >= mid {
 		return ln.childrenRange(0, mid)
@@ -141,7 +141,7 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 			}
 		}
 
-		var j int16
+		var j link.SlotID
 		for key, rid := range ln.childrenRange(0, mid) {
 			if !yield(key, rid) {
 				return
@@ -159,7 +159,7 @@ func (ln *LeafNode) first(i int16, mid int16, le leafEntry) Iterator {
 	}
 }
 
-func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
+func (ln *LeafNode) second(i, mid link.SlotID, le leafEntry) Iterator {
 	// Iterate the second half
 	if i < mid {
 		return ln.childrenRange(mid, -1)
@@ -174,7 +174,7 @@ func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 			}
 		}
 
-		var j int16
+		var j link.SlotID
 		for key, rid := range ln.childrenRange(mid, -1) {
 			if !yield(key, rid) {
 				return
@@ -192,7 +192,7 @@ func (ln *LeafNode) second(i int16, mid int16, le leafEntry) Iterator {
 	}
 }
 
-func (ln *LeafNode) Child(index int16) (leafEntry, bool) {
+func (ln *LeafNode) Child(index link.SlotID) (leafEntry, bool) {
 	b, ok := ln.node.Child(index)
 	if !ok {
 		return leafEntry{}, false
@@ -216,7 +216,7 @@ func (ln *LeafNode) Children() Iterator {
 	}
 }
 
-func (ln *LeafNode) childrenRange(start, end int16) Iterator {
+func (ln *LeafNode) childrenRange(start, end link.SlotID) Iterator {
 	return func(yield func(key.Key, link.RecordLocator) bool) {
 		for b := range ln.node.ChildrenRange(start, end) {
 			le := leafEntry{}
@@ -252,8 +252,8 @@ func (ln *LeafNode) Search(k key.Key) (link.RecordLocator, bool) {
 	return le.recordID, true
 }
 
-func (ln *LeafNode) searchIndex(k key.Key) (int16, bool) {
-	var i int16 = 0
+func (ln *LeafNode) searchIndex(k key.Key) (link.SlotID, bool) {
+	var i link.SlotID = 0
 	for key := range ln.Children() {
 		if k.Equal(key) {
 			return i, true
@@ -267,8 +267,8 @@ func (ln *LeafNode) searchIndex(k key.Key) (int16, bool) {
 	return 0, false
 }
 
-func (ln *LeafNode) searchIndexRange(k key.Key) int16 {
-	var i int16 = 0
+func (ln *LeafNode) searchIndexRange(k key.Key) link.SlotID {
+	var i link.SlotID = 0
 	for key := range ln.Children() {
 		if k.LessEqual(key) {
 			break

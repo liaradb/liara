@@ -304,8 +304,8 @@ func testNode_Child(t *testing.T) {
 	}
 
 	result := make([][]byte, 0, 2)
-	for i := range 2 {
-		c, ok := n.Child(int16(i))
+	for i := range link.SlotID(2) {
+		c, ok := n.Child(i)
 		if !ok {
 			t.Fatal("should get a buffer")
 		}

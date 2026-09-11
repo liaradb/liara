@@ -156,6 +156,6 @@ func (p *Page) Clear() {
 	p.initNext()
 }
 
-func (p *Page) Count() int16 {
+func (p *Page) Count() link.SlotID {
 	return p.list.Count()
 }

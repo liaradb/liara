@@ -350,7 +350,7 @@ func TestSlotList_Insert(t *testing.T) {
 				t.Fatal("should insert")
 			}
 
-			wantCount := int16(len(c.want))
+			wantCount := link.SlotID(len(c.want))
 			if count := l.Count(); count != wantCount {
 				t.Errorf("incorrect count: %v, expected: %v", count, wantCount)
 			}

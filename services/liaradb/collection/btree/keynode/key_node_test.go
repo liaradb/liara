@@ -130,19 +130,19 @@ func TestKeyNode(t *testing.T) {
 			data := testKeyNodeInsertData(t, kn)
 			for i, e := range data {
 				index := kn.searchIndex(e.key)
-				if index != int16(i) {
+				if index != link.SlotID(i) {
 					t.Errorf("incorrect index: %v, expected: %v", index, int16(i))
 				}
 			}
 			{
-				before := int16(0)
+				before := link.SlotID(0)
 				result := kn.searchIndex(key.NewKey([]byte("a")))
 				if result != before {
 					t.Errorf("incorrect before: %v, expected: %v", result, before)
 				}
 			}
 			{
-				after := int16(len(data))
+				after := link.SlotID(len(data))
 				result := kn.searchIndex(key.NewKey([]byte("e")))
 				if result != after {
 					t.Errorf("incorrect after: %v, expected: %v", result, after)

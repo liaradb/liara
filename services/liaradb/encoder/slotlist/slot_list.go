@@ -14,7 +14,7 @@ const (
 )
 
 type SlotList struct {
-	count int16
+	count link.SlotID
 	list  int16list.Int16List
 }
 
@@ -23,7 +23,7 @@ func New(data []byte) SlotList {
 	count, _ := l.Get(0)
 
 	return SlotList{
-		count: count,
+		count: link.SlotID(count),
 		list:  l,
 	}
 }
@@ -34,12 +34,12 @@ func (*SlotList) position(i link.SlotID) int16 {
 }
 
 func (sl *SlotList) Last() (Slot, bool) {
-	return sl.Slot(link.SlotID(sl.count - 1))
+	return sl.Slot(sl.count - 1)
 }
 
 func (sl *SlotList) Reset() {
 	count, _ := sl.list.Get(0)
-	sl.count = count
+	sl.count = link.SlotID(count)
 }
 
 func (sl *SlotList) Clear() {
@@ -52,25 +52,25 @@ func (sl *SlotList) Length() int {
 }
 
 func (sl *SlotList) Size() int16 {
-	return sl.position(link.SlotID(sl.count)) * slotSize
+	return sl.position(sl.count) * slotSize
 }
 
 func (sl *SlotList) NextSize() int16 {
-	return sl.position(link.SlotID(sl.count+1)) * slotSize
+	return sl.position(sl.count+1) * slotSize
 }
 
-func (sl *SlotList) Count() int16 {
+func (sl *SlotList) Count() link.SlotID {
 	return sl.count
 }
 
-func (sl *SlotList) setCount(count int16) {
-	if sl.list.Set(0, count) {
+func (sl *SlotList) setCount(count link.SlotID) {
+	if sl.list.Set(0, count.Value()) {
 		sl.count = count
 	}
 }
 
 func (sl *SlotList) Slot(i link.SlotID) (Slot, bool) {
-	if i < 0 || i.Value() >= sl.count {
+	if i < 0 || i >= sl.count {
 		return Slot{}, false
 	}
 
@@ -86,7 +86,7 @@ func (sl *SlotList) Slot(i link.SlotID) (Slot, bool) {
 
 func (sl *SlotList) Slots() iter.Seq[Slot] {
 	return func(yield func(Slot) bool) {
-		for i := range link.SlotID(sl.count) {
+		for i := range sl.count {
 			slot, ok := sl.Slot(i)
 			if !ok || !yield(slot) {
 				return
@@ -97,8 +97,8 @@ func (sl *SlotList) Slots() iter.Seq[Slot] {
 
 func (sl *SlotList) SlotsReverse() iter.Seq[Slot] {
 	return func(yield func(Slot) bool) {
-		c := link.SlotID(sl.count - 1)
-		for i := range link.SlotID(sl.count) {
+		c := sl.count - 1
+		for i := range sl.count {
 			slot, ok := sl.Slot(c - i)
 			if !ok || !yield(slot) {
 				return
@@ -110,10 +110,10 @@ func (sl *SlotList) SlotsReverse() iter.Seq[Slot] {
 func (sl *SlotList) SlotsRange(start, end link.SlotID) iter.Seq[Slot] {
 	return func(yield func(Slot) bool) {
 		if start < 0 {
-			start = link.SlotID(sl.count) + 1 + start
+			start = sl.count + 1 + start
 		}
 		if end < 0 {
-			end = link.SlotID(sl.count) + 1 + end
+			end = sl.count + 1 + end
 		}
 		for i := start; i < end; i++ {
 			slot, ok := sl.Slot(i)
@@ -126,7 +126,7 @@ func (sl *SlotList) SlotsRange(start, end link.SlotID) iter.Seq[Slot] {
 
 func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (int16, bool) {
 	start := sl.position(i)
-	end := sl.position(link.SlotID(sl.count))
+	end := sl.position(sl.count)
 
 	if ok := sl.list.ShiftRange(start, end, slotSize); !ok {
 		return 0, false
@@ -138,11 +138,11 @@ func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (int16, bool
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return count, true
+	return count.Value(), true
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
-	slot, ok := sl.Slot(link.SlotID(sl.count) - 1)
+	slot, ok := sl.Slot(sl.count - 1)
 	if !ok {
 		return Slot{}, false
 	}
@@ -152,14 +152,14 @@ func (sl *SlotList) Pop() (Slot, bool) {
 }
 
 func (sl *SlotList) Push(offset int16, size int16) (int16, bool) {
-	pos := sl.position(link.SlotID(sl.count))
+	pos := sl.position(sl.count)
 	if !sl.setSlot(pos, offset, size) {
 		return 0, false
 	}
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return count, true
+	return count.Value(), true
 }
 
 func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {

@@ -50,17 +50,17 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 	return nil, nil, true
 }
 
-func (kn *KeyNode) split(i int16, ke keyEntry) (Iterator, Iterator) {
+func (kn *KeyNode) split(i link.SlotID, ke keyEntry) (Iterator, Iterator) {
 	mid := kn.mid()
 	return kn.first(i, mid, ke),
 		kn.second(i, mid, ke)
 }
 
-func (kn *KeyNode) mid() int16 {
+func (kn *KeyNode) mid() link.SlotID {
 	return kn.node.Count() / 2
 }
 
-func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
+func (kn *KeyNode) first(i, mid link.SlotID, ke keyEntry) Iterator {
 	if i >= mid {
 		return kn.childrenRange(0, mid)
 	}
@@ -72,7 +72,7 @@ func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
 			}
 		}
 
-		var j int16
+		var j link.SlotID
 		for key, block := range kn.childrenRange(0, mid) {
 			if !yield(key, block) {
 				return
@@ -89,7 +89,7 @@ func (kn *KeyNode) first(i int16, mid int16, ke keyEntry) Iterator {
 	}
 }
 
-func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
+func (kn *KeyNode) second(i, mid link.SlotID, ke keyEntry) Iterator {
 	if i < mid {
 		return kn.childrenRange(mid, -1)
 	}
@@ -102,7 +102,7 @@ func (kn *KeyNode) second(i int16, mid int16, ke keyEntry) Iterator {
 			}
 		}
 
-		var j int16
+		var j link.SlotID
 		for key, block := range kn.childrenRange(mid, -1) {
 			if !yield(key, block) {
 				return
@@ -186,7 +186,7 @@ func (kn *KeyNode) Children() Iterator {
 	}
 }
 
-func (kn *KeyNode) Child(i int16) (key.Key, link.FilePosition, bool) {
+func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition, bool) {
 	b, ok := kn.node.Child(i)
 	if !ok {
 		return key.Key{}, 0, false
@@ -200,7 +200,7 @@ func (kn *KeyNode) Child(i int16) (key.Key, link.FilePosition, bool) {
 	return ke.Key(), ke.Block(), true
 }
 
-func (kn *KeyNode) childrenRange(start, end int16) Iterator {
+func (kn *KeyNode) childrenRange(start, end link.SlotID) Iterator {
 	return func(yield func(key.Key, link.FilePosition) bool) {
 		for b := range kn.node.ChildrenRange(start, end) {
 			ke := keyEntry{}
@@ -230,8 +230,8 @@ func (kn *KeyNode) Search(k key.Key) link.FilePosition {
 	return p
 }
 
-func (kn *KeyNode) searchIndex(k key.Key) int16 {
-	var i int16 = 0
+func (kn *KeyNode) searchIndex(k key.Key) link.SlotID {
+	var i link.SlotID = 0
 	for key := range kn.Children() {
 		if k.LessEqual(key) {
 			break
@@ -242,8 +242,8 @@ func (kn *KeyNode) searchIndex(k key.Key) int16 {
 	return i
 }
 
-func (kn *KeyNode) Level() byte  { return kn.node.Level() }
-func (kn *KeyNode) Count() int16 { return kn.node.Count() }
+func (kn *KeyNode) Level() byte        { return kn.node.Level() }
+func (kn *KeyNode) Count() link.SlotID { return kn.node.Count() }
 
 // TODO: Test this
 func (kn *KeyNode) Release()  { kn.node.Release() }
