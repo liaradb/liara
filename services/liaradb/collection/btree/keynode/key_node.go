@@ -20,24 +20,24 @@ func New(page node.Node) *KeyNode {
 	}
 }
 
-func (kn *KeyNode) append(key key.Key, block link.FilePosition) (int16, bool) {
+func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 	ke := newKeyEntry(key, block)
-	i, b, ok := kn.node.Append(int16(ke.Size()))
+	b, ok := kn.node.Append(int16(ke.Size()))
 	if !ok {
-		return 0, false
+		return false
 	}
 
 	ke.Write(b)
 	kn.node.SetDirty()
 
-	return i, true
+	return true
 }
 
 func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 
-	_, b, ok := kn.node.Insert(int16(ke.Size()), i)
+	b, ok := kn.node.Insert(int16(ke.Size()), i)
 	if !ok {
 		// Split
 		a, b := kn.split(i, ke)
@@ -128,7 +128,7 @@ func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
 		}
 		first = false
 		// This will definitely fit
-		_, _ = kn.append(key, block)
+		_ = kn.append(key, block)
 	}
 
 	kn.node.SetLevel(l)
@@ -148,7 +148,7 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 
 	for _, e := range cache {
 		// This will definitely fit
-		_, _ = kn.append(e.key, e.block)
+		_ = kn.append(e.key, e.block)
 	}
 
 	kn.node.SetLevel(l)
@@ -163,12 +163,12 @@ func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, b
 	kn.node.Clear()
 
 	// Point original key to first block
-	if _, ok := kn.append(key0, block0); !ok {
+	if ok := kn.append(key0, block0); !ok {
 		return false
 	}
 
 	// Point new key to second block
-	_, ok := kn.append(key1, block1)
+	ok := kn.append(key1, block1)
 	kn.node.SetLevel(l)
 	kn.node.SetDirty()
 	return ok

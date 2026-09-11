@@ -50,10 +50,13 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect next: %v, expected: %v", ok, false)
 	}
 
-	if i, ok := l.Push(2, 10); !ok {
+	want := NewSlot(2, 10)
+	if s, i, ok := l.Push(2, 10); !ok {
 		t.Error("should push")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	} else if s != want {
+		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
 	if s := l.Size(); s != 6 {
@@ -70,10 +73,13 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect next: %v, expected: %v", offset, 2)
 	}
 
-	if i, ok := l.Push(5, 20); !ok {
+	want = NewSlot(5, 20)
+	if s, i, ok := l.Push(5, 20); !ok {
 		t.Error("should push")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
+	} else if s != want {
+		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
 	if s := l.Size(); s != 10 {
@@ -116,12 +122,18 @@ func TestSlotList_Pop(t *testing.T) {
 
 	l := New(make([]byte, 18))
 
-	if _, ok := l.Push(1, 10); !ok {
+	want := NewSlot(1, 10)
+	if s, _, ok := l.Push(1, 10); !ok {
 		t.Error("should push")
+	} else if s != want {
+		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
-	if _, ok := l.Push(2, 20); !ok {
+	want = NewSlot(2, 20)
+	if s, _, ok := l.Push(2, 20); !ok {
 		t.Error("should push")
+	} else if s != want {
+		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
 	if slot, ok := l.Pop(); !ok {
@@ -174,7 +186,7 @@ func TestSlotList_Slots(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, ok := l.Push(i.a, i.b); !ok {
+		if _, _, ok := l.Push(i.a, i.b); !ok {
 			t.Error("should push")
 		}
 	}
@@ -202,7 +214,7 @@ func TestSlotList_SlotsReverse(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, ok := l.Push(i.a, i.b); !ok {
+		if _, _, ok := l.Push(i.a, i.b); !ok {
 			t.Error("should push")
 		}
 	}
@@ -236,7 +248,7 @@ func TestSlotList_SlotsRange(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, ok := l.Push(i.a, i.b); !ok {
+		if _, _, ok := l.Push(i.a, i.b); !ok {
 			t.Error("should push")
 		}
 	}
@@ -341,13 +353,16 @@ func TestSlotList_Insert(t *testing.T) {
 			l := New(make([]byte, 42))
 
 			for _, i := range c.data {
-				if _, ok := l.Push(i.a, i.b); !ok {
+				if _, _, ok := l.Push(i.a, i.b); !ok {
 					t.Fatal("should push")
 				}
 			}
 
-			if _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
+			want := NewSlot(c.insert.a, c.insert.b)
+			if s, _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
 				t.Fatal("should insert")
+			} else if s != want {
+				t.Errorf("incorrect slot: %v, expected: %v", s, want)
 			}
 
 			wantCount := link.SlotID(len(c.want))
@@ -377,12 +392,15 @@ func TestSlotList_Insert(t *testing.T) {
 		l := New(make([]byte, 6))
 		for i, slot := range []tuple{
 			{10, 60}} {
-			if _, ok := l.Insert(slot.a, slot.b, link.SlotID(i)); !ok {
+			want := NewSlot(slot.a, slot.b)
+			if s, _, ok := l.Insert(slot.a, slot.b, link.SlotID(i)); !ok {
 				t.Fatal("should insert")
+			} else if s != want {
+				t.Errorf("incorrect slot: %v, expected: %v", s, want)
 			}
 		}
 
-		if _, ok := l.Insert(20, 70, 0); ok {
+		if _, _, ok := l.Insert(20, 70, 0); ok {
 			t.Error("should not insert beyond size")
 		}
 	})
@@ -433,7 +451,7 @@ func TestSlotList_Clear(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 16)
 	}
 
-	if i, ok := l.Push(1, 2); !ok {
+	if _, i, ok := l.Push(1, 2); !ok {
 		t.Error("should push")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)

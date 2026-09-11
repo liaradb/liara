@@ -124,21 +124,21 @@ func (sl *SlotList) SlotsRange(start, end link.SlotID) iter.Seq[Slot] {
 	}
 }
 
-func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (int16, bool) {
+func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (Slot, link.SlotID, bool) {
 	start := sl.position(i)
 	end := sl.position(sl.count)
 
 	if ok := sl.list.ShiftRange(start, end, slotSize); !ok {
-		return 0, false
+		return Slot{}, 0, false
 	}
 
 	if !sl.setSlot(start, offset, size) {
-		return 0, false
+		return Slot{}, 0, false
 	}
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return count.Value(), true
+	return Slot{offset, size}, count, true
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
@@ -151,15 +151,15 @@ func (sl *SlotList) Pop() (Slot, bool) {
 	return slot, true
 }
 
-func (sl *SlotList) Push(offset int16, size int16) (int16, bool) {
+func (sl *SlotList) Push(offset int16, size int16) (Slot, link.SlotID, bool) {
 	pos := sl.position(sl.count)
 	if !sl.setSlot(pos, offset, size) {
-		return 0, false
+		return Slot{}, 0, false
 	}
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return count.Value(), true
+	return Slot{offset, size}, count, true
 }
 
 func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {

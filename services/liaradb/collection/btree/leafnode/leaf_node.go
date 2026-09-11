@@ -46,24 +46,24 @@ func (ln *LeafNode) setRightID(block link.FilePosition) {
 	ln.node.SetHighID(block)
 }
 
-func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) (int16, bool) {
+func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 	le := newLeafEntry(key, recordID)
-	i, b, ok := ln.node.Append(int16(le.Size()))
+	b, ok := ln.node.Append(int16(le.Size()))
 	if !ok {
-		return 0, false
+		return false
 	}
 
 	le.Write(b)
 	ln.node.SetDirty()
 
-	return i, true
+	return true
 }
 
 func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 
-	_, b, ok := ln.node.Insert(int16(le.Size()), i)
+	b, ok := ln.node.Insert(int16(le.Size()), i)
 	if !ok {
 		a, b := ln.split(i, le)
 		return a, b, false
@@ -88,7 +88,7 @@ func (ln *LeafNode) Fill(
 		}
 		first = false
 		// This will definitely fit
-		_, _ = ln.Append(key, rid)
+		_ = ln.Append(key, rid)
 	}
 
 	ln.setLeftID(leftID)
@@ -110,7 +110,7 @@ func (ln *LeafNode) Replace(rightID link.FilePosition, entries Iterator) {
 
 	for _, e := range cache {
 		// This will definitely fit
-		_, _ = ln.Append(e.key, e.recordID)
+		_ = ln.Append(e.key, e.recordID)
 	}
 
 	ln.setLeftID(leftID)

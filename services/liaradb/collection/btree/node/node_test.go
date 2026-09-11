@@ -89,11 +89,9 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	i, b0, ok := n.Append(16)
+	b0, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
-	} else if i != 0 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
 	if c := n.Count(); c != 1 {
@@ -108,11 +106,9 @@ func testNode_Append(t *testing.T) {
 		t.Error(err)
 	}
 
-	i, b1, ok := n.Append(16)
+	b1, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
-	} else if i != 1 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	if c := n.Count(); c != 2 {
@@ -181,11 +177,9 @@ func testNode_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	i, b0, ok := n.Insert(16, 0)
+	b0, ok := n.Insert(16, 0)
 	if !ok {
 		t.Fatal("should get a buffer")
-	} else if i != 0 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 0)
 	}
 
 	if s := n.Space(); s != s1 {
@@ -196,11 +190,9 @@ func testNode_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	i, b1, ok := n.Insert(16, 1)
+	b1, ok := n.Insert(16, 1)
 	if !ok {
 		t.Fatal("should get a buffer")
-	} else if i != 1 {
-		t.Fatalf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	if s := n.Space(); s != s2 {
@@ -256,7 +248,7 @@ func testNode_Space(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
 	}
 
-	if _, _, ok := n.Append(16); !ok {
+	if _, ok := n.Append(16); !ok {
 		t.Error("should get a buffer")
 	}
 
@@ -264,7 +256,7 @@ func testNode_Space(t *testing.T) {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
 	}
 
-	if _, _, ok := n.Append(16); ok {
+	if _, ok := n.Append(16); ok {
 		t.Error("should not get a buffer")
 	}
 
@@ -285,7 +277,7 @@ func testNode_Child(t *testing.T) {
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
-	_, b0, ok := n.Append(16)
+	b0, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
 	}
@@ -294,7 +286,7 @@ func testNode_Child(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, b1, ok := n.Append(16)
+	b1, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
 	}
@@ -344,7 +336,7 @@ func testNode_Children(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b, ok := n.Append(itemSize * int16(len(v)))
+		b, ok := n.Append(itemSize * int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
 		}
@@ -390,7 +382,7 @@ func testNode_ChildrenRange(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b0, ok := n.Append(itemSize * int16(len(v)))
+		b0, ok := n.Append(itemSize * int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
 		}
@@ -449,7 +441,7 @@ func testNode_Clear(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		_, b, ok := n.Append(itemSize * int16(len(v)))
+		b, ok := n.Append(itemSize * int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
 		}

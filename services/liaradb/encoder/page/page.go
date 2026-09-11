@@ -100,6 +100,7 @@ func (p *Page) SlotsReverse() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
+	// TODO: Use slot.Slice
 	start, end := s.Range()
 	data := p.body[start:end]
 
@@ -142,7 +143,7 @@ func (p *Page) Commit(size int) bool {
 	start := p.next - fullSize
 
 	// TODO: Fix this cast
-	if _, ok := p.list.Push(int16(start), int16(fullSize)); !ok {
+	if _, _, ok := p.list.Push(int16(start), int16(fullSize)); !ok {
 		return false
 	}
 

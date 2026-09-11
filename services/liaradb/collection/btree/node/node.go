@@ -60,48 +60,46 @@ func (n *Node) SetLevel(l byte) {
 	n.header.setLevel(l)
 }
 
-func (n *Node) Append(size int16) (int16, []byte, bool) {
+func (n *Node) Append(size int16) ([]byte, bool) {
 	if !n.hasSpace(size) {
-		return 0, nil, false
+		return nil, false
 	}
 
 	offset := n.next() - size
-	i, ok := n.list.Push(offset, size)
+	slot, _, ok := n.list.Push(offset, size)
 	if !ok {
-		return 0, nil, false
+		return nil, false
 	}
 
 	n.header.setNext(offset)
 
-	slot := slotlist.NewSlot(offset, size)
 	b, ok := slot.Slice(n.body)
 	if !ok { // We already checked hasSpace
-		return 0, nil, false
+		return nil, false
 	}
 
-	return i, b, true
+	return b, true
 }
 
-func (n *Node) Insert(size int16, index link.SlotID) (int16, []byte, bool) {
+func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
 	if !n.hasSpace(size) {
-		return 0, nil, false
+		return nil, false
 	}
 
 	offset := n.next() - size
-	i, ok := n.list.Insert(offset, size, index)
+	slot, _, ok := n.list.Insert(offset, size, index)
 	if !ok {
-		return 0, nil, false
+		return nil, false
 	}
 
 	n.header.setNext(offset)
 
-	slot := slotlist.NewSlot(offset, size)
 	b, ok := slot.Slice(n.body)
 	if !ok { // We already checked hasSpace
-		return 0, nil, false
+		return nil, false
 	}
 
-	return i, b, true
+	return b, true
 }
 
 func (n Node) Length() int16 {

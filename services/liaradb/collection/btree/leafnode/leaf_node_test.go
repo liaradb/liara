@@ -132,16 +132,12 @@ func testLeafNode_Child(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
-	} else if i != 0 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i, ok := ln.Append(data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
-	} else if i != 1 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	result := make([]leafEntry, 0, len(data))
@@ -181,16 +177,12 @@ func testLeafNode_Children(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if i, ok := ln.Append(data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
-	} else if i != 0 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 
-	if i, ok := ln.Append(data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
-	} else if i != 1 {
-		t.Errorf("incorrect index: %v, expected: %v", i, 1)
 	}
 
 	result := make([]leafEntry, 0, len(data))
