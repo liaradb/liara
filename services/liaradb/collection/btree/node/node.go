@@ -6,7 +6,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/slotlist"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/slice"
 )
 
 const (
@@ -74,7 +73,8 @@ func (n *Node) Append(size int16) (int16, []byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := n.slice(offset, size)
+	slot := slotlist.NewSlot(offset, size)
+	b, ok := slot.Slice(n.body)
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -95,7 +95,8 @@ func (n *Node) Insert(size int16, index link.SlotID) (int16, []byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := n.slice(offset, size)
+	slot := slotlist.NewSlot(offset, size)
+	b, ok := slot.Slice(n.body)
 	if !ok { // We already checked hasSpace
 		return 0, nil, false
 	}
@@ -137,13 +138,13 @@ func (n Node) Child(index link.SlotID) ([]byte, bool) {
 		return nil, false
 	}
 
-	return n.slice(slot.Offset(), slot.Size())
+	return slot.Slice(n.body)
 }
 
 func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for slot := range n.list.Slots() {
-			b, ok := n.slice(slot.Offset(), slot.Size())
+			b, ok := slot.Slice(n.body)
 			if !ok || !yield(b) {
 				return
 			}
@@ -154,14 +155,10 @@ func (n Node) Children() iter.Seq[[]byte] {
 func (n Node) ChildrenRange(start, end link.SlotID) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for slot := range n.list.SlotsRange(start, end) {
-			b, ok := n.slice(slot.Offset(), slot.Size())
+			b, ok := slot.Slice(n.body)
 			if !ok || !yield(b) {
 				return
 			}
 		}
 	}
-}
-
-func (n Node) slice(offset, size int16) ([]byte, bool) {
-	return slice.Slice(n.body, int64(offset), int64(size))
 }
