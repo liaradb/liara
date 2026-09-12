@@ -16,7 +16,6 @@ type Node struct {
 	header
 	buffer *storage.Buffer
 	data   []byte
-	body   []byte
 	list   slotlist.SlotList
 }
 
@@ -32,7 +31,6 @@ func New(buffer *storage.Buffer) Node {
 		header: header,
 		buffer: buffer,
 		data:   data,
-		body:   data0,
 		list:   slotlist.New(data0),
 	}
 }
@@ -74,7 +72,7 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	n.header.setNext(offset)
 
 	// We already checked hasSpace
-	return slot.SliceUnsafe(n.body), true
+	return slot.SliceUnsafe(), true
 }
 
 func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
@@ -91,7 +89,7 @@ func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
 	n.header.setNext(offset)
 
 	// We already checked hasSpace
-	return slot.SliceUnsafe(n.body), true
+	return slot.SliceUnsafe(), true
 }
 
 func (n Node) Length() int16 {
@@ -128,13 +126,13 @@ func (n Node) Child(index link.SlotID) ([]byte, bool) {
 		return nil, false
 	}
 
-	return slot.Slice(n.body)
+	return slot.Slice()
 }
 
 func (n Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for slot := range n.list.Slots() {
-			b, ok := slot.Slice(n.body)
+			b, ok := slot.Slice()
 			if !ok || !yield(b) {
 				return
 			}
@@ -145,7 +143,7 @@ func (n Node) Children() iter.Seq[[]byte] {
 func (n Node) ChildrenRange(start, end link.SlotID) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		for slot := range n.list.SlotsRange(start, end) {
-			b, ok := slot.Slice(n.body)
+			b, ok := slot.Slice()
 			if !ok || !yield(b) {
 				return
 			}

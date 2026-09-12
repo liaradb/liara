@@ -12,7 +12,7 @@ type Page struct {
 	headerSize     int
 	slotHeaderSize int
 	data           []byte
-	body           []byte
+	body           []byte // TODO: Just use SlotList
 	list           slotlist.SlotList
 	next           int
 }
@@ -100,7 +100,7 @@ func (p *Page) SlotsReverse() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
-	data := s.SliceUnsafe(p.body)
+	data := s.SliceUnsafe()
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 

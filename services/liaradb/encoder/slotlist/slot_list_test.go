@@ -2,6 +2,7 @@ package slotlist
 
 import (
 	"encoding/binary"
+	"reflect"
 	"slices"
 	"testing"
 
@@ -40,7 +41,8 @@ func TestSlotList_Default(t *testing.T) {
 func TestSlotList_Push(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 32))
+	data := make([]byte, 32)
+	l := New(data)
 
 	if length := l.Length(); length != 32 {
 		t.Errorf("incorrect length: %v, expected: %v", length, 32)
@@ -50,12 +52,12 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect next: %v, expected: %v", ok, false)
 	}
 
-	want := NewSlot(2, 10)
+	want := NewSlot(2, 10, data)
 	if s, i, ok := l.Push(2, 10); !ok {
 		t.Error("should push")
 	} else if i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
-	} else if s != want {
+	} else if !reflect.DeepEqual(s, want) {
 		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
@@ -73,12 +75,12 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect next: %v, expected: %v", offset, 2)
 	}
 
-	want = NewSlot(5, 20)
+	want = NewSlot(5, 20, data)
 	if s, i, ok := l.Push(5, 20); !ok {
 		t.Error("should push")
 	} else if i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
-	} else if s != want {
+	} else if !reflect.DeepEqual(s, want) {
 		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
@@ -120,19 +122,20 @@ func TestSlotList_Push(t *testing.T) {
 func TestSlotList_Pop(t *testing.T) {
 	t.Parallel()
 
-	l := New(make([]byte, 18))
+	data := make([]byte, 18)
+	l := New(data)
 
-	want := NewSlot(1, 10)
+	want := NewSlot(1, 10, data)
 	if s, _, ok := l.Push(1, 10); !ok {
 		t.Error("should push")
-	} else if s != want {
+	} else if !reflect.DeepEqual(s, want) {
 		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
-	want = NewSlot(2, 20)
+	want = NewSlot(2, 20, data)
 	if s, _, ok := l.Push(2, 20); !ok {
 		t.Error("should push")
-	} else if s != want {
+	} else if !reflect.DeepEqual(s, want) {
 		t.Errorf("incorrect slot: %v, expected: %v", s, want)
 	}
 
@@ -350,7 +353,8 @@ func TestSlotList_Insert(t *testing.T) {
 				t.Skip()
 			}
 
-			l := New(make([]byte, 42))
+			data := make([]byte, 42)
+			l := New(data)
 
 			for _, i := range c.data {
 				if _, _, ok := l.Push(i.a, i.b); !ok {
@@ -358,10 +362,10 @@ func TestSlotList_Insert(t *testing.T) {
 				}
 			}
 
-			want := NewSlot(c.insert.a, c.insert.b)
+			want := NewSlot(c.insert.a, c.insert.b, data)
 			if s, _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
 				t.Fatal("should insert")
-			} else if s != want {
+			} else if !reflect.DeepEqual(s, want) {
 				t.Errorf("incorrect slot: %v, expected: %v", s, want)
 			}
 
@@ -389,13 +393,14 @@ func TestSlotList_Insert(t *testing.T) {
 	t.Run("should not insert beyond size", func(t *testing.T) {
 		t.Parallel()
 
-		l := New(make([]byte, 6))
+		data := make([]byte, 6)
+		l := New(data)
 		for i, slot := range []tuple{
 			{10, 60}} {
-			want := NewSlot(slot.a, slot.b)
+			want := NewSlot(slot.a, slot.b, data)
 			if s, _, ok := l.Insert(slot.a, slot.b, link.SlotID(i)); !ok {
 				t.Fatal("should insert")
-			} else if s != want {
+			} else if !reflect.DeepEqual(s, want) {
 				t.Errorf("incorrect slot: %v, expected: %v", s, want)
 			}
 		}
