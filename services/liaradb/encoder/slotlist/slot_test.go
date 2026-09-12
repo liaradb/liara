@@ -5,7 +5,8 @@ import (
 	"testing"
 )
 
-func TestSlot_Range(t *testing.T) {
+// TODO: How do we test without using private constructor?
+func TestSlot_SliceUnsafe(t *testing.T) {
 	t.Parallel()
 
 	data := func(size int) []byte {
@@ -16,7 +17,6 @@ func TestSlot_Range(t *testing.T) {
 		return data
 	}(110)
 
-	// 	TODO: Should this use a constructor as the fields are private?
 	for message, c := range map[string]struct {
 		skip  bool
 		s     Slot
@@ -25,15 +25,15 @@ func TestSlot_Range(t *testing.T) {
 	}{
 		"should handle empty slot": {},
 		"should handle slot with offset but no size": {
-			s:     NewSlot(10, 0, data),
+			s:     newSlot(10, 0, data),
 			start: 10,
 			end:   10},
 		"should handle slot with size, but no offset": {
-			s:     NewSlot(0, 100, data),
+			s:     newSlot(0, 100, data),
 			start: 0,
 			end:   100},
 		"should handle slot with offset and size": {
-			s:     NewSlot(10, 100, data),
+			s:     newSlot(10, 100, data),
 			start: 10,
 			end:   110},
 	} {
@@ -56,7 +56,7 @@ func TestSlot_Slice(t *testing.T) {
 
 	data := make([]byte, 16)
 
-	s := NewSlot(0, 16, data)
+	s := newSlot(0, 16, data)
 	b, ok := s.Slice()
 	if !ok {
 		t.Error("should get a buffer")
@@ -66,12 +66,12 @@ func TestSlot_Slice(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 16)
 	}
 
-	s = NewSlot(16, 16, data)
+	s = newSlot(16, 16, data)
 	if _, ok := s.Slice(); ok {
 		t.Error("should not get a buffer starting beyond length")
 	}
 
-	s = NewSlot(0, 20, data)
+	s = newSlot(0, 20, data)
 	if _, ok := s.Slice(); ok {
 		t.Error("should not get a buffer ending beyond length")
 	}
@@ -82,7 +82,7 @@ func TestSlot_Slice__Empty(t *testing.T) {
 
 	data := make([]byte, 16)
 
-	s := NewSlot(2, 0, data)
+	s := newSlot(2, 0, data)
 	b, ok := s.Slice()
 	if !ok {
 		t.Error("should get a buffer")

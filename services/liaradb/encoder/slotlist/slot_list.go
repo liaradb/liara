@@ -83,7 +83,7 @@ func (sl *SlotList) Slot(i link.SlotID) (Slot, bool) {
 		return Slot{}, false
 	}
 
-	return NewSlot(a, b, sl.data), true
+	return newSlot(a, b, sl.data), true
 }
 
 func (sl *SlotList) Slots() iter.Seq[Slot] {
@@ -140,7 +140,7 @@ func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (Slot, link.
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return NewSlot(offset, size, sl.data), count, true
+	return newSlot(offset, size, sl.data), count, true
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
@@ -161,7 +161,7 @@ func (sl *SlotList) Push(offset int16, size int16) (Slot, link.SlotID, bool) {
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return NewSlot(offset, size, sl.data), count, true
+	return newSlot(offset, size, sl.data), count, true
 }
 
 func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {

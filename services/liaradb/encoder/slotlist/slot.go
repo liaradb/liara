@@ -6,8 +6,7 @@ type Slot struct {
 	data   []byte
 }
 
-// TODO: Make this private
-func NewSlot(offset, size int16, data []byte) Slot {
+func newSlot(offset, size int16, data []byte) Slot {
 	return Slot{offset, size, data}
 }
 
