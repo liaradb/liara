@@ -1,9 +1,20 @@
 package slotlist
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
 func TestSlot_Range(t *testing.T) {
 	t.Parallel()
+
+	data := func(size int) []byte {
+		data := make([]byte, size)
+		for i := range size {
+			data[i] = byte(i)
+		}
+		return data
+	}(110)
 
 	// 	TODO: Should this use a constructor as the fields are private?
 	for message, c := range map[string]struct {
@@ -32,10 +43,9 @@ func TestSlot_Range(t *testing.T) {
 				t.Skip()
 			}
 
-			if start, end := c.s.Range(); start != c.start {
-				t.Errorf("incorrect start: %v, expected: %v", start, c.start)
-			} else if end != c.end {
-				t.Errorf("incorrect end: %v, expected: %v", end, c.end)
+			want := data[c.start:c.end]
+			if slot := c.s.SliceUnsafe(data); !slices.Equal(slot, want) {
+				t.Errorf("incorrect slot: %v, expected: %v", slot, want)
 			}
 		})
 	}

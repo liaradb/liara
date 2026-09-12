@@ -100,10 +100,7 @@ func (p *Page) SlotsReverse() iter.Seq2[[]byte, []byte] {
 }
 
 func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
-	// TODO: Use slot.Slice
-	start, end := s.Range()
-	data := p.body[start:end]
-
+	data := s.SliceUnsafe(p.body)
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 

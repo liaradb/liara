@@ -73,12 +73,8 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := slot.Slice(n.body)
-	if !ok { // We already checked hasSpace
-		return nil, false
-	}
-
-	return b, true
+	// We already checked hasSpace
+	return slot.SliceUnsafe(n.body), true
 }
 
 func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
@@ -94,12 +90,8 @@ func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
 
 	n.header.setNext(offset)
 
-	b, ok := slot.Slice(n.body)
-	if !ok { // We already checked hasSpace
-		return nil, false
-	}
-
-	return b, true
+	// We already checked hasSpace
+	return slot.SliceUnsafe(n.body), true
 }
 
 func (n Node) Length() int16 {
