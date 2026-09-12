@@ -11,6 +11,8 @@ import (
 	"github.com/liaradb/liaradb/util/async"
 )
 
+// TODO: Create dirty list in FreePool. This will make flushes simpler.
+// TODO: Verify pool is filled up to max
 type Storage struct {
 	bufferSize int64
 	fs         filecache.FileSystem

@@ -6,6 +6,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
+// TODO: Should this be moved to link?
 type PageID uint64
 
 const PageIDSize = 8

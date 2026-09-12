@@ -7,6 +7,10 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+// TODO: Use slices to shrink body as slotlist grows
+// Store original body size
+// When adding to the slotlist, subslice the body
+
 const (
 	headerSize = 1
 	slotSize   = 2
