@@ -119,8 +119,8 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 		return nil, errors.New(" could not read slot")
 	}
 	f := s.Append(p, sid, h, d)
-	for f.Position() != 0 {
-		bid.SetPosition(f.Position())
+	for f.NextPosition() != 0 {
+		bid.SetPosition(f.NextPosition())
 		b, err := fc.s.Request(ctx, bid)
 		if err != nil {
 			return nil, err
@@ -181,8 +181,8 @@ func (fc *FixedCollection) Replace(
 		return errors.New(" could not read slot")
 	}
 	f := s.Append(p, sid, h, d)
-	for f.Position() != 0 {
-		bid.SetPosition(f.Position())
+	for f.NextPosition() != 0 {
+		bid.SetPosition(f.NextPosition())
 		b, err := fc.s.Request(ctx, bid)
 		if err != nil {
 			return err
