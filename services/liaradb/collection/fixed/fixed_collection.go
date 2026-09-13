@@ -100,42 +100,9 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 	fn link.FileName,
 	rl link.RecordLocator,
 ) ([]byte, error) {
-	var bs bufferSlice
-	defer bs.Release()
-
-	bid := fn.BlockID(rl.Block())
-	b, err := fc.s.Request(ctx, bid)
+	s, err := fc.GetSpanByRecordLocator(ctx, fn, rl)
 	if err != nil {
 		return nil, err
-	}
-
-	bs.Append(b)
-
-	p := bufferpage.New(b)
-	s := span.New(nil) // TODO: Use Log
-	sid := rl.SlotID()
-	h, d, ok := p.Slot(sid)
-	if !ok {
-		return nil, errors.New(" could not read slot")
-	}
-	f := s.Append(p, sid, h, d)
-	for f.NextPosition() != 0 {
-		bid.SetPosition(f.NextPosition())
-		b, err := fc.s.Request(ctx, bid)
-		if err != nil {
-			return nil, err
-		}
-
-		bs.Append(b)
-
-		p = bufferpage.New(b)
-		sid := link.SlotID(0)
-		h, d, ok := p.Slot(sid)
-		if !ok {
-			return nil, errors.New(" could not read slot")
-		}
-
-		f = s.Append(p, sid, h, d)
 	}
 
 	// Read Span
@@ -156,19 +123,34 @@ func (fc *FixedCollection) Replace(
 	k key.Key,
 	v []byte,
 ) error {
-	var bs bufferSlice
-	defer bs.Release()
-
 	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return err
 	}
 
-	bid := fn.BlockID(rl.Block())
-	b, err := fc.s.Request(ctx, bid)
+	s, err := fc.GetSpanByRecordLocator(ctx, fn, rl)
 	if err != nil {
 		return err
 	}
+
+	// TODO: Verify data can fit
+	_, err = s.Write(v)
+	return err
+}
+
+func (fc *FixedCollection) GetSpanByRecordLocator(
+	ctx context.Context,
+	fn link.FileName,
+	rl link.RecordLocator,
+) (*span.Span, error) {
+	bid := fn.BlockID(rl.Block())
+	b, err := fc.s.Request(ctx, bid)
+	if err != nil {
+		return nil, err
+	}
+
+	var bs bufferSlice
+	defer bs.Release()
 
 	bs.Append(b)
 
@@ -178,14 +160,15 @@ func (fc *FixedCollection) Replace(
 	sid := rl.SlotID()
 	h, d, ok := p.Slot(sid)
 	if !ok {
-		return errors.New(" could not read slot")
+		return nil, errors.New(" could not read slot")
 	}
+
 	f := s.Append(p, sid, h, d)
 	for f.NextPosition() != 0 {
 		bid.SetPosition(f.NextPosition())
 		b, err := fc.s.Request(ctx, bid)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		bs.Append(b)
@@ -194,14 +177,13 @@ func (fc *FixedCollection) Replace(
 		sid := link.SlotID(0)
 		h, d, ok := p.Slot(sid)
 		if !ok {
-			return errors.New(" could not read slot")
+			return nil, errors.New(" could not read slot")
 		}
 
 		f = s.Append(p, sid, h, d)
 	}
 
-	_, err = s.Write(v)
-	return err
+	return s, nil
 }
 
 func (fc *FixedCollection) Test(

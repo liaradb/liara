@@ -61,7 +61,7 @@ func (s *Span) InitIndexes() {
 	for i, f := range s.fragments[:len(s.fragments)-1] {
 		next := s.fragments[i+1]
 		f.setNextPosition(next.p.BlockID().Position())
-		// f.setNextSlotID()
+		f.setNextSlotID(0) // TODO: Is this necessary?
 	}
 }
 
