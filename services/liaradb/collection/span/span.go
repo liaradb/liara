@@ -2,18 +2,22 @@ package span
 
 import (
 	"context"
+	"errors"
 	"io"
 	"slices"
 
+	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Span struct {
 	l         Log
 	fragments []*Fragment
+	buffers   []*storage.Buffer
 }
 
 type Log interface {
@@ -40,6 +44,17 @@ func (s Span) valid() bool {
 		}
 	}
 	return true
+}
+
+func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) (*Fragment, error) {
+	p := bufferpage.New(b, FragmentHeaderSize)
+	h, d, ok := p.Slot(sid)
+	if !ok {
+		return nil, errors.New(" could not read slot")
+	}
+
+	s.buffers = append(s.buffers, b)
+	return s.Append(p, sid, h, d), nil
 }
 
 // TODO: Ensure fragments are sorted by BlockID
@@ -104,5 +119,11 @@ func (s Span) SeekStart() error {
 func (s Span) Commit() {
 	for _, f := range s.fragments {
 		f.commit()
+	}
+}
+
+func (s *Span) Release() {
+	for _, b := range s.buffers {
+		b.Release()
 	}
 }

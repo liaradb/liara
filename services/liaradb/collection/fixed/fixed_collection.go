@@ -7,7 +7,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/value"
@@ -105,6 +104,8 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 		return nil, err
 	}
 
+	defer s.Release()
+
 	// Read Span
 	buffer := make([]byte, s.Length())
 	if _, err := s.Read(buffer); err != nil {
@@ -133,6 +134,8 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
+	defer s.Release()
+
 	// TODO: Verify data can fit
 	_, err = s.Write(v)
 	return err
@@ -149,38 +152,28 @@ func (fc *FixedCollection) GetSpanByRecordLocator(
 		return nil, err
 	}
 
-	var bs bufferSlice
-	defer bs.Release()
-
-	bs.Append(b)
-
-	p := bufferpage.New(b, span.FragmentHeaderSize)
 	s := span.New(nil) // TODO: Use Log
 
-	sid := rl.SlotID()
-	h, d, ok := p.Slot(sid)
-	if !ok {
-		return nil, errors.New(" could not read slot")
+	f, err := s.AppendSlot(b, rl.SlotID())
+	if err != nil {
+		b.Release()
+		return nil, err
 	}
 
-	f := s.Append(p, sid, h, d)
 	for f.NextPosition() != 0 {
 		bid.SetPosition(f.NextPosition())
 		b, err := fc.s.Request(ctx, bid)
 		if err != nil {
+			s.Release()
 			return nil, err
 		}
 
-		bs.Append(b)
-
-		p = bufferpage.New(b, span.FragmentHeaderSize)
-		sid := link.SlotID(0)
-		h, d, ok := p.Slot(sid)
-		if !ok {
-			return nil, errors.New(" could not read slot")
+		f, err = s.AppendSlot(b, link.SlotID(0))
+		if err != nil {
+			b.Release()
+			s.Release()
+			return nil, err
 		}
-
-		f = s.Append(p, sid, h, d)
 	}
 
 	return s, nil
