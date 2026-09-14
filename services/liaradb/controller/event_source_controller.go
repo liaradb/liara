@@ -34,6 +34,8 @@ func (esc *EventSourceController) Append(
 		return nil, err
 	}
 
+	traceCorrelationID(ctx, &o)
+
 	tid, err := value.NewTenantIDFromString(request.TenantId)
 	if err != nil {
 		return nil, err
