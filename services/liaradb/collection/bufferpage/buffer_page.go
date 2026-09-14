@@ -1,7 +1,6 @@
 package bufferpage
 
 import (
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -18,8 +17,9 @@ func (bp *BufferPage) Clear() {
 	bp.header.init()
 }
 
-func New(b *storage.Buffer) *BufferPage {
-	page := page.NewFromSlice(b.Raw(), headerSize, span.FragmentHeaderSize)
+// TODO: Remove this parameter once the import cycle with span is fixed.
+func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
+	page := page.NewFromSlice(b.Raw(), headerSize, slotHeaderSize)
 	header, _ := newHeader(page.Header())
 	return &BufferPage{
 		Page:   page,

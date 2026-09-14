@@ -36,7 +36,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 		return nil, err
 	}
 
-	t.current = bufferpage.New(b)
+	t.current = bufferpage.New(b, span.FragmentHeaderSize)
 	t.blockID = b.BlockID()
 	t.slotID = link.SlotID(t.current.Count())
 
@@ -86,7 +86,7 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 		return nil, err
 	}
 
-	p := bufferpage.New(b)
+	p := bufferpage.New(b, span.FragmentHeaderSize)
 	t.pages = append(t.pages, p)
 	return p, nil
 }

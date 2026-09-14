@@ -154,7 +154,7 @@ func (fc *FixedCollection) GetSpanByRecordLocator(
 
 	bs.Append(b)
 
-	p := bufferpage.New(b)
+	p := bufferpage.New(b, span.FragmentHeaderSize)
 	s := span.New(nil) // TODO: Use Log
 
 	sid := rl.SlotID()
@@ -173,7 +173,7 @@ func (fc *FixedCollection) GetSpanByRecordLocator(
 
 		bs.Append(b)
 
-		p = bufferpage.New(b)
+		p = bufferpage.New(b, span.FragmentHeaderSize)
 		sid := link.SlotID(0)
 		h, d, ok := p.Slot(sid)
 		if !ok {
