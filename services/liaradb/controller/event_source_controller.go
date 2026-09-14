@@ -34,6 +34,12 @@ func (esc *EventSourceController) Append(
 		return nil, err
 	}
 
+	aggregateIDs := make([]string, 0, len(request.Events))
+	for _, e := range request.Events {
+		aggregateIDs = append(aggregateIDs, e.AggregateId)
+	}
+	traceAppend(ctx, request.TenantId, o.CorrelationID().String(), aggregateIDs)
+
 	tid, err := value.NewTenantIDFromString(request.TenantId)
 	if err != nil {
 		return nil, err
