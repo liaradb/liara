@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"context"
-	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
@@ -34,27 +33,25 @@ func newLogger(
 
 func (l *Logger) Append(
 	ctx context.Context,
-	slot link.SlotID,
+	rl link.RecordLocator,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,
-		l.tid,
 		l.txid,
-		time.Now(),
+		rl,
 		l.c,
 		data)
 }
 
 func (l *Logger) Update(
 	ctx context.Context,
-	slot link.SlotID,
+	rl link.RecordLocator,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Update(ctx,
-		l.tid,
 		l.txid,
-		time.Now(),
+		rl,
 		l.c,
 		data,
 		prev)

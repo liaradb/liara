@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
@@ -42,10 +43,11 @@ func (kv *KeyValue) List(
 
 func (kv *KeyValue) Set(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	k key.Key,
 	v []byte,
 ) error {
-	return kv.fc.Insert(ctx, tn.KeyValue(pid), tn.Index(0, pid), k, v)
+	return kv.fc.Insert(ctx, l, tn.KeyValue(pid), tn.Index(0, pid), k, v)
 }

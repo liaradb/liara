@@ -5,41 +5,35 @@ import (
 	"bytes"
 	"slices"
 	"testing"
-	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 func TestRecord(t *testing.T) {
 	t.Parallel()
 
 	lsn := logpage.NewLogSequenceNumber(1)
-	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := NewTime(time.UnixMicro(1234567890))
+	rl := link.NewRecordLocator(1, 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(tid, txid, now, action, collection, data, reverse)
+	rc := New(txid, rl, action, collection, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	if i := rc.LogSequenceNumber(); i != lsn {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
 	}
 
-	if i := rc.TenantID(); i != tid {
-		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
-	}
-
 	if i := rc.TransactionID(); i != txid {
 		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
 	}
 
-	if i := rc.Time(); i != now {
-		t.Errorf("incorrect time: %v, expected: %v", i, now)
+	if i := rc.RecordLocator(); i != rl {
+		t.Errorf("incorrect record locator: %v, expected: %v", i, rl)
 	}
 
 	if i := rc.Action(); i != action {
@@ -67,15 +61,14 @@ func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
 	lsn := logpage.NewLogSequenceNumber(1)
-	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := NewTime(time.UnixMicro(1234567890))
+	rl := link.NewRecordLocator(1, 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(tid, txid, now, action, collection, data, reverse)
+	rc := New(txid, rl, action, collection, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	r, w := newReaderWriter()
@@ -98,23 +91,19 @@ func TestRecord_Write(t *testing.T) {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", i, lsn)
 	}
 
-	if i := rc2.TenantID(); i != tid {
-		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
-	}
-
 	if i := rc2.TransactionID(); i != txid {
 		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
 	}
 
-	if i := rc.Time(); i != now {
-		t.Errorf("incorrect time: %v, expected: %v", i, now)
+	if i := rc2.RecordLocator(); i != rl {
+		t.Errorf("incorrect record locator: %v, expected: %v", i, rl)
 	}
 
-	if i := rc.Action(); i != action {
+	if i := rc2.Action(); i != action {
 		t.Errorf("incorrect action: %v, expected: %v", i, action)
 	}
 
-	if i := rc.Collection(); i != collection {
+	if i := rc2.Collection(); i != collection {
 		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
 	}
 
@@ -126,7 +115,7 @@ func TestRecord_Write(t *testing.T) {
 		t.Errorf("incorrect reverse: %v, expected: %v", i, reverse)
 	}
 
-	if i := rc.IsCheckpoint(); i != (action == ActionCheckpoint) {
+	if i := rc2.IsCheckpoint(); i != (action == ActionCheckpoint) {
 		t.Errorf("incorrect is checkpoint: %v, expected: %v", i, action == ActionCheckpoint)
 	}
 }
@@ -134,9 +123,8 @@ func TestRecord_Write(t *testing.T) {
 func TestRecord_Compare(t *testing.T) {
 	t.Parallel()
 
-	tid := value.NewTenantID()
 	txid := NewTransactionID(2)
-	now := NewTime(time.UnixMicro(1234567890))
+	rl := link.NewRecordLocator(1, 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
@@ -161,13 +149,13 @@ func TestRecord_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should equal same values": {
-			a:     New(tid, txid, now, action, collection, data, reverse),
-			b:     New(tid, txid, now, action, collection, data, reverse),
+			a:     New(txid, rl, action, collection, data, reverse),
+			b:     New(txid, rl, action, collection, data, reverse),
 			equal: true,
 		},
 		"should not equal different values": {
-			a:     New(tid, txid, now, action, collection, data, reverse),
-			b:     New(value.NewTenantID(), txid, now, action, collection, data, reverse),
+			a:     New(txid, rl, action, collection, data, reverse),
+			b:     New(NewTransactionID(3), rl, action, collection, data, reverse),
 			equal: false,
 		},
 	} {

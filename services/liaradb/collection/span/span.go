@@ -20,7 +20,7 @@ type Span struct {
 }
 
 type Log interface {
-	Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error)
+	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(l Log) *Span {
@@ -54,6 +54,18 @@ func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) (*Fragment, error)
 
 	s.buffers = append(s.buffers, b)
 	return s.Append(p, sid, h, d), nil
+}
+
+func (s *Span) AppendSize(b *storage.Buffer, size int) (*Fragment, int) {
+	p := bufferpage.New(b, FragmentHeaderSize)
+	header, data := p.Next(size)
+	l := len(data)
+	if l == 0 {
+		return nil, 0
+	}
+
+	s.buffers = append(s.buffers, b)
+	return s.Append(p, 0, header, data), l
 }
 
 // TODO: Ensure fragments are sorted by BlockID

@@ -3,16 +3,15 @@ package record
 import (
 	"io"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Record struct {
 	logSequenceNumber logpage.LogSequenceNumber
-	tenantID          value.TenantID
 	transactionID     TransactionID
-	time              Time
+	recordLocator     link.RecordLocator
 	action            Action
 	collection        Collection
 	data              LogData
@@ -20,18 +19,16 @@ type Record struct {
 }
 
 func New(
-	tid value.TenantID,
 	txid TransactionID,
-	time Time,
+	recordLocator link.RecordLocator,
 	action Action,
 	collection Collection,
 	data []byte,
 	reverse []byte,
 ) *Record {
 	return &Record{
-		tenantID:      tid,
 		transactionID: txid,
-		time:          time,
+		recordLocator: recordLocator,
 		action:        action,
 		collection:    collection,
 		data:          LogData{data},
@@ -40,9 +37,8 @@ func New(
 }
 
 func (rc *Record) LogSequenceNumber() logpage.LogSequenceNumber { return rc.logSequenceNumber }
-func (rc *Record) TenantID() value.TenantID                     { return rc.tenantID }
 func (rc *Record) TransactionID() TransactionID                 { return rc.transactionID }
-func (rc *Record) Time() Time                                   { return rc.time }
+func (rc *Record) RecordLocator() link.RecordLocator            { return rc.recordLocator }
 func (rc *Record) Action() Action                               { return rc.action }
 func (rc *Record) Collection() Collection                       { return rc.collection }
 func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
@@ -56,9 +52,8 @@ func (rc *Record) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
 func (rc *Record) Size() int {
 	return serializer.Size(
 		rc.logSequenceNumber,
-		rc.tenantID,
 		rc.transactionID,
-		rc.time,
+		rc.recordLocator,
 		rc.action,
 		rc.collection,
 		&rc.data,
@@ -68,9 +63,8 @@ func (rc *Record) Size() int {
 func (rc *Record) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		rc.logSequenceNumber,
-		rc.tenantID,
 		rc.transactionID,
-		rc.time,
+		rc.recordLocator,
 		rc.action,
 		rc.collection,
 		&rc.data,
@@ -80,9 +74,8 @@ func (rc *Record) Write(w io.Writer) error {
 func (rc *Record) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&rc.logSequenceNumber,
-		&rc.tenantID,
 		&rc.transactionID,
-		&rc.time,
+		&rc.recordLocator,
 		&rc.action,
 		&rc.collection,
 		&rc.data,
@@ -95,9 +88,8 @@ func (rc *Record) Compare(b *Record) bool {
 	}
 
 	return rc.logSequenceNumber == b.logSequenceNumber &&
-		rc.tenantID == b.tenantID &&
 		rc.transactionID == b.transactionID &&
-		rc.time.Equal(b.time) &&
+		rc.recordLocator == b.recordLocator &&
 		rc.action == b.action &&
 		rc.collection == b.collection &&
 		rc.data.Compare(&b.data) &&

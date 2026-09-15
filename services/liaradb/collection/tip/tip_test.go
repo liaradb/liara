@@ -52,6 +52,6 @@ func TestTip(t *testing.T) {
 type testLog struct {
 }
 
-func (t *testLog) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

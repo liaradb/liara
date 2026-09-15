@@ -4,9 +4,7 @@ import (
 	"container/list"
 	"context"
 	"iter"
-	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
@@ -14,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/recordqueue"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/iterator"
 )
@@ -100,14 +99,11 @@ func (l *Log) getFlushStatus() (lowWater, highWater logpage.LogSequenceNumber, e
 
 func (l *Log) Start(
 	ctx context.Context,
-	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		tid,
 		txid,
-		record.NewTime(now),
+		link.RecordLocator{},
 		record.ActionStart,
 		record.CollectionSystem,
 		nil,
@@ -116,14 +112,11 @@ func (l *Log) Start(
 
 func (l *Log) Commit(
 	ctx context.Context,
-	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
-		tid,
 		txid,
-		record.NewTime(now),
+		link.RecordLocator{},
 		record.ActionCommit,
 		record.CollectionSystem,
 		nil,
@@ -132,14 +125,11 @@ func (l *Log) Commit(
 
 func (l *Log) Rollback(
 	ctx context.Context,
-	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
-		tid,
 		txid,
-		record.NewTime(now),
+		link.RecordLocator{},
 		record.ActionRollback,
 		record.CollectionSystem,
 		nil,
@@ -148,16 +138,14 @@ func (l *Log) Rollback(
 
 func (l *Log) Insert(
 	ctx context.Context,
-	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
+	rl link.RecordLocator,
 	collection record.Collection,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		tid,
 		txid,
-		record.NewTime(now),
+		rl,
 		record.ActionInsert,
 		collection,
 		data,
@@ -166,17 +154,15 @@ func (l *Log) Insert(
 
 func (l *Log) Update(
 	ctx context.Context,
-	tid value.TenantID,
 	txid record.TransactionID,
-	now time.Time,
+	rl link.RecordLocator,
 	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		tid,
 		txid,
-		record.NewTime(now),
+		rl,
 		record.ActionUpdate,
 		collection,
 		data,
@@ -186,13 +172,11 @@ func (l *Log) Update(
 // Manager thread
 func (l *Log) Checkpoint(
 	ctx context.Context,
-	now time.Time,
 	txids ...record.TransactionID,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
-		value.TenantID{},
 		record.TransactionID{},
-		record.NewTime(now),
+		link.RecordLocator{},
 		record.ActionCheckpoint,
 		record.CollectionSystem,
 		l.txIDsToData(txids),

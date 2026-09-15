@@ -23,8 +23,8 @@ func newTransactionLogger(
 }
 
 func (l *transactionLogger) Append(
-	slot link.SlotID,
+	rl link.RecordLocator,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.l.Append(l.ctx, slot, data)
+	return l.l.Append(l.ctx, rl, data)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -34,11 +35,11 @@ func (t *EventLogTransaction) Append(e *entity.Event, data []byte) {
 	})
 }
 
-func (t *EventLogTransaction) Commit(ctx context.Context, tx *Transaction) error {
+func (t *EventLogTransaction) Commit(ctx context.Context, l span.Log, tx *Transaction) error {
 	tn := tablename.New(tx.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		err := t.el.AppendEvent(ctx, tn, item.e.PartitionID, tx.Logger(ctx, record.CollectionEvent), k, item.e.GlobalVersion, item.e.ID, item.data)
+		err := t.el.AppendEvent(ctx, l, tn, item.e.PartitionID, tx.Logger(ctx, record.CollectionEvent), k, item.e.GlobalVersion, item.e.ID, item.data)
 		if err != nil {
 			return err
 		}

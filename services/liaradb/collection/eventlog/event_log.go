@@ -37,6 +37,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 
 func (l *EventLog) Append(
 	ctx context.Context,
+	sl span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	log span.Log,
@@ -48,11 +49,12 @@ func (l *EventLog) Append(
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, tn, pid, log, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
+	return l.AppendEvent(ctx, sl, tn, pid, log, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
 }
 
 func (l *EventLog) AppendEvent(
 	ctx context.Context,
+	sl span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	log span.Log,
@@ -61,7 +63,7 @@ func (l *EventLog) AppendEvent(
 	id value.EventID,
 	v []byte,
 ) error {
-	t := tip.NewTip(l.storage, fixed.NewLogger(ctx, l.l), tn.EventLog(pid))
+	t := tip.NewTip(l.storage, sl, tn.EventLog(pid))
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))

@@ -9,6 +9,8 @@ import (
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 )
 
 type TenantService struct {
@@ -28,7 +30,8 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
 
-	if err := ts.tc.Set(ctx, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
+	// TODO: Use a logger
+	if err := ts.tc.Set(ctx, &testLog{}, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
 		return value.TenantID{}, err
 	}
 
@@ -91,7 +94,8 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 		return err
 	}
 
-	return ts.tc.Replace(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
+	// TODO: Use a logger
+	return ts.tc.Replace(ctx, &testLog{}, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
 	// t, err := ts.tenantRepository.Get(ctx, cmd.TenantID)
 	// if err != nil {
 	// 	return err
@@ -112,4 +116,12 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
 	return ts.tc.List(ctx, tablename.Tenant, value.NewPartitionID(0))
+}
+
+// TODO: Remove this
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

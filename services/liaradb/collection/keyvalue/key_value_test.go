@@ -9,9 +9,12 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
+	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -38,11 +41,20 @@ func TestKeyValue(t *testing.T) {
 				ctx := t.Context()
 
 				l := log.New(256, 2, 256, 100, s.FSys, "dir")
+				if err := l.Run(t.Context()); err != nil {
+					t.Fatal(err)
+				}
+
+				if err := l.StartWriter(); err != nil {
+					t.Fatal(err)
+				}
+
 				kv := New(s.Storage, btree.NewCursor(s.Storage), l)
 				tn := tablename.NewFromString("testfile")
 				pid := value.NewPartitionID(0)
 
-				if err := insertData(ctx, kv, tn, pid, c.data); err != nil {
+				lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+				if err := insertData(ctx, lg, kv, tn, pid, c.data); err != nil {
 					t.Fatal(err)
 				}
 
@@ -62,13 +74,22 @@ func TestKeyValue__LargeBuffer(t *testing.T) {
 func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	if err := l.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
 	kv := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()
 
-	if err := insertData(ctx, kv, tn, pid, data); err != nil {
+	lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	if err := insertData(ctx, lg, kv, tn, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -103,9 +124,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) error {
+func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := kv.Set(ctx, tn, pid, key.NewKey([]byte(i.key)), i.value); err != nil {
+		if err := kv.Set(ctx, l, tn, pid, key.NewKey([]byte(i.key)), i.value); err != nil {
 			return err
 		}
 		synctest.Wait()

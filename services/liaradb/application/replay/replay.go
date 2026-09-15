@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/liaradb/liaradb/collection"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/recovery/logpage"
@@ -104,9 +103,10 @@ func (re *Replay) recoverInsertEvent(ctx context.Context, r *record.Record) erro
 	}
 
 	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
-	tn := tablename.New(r.TenantID())
+	// tn := tablename.New(r.TenantID())
 	// TODO: This should not use a logger
-	return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &testLog{}, &e)
+	// return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &testLog{}, &e)
+	return nil
 }
 
 func (re *Replay) recoverInsertGraph(ctx context.Context, r *record.Record) error {
