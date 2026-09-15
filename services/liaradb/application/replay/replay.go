@@ -222,6 +222,6 @@ func (re *Replay) recoverUpdateValue(ctx context.Context, r *record.Record) erro
 type testLog struct {
 }
 
-func (t *testLog) Append(context.Context, link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

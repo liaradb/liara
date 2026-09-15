@@ -38,7 +38,7 @@ func (t *EventLogTransaction) Commit(ctx context.Context, tx *Transaction) error
 	tn := tablename.New(tx.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		err := t.el.AppendEvent(ctx, tn, item.e.PartitionID, tx.Logger(record.CollectionEvent), k, item.e.GlobalVersion, item.e.ID, item.data)
+		err := t.el.AppendEvent(ctx, tn, item.e.PartitionID, tx.Logger(ctx, record.CollectionEvent), k, item.e.GlobalVersion, item.e.ID, item.data)
 		if err != nil {
 			return err
 		}

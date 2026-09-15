@@ -37,7 +37,7 @@ func (fc *FixedCollection) Insert(
 	k key.Key,
 	v []byte,
 ) error {
-	t := tip.NewTip(fc.s, nil, fn) // TODO: Use Log
+	t := tip.NewTip(fc.s, NewLogger(ctx, fc.l), fn)
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))
@@ -152,7 +152,7 @@ func (fc *FixedCollection) GetSpanByRecordLocator(
 		return nil, err
 	}
 
-	s := span.New(nil) // TODO: Use Log
+	s := span.New(NewLogger(ctx, fc.l))
 
 	f, err := s.AppendSlot(b, rl.SlotID())
 	if err != nil {

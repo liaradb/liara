@@ -89,5 +89,10 @@ func (f Fragment) Read(p []byte) (int, error) {
 }
 
 func (f Fragment) Write(p []byte) (int, error) {
+	_, err := f.l.Append(f.slotID, p)
+	if err != nil {
+		return 0, err
+	}
+
 	return f.buffer.Write(p)
 }

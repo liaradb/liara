@@ -61,7 +61,7 @@ func (l *EventLog) AppendEvent(
 	id value.EventID,
 	v []byte,
 ) error {
-	t := tip.NewTip(l.storage, nil, tn.EventLog(pid)) // TODO: Use Log
+	t := tip.NewTip(l.storage, fixed.NewLogger(ctx, l.l), tn.EventLog(pid))
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))

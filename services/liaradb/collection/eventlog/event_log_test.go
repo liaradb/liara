@@ -1,7 +1,6 @@
 package eventlog
 
 import (
-	"context"
 	"path"
 	"reflect"
 	"slices"
@@ -312,6 +311,6 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 type testLog struct {
 }
 
-func (t *testLog) Append(context.Context, link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

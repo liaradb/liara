@@ -26,7 +26,7 @@ func TestSpan_Write(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := Span{}
+	s := New(&testLogger{})
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
@@ -66,7 +66,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := Span{}
+	s := New(&testLogger{})
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
@@ -96,4 +96,11 @@ type testBufferPage struct {
 
 func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
+}
+
+type testLogger struct {
+}
+
+func (*testLogger) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }
