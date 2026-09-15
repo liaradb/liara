@@ -22,7 +22,7 @@ func (le leafEntry) RecordID() link.RecordLocator { return le.recordID }
 func (le leafEntry) Size() int                    { return le.key.Size() + link.RecordLocatorSize }
 
 func (le leafEntry) Write(data []byte) bool {
-	data0, ok := le.recordID.Write(data)
+	data0, ok := le.recordID.WriteData(data)
 	if !ok {
 		return false
 	}
@@ -31,7 +31,7 @@ func (le leafEntry) Write(data []byte) bool {
 }
 
 func (le *leafEntry) Read(data []byte) bool {
-	data0, ok := le.recordID.Read(data)
+	data0, ok := le.recordID.ReadData(data)
 	if !ok {
 		return false
 	}

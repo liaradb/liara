@@ -40,10 +40,10 @@ func TestRecordLocator_WriteRead(t *testing.T) {
 	id := NewRecordLocator(1, 2)
 
 	data := make([]byte, RecordLocatorSize)
-	id.Write(data)
+	id.WriteData(data)
 
 	id0 := RecordLocator{}
-	id0.Read(data)
+	id0.ReadData(data)
 
 	if b := id0.Block(); b != 1 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
