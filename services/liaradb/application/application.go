@@ -190,6 +190,7 @@ func (a *Application) initService() {
 			a.txManager,
 		),
 		service.NewTenantService(
+			a.txManager,
 			tenant.New(a.storage, btree.NewCursor(a.storage), a.log)),
 	))
 

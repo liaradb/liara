@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -78,7 +77,9 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, &testLog{}, tx, func() error {
+	lg := tx.Logger(ctx, record.CollectionEvent)
+
+	if err := Run(ctx, lg, tx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -92,7 +93,9 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, &testLog{}, tx, func() error {
+	lg = tx.Logger(ctx, record.CollectionEvent)
+
+	if err := Run(ctx, lg, tx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -346,12 +349,4 @@ func testTransaction_Rollback(t *testing.T) {
 	}
 
 	synctest.Wait()
-}
-
-// TODO: Remove this
-type testLog struct {
-}
-
-func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }
