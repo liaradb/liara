@@ -33,7 +33,7 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.Insert(ctx, tablename.NewFromString("a"), time.UnixMicro(1234567890), &entity.Event{}, nil); err != nil {
+	if err := tx.Insert(ctx, tablename.NewFromString("a"), &entity.Event{}, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -72,15 +72,14 @@ func testTransaction_Insert__Unique(t *testing.T) {
 	tn := tablename.New(tid)
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
-	tm := time.UnixMicro(1234567890)
 
 	tx, err := m.Next(ctx, tid)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, &testLog{}, tx, tm, func() error {
-		return tx.Insert(ctx, tn, tm, &entity.Event{
+	if err := Run(ctx, &testLog{}, tx, func() error {
+		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
 		}, nil)
@@ -93,8 +92,8 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, &testLog{}, tx, tm, func() error {
-		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
+	if err := Run(ctx, &testLog{}, tx, func() error {
+		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
 		}, nil)
@@ -121,16 +120,15 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 	tn := tablename.NewFromString("a")
 	id := value.NewAggregateID("b")
 	version := value.NewVersion(1)
-	tm := time.UnixMicro(1234567890)
 
-	if err := tx.Insert(ctx, tn, tm, &entity.Event{
+	if err := tx.Insert(ctx, tn, &entity.Event{
 		AggregateID: id,
 		Version:     version,
 	}, nil); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
+	if err := tx.Insert(ctx, tn, &entity.Event{
 		AggregateID: id,
 		Version:     version,
 	}, nil); !errors.Is(err, btree.ErrExists) {
@@ -193,11 +191,11 @@ func testTransaction_Commit(t *testing.T) {
 	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
-	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), items[0].e, items[0].data); err != nil {
+	if err := tx.Insert(ctx, tn, items[0].e, items[0].data); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, tx.Logger(ctx, record.CollectionEvent), time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, tx.Logger(ctx, record.CollectionEvent)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -289,11 +287,11 @@ func testTransaction_Rollback(t *testing.T) {
 	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
-	if err := tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{}, records[0]); err != nil {
+	if err := tx.Insert(ctx, tn, &entity.Event{}, records[0]); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := tx.rollback(ctx, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.rollback(ctx); err != nil {
 		t.Fatal(err)
 	}
 

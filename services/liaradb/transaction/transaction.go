@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"iter"
-	"time"
 
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
@@ -163,7 +162,6 @@ func (t *Transaction) EventsAfterGlobalVersion(
 func (t *Transaction) Insert(
 	ctx context.Context,
 	tn tablename.TableName,
-	now time.Time,
 	e *entity.Event,
 	data []byte,
 ) error {
@@ -192,7 +190,6 @@ func (t *Transaction) Insert(
 func (t *Transaction) SetValue(
 	ctx context.Context,
 	tn tablename.TableName,
-	now time.Time,
 	r *entity.Row,
 	data []byte,
 ) error {
@@ -225,10 +222,9 @@ func Run(
 	ctx context.Context,
 	l span.Log,
 	t *Transaction,
-	now time.Time,
 	f func() error,
 ) error {
-	_, err := t.run(ctx, l, now, func() (any, error) {
+	_, err := t.run(ctx, l, func() (any, error) {
 		return struct{}{}, f()
 	})
 	if err != nil {
@@ -242,10 +238,9 @@ func RunResult[R any](
 	ctx context.Context,
 	l span.Log,
 	t *Transaction,
-	now time.Time,
 	f func() (R, error),
 ) (R, error) {
-	r, err := t.run(ctx, l, now, func() (any, error) {
+	r, err := t.run(ctx, l, func() (any, error) {
 		return f()
 	})
 	if err != nil {
@@ -259,7 +254,6 @@ func RunResult[R any](
 func (t *Transaction) run(
 	ctx context.Context,
 	l span.Log,
-	now time.Time,
 	f func() (any, error),
 ) (any, error) {
 	_, err := t.log.Start(ctx, t.id)
@@ -271,14 +265,14 @@ func (t *Transaction) run(
 
 	r, err := f()
 	if err != nil {
-		return nil, errors.Join(err, t.rollback(ctx, now))
+		return nil, errors.Join(err, t.rollback(ctx))
 	}
 
 	if t.forceRollback {
-		return nil, t.rollback(ctx, now)
+		return nil, t.rollback(ctx)
 	}
 
-	return r, t.commit(ctx, l, now)
+	return r, t.commit(ctx, l)
 }
 
 func (t *Transaction) release() {
@@ -290,7 +284,6 @@ func (t *Transaction) release() {
 func (t *Transaction) commit(
 	ctx context.Context,
 	l span.Log,
-	now time.Time,
 ) error {
 	if err := t.eventLog.Commit(ctx, l, t); err != nil {
 		return err
@@ -304,7 +297,7 @@ func (t *Transaction) commit(
 	return nil
 }
 
-func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
+func (t *Transaction) rollback(ctx context.Context) error {
 	_, err := t.log.Rollback(ctx, t.id)
 	if err != nil {
 		return err
@@ -331,7 +324,6 @@ func (t *Transaction) InsertOutbox(
 	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	now time.Time,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
@@ -353,7 +345,6 @@ func (t *Transaction) UpdateOutbox(
 	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	now time.Time,
 	oid value.OutboxID,
 	v value.GlobalVersion,
 ) error {

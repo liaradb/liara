@@ -62,8 +62,8 @@ func (m *Manager) run(ctx context.Context) {
 
 	for {
 		select {
-		case t := <-ticker.C:
-			m.appendCheckpoint(ctx, t)
+		case <-ticker.C:
+			m.appendCheckpoint(ctx)
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
@@ -114,7 +114,7 @@ func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
 }
 
-func (m *Manager) appendCheckpoint(ctx context.Context, now time.Time) {
+func (m *Manager) appendCheckpoint(ctx context.Context) {
 	m.drainEnd()
 	if !m.isDirty() {
 		return
@@ -123,7 +123,7 @@ func (m *Manager) appendCheckpoint(ctx context.Context, now time.Time) {
 	slog.Info("flushing...")
 
 	// TODO: What do we do with this error?
-	if err := m.flush(ctx, now); err != nil && !errors.Is(err, context.Canceled) {
+	if err := m.flush(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		slog.Error("unable to flush",
 			"error", err)
 		panic(err)
@@ -151,7 +151,7 @@ func (m *Manager) drainAll() {
 	}
 }
 
-func (m *Manager) flush(ctx context.Context, now time.Time) error {
+func (m *Manager) flush(ctx context.Context) error {
 	// TODO: How do we checkpoint things that were re-pinned and never flushed?
 	if err := m.storage.FlushUnpinned(ctx); err != nil {
 		return err
