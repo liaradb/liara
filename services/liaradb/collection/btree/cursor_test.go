@@ -78,7 +78,7 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 72)
+	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
@@ -111,7 +111,7 @@ func TestCursor_Insert__Reverse(t *testing.T) {
 }
 
 func testCursor_Insert__Reverse(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 72)
+	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
@@ -138,7 +138,7 @@ func TestCursor_Insert__Random(t *testing.T) {
 }
 
 func testCursor_Insert__Random(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 72)
+	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
@@ -215,7 +215,7 @@ func TestCursor_SearchRange(t *testing.T) {
 }
 
 func testCursor_SearchRange(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 72)
+	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
@@ -276,7 +276,7 @@ func TestCursor_All(t *testing.T) {
 }
 
 func testCursor_All(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 72)
+	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 

@@ -3,6 +3,7 @@ package node
 import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/encoder/wrap"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -14,6 +15,7 @@ const (
 
 	headerSize = 0 +
 		page.MagicSize +
+		logpage.LogSequenceNumberSize +
 		levelSize +
 		highIDSize +
 		lowIDSize +
@@ -22,6 +24,7 @@ const (
 
 type header struct {
 	magic  wrap.Int32
+	lsn    wrap.Int64
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
@@ -30,18 +33,20 @@ type header struct {
 
 func newHeader(data []byte) (header, []byte) {
 	magic, data0 := wrap.NewInt32(data)
-	level, data1 := wrap.NewByte(data0)
-	highID, data2 := wrap.NewInt64(data1)
-	lowID, data3 := wrap.NewInt64(data2)
-	next, data4 := wrap.NewInt16(data3)
+	lsn, data1 := wrap.NewInt64(data0)
+	level, data2 := wrap.NewByte(data1)
+	highID, data3 := wrap.NewInt64(data2)
+	lowID, data4 := wrap.NewInt64(data3)
+	next, data5 := wrap.NewInt16(data4)
 
 	return header{
 		magic:  magic,
+		lsn:    lsn,
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
 		next:   next,
-	}, data4
+	}, data5
 }
 
 func (h *header) init() {
@@ -86,4 +91,12 @@ func (h *header) isEmpty() bool {
 
 func (h *header) isPage() bool {
 	return page.Magic(h.magic.Get()).IsPage()
+}
+
+func (h *header) LogSequenceNumber() logpage.LogSequenceNumber {
+	return logpage.NewLogSequenceNumber(h.lsn.GetUnsigned())
+}
+
+func (h *header) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
+	h.lsn.SetUnsigned(lsn.Value())
 }
