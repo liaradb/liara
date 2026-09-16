@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -33,7 +34,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lg := NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 
 		fn := link.NewFileName("testfile")
@@ -77,7 +78,7 @@ func TestFixedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		lg := NewLogger(ctx, l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(ctx, l, record.NewTransactionID(1), record.CollectionValue)
 
 		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
@@ -110,7 +111,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 		data := createData()
 
-		lg := NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}

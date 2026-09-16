@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
@@ -53,7 +53,7 @@ func TestKeyValue(t *testing.T) {
 				tn := tablename.NewFromString("testfile")
 				pid := value.NewPartitionID(0)
 
-				lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+				lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 				if err := insertData(ctx, lg, kv, tn, pid, c.data); err != nil {
 					t.Fatal(err)
 				}
@@ -88,7 +88,7 @@ func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, kv, tn, pid, data); err != nil {
 		t.Fatal(err)
 	}

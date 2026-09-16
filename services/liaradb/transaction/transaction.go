@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -433,6 +434,6 @@ func (t *Transaction) TestRequestID(
 	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
 
-func (t *Transaction) Logger(ctx context.Context, c record.Collection) *transactionLogger {
-	return newTransactionLogger(ctx, newLogger(t.tid, t.id, c, t.log))
+func (t *Transaction) Logger(ctx context.Context, c record.Collection) *logger.Logger {
+	return logger.New(ctx, t.log, t.id, c)
 }

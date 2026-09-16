@@ -1,42 +1,44 @@
-package transaction
+package logger
 
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
+// TODO: Simplify transaction package reference
 type Logger struct {
-	tid  value.TenantID
+	ctx  context.Context
+	log  *log.Log
 	txid record.TransactionID
 	c    record.Collection
-	log  *log.Log
 }
 
-func newLogger(
-	tid value.TenantID,
+var _ span.Log = (*Logger)(nil)
+
+func New(
+	ctx context.Context,
+	log *log.Log,
 	txid record.TransactionID,
 	c record.Collection,
-	log *log.Log,
 ) *Logger {
 	return &Logger{
-		tid:  tid,
+		ctx:  ctx,
+		log:  log,
 		txid: txid,
 		c:    c,
-		log:  log,
 	}
 }
 
 func (l *Logger) Append(
-	ctx context.Context,
 	rl link.RecordLocator,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Insert(ctx,
+	return l.log.Insert(l.ctx,
 		l.txid,
 		rl,
 		l.c,
@@ -44,12 +46,11 @@ func (l *Logger) Append(
 }
 
 func (l *Logger) Update(
-	ctx context.Context,
 	rl link.RecordLocator,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Update(ctx,
+	return l.log.Update(l.ctx,
 		l.txid,
 		rl,
 		l.c,

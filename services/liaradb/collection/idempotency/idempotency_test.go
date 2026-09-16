@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -44,7 +44,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	lg := fixed.NewLogger(ctx, l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(ctx, l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
