@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -72,6 +73,7 @@ func (i *Idempotency) List(
 
 func (i *Idempotency) Set(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	rqid value.RequestID,
@@ -83,7 +85,7 @@ func (i *Idempotency) Set(
 	}
 
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (i *Idempotency) Test(

@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -36,23 +36,17 @@ func TestReplay(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		tid := value.NewTenantID()
 		txid := record.NewTransactionID(2)
 
-		if lsn, err := l.Start(t.Context(),
-			tid,
-			txid,
-			time.UnixMicro(1234567890),
-		); err != nil {
+		if lsn, err := l.Start(t.Context(), txid); err != nil {
 			t.Error(err)
 		} else if lsn != logpage.NewLogSequenceNumber(1) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
 
 		if lsn, err := l.Insert(t.Context(),
-			tid,
 			txid,
-			time.UnixMicro(1234567890),
+			link.RecordLocator{},
 			record.CollectionValue,
 			[]byte{1, 2, 3, 4, 5},
 		); err != nil {
@@ -61,11 +55,7 @@ func TestReplay(t *testing.T) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
 		}
 
-		if lsn, err := l.Commit(t.Context(),
-			tid,
-			txid,
-			time.UnixMicro(1234567890),
-		); err != nil {
+		if lsn, err := l.Commit(t.Context(), txid); err != nil {
 			t.Error(err)
 		} else if lsn != logpage.NewLogSequenceNumber(3) {
 			t.Errorf("incorrect value: %v, expected: %v", lsn, 1)

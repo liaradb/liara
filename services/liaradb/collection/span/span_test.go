@@ -101,6 +101,6 @@ func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 type testLogger struct {
 }
 
-func (*testLogger) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+func (*testLogger) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -78,7 +79,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, tx, tm, func() error {
+	if err := Run(ctx, &testLog{}, tx, tm, func() error {
 		return tx.Insert(ctx, tn, tm, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -92,7 +93,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := Run(ctx, tx, tm, func() error {
+	if err := Run(ctx, &testLog{}, tx, tm, func() error {
 		return tx.Insert(ctx, tn, time.UnixMicro(1234567890), &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -196,7 +197,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, &testLog{}, time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -347,4 +348,12 @@ func testTransaction_Rollback(t *testing.T) {
 	}
 
 	synctest.Wait()
+}
+
+// TODO: Remove this
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

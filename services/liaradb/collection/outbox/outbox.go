@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -72,6 +73,7 @@ func (o *Outbox) List(
 
 func (o *Outbox) Set(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	oid value.OutboxID,
@@ -83,11 +85,12 @@ func (o *Outbox) Set(
 	}
 
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
 
 func (o *Outbox) Replace(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	oid value.OutboxID,
@@ -99,6 +102,7 @@ func (o *Outbox) Replace(
 	}
 
 	return o.fc.Replace(ctx,
+		l,
 		tn.Outbox(pid),
 		tn.Index(0, value.NewPartitionID(0)),
 		pid,

@@ -13,10 +13,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
+	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -27,6 +29,11 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
+
+		lg := NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 
 		fn := link.NewFileName("testfile")
@@ -35,7 +42,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
 
-		if err := fc.Insert(t.Context(), fn, fnIdx, k, want); err != nil {
+		if err := fc.Insert(t.Context(), lg, fn, fnIdx, k, want); err != nil {
 			t.Fatal(err)
 		}
 
@@ -58,6 +65,10 @@ func TestFixedCollection(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
+
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
@@ -66,7 +77,9 @@ func TestFixedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
+		lg := NewLogger(ctx, l, record.NewTransactionID(1), record.CollectionValue)
+
+		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}
 
@@ -86,6 +99,10 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if err := l.StartWriter(); err != nil {
+			t.Fatal(err)
+		}
+
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
@@ -93,7 +110,8 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 		data := createData()
 
-		if err := insertData(ctx, fc, fn, fnIdx, data); err != nil {
+		lg := NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}
 
@@ -121,7 +139,7 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, fc *FixedCollection, fn link.FileName, fnIdx link.FileName, data []item) error {
+func insertData(ctx context.Context, l span.Log, fc *FixedCollection, fn link.FileName, fnIdx link.FileName, data []item) error {
 	for _, i := range data {
 		d := make([]byte, entity.RequestLogSize)
 
@@ -130,7 +148,7 @@ func insertData(ctx context.Context, fc *FixedCollection, fn link.FileName, fnId
 		}
 
 		k := key.NewKey(i.value.ID().Bytes())
-		if err := fc.Insert(ctx, fn, fnIdx, k, d); err != nil {
+		if err := fc.Insert(ctx, l, fn, fnIdx, k, d); err != nil {
 			return err
 		}
 	}

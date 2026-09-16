@@ -32,12 +32,13 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 
 func (fc *FixedCollection) Insert(
 	ctx context.Context,
+	l span.Log,
 	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
 	v []byte,
 ) error {
-	t := tip.NewTip(fc.s, NewLogger(ctx, fc.l), fn)
+	t := tip.NewTip(fc.s, l, fn)
 	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))
@@ -99,7 +100,8 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 	fn link.FileName,
 	rl link.RecordLocator,
 ) ([]byte, error) {
-	s, err := fc.GetSpanByRecordLocator(ctx, fn, rl)
+	// TODO: Don't use nil for Log
+	s, err := fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +120,7 @@ func (fc *FixedCollection) GetItemByRecordLocator(
 // TODO: Use io.Writer?
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
+	l span.Log,
 	fn link.FileName,
 	fnIdx link.FileName,
 	pid value.PartitionID,
@@ -129,7 +132,7 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	s, err := fc.GetSpanByRecordLocator(ctx, fn, rl)
+	s, err := fc.GetSpanByRecordLocator(ctx, l, fn, rl)
 	if err != nil {
 		return err
 	}
@@ -143,6 +146,7 @@ func (fc *FixedCollection) Replace(
 
 func (fc *FixedCollection) GetSpanByRecordLocator(
 	ctx context.Context,
+	l span.Log,
 	fn link.FileName,
 	rl link.RecordLocator,
 ) (*span.Span, error) {
@@ -152,7 +156,7 @@ func (fc *FixedCollection) GetSpanByRecordLocator(
 		return nil, err
 	}
 
-	s := span.New(NewLogger(ctx, fc.l))
+	s := span.New(l)
 
 	f, err := s.AppendSlot(b, rl.SlotID())
 	if err != nil {

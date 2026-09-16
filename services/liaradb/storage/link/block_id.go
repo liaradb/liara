@@ -34,6 +34,10 @@ func (b BlockID) RecordID(slotID SlotID) RecordID {
 	}
 }
 
+func (b BlockID) RecordLocator(slotID SlotID) RecordLocator {
+	return NewRecordLocator(b.position, slotID)
+}
+
 func (b BlockID) Next() BlockID {
 	return BlockID{
 		fileName: b.fileName,

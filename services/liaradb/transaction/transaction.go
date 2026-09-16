@@ -10,9 +10,11 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -181,7 +183,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionEvent, data)
+	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionEvent, data)
 	if err != nil {
 		return err
 	}
@@ -215,7 +217,7 @@ func (t *Transaction) SetValue(
 	// 	return err
 	// }
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionValue, data)
+	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionValue, data)
 	if err != nil {
 		return err
 	}
@@ -230,11 +232,12 @@ func (t *Transaction) SetValue(
 
 func Run(
 	ctx context.Context,
+	l span.Log,
 	t *Transaction,
 	now time.Time,
 	f func() error,
 ) error {
-	_, err := t.run(ctx, now, func() (any, error) {
+	_, err := t.run(ctx, l, now, func() (any, error) {
 		return struct{}{}, f()
 	})
 	if err != nil {
@@ -246,11 +249,12 @@ func Run(
 
 func RunResult[R any](
 	ctx context.Context,
+	l span.Log,
 	t *Transaction,
 	now time.Time,
 	f func() (R, error),
 ) (R, error) {
-	r, err := t.run(ctx, now, func() (any, error) {
+	r, err := t.run(ctx, l, now, func() (any, error) {
 		return f()
 	})
 	if err != nil {
@@ -263,10 +267,11 @@ func RunResult[R any](
 
 func (t *Transaction) run(
 	ctx context.Context,
+	l span.Log,
 	now time.Time,
 	f func() (any, error),
 ) (any, error) {
-	_, err := t.log.Start(ctx, t.tid, t.id, now)
+	_, err := t.log.Start(ctx, t.id)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +287,7 @@ func (t *Transaction) run(
 		return nil, t.rollback(ctx, now)
 	}
 
-	return r, t.commit(ctx, now)
+	return r, t.commit(ctx, l, now)
 }
 
 func (t *Transaction) release() {
@@ -293,14 +298,15 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
+	l span.Log,
 	now time.Time,
 ) error {
-	_, err := t.log.Commit(ctx, t.tid, t.id, now)
+	_, err := t.log.Commit(ctx, t.id)
 	if err != nil {
 		return err
 	}
 
-	if err := t.eventLog.Commit(ctx, t); err != nil {
+	if err := t.eventLog.Commit(ctx, l, t); err != nil {
 		return err
 	}
 
@@ -308,7 +314,7 @@ func (t *Transaction) commit(
 }
 
 func (t *Transaction) rollback(ctx context.Context, now time.Time) error {
-	_, err := t.log.Rollback(ctx, t.tid, t.id, now)
+	_, err := t.log.Rollback(ctx, t.id)
 	if err != nil {
 		return err
 	}
@@ -331,6 +337,7 @@ func (t *Transaction) GetOutbox(
 
 func (t *Transaction) InsertOutbox(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	now time.Time,
@@ -347,16 +354,17 @@ func (t *Transaction) InsertOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	_, err := t.log.Insert(ctx, t.tid, t.id, now, record.CollectionOutbox, data)
+	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data)
 	if err != nil {
 		return err
 	}
 
-	return t.collection.Outbox.Set(ctx, tn, pid, oid, e)
+	return t.collection.Outbox.Set(ctx, l, tn, pid, oid, e)
 }
 
 func (t *Transaction) UpdateOutbox(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
 	now time.Time,
@@ -386,12 +394,12 @@ func (t *Transaction) UpdateOutbox(
 		return io.ErrUnexpectedEOF
 	}
 
-	_, err = t.log.Update(ctx, t.tid, t.id, now, record.CollectionOutbox, data, prev)
+	_, err = t.log.Update(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data, prev)
 	if err != nil {
 		return err
 	}
 
-	return t.collection.Outbox.Replace(ctx, tn, pid, oid, o)
+	return t.collection.Outbox.Replace(ctx, l, tn, pid, oid, o)
 }
 
 func (t *Transaction) ListOutboxes(
@@ -409,11 +417,12 @@ func (t *Transaction) ListOutboxes(
 
 func (t *Transaction) InsertRequestID(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	now value.Time,
 ) error {
-	return t.collection.Idempotency.Set(ctx, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
+	return t.collection.Idempotency.Set(ctx, l, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
 }
 
 func (t *Transaction) TestRequestID(

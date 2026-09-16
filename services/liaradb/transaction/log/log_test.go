@@ -7,11 +7,11 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/raw"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/segment"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 )
@@ -36,13 +36,13 @@ func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
+	rl := link.NewRecordLocator(1, 2)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if lsn, err := l.Update(ctx,
-		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		rl,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -64,6 +64,7 @@ func testLog_Append__Large(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
+	rl := link.NewRecordLocator(1, 2)
 	var data = make([]byte, 0, 1024)
 	for i := range 1024 {
 		data = append(data, byte(i%255))
@@ -71,9 +72,8 @@ func testLog_Append__Large(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if _, err := l.Update(ctx,
-		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		rl,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -95,12 +95,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
+			rl := link.NewRecordLocator(1, 2)
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -111,9 +110,8 @@ func TestLog_Flush(t *testing.T) {
 			testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -136,12 +134,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
+			rl := link.NewRecordLocator(1, 2)
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -150,9 +147,8 @@ func TestLog_Flush(t *testing.T) {
 			}
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -173,13 +169,12 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 352, 4, 352)
-			tid := value.NewTenantID()
+			rl := link.NewRecordLocator(1, 2)
 			count := 14
 			for range count {
 				if _, err := l.Update(ctx,
-					tid,
 					record.NewTransactionID(2),
-					time.UnixMicro(1234567890),
+					rl,
 					record.CollectionValue,
 					data,
 					reverse,
@@ -203,11 +198,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 48, 1, 2)
+			rl := link.NewRecordLocator(1, 2)
 
 			if _, err := l.Update(ctx,
-				value.NewTenantID(),
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -222,12 +217,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			tid := value.NewTenantID()
+			rl := link.NewRecordLocator(1, 2)
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -240,9 +234,8 @@ func TestLog_Flush(t *testing.T) {
 			}
 
 			if _, err := l.Update(ctx,
-				tid,
 				record.NewTransactionID(2),
-				time.UnixMicro(1234567890),
+				rl,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -268,15 +261,14 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	ctx := t.Context()
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
-	tid := value.NewTenantID()
+	rl := link.NewRecordLocator(1, 2)
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if _, err := l.Update(ctx,
-		tid,
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		rl,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -284,10 +276,9 @@ func testLog_FlushCheckpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	now := time.UnixMicro(1234567891)
 	txid := record.NewTransactionID(1)
 
-	_, err := l.Checkpoint(t.Context(), now, txid)
+	_, err := l.Checkpoint(t.Context(), txid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -342,15 +333,14 @@ func testLog_Iterate(t *testing.T) {
 	fsys, dir := createFiles()
 
 	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
-	tid := value.NewTenantID()
+	rl := link.NewRecordLocator(1, 2)
 
 	count := 100
-	records, _ := createRecords(tid, uint64(count), 0)
+	records, _ := createRecords(uint64(count), 0)
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
-			tid,
 			rec.TransactionID(),
-			rec.Time().Value(),
+			rl,
 			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
@@ -399,8 +389,7 @@ func testLog_Recover(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	tid := value.NewTenantID()
-	records, _ := createRecords(tid, 2, 0)
+	records, _ := createRecords(2, 0)
 	r0 := records[0]
 	r1 := records[1]
 
@@ -415,9 +404,8 @@ func testLog_Recover(t *testing.T) {
 		}
 
 		if _, err := l.Update(ctx,
-			tid,
 			r0.TransactionID(),
-			r0.Time().Value(),
+			link.NewRecordLocator(1, 2),
 			r0.Collection(),
 			r0.Data(),
 			r0.Reverse(),
@@ -430,9 +418,8 @@ func testLog_Recover(t *testing.T) {
 		}
 
 		if _, err := l.Update(ctx,
-			tid,
 			r1.TransactionID(),
-			r1.Time().Value(),
+			link.NewRecordLocator(1, 2),
 			r1.Collection(),
 			r1.Data(),
 			r1.Reverse(),
@@ -490,13 +477,12 @@ func testLog_RecoverMany(t *testing.T) {
 	ctx := t.Context()
 
 	fsys, dir := createFiles()
-	tid := value.NewTenantID()
 
 	var aCount1 = logpage.NewLogSequenceNumber(1)
 	var aCount2 = logpage.NewLogSequenceNumber(1)
 	aCount := aCount1.Value() + aCount2.Value()
-	records1, _ := createRecords(tid, 1, 0)
-	records2, _ := createRecords(tid, 1, 1)
+	records1, _ := createRecords(1, 0)
+	records2, _ := createRecords(1, 1)
 	records := append(records1, records2...)
 
 	{ // "should append and flush"
@@ -511,9 +497,8 @@ func testLog_RecoverMany(t *testing.T) {
 
 		for _, rec := range records1 {
 			if _, err := l.Update(ctx,
-				tid,
 				rec.TransactionID(),
-				rec.Time().Value(),
+				link.NewRecordLocator(1, 2),
 				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
@@ -576,9 +561,8 @@ func testLog_RecoverMany(t *testing.T) {
 
 		for _, rec := range records2 {
 			if _, err := l.Update(ctx,
-				tid,
 				rec.TransactionID(),
-				rec.Time().Value(),
+				link.NewRecordLocator(1, 2),
 				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
@@ -642,15 +626,13 @@ func testLog_Recover__Iterate(t *testing.T) {
 	fsys, dir := createFiles()
 
 	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
-	tid := value.NewTenantID()
 
 	count := 100
-	records, _ := createRecords(tid, uint64(count), 0)
+	records, _ := createRecords(uint64(count), 0)
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
-			tid,
 			rec.TransactionID(),
-			rec.Time().Value(),
+			link.NewRecordLocator(1, 2),
 			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
@@ -700,57 +682,40 @@ func testLog_Commit(t *testing.T) {
 
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
-	tid := value.NewTenantID()
 	txid1 := record.NewTransactionID(1)
 	txid2 := record.NewTransactionID(2)
 
-	if _, err := l.Start(ctx,
-		tid,
-		txid1,
-		time.UnixMicro(1234567890)); err != nil {
+	if _, err := l.Start(ctx, txid1); err != nil {
 		t.Fatal(err)
 	}
 
 	if _, err := l.Insert(ctx,
-		tid,
 		txid1,
-		time.UnixMicro(1234567890),
+		link.NewRecordLocator(1, 2),
 		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
 
-	if lsn, err := l.Commit(ctx,
-		tid,
-		txid1,
-		time.UnixMicro(1234567890),
-	); err != nil {
+	if lsn, err := l.Commit(ctx, txid1); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(3) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 3)
 	}
 
-	if _, err := l.Start(ctx,
-		tid,
-		txid2,
-		time.UnixMicro(1234567890)); err != nil {
+	if _, err := l.Start(ctx, txid2); err != nil {
 		t.Fatal(err)
 	}
 
 	if _, err := l.Insert(ctx,
-		tid,
 		txid2,
-		time.UnixMicro(1234567890),
+		link.NewRecordLocator(1, 2),
 		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
 
-	if lsn, err := l.Commit(ctx,
-		tid,
-		txid2,
-		time.UnixMicro(1234567890),
-	); err != nil {
+	if lsn, err := l.Commit(ctx, txid2); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(6) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 6)
@@ -816,9 +781,8 @@ func testLog_Insert(t *testing.T) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 
 	if lsn, err := l.Insert(ctx,
-		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		link.NewRecordLocator(1, 2),
 		record.CollectionEvent,
 		data,
 	); err != nil {
@@ -874,9 +838,8 @@ func testLog_InsertAndCommit(t *testing.T) {
 	})
 
 	if lsn, err := l.Insert(ctx,
-		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		link.NewRecordLocator(1, 2),
 		record.CollectionEvent,
 		data,
 	); err != nil {
@@ -887,11 +850,7 @@ func testLog_InsertAndCommit(t *testing.T) {
 
 	testPosition(t, l, logpage.NewLogSequenceNumber(0), logpage.NewLogSequenceNumber(1))
 
-	if lsn, err := l.Commit(ctx,
-		value.NewTenantID(),
-		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
-	); err != nil {
+	if lsn, err := l.Commit(ctx, record.NewTransactionID(2)); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(2) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 2)
@@ -937,11 +896,7 @@ func testLog_Rollback(t *testing.T) {
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	if lsn, err := l.Rollback(ctx,
-		value.NewTenantID(),
-		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
-	); err != nil {
+	if lsn, err := l.Rollback(ctx, record.NewTransactionID(2)); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -982,11 +937,7 @@ func testLog_Start(t *testing.T) {
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	if lsn, err := l.Start(ctx,
-		value.NewTenantID(),
-		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
-	); err != nil {
+	if lsn, err := l.Start(ctx, record.NewTransactionID(2)); err != nil {
 		t.Error(err)
 	} else if lsn != logpage.NewLogSequenceNumber(1) {
 		t.Errorf("incorrect value: %v, expected: %v", lsn, 1)
@@ -1032,9 +983,8 @@ func testLog_Update(t *testing.T) {
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if lsn, err := l.Update(ctx,
-		value.NewTenantID(),
 		record.NewTransactionID(2),
-		time.UnixMicro(1234567890),
+		link.NewRecordLocator(1, 2),
 		record.CollectionValue,
 		data,
 		reverse,
@@ -1137,16 +1087,15 @@ func createFiles() (filecache.FileSystem, string) {
 	return filetesting.New(nil), "."
 }
 
-func createRecords(tid value.TenantID, count, offset uint64) ([]*record.Record, logpage.LogSequenceNumber) {
+func createRecords(count, offset uint64) ([]*record.Record, logpage.LogSequenceNumber) {
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	records := make([]*record.Record, 0, count)
 	for i := range count {
 		rc := record.New(
-			tid,
 			record.NewTransactionID(2),
-			record.NewTime(time.UnixMicro(1234567890)),
+			link.NewRecordLocator(1, 2),
 			record.ActionUpdate,
 			record.CollectionValue,
 			data,

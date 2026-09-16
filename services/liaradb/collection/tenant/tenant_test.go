@@ -9,10 +9,13 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
+	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -23,7 +26,15 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	l := log.New(4096, 100, 4096, 100, s.FSys, "dir")
+	if err := l.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
@@ -31,7 +42,8 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, o, n, pid, data); err != nil {
+	lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -47,14 +59,23 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
+	l := log.New(4096, 100, 4096, 100, s.FSys, "dir")
+	if err := l.Run(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := l.StartWriter(); err != nil {
+		t.Fatal(err)
+	}
+
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
 	pid := value.NewPartitionID(0)
 
 	data := createData()
 
-	if err := insertData(ctx, o, n, pid, data); err != nil {
+	lg := fixed.NewLogger(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -83,9 +104,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, o *Tenant, tn tablename.TableName, pid value.PartitionID, data []item) error {
+func insertData(ctx context.Context, l span.Log, o *Tenant, tn tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, tn, pid, i.value.ID(), i.value); err != nil {
+		if err := o.Set(ctx, l, tn, pid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
