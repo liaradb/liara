@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type EventLogTransaction struct {
@@ -39,7 +38,7 @@ func (t *EventLogTransaction) Commit(ctx context.Context, l span.Log, tx *Transa
 	tn := tablename.New(tx.tid)
 	for _, item := range t.events {
 		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		err := t.el.AppendEvent(ctx, l, tn, item.e.PartitionID, tx.Logger(ctx, record.CollectionEvent), k, item.e.GlobalVersion, item.e.ID, item.data)
+		err := t.el.AppendEvent(ctx, l, tn, item.e.PartitionID, k, item.e.GlobalVersion, item.e.ID, item.data)
 		if err != nil {
 			return err
 		}

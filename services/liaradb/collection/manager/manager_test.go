@@ -10,12 +10,13 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestManager(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, testManager)
 }
 
@@ -27,11 +28,11 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	want := createValues(data)
 
-	// for _, d := range data {
-	// 	if err := m.Insert(t.Context(), pid, key.NewKey([]byte(d.key)), d.value); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for _, d := range data {
+		if err := m.Insert(t.Context(), &testLog{}, pid, key.NewKey([]byte(d.key)), d.value); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	testGet(t, data, want, m, pid)
 	testList(t, want, m, pid)
@@ -90,4 +91,12 @@ func createValues(data []tuple) []int64 {
 		values = append(values, d.value)
 	}
 	return values
+}
+
+// TODO: Remove this
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

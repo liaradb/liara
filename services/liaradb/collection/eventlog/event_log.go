@@ -40,7 +40,6 @@ func (l *EventLog) Append(
 	sl span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	log span.Log,
 	e *entity.Event,
 ) error {
 	b := buffer.New(l.storage.BufferSize())
@@ -49,7 +48,7 @@ func (l *EventLog) Append(
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, sl, tn, pid, log, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
+	return l.AppendEvent(ctx, sl, tn, pid, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
 }
 
 func (l *EventLog) AppendEvent(
@@ -57,7 +56,6 @@ func (l *EventLog) AppendEvent(
 	sl span.Log,
 	tn tablename.TableName,
 	pid value.PartitionID,
-	log span.Log,
 	k key.Key,
 	gV value.GlobalVersion,
 	id value.EventID,

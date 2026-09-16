@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/buffer"
@@ -36,11 +37,11 @@ func (m *Manager) Get(ctx context.Context, pid value.PartitionID, k key.Key) (in
 	return i, raw.ReadInt64(b, &i)
 }
 
-// func (m *Manager) Insert(ctx context.Context, pid value.PartitionID, k key.Key, i int64) error {
-// 	b := buffer.New(8)
-// 	raw.WriteInt64(b, i)
-// 	return m.kv.Set(ctx, m.tn, pid, k, b.Bytes())
-// }
+func (m *Manager) Insert(ctx context.Context, l span.Log, pid value.PartitionID, k key.Key, i int64) error {
+	b := buffer.New(8)
+	raw.WriteInt64(b, i)
+	return m.kv.Set(ctx, l, m.tn, pid, k, b.Bytes())
+}
 
 func (m *Manager) List(ctx context.Context, pid value.PartitionID) ([]int64, error) {
 	result := make([]int64, 0)

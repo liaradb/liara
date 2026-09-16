@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -19,7 +20,6 @@ import (
 )
 
 func TestEventLog_Append(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 2, 1024, testEventLog_Append)
 }
 
@@ -57,11 +57,11 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 		Data:          value.NewData([]byte{}),
 	}}
 
-	// for _, r := range records {
-	// 	if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for _, r := range records {
+		if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	result := make([]*entity.Event, 0)
 
@@ -119,11 +119,11 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 		Data:          value.NewData([]byte{}),
 	}}
 
-	// for _, r := range records {
-	// 	if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for _, r := range records {
+		if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	partialResults := make([]*entity.Event, 0)
 
@@ -143,7 +143,6 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 }
 
 func TestEventLog_Find(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 2, 1024, testEventLog_Find)
 }
 
@@ -181,11 +180,11 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 		Data:          value.NewData([]byte{}),
 	}}
 
-	// for _, r := range records {
-	// 	if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for _, r := range records {
+		if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	e, err := el.Find(ctx, tn, pid, records[2].ID)
 	if err != nil {
@@ -200,7 +199,6 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestEventLog_GetAggregate(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 2, 1024, testEventLog_GetAggregate)
 }
 
@@ -242,11 +240,11 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	}}
 
 	pid := value.NewPartitionID(0)
-	// for _, r := range records {
-	// 	if err := el.Append(ctx, tn, pid, &testLog{}, r); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for _, r := range records {
+		if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	want := []entity.Event{*records[1], *records[3]}
 
@@ -269,7 +267,6 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestEventLog_AppendEvent(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 2, 1024, testEventLog_AppendEvent)
 }
 
@@ -287,12 +284,12 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 		{7, 8},
 		{9, 10}}
 
-	// for i, r := range records {
-	// 	k := key.NewKey2([]byte(""), int64(i))
-	// 	if err := el.AppendEvent(ctx, tn, pid, &testLog{}, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// }
+	for i, r := range records {
+		k := key.NewKey2([]byte(""), int64(i))
+		if err := el.AppendEvent(ctx, &testLog{}, tn, pid, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	result := make([][]byte, 0)
 
@@ -314,6 +311,6 @@ func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
 type testLog struct {
 }
 
-func (t *testLog) Append(link.SlotID, []byte) (logpage.LogSequenceNumber, error) {
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }
