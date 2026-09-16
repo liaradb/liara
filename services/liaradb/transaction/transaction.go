@@ -184,11 +184,6 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionEvent, data)
-	if err != nil {
-		return err
-	}
-
 	t.eventLog.Append(e, data)
 
 	return nil
@@ -217,11 +212,6 @@ func (t *Transaction) SetValue(
 	// if err := t.keyValue.CanAppend(ctx, tn, r.PartitionID(), k); err != nil {
 	// 	return err
 	// }
-
-	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionValue, data)
-	if err != nil {
-		return err
-	}
 
 	t.values = append(t.values, valueItem{
 		r:    r,
@@ -302,12 +292,12 @@ func (t *Transaction) commit(
 	l span.Log,
 	now time.Time,
 ) error {
-	_, err := t.log.Commit(ctx, t.id)
-	if err != nil {
+	if err := t.eventLog.Commit(ctx, l, t); err != nil {
 		return err
 	}
 
-	if err := t.eventLog.Commit(ctx, l, t); err != nil {
+	_, err := t.log.Commit(ctx, t.id)
+	if err != nil {
 		return err
 	}
 
@@ -353,11 +343,6 @@ func (t *Transaction) InsertOutbox(
 	_, ok := e.Write(data)
 	if !ok {
 		return io.ErrUnexpectedEOF
-	}
-
-	_, err := t.log.Insert(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data)
-	if err != nil {
-		return err
 	}
 
 	return t.collection.Outbox.Set(ctx, l, tn, pid, oid, e)

@@ -197,7 +197,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, &testLog{}, time.UnixMicro(1234567890)); err != nil {
+	if err := tx.commit(ctx, tx.Logger(ctx, record.CollectionEvent), time.UnixMicro(1234567890)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -233,8 +233,8 @@ func testTransaction_Commit(t *testing.T) {
 		c++
 	}
 
-	if c != 2 {
-		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
+	if c != len(actions) {
+		t.Errorf("incorrect record count: %v, expected: %v", c, len(actions))
 	}
 
 	result := [][]byte{}
@@ -309,7 +309,7 @@ func testTransaction_Rollback(t *testing.T) {
 	}
 
 	lsns := []logpage.LogSequenceNumber{logpage.NewLogSequenceNumber(1), logpage.NewLogSequenceNumber(2)}
-	actions := []record.Action{record.ActionInsert, record.ActionRollback}
+	actions := []record.Action{record.ActionRollback}
 
 	it, err := l2.Recover()
 	if err != nil {
@@ -329,8 +329,8 @@ func testTransaction_Rollback(t *testing.T) {
 		c++
 	}
 
-	if c != 2 {
-		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
+	if c != len(actions) {
+		t.Errorf("incorrect record count: %v, expected: %v", c, len(actions))
 	}
 
 	result := [][]byte{}
