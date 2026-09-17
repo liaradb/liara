@@ -98,6 +98,129 @@ func TestPage_Next__Empty(t *testing.T) {
 	}
 }
 
+func TestPage_NextMustFit(t *testing.T) {
+	t.Parallel()
+
+	p := New(32, 4, 4)
+
+	header, data, _ := p.NextMustFit(8)
+
+	if l := len(header); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	if l := len(data); l != 8 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	}
+
+	if ok := p.Commit(8); !ok {
+		t.Error("should commit")
+	}
+
+	header, data, ok := p.Slot(0)
+	if !ok {
+		t.Error("should get slot")
+	}
+
+	if l := len(header); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+
+	if l := len(data); l != 8 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	}
+}
+
+func TestPage_Insert(t *testing.T) {
+	t.Parallel()
+
+	p := New(128, 4, 4)
+
+	{
+		header, data := p.Next(8)
+
+		if l := len(header); l != 4 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 4)
+		}
+
+		if l := len(data); l != 8 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 8)
+		}
+
+		header[0] = 1
+		data[0] = 2
+
+		if ok := p.Commit(8); !ok {
+			t.Error("should commit")
+		}
+	}
+
+	{
+		header, data := p.Next(8)
+
+		if l := len(header); l != 4 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 4)
+		}
+
+		if l := len(data); l != 8 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 8)
+		}
+
+		header[0] = 3
+		data[0] = 4
+
+		if ok := p.Insert(8, 0); !ok {
+			t.Error("should commit")
+		}
+	}
+
+	{
+		header, data, ok := p.Slot(0)
+		if !ok {
+			t.Error("should get slot")
+		}
+
+		if l := len(header); l != 4 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 4)
+		}
+
+		if l := len(data); l != 8 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 8)
+		}
+
+		if h := header[0]; h != 3 {
+			t.Errorf("incorrect header: %v, expected: %v", h, 3)
+		}
+
+		if d := data[0]; d != 4 {
+			t.Errorf("incorrect data: %v, expected: %v", d, 4)
+		}
+	}
+
+	{
+		header, data, ok := p.Slot(1)
+		if !ok {
+			t.Error("should get slot")
+		}
+
+		if l := len(header); l != 4 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 4)
+		}
+
+		if l := len(data); l != 8 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 8)
+		}
+
+		if h := header[0]; h != 1 {
+			t.Errorf("incorrect header: %v, expected: %v", h, 1)
+		}
+
+		if d := data[0]; d != 2 {
+			t.Errorf("incorrect data: %v, expected: %v", d, 2)
+		}
+	}
+}
+
 func TestPage_Slot(t *testing.T) {
 	t.Parallel()
 
