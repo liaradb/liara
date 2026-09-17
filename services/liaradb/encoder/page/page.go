@@ -48,6 +48,10 @@ func (p *Page) Data() []byte {
 	return p.data
 }
 
+func (p *Page) Length() int16 {
+	return int16(len(p.data))
+}
+
 func (p *Page) Fill(data []byte) {
 	n := copy(p.data, data)
 	clear(p.data[n:])
@@ -89,6 +93,16 @@ func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
 	}
 }
 
+func (p *Page) SlotsRange(start, end link.SlotID) iter.Seq2[[]byte, []byte] {
+	return func(yield func([]byte, []byte) bool) {
+		for slot := range p.list.SlotsRange(start, end) {
+			if !yield(p.slot(slot)) {
+				return
+			}
+		}
+	}
+}
+
 func (p *Page) SlotsReverse() iter.Seq2[[]byte, []byte] {
 	return func(yield func([]byte, []byte) bool) {
 		for slot := range p.list.SlotsReverse() {
@@ -114,7 +128,7 @@ func (p *Page) initNext() {
 }
 
 func (p *Page) Next(size int) ([]byte, []byte) {
-	space := p.space()
+	space := p.Space()
 	size = min(size, space)
 	end := p.next
 	start := (end - size) - p.slotHeaderSize
@@ -126,7 +140,24 @@ func (p *Page) Next(size int) ([]byte, []byte) {
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
-func (p *Page) space() int {
+func (p *Page) NextMustFit(size int) ([]byte, []byte, bool) {
+	space := p.Space()
+	if size > space {
+		return nil, nil, false
+	}
+
+	end := p.next
+	start := (end - size) - p.slotHeaderSize
+	// TODO: Do we need to test again?
+	// if end-start <= p.slotHeaderSize {
+	// 	return nil, nil, false
+	// }
+
+	data := p.body[start:end]
+	return data[:p.slotHeaderSize], data[p.slotHeaderSize:], true
+}
+
+func (p *Page) Space() int {
 	end := p.next
 	// TODO: Fix this cast
 	size := int(p.list.NextSize())
@@ -141,6 +172,19 @@ func (p *Page) Commit(size int) bool {
 
 	// TODO: Fix this cast
 	if _, _, ok := p.list.Push(int16(start), int16(fullSize)); !ok {
+		return false
+	}
+
+	p.next = start
+	return true
+}
+
+func (p *Page) Insert(size int, i link.SlotID) bool {
+	fullSize := size + p.slotHeaderSize
+	start := p.next - fullSize
+
+	// TODO: Fix this cast
+	if _, _, ok := p.list.Insert(int16(start), int16(fullSize), i); !ok {
 		return false
 	}
 
