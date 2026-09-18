@@ -48,12 +48,21 @@ func (ln *LeafNode) setRightID(block link.FilePosition) {
 
 func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 	le := newLeafEntry(key, recordID)
-	b, ok := ln.node.Append(int16(le.Size()))
+	size := int16(le.Size())
+	b, ok := ln.node.Append(size)
 	if !ok {
 		return false
 	}
 
-	le.Write(b)
+	if !le.Write(b) {
+		return false
+	}
+
+	// TODO: What happens if we return false here?
+	if !ln.node.Commit(size) {
+		return false
+	}
+
 	ln.node.SetDirty()
 
 	return true

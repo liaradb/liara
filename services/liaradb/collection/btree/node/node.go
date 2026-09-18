@@ -59,14 +59,6 @@ func (n *Node) SetLevel(l byte) {
 func (n *Node) Append(size int16) ([]byte, bool) {
 	// TODO: Fix this cast
 	_, b, ok := n.page.NextMustFit(int(size))
-	if !ok {
-		return nil, false
-	}
-
-	if !n.page.Commit(int(size)) {
-		return nil, false
-	}
-
 	return b, ok
 }
 

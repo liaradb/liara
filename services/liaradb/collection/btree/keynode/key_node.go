@@ -22,12 +22,21 @@ func New(page node.Node) *KeyNode {
 
 func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 	ke := newKeyEntry(key, block)
-	b, ok := kn.node.Append(int16(ke.Size()))
+	size := int16(ke.Size())
+	b, ok := kn.node.Append(size)
 	if !ok {
 		return false
 	}
 
-	ke.Write(b)
+	if !ke.Write(b) {
+		return false
+	}
+
+	// TODO: What happens if we return false here?
+	if !kn.node.Commit(size) {
+		return false
+	}
+
 	kn.node.SetDirty()
 
 	return true

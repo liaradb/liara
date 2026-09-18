@@ -94,6 +94,10 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
+	if !n.Commit(16) {
+		t.Fatal("should commit")
+	}
+
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
@@ -109,6 +113,10 @@ func testNode_Append(t *testing.T) {
 	b1, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
+	}
+
+	if !n.Commit(16) {
+		t.Fatal("should commit")
 	}
 
 	if c := n.Count(); c != 2 {
@@ -252,6 +260,10 @@ func testNode_Space(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
+	if !n.Commit(16) {
+		t.Fatal("should commit")
+	}
+
 	if s := n.Space(); s != 0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
 	}
@@ -282,6 +294,10 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
+	if !n.Commit(16) {
+		t.Fatal("should commit")
+	}
+
 	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
 	}
@@ -289,6 +305,10 @@ func testNode_Child(t *testing.T) {
 	b1, ok := n.Append(16)
 	if !ok {
 		t.Error("should get a buffer")
+	}
+
+	if !n.Commit(16) {
+		t.Fatal("should commit")
 	}
 
 	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
@@ -341,6 +361,10 @@ func testNode_Children(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
+		if !n.Commit(itemSize * int16(len(v))) {
+			t.Fatal("should commit")
+		}
+
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
 		}
@@ -385,6 +409,10 @@ func testNode_ChildrenRange(t *testing.T) {
 		b0, ok := n.Append(itemSize * int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
+		}
+
+		if !n.Commit(itemSize * int16(len(v))) {
+			t.Fatal("should commit")
 		}
 
 		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
@@ -444,6 +472,10 @@ func testNode_Clear(t *testing.T) {
 		b, ok := n.Append(itemSize * int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
+		}
+
+		if !n.Commit(itemSize * int16(len(v))) {
+			t.Fatal("should commit")
 		}
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
