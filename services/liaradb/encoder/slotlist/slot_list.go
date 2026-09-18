@@ -43,6 +43,24 @@ func (sl *SlotList) Last() (Slot, bool) {
 	return sl.Slot(sl.count - 1)
 }
 
+func (sl *SlotList) FirstOffset() (offset int16) {
+	offset = int16(sl.list.Length())
+
+	for i := range sl.count {
+		s, ok := sl.Slot(i)
+		if !ok {
+			// TODO: How should this respond?
+			panic("invalid slot")
+		}
+
+		if i == 0 || s.offset < offset {
+			offset = s.offset
+		}
+	}
+
+	return
+}
+
 func (sl *SlotList) Reset() {
 	count, _ := sl.list.Get(0)
 	sl.count = link.SlotID(count)

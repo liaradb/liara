@@ -3,7 +3,7 @@ package node
 import (
 	"iter"
 
-	"github.com/liaradb/liaradb/encoder/slotlist"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -14,14 +14,13 @@ const (
 
 type Node struct {
 	header
+	page   *page.Page
 	buffer *storage.Buffer
-	data   []byte
-	list   slotlist.SlotList
 }
 
 func New(buffer *storage.Buffer) Node {
-	data := buffer.Raw()
-	header, data0 := newHeader(data)
+	page := page.NewFromSlice(buffer.Raw(), headerSize, 0)
+	header, _ := newHeader(page.Header())
 
 	if header.isEmpty() {
 		header.init()
@@ -29,15 +28,14 @@ func New(buffer *storage.Buffer) Node {
 
 	return Node{
 		header: header,
+		page:   page,
 		buffer: buffer,
-		data:   data,
-		list:   slotlist.New(data0),
 	}
 }
 
 func (n *Node) Clear() {
-	n.buffer.Clear()
-	n.list.Clear()
+	// n.buffer.Clear()
+	n.page.Clear()
 	n.header.init()
 }
 
@@ -59,92 +57,69 @@ func (n *Node) SetLevel(l byte) {
 }
 
 func (n *Node) Append(size int16) ([]byte, bool) {
-	if !n.hasSpace(size) {
-		return nil, false
-	}
-
-	offset := n.next() - size
-	slot, _, ok := n.list.Push(offset, size)
+	// TODO: Fix this cast
+	_, b, ok := n.page.NextMustFit(int(size))
 	if !ok {
 		return nil, false
 	}
 
-	n.header.setNext(offset)
+	if !n.page.Commit(int(size)) {
+		return nil, false
+	}
 
-	// We already checked hasSpace
-	return slot.SliceUnsafe(), true
+	return b, ok
+}
+
+func (n *Node) Commit(size int16) bool {
+	// TODO: Fix this cast
+	return n.page.Commit(int(size))
 }
 
 func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
-	if !n.hasSpace(size) {
-		return nil, false
-	}
-
-	offset := n.next() - size
-	slot, _, ok := n.list.Insert(offset, size, index)
+	// TODO: Fix this cast
+	_, b, ok := n.page.NextMustFit(int(size))
 	if !ok {
 		return nil, false
 	}
 
-	n.header.setNext(offset)
-
-	// We already checked hasSpace
-	return slot.SliceUnsafe(), true
-}
-
-func (n Node) Length() int16 {
-	return int16(len(n.data))
-}
-
-func (n Node) Count() link.SlotID {
-	return n.list.Count()
-}
-
-func (n *Node) next() int16 {
-	size := n.list.Count()
-	if size == 0 {
-		return int16(n.list.Length())
-	} else {
-		return n.header.Next()
-	}
-}
-
-func (n Node) Space() int16 {
-	next := n.next()
-	size := n.list.Size()
-	return max(next-size-itemSize, 0)
-}
-
-func (n Node) hasSpace(size int16) bool {
-	s := n.Space()
-	return size <= s
-}
-
-func (n Node) Child(index link.SlotID) ([]byte, bool) {
-	slot, ok := n.list.Slot(index)
-	if !ok {
+	if !n.page.Insert(int(size), index) {
 		return nil, false
 	}
 
-	return slot.Slice()
+	return b, ok
 }
 
-func (n Node) Children() iter.Seq[[]byte] {
+func (n *Node) Length() int16 {
+	return n.page.Length()
+}
+
+func (n *Node) Count() link.SlotID {
+	return n.page.Count()
+}
+
+func (n *Node) Space() int16 {
+	return int16(n.page.Space())
+}
+
+func (n *Node) Child(index link.SlotID) ([]byte, bool) {
+	_, b, ok := n.page.Slot(index)
+	return b, ok
+}
+
+func (n *Node) Children() iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for slot := range n.list.Slots() {
-			b, ok := slot.Slice()
-			if !ok || !yield(b) {
+		for _, b := range n.page.Slots() {
+			if !yield(b) {
 				return
 			}
 		}
 	}
 }
 
-func (n Node) ChildrenRange(start, end link.SlotID) iter.Seq[[]byte] {
+func (n *Node) ChildrenRange(start, end link.SlotID) iter.Seq[[]byte] {
 	return func(yield func([]byte) bool) {
-		for slot := range n.list.SlotsRange(start, end) {
-			b, ok := slot.Slice()
-			if !ok || !yield(b) {
+		for _, b := range n.page.SlotsRange(start, end) {
+			if !yield(b) {
 				return
 			}
 		}

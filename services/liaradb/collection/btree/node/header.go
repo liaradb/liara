@@ -11,15 +11,13 @@ const (
 	levelSize  = 1
 	highIDSize = 8
 	lowIDSize  = 8
-	nextSize   = 2
 
 	headerSize = 0 +
 		page.MagicSize +
 		logpage.LogSequenceNumberSize +
 		levelSize +
 		highIDSize +
-		lowIDSize +
-		nextSize
+		lowIDSize
 )
 
 type header struct {
@@ -28,7 +26,6 @@ type header struct {
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
-	next   wrap.Int16
 }
 
 func newHeader(data []byte) (header, []byte) {
@@ -37,7 +34,6 @@ func newHeader(data []byte) (header, []byte) {
 	level, data2 := wrap.NewByte(data1)
 	highID, data3 := wrap.NewInt64(data2)
 	lowID, data4 := wrap.NewInt64(data3)
-	next, data5 := wrap.NewInt16(data4)
 
 	return header{
 		magic:  magic,
@@ -45,8 +41,7 @@ func newHeader(data []byte) (header, []byte) {
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
-		next:   next,
-	}, data5
+	}, data4
 }
 
 func (h *header) init() {
@@ -65,10 +60,6 @@ func (h *header) LowID() link.FilePosition {
 	return link.FilePosition(h.lowID.Get())
 }
 
-func (h *header) Next() int16 {
-	return h.next.Get()
-}
-
 func (h *header) setLevel(l byte) {
 	h.level.SetUnsigned(l)
 }
@@ -79,10 +70,6 @@ func (h *header) SetHighID(o link.FilePosition) {
 
 func (h *header) SetLowID(o link.FilePosition) {
 	h.lowID.Set(o.Value())
-}
-
-func (h *header) setNext(o int16) {
-	h.next.Set(o)
 }
 
 func (h *header) isEmpty() bool {

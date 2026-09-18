@@ -119,12 +119,8 @@ func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
 }
 
 func (p *Page) initNext() {
-	if last, ok := p.list.Last(); ok {
-		// TODO: Fix this cast
-		p.next = int(last.Offset())
-	} else {
-		p.next = p.list.Length()
-	}
+	// TODO: Fix this cast
+	p.next = int(p.list.FirstOffset())
 }
 
 func (p *Page) Next(size int) ([]byte, []byte) {
