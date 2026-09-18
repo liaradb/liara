@@ -1,13 +1,16 @@
 package slotlist
 
+import "github.com/liaradb/liaradb/storage/link"
+
 type Slot struct {
+	index  link.SlotID // TODO: Do we need index?  It's currently just for compacting.
 	offset int16
 	size   int16
 	data   []byte
 }
 
-func newSlot(offset, size int16, data []byte) Slot {
-	return Slot{offset, size, data}
+func newSlot(index link.SlotID, offset, size int16, data []byte) Slot {
+	return Slot{index, offset, size, data}
 }
 
 func (s Slot) Offset() int16 { return s.offset }

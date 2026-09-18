@@ -2,6 +2,7 @@ package slotlist
 
 import (
 	"iter"
+	"slices"
 
 	"github.com/liaradb/liaradb/encoder/int16list"
 	"github.com/liaradb/liaradb/storage/link"
@@ -105,7 +106,7 @@ func (sl *SlotList) Slot(i link.SlotID) (Slot, bool) {
 		return Slot{}, false
 	}
 
-	return newSlot(a, b, sl.data), true
+	return newSlot(i, a, b, sl.data), true
 }
 
 func (sl *SlotList) Slots() iter.Seq[Slot] {
@@ -162,7 +163,7 @@ func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (Slot, link.
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return newSlot(offset, size, sl.data), count, true
+	return newSlot(i, offset, size, sl.data), count, true
 }
 
 func (sl *SlotList) Pop() (Slot, bool) {
@@ -183,7 +184,12 @@ func (sl *SlotList) Push(offset int16, size int16) (Slot, link.SlotID, bool) {
 
 	count := sl.count
 	sl.setCount(count + 1)
-	return newSlot(offset, size, sl.data), count, true
+	return newSlot(link.SlotID(pos), offset, size, sl.data), count, true
+}
+
+func (sl *SlotList) Replace(offset, size int16, i link.SlotID) bool {
+	pos := sl.position(sl.count)
+	return sl.setSlot(pos, offset, size)
 }
 
 func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {
@@ -199,4 +205,18 @@ func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {
 func (sl *SlotList) setSlot(pos, offset, size int16) bool {
 	return sl.list.Set(pos, offset) &&
 		sl.list.Set(pos+1, size)
+}
+
+func (sl *SlotList) SlotSliceSortedByOffset() []Slot {
+	slots := sl.SlotSlice()
+	slices.SortFunc(slots, func(a, b Slot) int { return int(a.offset) - int(b.offset) })
+	return slots
+}
+
+func (sl *SlotList) SlotSlice() []Slot {
+	slots := make([]Slot, 0, sl.count)
+	for s := range sl.Slots() {
+		slots = append(slots, s)
+	}
+	return slots
 }
