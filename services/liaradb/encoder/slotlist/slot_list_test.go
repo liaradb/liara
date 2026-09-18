@@ -171,6 +171,35 @@ func TestSlotList_Pop(t *testing.T) {
 	}
 }
 
+func TestSlotList_FirstOffset(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 42))
+	if _, _, ok := l.Push(5, 0); !ok {
+		t.Fatal("should push")
+	}
+
+	if o := l.FirstOffset(); o != 5 {
+		t.Fatalf("incorrect offset: %v, expected: %v", o, 5)
+	}
+
+	if _, _, ok := l.Push(6, 0); !ok {
+		t.Fatal("should push")
+	}
+
+	if o := l.FirstOffset(); o != 5 {
+		t.Fatalf("incorrect offset: %v, expected: %v", o, 5)
+	}
+
+	if _, _, ok := l.Push(4, 0); !ok {
+		t.Fatal("should push")
+	}
+
+	if o := l.FirstOffset(); o != 4 {
+		t.Fatalf("incorrect offset: %v, expected: %v", o, 4)
+	}
+}
+
 func TestSlotList_Slots(t *testing.T) {
 	t.Parallel()
 
