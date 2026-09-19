@@ -33,7 +33,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	data, err := t.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	data, err := t.fc.Get(ctx, tn.Tenant(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (t *Tenant) List(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for data, err := range t.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
+		for data, err := range t.fc.List(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -85,7 +85,7 @@ func (t *Tenant) Set(
 	}
 
 	k := key.NewKey(tid.Bytes())
-	return t.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, pid), k, v)
 }
 
 func (t *Tenant) Replace(
@@ -103,7 +103,7 @@ func (t *Tenant) Replace(
 
 	return t.fc.Replace(ctx,
 		l,
-		tn.Outbox(pid),
+		tn.Tenant(),
 		tn.Index(0, value.NewPartitionID(0)),
 		pid,
 		key.NewKey(tid.Bytes()),
