@@ -171,6 +171,52 @@ func TestSlotList_Pop(t *testing.T) {
 	}
 }
 
+func TestSlotList_Replace(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 42))
+
+	if l.Replace(10, 10, 0) {
+		t.Fatal("should not replace non-existant slots")
+	}
+
+	if l.Replace(11, 11, 1) {
+		t.Fatal("should not replace non-existant slots")
+	}
+
+	if _, _, ok := l.Push(5, 0); !ok {
+		t.Fatal("should push")
+	}
+
+	if !l.Replace(10, 10, 0) {
+		t.Fatal("should replace")
+	}
+
+	if s, ok := l.Slot(0); !ok {
+		t.Fatal("should get")
+	} else if o := s.Offset(); o != 10 {
+		t.Errorf("incorrect offset: %v, expected: %v", o, 10)
+	} else if s := s.Size(); s != 10 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 10)
+	}
+
+	if _, _, ok := l.Push(5, 0); !ok {
+		t.Fatal("should push")
+	}
+
+	if !l.Replace(11, 11, 1) {
+		t.Fatal("should replace")
+	}
+
+	if s, ok := l.Slot(1); !ok {
+		t.Fatal("should get")
+	} else if o := s.Offset(); o != 11 {
+		t.Errorf("incorrect offset: %v, expected: %v", o, 11)
+	} else if s := s.Size(); s != 11 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 11)
+	}
+}
+
 func TestSlotList_FirstOffset(t *testing.T) {
 	t.Parallel()
 

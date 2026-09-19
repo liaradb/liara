@@ -188,7 +188,11 @@ func (sl *SlotList) Push(offset int16, size int16) (Slot, link.SlotID, bool) {
 }
 
 func (sl *SlotList) Replace(offset, size int16, i link.SlotID) bool {
-	pos := sl.position(sl.count)
+	if i >= sl.count {
+		return false
+	}
+
+	pos := sl.position(i)
 	return sl.setSlot(pos, offset, size)
 }
 
