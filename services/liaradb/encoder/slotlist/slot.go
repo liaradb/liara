@@ -36,3 +36,7 @@ func (s Slot) Slice() ([]byte, bool) {
 func (s Slot) SliceUnsafe() []byte {
 	return s.data[s.offset : s.offset+s.size]
 }
+
+func (s Slot) isDeleted() bool {
+	return s.offset < 1
+}

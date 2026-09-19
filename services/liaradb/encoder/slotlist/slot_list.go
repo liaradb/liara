@@ -196,6 +196,15 @@ func (sl *SlotList) Replace(offset, size int16, i link.SlotID) bool {
 	return sl.setSlot(pos, offset, size)
 }
 
+func (sl *SlotList) Delete(i link.SlotID) bool {
+	return sl.Replace(0, 0, i)
+}
+
+func (sl *SlotList) IsDeleted(i link.SlotID) bool {
+	s, ok := sl.Slot(i)
+	return !ok || s.isDeleted()
+}
+
 func (sl *SlotList) getSlot(pos int16) (int16, int16, bool) {
 	offset, ok := sl.list.Get(pos)
 	if !ok {
