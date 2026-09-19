@@ -423,6 +423,40 @@ func TestSlotList_SlotsRange(t *testing.T) {
 	}
 }
 
+func TestSlotList_SlotSliceSortedByOffset(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 256))
+
+	data := []tuple{
+		{30, 80},
+		{20, 70},
+		{50, 100},
+		{40, 90}}
+
+	want := []tuple{
+		{20, 70},
+		{30, 80},
+		{40, 90},
+		{50, 100}}
+
+	for _, d := range data {
+		l.Push(d.a, d.b)
+	}
+
+	slots := l.SlotSliceSortedByOffset()
+
+	for i, d := range want {
+		s := slots[i]
+		if o := s.Offset(); o != d.a {
+			t.Errorf("incorrect offset: %v, expected: %v", o, d.a)
+		}
+		if s := s.Size(); s != d.b {
+			t.Errorf("incorrect size: %v, expected: %v", s, d.b)
+		}
+	}
+}
+
 func TestSlotList_Insert(t *testing.T) {
 	t.Parallel()
 

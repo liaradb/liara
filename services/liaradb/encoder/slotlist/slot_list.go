@@ -221,12 +221,12 @@ func (sl *SlotList) setSlot(pos, offset, size int16) bool {
 }
 
 func (sl *SlotList) SlotSliceSortedByOffset() []Slot {
-	slots := sl.SlotSlice()
+	slots := sl.slotSlice()
 	slices.SortFunc(slots, func(a, b Slot) int { return int(a.offset) - int(b.offset) })
 	return slots
 }
 
-func (sl *SlotList) SlotSlice() []Slot {
+func (sl *SlotList) slotSlice() []Slot {
 	slots := make([]Slot, 0, sl.count)
 	for s := range sl.Slots() {
 		slots = append(slots, s)
