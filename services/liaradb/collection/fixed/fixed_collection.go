@@ -140,7 +140,14 @@ func (fc *FixedCollection) Replace(
 	defer s.Release()
 
 	// TODO: Verify data can fit
-	_, err = s.Write(v)
+	if _, err = s.Write(v); err != nil {
+		return err
+	}
+
+	if !s.CommitFull() {
+		return errors.New("unable to commit")
+	}
+
 	return err
 }
 

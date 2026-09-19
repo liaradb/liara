@@ -104,7 +104,7 @@ func (t *Tenant) Replace(
 	return t.fc.Replace(ctx,
 		l,
 		tn.Tenant(),
-		tn.Index(0, value.NewPartitionID(0)),
+		tn.Index(0, pid),
 		pid,
 		key.NewKey(tid.Bytes()),
 		v)

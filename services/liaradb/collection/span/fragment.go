@@ -24,11 +24,13 @@ type Fragment struct {
 	nextSlotID   wrap.Int16
 	crc          wrap.Int32
 	buffer       *buffer.Buffer
+	size         int
 }
 
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	BlockID() link.BlockID
+	Commit(size int) bool
 }
 
 func newFragment(
@@ -49,6 +51,7 @@ func newFragment(
 		nextSlotID:   nextSlotID,
 		crc:          crc,
 		buffer:       buffer.NewFromSlice(data),
+		size:         len(header) + len(data),
 	}
 }
 
@@ -74,6 +77,12 @@ func (f Fragment) valid() bool {
 func (f Fragment) commit() {
 	crc := page.NewCRC(f.buffer.Bytes())
 	f.crc.Set(int32(crc.Value()))
+}
+
+func (f Fragment) commitFull() bool {
+	crc := page.NewCRC(f.buffer.Bytes())
+	f.crc.Set(int32(crc.Value()))
+	return f.p.Commit(f.size)
 }
 
 func (f Fragment) setNextPosition(p link.FilePosition) {

@@ -133,6 +133,16 @@ func (s Span) Commit() {
 	}
 }
 
+func (s Span) CommitFull() bool {
+	for _, f := range s.fragments {
+		if !f.commitFull() {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (s *Span) Release() {
 	for _, b := range s.buffers {
 		b.Release()
