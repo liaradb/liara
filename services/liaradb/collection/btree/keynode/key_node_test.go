@@ -47,7 +47,7 @@ func TestKeyNode(t *testing.T) {
 			}
 
 			for _, item := range data {
-				if _, _, ok := kn.Insert(item.key, item.block); !ok {
+				if _, _, ok, _ := kn.Insert(item.key, item.block); !ok {
 					t.Error("should insert")
 				}
 			}
@@ -265,7 +265,7 @@ func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []keyEntry {
 	order := []int{0, 2, 1}
 	for _, i := range order {
 		e := data[i]
-		if _, _, ok := kn.Insert(e.key, e.block); !ok {
+		if _, _, ok, _ := kn.Insert(e.key, e.block); !ok {
 			t.Error("should insert")
 		}
 	}

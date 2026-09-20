@@ -224,7 +224,7 @@ func testLeafNode_Insert(t *testing.T) {
 	order := []int{0, 2, 1}
 	for _, i := range order {
 		e := data[i]
-		if _, _, ok := ln.Insert(e.key, e.recordID); !ok {
+		if _, _, ok, _ := ln.Insert(e.key, e.recordID); !ok {
 			t.Error("should insert")
 		}
 	}
@@ -311,7 +311,7 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	order := []int{0, 2, 1}
 	for _, i := range order {
 		e := data[i]
-		if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
+		if a, b, ok, _ := ln.Insert(e.key, e.recordID); !ok {
 			t.Errorf("should insert:\n%v\n%v", a, b)
 		}
 	}

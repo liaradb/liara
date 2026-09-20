@@ -1,6 +1,7 @@
 package keynode
 
 import (
+	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -42,7 +43,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 	return true
 }
 
-func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
+func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool, error) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 	size := int16(ke.Size())
@@ -50,19 +51,19 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 	if !ok {
 		// Split
 		a, b := kn.split(i, ke)
-		return a, b, false
+		return a, b, false, nil
 	}
 
 	ke.Write(b)
 
-	// TODO: What happens if we return false here?
+	// TODO: Is this error ever possible?
 	if !kn.node.Insert(size, i) {
-		return nil, nil, false
+		return nil, nil, false, errors.New("unable to insert")
 	}
 
 	kn.node.SetDirty()
 
-	return nil, nil, true
+	return nil, nil, true, nil
 }
 
 func (kn *KeyNode) split(i link.SlotID, ke keyEntry) (Iterator, Iterator) {

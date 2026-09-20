@@ -1,6 +1,7 @@
 package leafnode
 
 import (
+	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -68,26 +69,26 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 	return true
 }
 
-func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool) {
+func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool, error) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 	size := int16(le.Size())
 	b, ok := ln.node.Append(size)
 	if !ok {
 		a, b := ln.split(i, le)
-		return a, b, false
+		return a, b, false, nil
 	}
 
 	le.Write(b)
 
-	// TODO: What happens if we return false here?
+	// TODO: Is this error ever possible?
 	if !ln.node.Insert(size, i) {
-		return nil, nil, false
+		return nil, nil, false, errors.New("cannot insert")
 	}
 
 	ln.node.SetDirty()
 
-	return nil, nil, true
+	return nil, nil, true, nil
 }
 
 func (ln *LeafNode) Fill(
