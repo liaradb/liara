@@ -71,14 +71,20 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
-
-	b, ok := ln.node.Insert(int16(le.Size()), i)
+	size := int16(le.Size())
+	b, ok := ln.node.Append(size)
 	if !ok {
 		a, b := ln.split(i, le)
 		return a, b, false
 	}
 
 	le.Write(b)
+
+	// TODO: What happens if we return false here?
+	if !ln.node.Insert(size, i) {
+		return nil, nil, false
+	}
+
 	ln.node.SetDirty()
 
 	return nil, nil, true

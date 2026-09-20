@@ -185,7 +185,12 @@ func testNode_Insert(t *testing.T) {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
 	}
 
-	b0, ok := n.Insert(16, 0)
+	b0, ok := n.Append(16)
+	if !ok {
+		t.Fatal("should get a buffer")
+	}
+
+	ok = n.Insert(16, 0)
 	if !ok {
 		t.Fatal("should get a buffer")
 	}
@@ -198,7 +203,12 @@ func testNode_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b1, ok := n.Insert(16, 1)
+	b1, ok := n.Append(16)
+	if !ok {
+		t.Fatal("should get a buffer")
+	}
+
+	ok = n.Insert(16, 1)
 	if !ok {
 		t.Fatal("should get a buffer")
 	}

@@ -45,8 +45,8 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
-
-	b, ok := kn.node.Insert(int16(ke.Size()), i)
+	size := int16(ke.Size())
+	b, ok := kn.node.Append(int16(ke.Size()))
 	if !ok {
 		// Split
 		a, b := kn.split(i, ke)
@@ -54,6 +54,12 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 	}
 
 	ke.Write(b)
+
+	// TODO: What happens if we return false here?
+	if !kn.node.Insert(size, i) {
+		return nil, nil, false
+	}
+
 	kn.node.SetDirty()
 
 	return nil, nil, true

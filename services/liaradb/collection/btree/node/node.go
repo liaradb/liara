@@ -67,18 +67,9 @@ func (n *Node) Commit(size int16) bool {
 	return n.page.Commit(int(size))
 }
 
-func (n *Node) Insert(size int16, index link.SlotID) ([]byte, bool) {
+func (n *Node) Insert(size int16, index link.SlotID) bool {
 	// TODO: Fix this cast
-	_, b, ok := n.page.NextMustFit(int(size))
-	if !ok {
-		return nil, false
-	}
-
-	if !n.page.Insert(int(size), index) {
-		return nil, false
-	}
-
-	return b, ok
+	return n.page.Insert(int(size), index)
 }
 
 func (n *Node) Length() int16 {
