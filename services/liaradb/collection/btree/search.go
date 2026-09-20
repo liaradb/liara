@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -50,7 +51,7 @@ func (c *search) searchRoot(
 	fn link.FileName,
 	k key.Key,
 ) (byte, link.FilePosition, link.RecordLocator, error) {
-	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, noopLog{}, fn.BlockID(0))
 	if err != nil {
 		return 0, 0, link.RecordLocator{}, err
 	}
@@ -84,7 +85,7 @@ func (c *search) searchKey(
 	bid link.BlockID,
 	k key.Key,
 ) (byte, link.FilePosition, error) {
-	kn, err := c.ns.getKeyNode(ctx, bid)
+	kn, err := c.ns.getKeyNode(ctx, noopLog{}, bid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -102,7 +103,7 @@ func (c *search) searchLeaf(
 	bid link.BlockID,
 	k key.Key,
 ) (link.RecordLocator, error) {
-	ln, err := c.ns.getLeafNode(ctx, bid)
+	ln, err := c.ns.getLeafNode(ctx, noopLog{}, bid)
 	if err != nil {
 		return link.RecordLocator{}, err
 	}
@@ -205,7 +206,7 @@ func (s *search) searchRangeNext(
 	fn link.FileName,
 	block link.FilePosition,
 ) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
-	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
+	ln, err := s.ns.getLeafNode(ctx, noopLog{}, fn.BlockID(block))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -245,7 +246,7 @@ func (c *search) searchRange(
 		}
 	}
 
-	return c.ns.getLeafNode(ctx, fn.BlockID(block))
+	return c.ns.getLeafNode(ctx, noopLog{}, fn.BlockID(block))
 }
 
 func (c *search) searchRangeRoot(
@@ -253,7 +254,7 @@ func (c *search) searchRangeRoot(
 	fn link.FileName,
 	k key.Key,
 ) (byte, link.FilePosition, *leafnode.LeafNode, error) {
-	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, noopLog{}, fn.BlockID(0))
 	if err != nil {
 		return 0, 0, nil, err
 	}
@@ -276,7 +277,7 @@ func (c *search) searchRangeKey(
 	bid link.BlockID,
 	k key.Key,
 ) (byte, link.FilePosition, error) {
-	kn, err := c.ns.getKeyNode(ctx, bid)
+	kn, err := c.ns.getKeyNode(ctx, noopLog{}, bid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -365,7 +366,7 @@ func (s *search) allNext(
 	fn link.FileName,
 	block link.FilePosition,
 ) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
-	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
+	ln, err := s.ns.getLeafNode(ctx, noopLog{}, fn.BlockID(block))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -405,14 +406,14 @@ func (c *search) all(
 		}
 	}
 
-	return c.ns.getLeafNode(ctx, fn.BlockID(fp))
+	return c.ns.getLeafNode(ctx, noopLog{}, fn.BlockID(fp))
 }
 
 func (c *search) allRoot(
 	ctx context.Context,
 	fn link.FileName,
 ) (byte, link.FilePosition, *leafnode.LeafNode, error) {
-	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, noopLog{}, fn.BlockID(0))
 	if err != nil {
 		return 0, 0, nil, err
 	}
@@ -439,7 +440,7 @@ func (c *search) allKey(
 	ctx context.Context,
 	bid link.BlockID,
 ) (byte, link.FilePosition, error) {
-	kn, err := c.ns.getKeyNode(ctx, bid)
+	kn, err := c.ns.getKeyNode(ctx, noopLog{}, bid)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -452,4 +453,11 @@ func (c *search) allKey(
 	}
 
 	return kn.Level(), fp, nil
+}
+
+type noopLog struct {
+}
+
+func (noopLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -22,7 +23,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -37,7 +38,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -78,7 +79,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -93,7 +94,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -108,7 +109,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -124,7 +125,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -158,7 +159,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -177,7 +178,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -196,7 +197,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -228,7 +229,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b)
+			bp := node.New(b, &testLog{})
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -320,4 +321,11 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	}
 
 	return b
+}
+
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

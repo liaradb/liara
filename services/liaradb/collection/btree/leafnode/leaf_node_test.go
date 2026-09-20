@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -22,7 +23,7 @@ func testLeafNode_Fill(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b)
+	p := node.New(b, &testLog{})
 	ln := New(p)
 
 	data := []leafEntry{
@@ -70,7 +71,7 @@ func testLeafNode_Replace(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b)
+	p := node.New(b, &testLog{})
 	ln := New(p)
 
 	ln.SetLeftID(1)
@@ -120,7 +121,7 @@ func testLeafNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b)
+	p := node.New(b, &testLog{})
 	ln := New(p)
 
 	data := []leafEntry{
@@ -165,7 +166,7 @@ func testLeafNode_Children(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b)
+	p := node.New(b, &testLog{})
 	ln := New(p)
 
 	data := []leafEntry{
@@ -205,7 +206,7 @@ func testLeafNode_Insert(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b)
+	bp := node.New(b, &testLog{})
 	ln := New(bp)
 
 	data := []leafEntry{
@@ -292,7 +293,7 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	bp := node.New(b)
+	bp := node.New(b, &testLog{})
 	ln := New(bp)
 
 	data := []leafEntry{
@@ -350,7 +351,7 @@ func testLeafNode_SetLeftID(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b)
+	bp := node.New(b, &testLog{})
 	ln := New(bp)
 
 	if fp := ln.LeftID(); fp != 0 {
@@ -381,7 +382,7 @@ func testLeafNode_SetRightID(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b)
+	bp := node.New(b, &testLog{})
 	ln := New(bp)
 
 	if fp := ln.RightID(); fp != 0 {
@@ -409,4 +410,11 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	}
 
 	return b
+}
+
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -16,9 +17,14 @@ type Node struct {
 	header
 	page   *page.Page
 	buffer *storage.Buffer
+	l      Log
 }
 
-func New(buffer *storage.Buffer) Node {
+type Log interface {
+	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
+}
+
+func New(buffer *storage.Buffer, l Log) Node {
 	page := page.NewFromSlice(buffer.Raw(), headerSize, 0)
 	header, _ := newHeader(page.Header())
 

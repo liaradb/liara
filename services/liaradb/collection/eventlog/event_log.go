@@ -80,15 +80,15 @@ func (l *EventLog) AppendEvent(
 		return errors.New("could not commit")
 	}
 
-	if err := l.cursor.Insert(ctx, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
 		return err
 	}
 
-	if err := l.cursor.Insert(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator()); err != nil {
 		return err
 	}
 
-	return l.cursor.Insert(ctx, tn.Index(2, pid), key.NewKey(gV.Bytes()), t.RecordLocator())
+	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(gV.Bytes()), t.RecordLocator())
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {

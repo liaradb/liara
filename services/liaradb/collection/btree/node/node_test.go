@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -29,7 +30,7 @@ func testNode_Dirty(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	n := New(b)
+	n := New(b, &testLog{})
 	n.SetDirty()
 
 	if !b.Dirty() {
@@ -47,7 +48,7 @@ func testNode_Level(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 
 	if l := n.Level(); l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
@@ -77,7 +78,7 @@ func testNode_Append(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -177,7 +178,7 @@ func testNode_Insert(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -260,7 +261,7 @@ func testNode_Space(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 
 	if s := n.Space(); s != 16 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
@@ -295,7 +296,7 @@ func testNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -357,7 +358,7 @@ func testNode_Children(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -407,7 +408,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b)
+	n := New(b, &testLog{})
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -470,7 +471,7 @@ func testNode_Clear(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	n := New(b)
+	n := New(b, &testLog{})
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -512,4 +513,11 @@ func testNode_Clear(t *testing.T) {
 	n.Release()
 
 	synctest.Wait()
+}
+
+type testLog struct {
+}
+
+func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
 }

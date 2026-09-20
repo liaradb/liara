@@ -25,11 +25,12 @@ func newInsert(s *storage.Storage) insert {
 // Insert key value pair into tree
 func (c *insert) Insert(
 	ctx context.Context,
+	l node.Log,
 	fn link.FileName,
 	k key.Key,
 	rid link.RecordLocator,
 ) error {
-	chain, err := c.getChain(ctx, fn, k)
+	chain, err := c.getChain(ctx, l, fn, k)
 	if err != nil {
 		return err
 	}
@@ -50,14 +51,14 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, fn, bid, ln, key, rid)
+			bid, key, split, err = c.insertChainLeaf(ctx, l, fn, bid, ln, key, rid)
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position())
+			bid, key, split, err = c.insertChainKey(ctx, l, fn, kn, key, bid.Position())
 			level++
 		}
 		if err != nil {
@@ -67,15 +68,16 @@ func (c *insert) Insert(
 		}
 	}
 
-	return c.insertRoot(ctx, fn, level, key, bid)
+	return c.insertRoot(ctx, l, fn, level, key, bid)
 }
 
 func (c *insert) getChain(
 	ctx context.Context,
+	l node.Log,
 	fn link.FileName,
 	k key.Key,
 ) (*chain, error) {
-	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, l, fn.BlockID(0))
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +94,7 @@ func (c *insert) getChain(
 		chain.append(kn)
 
 		bid := fn.BlockID(kn.Search(k))
-		if p, err = c.ns.getPage(ctx, bid); err != nil {
+		if p, err = c.ns.getPage(ctx, l, bid); err != nil {
 			chain.release()
 			return nil, err
 		}
@@ -107,6 +109,7 @@ func (c *insert) getChain(
 //   - Insert, and handle a split.
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
+	l node.Log,
 	fn link.FileName,
 	bid link.BlockID,
 	ln *leafnode.LeafNode,
@@ -126,7 +129,7 @@ func (c *insert) insertChainLeaf(
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 
-	middle, bid2, err := c.ns.getNextLeafNode(ctx, fn)
+	middle, bid2, err := c.ns.getNextLeafNode(ctx, l, fn)
 	if err != nil {
 		return link.BlockID{}, key.Key{}, false, err
 	}
@@ -139,7 +142,7 @@ func (c *insert) insertChainLeaf(
 	rightID := fn.BlockID(ln.RightID())
 	if rightID.Position() != 0 {
 		// Only update right node if not root
-		right, err := c.ns.getLeafNode(ctx, rightID)
+		right, err := c.ns.getLeafNode(ctx, l, rightID)
 		if err != nil {
 			return link.BlockID{}, key.Key{}, false, err
 		}
@@ -163,6 +166,7 @@ func (c *insert) insertChainLeaf(
 //   - Insert, and handle a split.
 func (c *insert) insertChainKey(
 	ctx context.Context,
+	l node.Log,
 	fn link.FileName,
 	kn *keynode.KeyNode,
 	k key.Key,
@@ -175,7 +179,7 @@ func (c *insert) insertChainKey(
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 
-	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
+	kn2, bid, err := c.ns.getNextKeyNode(ctx, l, fn)
 	if err != nil {
 		return link.BlockID{}, key.Key{}, false, err
 	}
@@ -195,6 +199,7 @@ func (c *insert) insertChainKey(
 // Created new KeyNode and swap with root
 func (c *insert) insertRoot(
 	ctx context.Context,
+	l node.Log,
 	fn link.FileName,
 	level byte,
 	key key.Key,
@@ -225,7 +230,7 @@ func (c *insert) insertRoot(
 	b2.Clone(b0)
 
 	// This should always return true
-	_ = keynode.New(node.New(b0)).ReplaceRoot(
+	_ = keynode.New(node.New(b0, l)).ReplaceRoot(
 		level+1,
 		b2.BlockID().Position(),
 		key,

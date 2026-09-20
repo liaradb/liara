@@ -18,7 +18,7 @@ func newLevel(s *storage.Storage) level {
 }
 
 func (l *level) Level(ctx context.Context, fn link.FileName) (byte, error) {
-	p, err := l.ns.getPage(ctx, fn.BlockID(0))
+	p, err := l.ns.getPage(ctx, noopLog{}, fn.BlockID(0))
 	if err != nil {
 		return 0, err
 	}
