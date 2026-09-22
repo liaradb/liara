@@ -84,6 +84,6 @@ func (h *header) LogSequenceNumber() logpage.LogSequenceNumber {
 	return logpage.NewLogSequenceNumber(h.lsn.GetUnsigned())
 }
 
-func (h *header) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
+func (h *header) setLogSequenceNumber(lsn logpage.LogSequenceNumber) {
 	h.lsn.SetUnsigned(lsn.Value())
 }

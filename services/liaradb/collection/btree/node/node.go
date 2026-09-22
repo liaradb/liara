@@ -36,6 +36,7 @@ func New(buffer *storage.Buffer, l Log) Node {
 		header: header,
 		page:   page,
 		buffer: buffer,
+		l:      l,
 	}
 }
 
@@ -70,6 +71,14 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 
 func (n *Node) Commit(size int16) bool {
 	// TODO: Fix this cast
+	_, b, _ := n.page.NextMustFit(int(size))
+	lsn, err := n.l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), b)
+	if err != nil {
+		// TODO: What should we do with this error?
+		panic(err)
+	}
+
+	n.setLogSequenceNumber(lsn)
 	return n.page.Commit(int(size))
 }
 
