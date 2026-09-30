@@ -68,7 +68,7 @@ func (t *Tip) next() *logpage.LogPage {
 	return p
 }
 
-func (t *Tip) Commit(h func()) ([]*logpage.LogPage, bool) {
+func (t *Tip) Commit(h func()) []*logpage.LogPage {
 	defer func() {
 		if r := recover(); r != nil {
 			t.abortPages()
@@ -79,7 +79,7 @@ func (t *Tip) Commit(h func()) ([]*logpage.LogPage, bool) {
 	t.commitPages()
 	// TODO: Should we check for nil h here?
 	t.pages[len(t.pages)-1].AddHandler(h)
-	return t.pages, true
+	return t.pages
 }
 
 // Commit pages before current to avoid a partial commit

@@ -68,11 +68,7 @@ func (pq *PageQueue[R]) AppendWait(ctx context.Context, rc R, h func()) error {
 	}
 
 	s.Commit()
-	pgs, ok := t.Commit(h)
-	if !ok {
-		return writequeue.ErrUnableToAppend
-	}
-
+	pgs := t.Commit(h)
 	pq.appendPages(ctx, rc.LogSequenceNumber(), pgs)
 	return nil
 }

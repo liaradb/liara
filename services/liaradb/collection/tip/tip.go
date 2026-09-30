@@ -91,7 +91,7 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 	return p, nil
 }
 
-func (t *Tip) Commit() ([]*bufferpage.BufferPage, bool) {
+func (t *Tip) Commit() {
 	defer func() {
 		if r := recover(); r != nil {
 			t.abortPages()
@@ -100,7 +100,6 @@ func (t *Tip) Commit() ([]*bufferpage.BufferPage, bool) {
 	}()
 
 	t.commitPages()
-	return t.pages, true
 }
 
 // Commit pages before current to avoid a partial commit

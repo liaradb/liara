@@ -1,6 +1,7 @@
 package pagequeue
 
 import (
+	"errors"
 	"io"
 	"reflect"
 	"testing"
@@ -231,9 +232,13 @@ type testPageStorage struct {
 	appendCount   int
 }
 
+var (
+	errUnableToAppend = errors.New("unable to append")
+)
+
 func (t *testPageStorage) Append(logpage.LogSequenceNumber, []byte) error {
 	if t.errorOnAppend {
-		return writequeue.ErrUnableToAppend
+		return errUnableToAppend
 	}
 
 	t.appendCount++

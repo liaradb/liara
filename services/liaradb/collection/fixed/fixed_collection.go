@@ -51,11 +51,7 @@ func (fc *FixedCollection) Insert(
 	}
 
 	s.Commit()
-
-	_, ok := t.Commit()
-	if !ok {
-		return errors.New("could not commit")
-	}
+	t.Commit()
 
 	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordLocator())
 }

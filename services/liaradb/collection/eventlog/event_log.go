@@ -74,11 +74,7 @@ func (l *EventLog) AppendEvent(
 	}
 
 	s.Commit()
-
-	_, ok := t.Commit()
-	if !ok {
-		return errors.New("could not commit")
-	}
+	t.Commit()
 
 	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
 		return err

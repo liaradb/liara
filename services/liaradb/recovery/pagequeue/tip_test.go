@@ -28,12 +28,9 @@ func TestTip(t *testing.T) {
 	}
 
 	complete := 0
-	pages, ok := tip.Commit(func() {
+	pages := tip.Commit(func() {
 		complete++
 	})
-	if !ok {
-		t.Error("should commit")
-	}
 
 	if l := len(pages); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
@@ -64,12 +61,9 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(func() {
+		pages := tip.Commit(func() {
 			completeA++
 		})
-		if !ok {
-			t.Error("should commit")
-		}
 
 		if l := len(pages); l != 1 {
 			t.Errorf("incorrect length: %v, expected: %v", l, 1)
@@ -84,12 +78,9 @@ func TestTip__MultiplePerPage(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		pages, ok := tip.Commit(func() {
+		pages := tip.Commit(func() {
 			completeB++
 		})
-		if !ok {
-			t.Error("should commit")
-		}
 
 		if l := len(pages); l != 1 {
 			t.Errorf("incorrect length: %v, expected: %v", l, 1)
