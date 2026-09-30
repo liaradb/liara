@@ -36,15 +36,15 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 	return true
 }
 
-func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool, error) {
+func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 	size := int16(ke.Size())
-	b, ok := kn.node.Append(int16(ke.Size()))
+	b, ok := kn.node.Append(size)
 	if !ok {
 		// Split
 		a, b := kn.split(i, ke)
-		return a, b, false, nil
+		return a, b, false
 	}
 
 	ke.Write(b)
@@ -52,7 +52,7 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 	kn.node.Insert(size, i)
 	kn.node.SetDirty()
 
-	return nil, nil, true, nil
+	return nil, nil, true
 }
 
 func (kn *KeyNode) split(i link.SlotID, ke keyEntry) (Iterator, Iterator) {

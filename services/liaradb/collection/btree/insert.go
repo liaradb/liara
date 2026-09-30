@@ -121,10 +121,8 @@ func (c *insert) insertChainLeaf(
 		return link.BlockID{}, key.Key{}, false, ErrExists
 	}
 
-	first, second, ok, err := ln.Insert(k, rid)
-	if err != nil {
-		return link.BlockID{}, key.Key{}, false, err
-	} else if ok {
+	first, second, ok := ln.Insert(k, rid)
+	if ok {
 		// no split
 		return link.BlockID{}, key.Key{}, false, nil
 	}
@@ -172,10 +170,8 @@ func (c *insert) insertChainKey(
 	k key.Key,
 	block link.FilePosition,
 ) (link.BlockID, key.Key, bool, error) {
-	first, second, ok, err := kn.Insert(k, block)
-	if err != nil {
-		return link.BlockID{}, key.Key{}, false, err
-	} else if ok {
+	first, second, ok := kn.Insert(k, block)
+	if ok {
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 

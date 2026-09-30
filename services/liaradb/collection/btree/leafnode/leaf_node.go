@@ -62,14 +62,14 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 	return true
 }
 
-func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool, error) {
+func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, Iterator, bool) {
 	le := newLeafEntry(key, recordID)
 	i := ln.searchIndexRange(le.key)
 	size := int16(le.Size())
 	b, ok := ln.node.Append(size)
 	if !ok {
 		a, b := ln.split(i, le)
-		return a, b, false, nil
+		return a, b, false
 	}
 
 	le.Write(b)
@@ -77,7 +77,7 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 	ln.node.Insert(size, i)
 	ln.node.SetDirty()
 
-	return nil, nil, true, nil
+	return nil, nil, true
 }
 
 func (ln *LeafNode) Fill(
