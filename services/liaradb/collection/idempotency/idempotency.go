@@ -2,7 +2,6 @@ package idempotency
 
 import (
 	"context"
-	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -39,10 +38,7 @@ func (i *Idempotency) Get(
 	}
 
 	e := &entity.RequestLog{}
-	if _, ok := e.Read(data); !ok {
-		return nil, io.EOF
-	}
-
+	_ = e.Read(data)
 	return e, nil
 }
 
@@ -59,11 +55,7 @@ func (i *Idempotency) List(
 			}
 
 			e := &entity.RequestLog{}
-			if _, ok := e.Read(data); !ok {
-				yield(nil, io.EOF)
-				return
-			}
-
+			_ = e.Read(data)
 			if !yield(e, nil) {
 				return
 			}
@@ -80,9 +72,7 @@ func (i *Idempotency) Set(
 	e *entity.RequestLog,
 ) error {
 	v := make([]byte, entity.RequestLogSize)
-	if _, ok := e.Write(v); !ok {
-		return io.EOF
-	}
+	_ = e.Write(v)
 
 	k := key.NewKey(rqid.Bytes())
 	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)

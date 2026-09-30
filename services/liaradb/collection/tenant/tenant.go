@@ -2,7 +2,6 @@ package tenant
 
 import (
 	"context"
-	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -39,10 +38,7 @@ func (t *Tenant) Get(
 	}
 
 	e := &entity.Tenant{}
-	if _, ok := e.Read(data); !ok {
-		return nil, io.EOF
-	}
-
+	_ = e.Read(data)
 	return e, nil
 }
 
@@ -59,11 +55,7 @@ func (t *Tenant) List(
 			}
 
 			e := &entity.Tenant{}
-			if _, ok := e.Read(data); !ok {
-				yield(nil, io.EOF)
-				return
-			}
-
+			_ = e.Read(data)
 			if !yield(e, nil) {
 				return
 			}
@@ -80,10 +72,7 @@ func (t *Tenant) Set(
 	e *entity.Tenant,
 ) error {
 	v := make([]byte, entity.TenantSize)
-	if _, ok := e.Write(v); !ok {
-		return io.EOF
-	}
-
+	_ = e.Write(v)
 	k := key.NewKey(tid.Bytes())
 	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, pid), k, v)
 }
@@ -97,10 +86,7 @@ func (t *Tenant) Replace(
 	e *entity.Tenant,
 ) error {
 	v := make([]byte, entity.TenantSize)
-	if _, ok := e.Write(v); !ok {
-		return btree.ErrNoUpdate
-	}
-
+	_ = e.Write(v)
 	return t.fc.Replace(ctx,
 		l,
 		tn.Tenant(),

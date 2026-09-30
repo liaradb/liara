@@ -2,7 +2,6 @@ package outbox
 
 import (
 	"context"
-	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -39,10 +38,7 @@ func (o *Outbox) Get(
 	}
 
 	e := &entity.Outbox{}
-	if _, ok := e.Read(data); !ok {
-		return nil, io.EOF
-	}
-
+	_ = e.Read(data)
 	return e, nil
 }
 
@@ -59,11 +55,7 @@ func (o *Outbox) List(
 			}
 
 			e := &entity.Outbox{}
-			if _, ok := e.Read(data); !ok {
-				yield(nil, io.EOF)
-				return
-			}
-
+			_ = e.Read(data)
 			if !yield(e, nil) {
 				return
 			}
@@ -80,10 +72,7 @@ func (o *Outbox) Set(
 	e *entity.Outbox,
 ) error {
 	v := make([]byte, entity.OutboxSize)
-	if _, ok := e.Write(v); !ok {
-		return io.EOF
-	}
-
+	_ = e.Write(v)
 	k := key.NewKey(oid.Bytes())
 	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
@@ -97,10 +86,7 @@ func (o *Outbox) Replace(
 	e *entity.Outbox,
 ) error {
 	v := make([]byte, entity.OutboxSize)
-	if _, ok := e.Write(v); !ok {
-		return btree.ErrNoUpdate
-	}
-
+	_ = e.Write(v)
 	return o.fc.Replace(ctx,
 		l,
 		tn.Outbox(pid),

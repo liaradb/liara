@@ -24,16 +24,12 @@ func (i *SlotID) Read(r io.Reader) error {
 	return raw.ReadInt16(r, i)
 }
 
-func (i SlotID) WriteData(data []byte) ([]byte, bool) {
+func (i SlotID) WriteData(data []byte) []byte {
 	return scan.SetInt16(data, i.Value())
 }
 
-func (i *SlotID) ReadData(data []byte) ([]byte, bool) {
-	block, data0, ok := scan.Int16(data)
-	if !ok {
-		return nil, false
-	}
-
+func (i *SlotID) ReadData(data []byte) []byte {
+	block, data0 := scan.Int16(data)
 	*i = SlotID(block)
-	return data0, true
+	return data0
 }

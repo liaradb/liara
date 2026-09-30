@@ -29,16 +29,12 @@ func (b *Uint32) Read(r io.Reader) error {
 	return raw.ReadInt32(r, b)
 }
 
-func (b Uint32) WriteData(data []byte) ([]byte, bool) {
+func (b Uint32) WriteData(data []byte) []byte {
 	return scan.SetUint32(data, b.Value())
 }
 
-func (b *Uint32) ReadData(data []byte) ([]byte, bool) {
-	v, data0, ok := scan.Uint32(data)
-	if !ok {
-		return nil, false
-	}
-
+func (b *Uint32) ReadData(data []byte) []byte {
+	v, data0 := scan.Uint32(data)
 	*b = Uint32(v)
-	return data0, true
+	return data0
 }

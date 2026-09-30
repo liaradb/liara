@@ -3,7 +3,6 @@ package transaction
 import (
 	"context"
 	"errors"
-	"io"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection"
@@ -332,11 +331,7 @@ func (t *Transaction) InsertOutbox(
 	}
 
 	data := make([]byte, entity.OutboxSize)
-	_, ok := e.Write(data)
-	if !ok {
-		return io.ErrUnexpectedEOF
-	}
-
+	_ = e.Write(data)
 	return t.collection.Outbox.Set(ctx, l, tn, pid, oid, e)
 }
 
@@ -358,18 +353,12 @@ func (t *Transaction) UpdateOutbox(
 	}
 
 	prev := make([]byte, entity.OutboxSize)
-	_, ok := o.Write(prev)
-	if !ok {
-		return io.ErrUnexpectedEOF
-	}
+	_ = o.Write(prev)
 
 	o.UpdateGlobalVersion(v)
 
 	data := make([]byte, entity.OutboxSize)
-	_, ok = o.Write(data)
-	if !ok {
-		return io.ErrUnexpectedEOF
-	}
+	_ = o.Write(data)
 
 	_, err = t.log.Update(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data, prev)
 	if err != nil {

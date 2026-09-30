@@ -3,7 +3,6 @@ package fixed
 import (
 	"context"
 	"fmt"
-	"io"
 	"slices"
 	"strings"
 	"testing"
@@ -143,10 +142,7 @@ func createData() []item {
 func insertData(ctx context.Context, l span.Log, fc *FixedCollection, fn link.FileName, fnIdx link.FileName, data []item) error {
 	for _, i := range data {
 		d := make([]byte, entity.RequestLogSize)
-
-		if _, ok := i.value.Write(d); !ok {
-			return io.EOF
-		}
+		_ = i.value.Write(d)
 
 		k := key.NewKey(i.value.ID().Bytes())
 		if err := fc.Insert(ctx, l, fn, fnIdx, k, d); err != nil {
@@ -172,9 +168,7 @@ func testGet(
 		}
 
 		rl := entity.RequestLog{}
-		if _, ok := rl.Read(value); !ok {
-			t.Fatal("should read")
-		}
+		_ = rl.Read(value)
 
 		if rl != *i.value {
 			t.Errorf("incorrect result: %v, expected: %v", rl, *i.value)
@@ -218,9 +212,7 @@ func getListValues(
 		}
 
 		rl := entity.RequestLog{}
-		if _, ok := rl.Read(value); !ok {
-			return nil, io.EOF
-		}
+		_ = rl.Read(value)
 
 		result = append(result, rl)
 		i++

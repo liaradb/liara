@@ -28,16 +28,12 @@ func (p *FilePosition) Read(r io.Reader) error {
 	return raw.ReadInt64(r, p)
 }
 
-func (p FilePosition) WriteData(data []byte) ([]byte, bool) {
+func (p FilePosition) WriteData(data []byte) []byte {
 	return scan.SetInt64(data, p.Value())
 }
 
-func (p *FilePosition) ReadData(data []byte) ([]byte, bool) {
-	block, data0, ok := scan.Int64(data)
-	if !ok {
-		return nil, false
-	}
-
+func (p *FilePosition) ReadData(data []byte) []byte {
+	block, data0 := scan.Int64(data)
 	*p = FilePosition(block)
-	return data0, true
+	return data0
 }

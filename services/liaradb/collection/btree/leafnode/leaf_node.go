@@ -55,9 +55,7 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 		return false
 	}
 
-	if !le.Write(b) {
-		return false
-	}
+	le.Write(b)
 
 	// TODO: What happens if we return false here?
 	if !ln.node.Commit(size) {

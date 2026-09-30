@@ -22,20 +22,12 @@ func (pr PartitionRange) Low() PartitionID                { return pr.low }
 func (pr PartitionRange) High() PartitionID               { return pr.high }
 func (pr PartitionRange) All() (PartitionID, PartitionID) { return pr.low, pr.high }
 
-func (pr PartitionRange) WriteData(data []byte) ([]byte, bool) {
-	data0, ok := pr.low.WriteData(data)
-	if !ok {
-		return nil, false
-	}
-
+func (pr PartitionRange) WriteData(data []byte) []byte {
+	data0 := pr.low.WriteData(data)
 	return pr.high.WriteData(data0)
 }
 
-func (pr *PartitionRange) ReadData(data []byte) ([]byte, bool) {
-	data0, ok := pr.low.ReadData(data)
-	if !ok {
-		return nil, false
-	}
-
+func (pr *PartitionRange) ReadData(data []byte) []byte {
+	data0 := pr.low.ReadData(data)
 	return pr.high.ReadData(data0)
 }

@@ -20,7 +20,7 @@ type header struct {
 func newHeader(data []byte) (header, []byte) {
 	magic, data0 := wrap.NewInt32(data)
 	var lsn logpage.LogSequenceNumber
-	data1, _ := lsn.ReadData(data0)
+	data1 := lsn.ReadData(data0)
 
 	return header{
 		magic: magic,

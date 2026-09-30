@@ -29,9 +29,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 		return false
 	}
 
-	if !ke.Write(b) {
-		return false
-	}
+	ke.Write(b)
 
 	// TODO: What happens if we return false here?
 	if !kn.node.Commit(size) {
@@ -209,9 +207,7 @@ func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition, bool) {
 	}
 
 	ke := keyEntry{}
-	if !ke.Read(b) {
-		return key.Key{}, 0, false
-	}
+	ke.Read(b)
 
 	return ke.Key(), ke.Block(), true
 }

@@ -42,20 +42,14 @@ func TestFilePosition_ReadDataWriteData(t *testing.T) {
 	fp := FilePosition(1)
 
 	data := make([]byte, 12)
-	data0, ok := fp.WriteData(data)
-	if !ok {
-		t.Error("unable to write")
-	}
+	data0 := fp.WriteData(data)
 
 	if l := len(data0); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
 	fp0 := FilePosition(0)
-	data1, ok := fp0.ReadData(data)
-	if !ok {
-		t.Error("unable to read")
-	}
+	data1 := fp0.ReadData(data)
 
 	if l := len(data1); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)

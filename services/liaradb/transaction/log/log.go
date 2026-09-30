@@ -190,8 +190,7 @@ func (cv *Log) txIDsToData(
 
 	data0 := data
 	for _, txid := range txids {
-		// There will always be enough space
-		data0, _ = txid.WriteData(data0)
+		data0 = txid.WriteData(data0)
 	}
 
 	return data

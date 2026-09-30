@@ -40,20 +40,14 @@ func TestSlotID_ReadDataWriteData(t *testing.T) {
 	id := SlotID(1)
 
 	data := make([]byte, 6)
-	data0, ok := id.WriteData(data)
-	if !ok {
-		t.Error("unable to write")
-	}
+	data0 := id.WriteData(data)
 
 	if l := len(data0); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
 	id0 := SlotID(0)
-	data1, ok := id0.ReadData(data)
-	if !ok {
-		t.Error("unable to read")
-	}
+	data1 := id0.ReadData(data)
 
 	if l := len(data1); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)

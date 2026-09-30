@@ -36,20 +36,12 @@ func (rl *RecordLocator) Read(r io.Reader) error {
 		&rl.slotID)
 }
 
-func (rl RecordLocator) WriteData(data []byte) ([]byte, bool) {
-	data0, ok := rl.block.WriteData(data)
-	if !ok {
-		return nil, false
-	}
-
+func (rl RecordLocator) WriteData(data []byte) []byte {
+	data0 := rl.block.WriteData(data)
 	return rl.slotID.WriteData(data0)
 }
 
-func (rl *RecordLocator) ReadData(data []byte) ([]byte, bool) {
-	data0, ok := rl.block.ReadData(data)
-	if !ok {
-		return nil, false
-	}
-
+func (rl *RecordLocator) ReadData(data []byte) []byte {
+	data0 := rl.block.ReadData(data)
 	return rl.slotID.ReadData(data0)
 }

@@ -40,16 +40,12 @@ func (b *Uint64) Read(r io.Reader) error {
 	return raw.ReadInt64(r, b)
 }
 
-func (b Uint64) WriteData(data []byte) ([]byte, bool) {
+func (b Uint64) WriteData(data []byte) []byte {
 	return scan.SetUint64(data, b.Value())
 }
 
-func (b *Uint64) ReadData(data []byte) ([]byte, bool) {
-	v, data0, ok := scan.Uint64(data)
-	if !ok {
-		return nil, false
-	}
-
+func (b *Uint64) ReadData(data []byte) []byte {
+	v, data0 := scan.Uint64(data)
 	*b = Uint64(v)
-	return data0, true
+	return data0
 }

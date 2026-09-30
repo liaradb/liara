@@ -68,20 +68,15 @@ func TestTime_WriteDataReadData(t *testing.T) {
 	o := NewTime(time.Now())
 
 	data := make([]byte, TimeSize+2)
-	data0, ok := o.WriteData(data)
-	if !ok {
-		t.Error("unable to write")
-	}
+	data0 := o.WriteData(data)
 
 	if l := len(data0); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)
 	}
 
 	o1 := Time{}
-	data1, ok := o1.ReadData(data)
-	if !ok {
-		t.Error("unable to read")
-	}
+	data1 := o1.ReadData(data)
+
 	if l := len(data1); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)
 	}
