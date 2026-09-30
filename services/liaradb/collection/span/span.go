@@ -20,6 +20,7 @@ type Span struct {
 
 type Log interface {
 	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
+	UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(l Log) *Span {

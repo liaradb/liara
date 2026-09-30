@@ -57,3 +57,11 @@ func (l *Logger) Update(
 		data,
 		prev)
 }
+
+func (l *Logger) UpdateHeader(
+	rl link.RecordLocator,
+	data []byte,
+	prev []byte,
+) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
+}

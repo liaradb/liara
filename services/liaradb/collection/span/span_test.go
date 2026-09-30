@@ -106,3 +106,7 @@ type testLogger struct {
 func (*testLogger) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }
+
+func (*testLogger) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
+}
