@@ -24,7 +24,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -39,7 +39,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -61,7 +61,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("key11")), link.FilePosition(11)},
 			}
 
-			if ok := kn.ReplaceRoot(1, want[0].block, want[1].key, want[1].block); !ok {
+			if ok := kn.ReplaceRoot(&testLog{}, 1, want[0].block, want[1].key, want[1].block); !ok {
 				t.Error("should replace")
 			}
 
@@ -80,7 +80,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -95,7 +95,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -110,7 +110,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -126,7 +126,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -160,7 +160,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -179,7 +179,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := testKeyNodeInsertData(t, kn)
@@ -198,7 +198,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -207,7 +207,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Fill(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Fill(&testLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return
@@ -230,7 +230,7 @@ func TestKeyNode(t *testing.T) {
 			b := createBuffer(t, s)
 			defer b.Release()
 
-			bp := node.New(b, &testLog{})
+			bp := node.New(b)
 			kn := New(bp)
 
 			data := []keyEntry{
@@ -239,7 +239,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Replace(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Replace(&testLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return

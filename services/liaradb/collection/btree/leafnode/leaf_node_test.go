@@ -23,7 +23,7 @@ func testLeafNode_Fill(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b, &testLog{})
+	p := node.New(b)
 	ln := New(p)
 
 	data := []leafEntry{
@@ -35,7 +35,7 @@ func testLeafNode_Fill(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	ln.Fill(1, 2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Fill(&testLog{}, 1, 2, func(yield func(key.Key, link.RecordLocator) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -71,7 +71,7 @@ func testLeafNode_Replace(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b, &testLog{})
+	p := node.New(b)
 	ln := New(p)
 
 	ln.SetLeftID(1)
@@ -85,7 +85,7 @@ func testLeafNode_Replace(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	ln.Replace(2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Replace(&testLog{}, 2, func(yield func(key.Key, link.RecordLocator) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -121,7 +121,7 @@ func testLeafNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b, &testLog{})
+	p := node.New(b)
 	ln := New(p)
 
 	data := []leafEntry{
@@ -133,11 +133,11 @@ func testLeafNode_Child(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(&testLog{}, data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	}
 
-	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(&testLog{}, data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	}
 
@@ -162,7 +162,7 @@ func testLeafNode_Children(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	p := node.New(b, &testLog{})
+	p := node.New(b)
 	ln := New(p)
 
 	data := []leafEntry{
@@ -174,11 +174,11 @@ func testLeafNode_Children(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(&testLog{}, data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	}
 
-	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(&testLog{}, data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	}
 
@@ -202,7 +202,7 @@ func testLeafNode_Insert(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b, &testLog{})
+	bp := node.New(b)
 	ln := New(bp)
 
 	data := []leafEntry{
@@ -289,7 +289,7 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	bp := node.New(b, &testLog{})
+	bp := node.New(b)
 	ln := New(bp)
 
 	data := []leafEntry{
@@ -347,7 +347,7 @@ func testLeafNode_SetLeftID(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b, &testLog{})
+	bp := node.New(b)
 	ln := New(bp)
 
 	if fp := ln.LeftID(); fp != 0 {
@@ -378,7 +378,7 @@ func testLeafNode_SetRightID(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	bp := node.New(b, &testLog{})
+	bp := node.New(b)
 	ln := New(bp)
 
 	if fp := ln.RightID(); fp != 0 {

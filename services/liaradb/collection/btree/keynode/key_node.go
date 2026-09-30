@@ -20,7 +20,7 @@ func New(page node.Node) *KeyNode {
 	}
 }
 
-func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
+func (kn *KeyNode) append(l node.Log, key key.Key, block link.FilePosition) bool {
 	ke := newKeyEntry(key, block)
 	size := int16(ke.Size())
 	b, ok := kn.node.Append(size)
@@ -30,7 +30,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 
 	ke.Write(b)
 
-	kn.node.Commit(size)
+	kn.node.Commit(size, l)
 	kn.node.SetDirty()
 
 	return true
@@ -124,7 +124,7 @@ func (kn *KeyNode) second(i, mid link.SlotID, ke keyEntry) Iterator {
 	}
 }
 
-func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
+func (kn *KeyNode) Fill(l node.Log, lv byte, entries Iterator) key.Key {
 	var k key.Key
 	first := true
 	for key, block := range entries {
@@ -133,15 +133,15 @@ func (kn *KeyNode) Fill(l byte, entries Iterator) key.Key {
 		}
 		first = false
 		// This will definitely fit
-		_ = kn.append(key, block)
+		_ = kn.append(l, key, block)
 	}
 
-	kn.node.SetLevel(l)
+	kn.node.SetLevel(lv)
 	kn.node.SetDirty()
 	return k
 }
 
-func (kn *KeyNode) Replace(l byte, entries Iterator) {
+func (kn *KeyNode) Replace(l node.Log, lv byte, entries Iterator) {
 	// TODO: Find a faster way
 	// This is reading from and writing to the same KeyNode
 	cache := make([]keyEntry, 0, kn.mid())
@@ -153,27 +153,27 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 
 	for _, e := range cache {
 		// This will definitely fit
-		_ = kn.append(e.key, e.block)
+		_ = kn.append(l, e.key, e.block)
 	}
 
-	kn.node.SetLevel(l)
+	kn.node.SetLevel(lv)
 	kn.node.SetDirty()
 }
 
-func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
+func (kn *KeyNode) ReplaceRoot(l node.Log, lv byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
 	// TODO: Will this always be the lower key?
 	key0, _ := kn.Child(0)
 
 	kn.node.Clear()
 
 	// Point original key to first block
-	if ok := kn.append(key0, block0); !ok {
+	if ok := kn.append(l, key0, block0); !ok {
 		return false
 	}
 
 	// Point new key to second block
-	ok := kn.append(key1, block1)
-	kn.node.SetLevel(l)
+	ok := kn.append(l, key1, block1)
+	kn.node.SetLevel(lv)
 	kn.node.SetDirty()
 	return ok
 }

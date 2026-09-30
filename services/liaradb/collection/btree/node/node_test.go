@@ -30,7 +30,7 @@ func testNode_Dirty(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	n := New(b, &testLog{})
+	n := New(b)
 	n.SetDirty()
 
 	if !b.Dirty() {
@@ -48,7 +48,7 @@ func testNode_Level(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 
 	if l := n.Level(); l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
@@ -78,7 +78,7 @@ func testNode_Append(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -95,7 +95,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16)
+	n.Commit(16, &testLog{})
 
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
@@ -114,7 +114,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16)
+	n.Commit(16, &testLog{})
 
 	if c := n.Count(); c != 2 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
@@ -174,7 +174,7 @@ func testNode_Insert(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 	v0 := []byte{1, 2, 3, 4, 5}
 	v1 := []byte{6, 7, 8, 9, 10}
 
@@ -251,7 +251,7 @@ func testNode_Space(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 
 	if s := n.Space(); s != 16 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 16)
@@ -261,7 +261,7 @@ func testNode_Space(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16)
+	n.Commit(16, &testLog{})
 
 	if s := n.Space(); s != 0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
@@ -284,7 +284,7 @@ func testNode_Child(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 	values := [][]byte{
 		{1, 2, 3, 4, 5},
 		{6, 7, 8, 9, 10}}
@@ -293,7 +293,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16)
+	n.Commit(16, &testLog{})
 
 	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
@@ -304,7 +304,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16)
+	n.Commit(16, &testLog{})
 
 	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
@@ -338,7 +338,7 @@ func testNode_Children(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -352,7 +352,7 @@ func testNode_Children(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize * int16(len(v)))
+		n.Commit(itemSize*int16(len(v)), &testLog{})
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
@@ -386,7 +386,7 @@ func testNode_ChildrenRange(t *testing.T) {
 	b := createBuffer(t, s)
 	defer b.Release()
 
-	n := New(b, &testLog{})
+	n := New(b)
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -400,7 +400,7 @@ func testNode_ChildrenRange(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize * int16(len(v)))
+		n.Commit(itemSize*int16(len(v)), &testLog{})
 
 		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
 			t.Error(err)
@@ -447,7 +447,7 @@ func testNode_Clear(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	b := createBuffer(t, s)
 
-	n := New(b, &testLog{})
+	n := New(b)
 	values := [][]byte{
 		{1, 2},
 		{3, 4},
@@ -461,7 +461,7 @@ func testNode_Clear(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize * int16(len(v)))
+		n.Commit(itemSize*int16(len(v)), &testLog{})
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)

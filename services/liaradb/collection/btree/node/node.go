@@ -17,14 +17,13 @@ type Node struct {
 	header
 	page   *page.Page
 	buffer *storage.Buffer
-	l      Log
 }
 
 type Log interface {
 	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
 }
 
-func New(buffer *storage.Buffer, l Log) Node {
+func New(buffer *storage.Buffer) Node {
 	page := page.NewFromSlice(buffer.Raw(), headerSize, 0)
 	header, _ := newHeader(page.Header())
 
@@ -36,7 +35,6 @@ func New(buffer *storage.Buffer, l Log) Node {
 		header: header,
 		page:   page,
 		buffer: buffer,
-		l:      l,
 	}
 }
 
@@ -69,10 +67,10 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	return b, ok
 }
 
-func (n *Node) Commit(size int16) {
+func (n *Node) Commit(size int16, l Log) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
-	lsn, err := n.l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), b)
+	lsn, err := l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), b)
 	if err != nil {
 		// TODO: What should we do with this error?
 		panic(err)

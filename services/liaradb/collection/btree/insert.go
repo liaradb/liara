@@ -30,7 +30,7 @@ func (c *insert) Insert(
 	k key.Key,
 	rid link.RecordLocator,
 ) error {
-	chain, err := c.getChain(ctx, l, fn, k)
+	chain, err := c.getChain(ctx, fn, k)
 	if err != nil {
 		return err
 	}
@@ -73,11 +73,10 @@ func (c *insert) Insert(
 
 func (c *insert) getChain(
 	ctx context.Context,
-	l node.Log,
 	fn link.FileName,
 	k key.Key,
 ) (*chain, error) {
-	p, err := c.ns.getPage(ctx, l, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, fn.BlockID(0))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +93,7 @@ func (c *insert) getChain(
 		chain.append(kn)
 
 		bid := fn.BlockID(kn.Search(k))
-		if p, err = c.ns.getPage(ctx, l, bid); err != nil {
+		if p, err = c.ns.getPage(ctx, bid); err != nil {
 			chain.release()
 			return nil, err
 		}
@@ -127,7 +126,7 @@ func (c *insert) insertChainLeaf(
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 
-	middle, bid2, err := c.ns.getNextLeafNode(ctx, l, fn)
+	middle, bid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
 		return link.BlockID{}, key.Key{}, false, err
 	}
@@ -140,7 +139,7 @@ func (c *insert) insertChainLeaf(
 	rightID := fn.BlockID(ln.RightID())
 	if rightID.Position() != 0 {
 		// Only update right node if not root
-		right, err := c.ns.getLeafNode(ctx, l, rightID)
+		right, err := c.ns.getLeafNode(ctx, rightID)
 		if err != nil {
 			return link.BlockID{}, key.Key{}, false, err
 		}
@@ -154,8 +153,8 @@ func (c *insert) insertChainLeaf(
 		right.SetLeftID(bid2.Position())
 	}
 
-	key := middle.Fill(bid.Position(), ln.RightID(), second)
-	ln.Replace(bid2.Position(), first)
+	key := middle.Fill(l, bid.Position(), ln.RightID(), second)
+	ln.Replace(l, bid2.Position(), first)
 
 	return bid2, key, true, nil
 }
@@ -175,7 +174,7 @@ func (c *insert) insertChainKey(
 		return link.BlockID{}, key.Key{}, false, nil
 	}
 
-	kn2, bid, err := c.ns.getNextKeyNode(ctx, l, fn)
+	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
 		return link.BlockID{}, key.Key{}, false, err
 	}
@@ -186,8 +185,8 @@ func (c *insert) insertChainKey(
 	defer kn2.Unlatch()
 
 	level := kn.Level()
-	key := kn2.Fill(level, second)
-	kn.Replace(level, first)
+	key := kn2.Fill(l, level, second)
+	kn.Replace(l, level, first)
 
 	return bid, key, true, nil
 }
@@ -226,7 +225,8 @@ func (c *insert) insertRoot(
 	b2.Clone(b0)
 
 	// This should always return true
-	_ = keynode.New(node.New(b0, l)).ReplaceRoot(
+	_ = keynode.New(node.New(b0)).ReplaceRoot(
+		l,
 		level+1,
 		b2.BlockID().Position(),
 		key,
