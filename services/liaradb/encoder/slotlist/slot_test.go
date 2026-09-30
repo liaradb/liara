@@ -3,6 +3,8 @@ package slotlist
 import (
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/util/testing/should"
 )
 
 // TODO: How do we test without using private constructor?
@@ -57,24 +59,21 @@ func TestSlot_Slice(t *testing.T) {
 	data := make([]byte, 16)
 
 	s := newSlot(0, 0, 16, data)
-	b, ok := s.Slice()
-	if !ok {
-		t.Error("should get a buffer")
-	}
+	b := s.Slice()
 
 	if l := len(b); l != 16 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 16)
 	}
 
 	s = newSlot(0, 16, 16, data)
-	if _, ok := s.Slice(); ok {
-		t.Error("should not get a buffer starting beyond length")
-	}
+	should.Panic(t, "should not get a buffer starting beyond length", func() {
+		_ = s.Slice()
+	})
 
 	s = newSlot(0, 0, 20, data)
-	if _, ok := s.Slice(); ok {
-		t.Error("should not get a buffer ending beyond length")
-	}
+	should.Panic(t, "should not get a buffer ending beyond length", func() {
+		_ = s.Slice()
+	})
 }
 
 func TestSlot_Slice__Empty(t *testing.T) {
@@ -83,10 +82,7 @@ func TestSlot_Slice__Empty(t *testing.T) {
 	data := make([]byte, 16)
 
 	s := newSlot(0, 2, 0, data)
-	b, ok := s.Slice()
-	if !ok {
-		t.Error("should get a buffer")
-	}
+	b := s.Slice()
 
 	if l := len(b); l != 0 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 16)
