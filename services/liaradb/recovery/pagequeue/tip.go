@@ -69,34 +69,33 @@ func (t *Tip) next() *logpage.LogPage {
 }
 
 func (t *Tip) Commit(h func()) ([]*logpage.LogPage, bool) {
-	if ok := t.commitPages(); !ok {
-		t.abortPages()
-		return nil, false
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			t.abortPages()
+			panic(r)
+		}
+	}()
 
+	t.commitPages()
 	// TODO: Should we check for nil h here?
 	t.pages[len(t.pages)-1].AddHandler(h)
 	return t.pages, true
 }
 
 // Commit pages before current to avoid a partial commit
-func (t *Tip) commitPages() bool {
+func (t *Tip) commitPages() {
 	for i, p := range t.pages[1:] {
-		if !t.commitPage(p, i+1) {
-			return false
-		}
+		t.commitPage(p, i+1)
 	}
 
-	return t.commitPage(t.current, 0)
+	t.commitPage(t.current, 0)
 }
 
-func (t *Tip) commitPage(p *logpage.LogPage, i int) bool {
+func (t *Tip) commitPage(p *logpage.LogPage, i int) {
 	size := t.sizes[i]
-	if size == 0 {
-		return true
+	if size != 0 {
+		p.Commit(size)
 	}
-
-	return p.Commit(size)
 }
 
 // Put everything after the first page back

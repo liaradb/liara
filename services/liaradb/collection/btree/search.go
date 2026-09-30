@@ -427,11 +427,7 @@ func (c *search) allRoot(
 		kn.RLatch()
 		defer kn.RUnlatch()
 
-		_, fp, ok := kn.Child(0)
-		if !ok {
-			return 0, 0, nil, ErrNotFound
-		}
-
+		_, fp := kn.Child(0)
 		return l, fp, nil, nil
 	}
 }
@@ -447,11 +443,7 @@ func (c *search) allKey(
 
 	defer kn.Release()
 
-	_, fp, ok := kn.Child(0)
-	if !ok {
-		return 0, 0, ErrNotFound
-	}
-
+	_, fp := kn.Child(0)
 	return kn.Level(), fp, nil
 }
 

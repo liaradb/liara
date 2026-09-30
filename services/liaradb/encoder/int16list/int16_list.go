@@ -24,112 +24,102 @@ func (l Int16List) Size() int16 {
 	return int16(len(l.data) / itemSize)
 }
 
-func (l Int16List) Get(index int16) (int16, bool) {
+func (l Int16List) Get(index int16) int16 {
 	if index >= l.Size() {
-		return 0, false
+		panic("invalid index")
 	}
 
-	return int16(binary.BigEndian.Uint16(l.data[l.offset(index):])), true
+	return int16(binary.BigEndian.Uint16(l.data[l.offset(index):]))
 }
 
-func (l Int16List) GetInt32(index int16) (int32, bool) {
+func (l Int16List) GetInt32(index int16) int32 {
 	if index >= l.Size()-1 {
-		return 0, false
+		panic("invalid index")
 	}
 
-	return int32(binary.BigEndian.Uint32(l.data[l.offset(index):])), true
+	return int32(binary.BigEndian.Uint32(l.data[l.offset(index):]))
 }
 
-func (l Int16List) GetInt64(index int16) (int64, bool) {
+func (l Int16List) GetInt64(index int16) int64 {
 	if index >= l.Size()-3 {
-		return 0, false
+		panic("invalid index")
 	}
 
-	return int64(binary.BigEndian.Uint64(l.data[l.offset(index):])), true
+	return int64(binary.BigEndian.Uint64(l.data[l.offset(index):]))
 }
 
-func (l Int16List) Set(index int16, value int16) bool {
+func (l Int16List) Set(index int16, value int16) {
 	if index >= l.Size() {
-		return false
+		panic("invalid index")
 	}
 
 	binary.BigEndian.PutUint16(l.data[l.offset(index):], uint16(value))
-	return true
 }
 
-func (l Int16List) SetInt32(index int16, value int32) bool {
+func (l Int16List) SetInt32(index int16, value int32) {
 	if index >= l.Size()-1 {
-		return false
+		panic("invalid index")
 	}
 
 	binary.BigEndian.PutUint32(l.data[l.offset(index):], uint32(value))
-	return true
 }
 
-func (l Int16List) SetInt64(index int16, value int64) bool {
+func (l Int16List) SetInt64(index int16, value int64) {
 	if index >= l.Size()-3 {
-		return false
+		panic("invalid index")
 	}
 
 	binary.BigEndian.PutUint64(l.data[l.offset(index):], uint64(value))
-	return true
 }
 
 func (l Int16List) offset(index int16) int16 {
 	return index * itemSize
 }
 
-func (l Int16List) Shift(index, count int16) bool {
+func (l Int16List) Shift(index, count int16) {
 	if index < 0 || count < 0 {
-		return false
+		panic("invalid index")
 	}
 
-	if count == 0 {
-		return true
+	if count != 0 {
+		copy(l.data[index*itemSize:], l.data[(index-count)*itemSize:])
 	}
-
-	copy(l.data[index*itemSize:], l.data[(index-count)*itemSize:])
-	return true
 }
 
-func (l Int16List) ShiftRange(start, end, shift int16) bool {
+func (l Int16List) ShiftRange(start, end, shift int16) {
 	length := end - start
 
 	if start < 0 || length < 0 {
-		return false
+		panic("invalid range")
 	}
 
 	if length == 0 || shift == 0 {
-		return true
+		return
 	}
 
 	if shift < 0 {
-		return l.shiftRangeLeft(start, end, -shift)
+		l.shiftRangeLeft(start, end, -shift)
 	} else {
-		return l.shiftRangeRight(start, end, shift)
+		l.shiftRangeRight(start, end, shift)
 	}
 }
 
-func (l Int16List) shiftRangeLeft(start, end, shift int16) bool {
+func (l Int16List) shiftRangeLeft(start, end, shift int16) {
 	dstStart := (start - shift) * itemSize
 	if dstStart < 0 {
-		return false
+		panic("invalid range")
 	}
 
 	container := l.data[dstStart : end*itemSize]
 	copy(container, container[shift*itemSize:])
-
-	return true
 }
 
-func (l Int16List) shiftRangeRight(start, end, shift int16) bool {
+func (l Int16List) shiftRangeRight(start, end, shift int16) {
 	dstEnd := (end + shift) * itemSize
 	if dstEnd > int16(len(l.data)) {
-		return false
+		panic("invalid range")
 	}
 
 	container := l.data[start*itemSize : dstEnd]
 	copy(container[shift*itemSize:], container)
-
-	return true
 }

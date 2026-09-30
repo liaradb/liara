@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -278,15 +279,13 @@ func testKeyNodeInsertData(t *testing.T, kn *KeyNode) []keyEntry {
 func testKeyNodeChild(t *testing.T, kn *KeyNode, data []keyEntry) {
 	result := make([]keyEntry, 0, len(data))
 	for i := range kn.Count() {
-		key, block, ok := kn.Child(i)
-		if ok {
-			result = append(result, newKeyEntry(key, block))
-		}
+		key, block := kn.Child(i)
+		result = append(result, newKeyEntry(key, block))
 	}
 
-	if _, _, ok := kn.Child(kn.Count()); ok {
-		t.Error("should not get beyond count")
-	}
+	should.Panic(t, "should not get beyond count", func() {
+		_, _ = kn.Child(kn.Count())
+	})
 
 	if !slices.Equal(result, data) {
 		t.Errorf("incorrect result: %v, expected: %v", result, data)

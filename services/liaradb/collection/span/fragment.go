@@ -30,7 +30,7 @@ type Fragment struct {
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	BlockID() link.BlockID
-	Commit(size int) bool
+	Commit(size int)
 }
 
 func newFragment(
@@ -79,10 +79,10 @@ func (f Fragment) commit() {
 	f.crc.Set(int32(crc.Value()))
 }
 
-func (f Fragment) commitFull() bool {
+func (f Fragment) commitFull() {
 	crc := page.NewCRC(f.buffer.Bytes())
 	f.crc.Set(int32(crc.Value()))
-	return f.p.Commit(f.size)
+	f.p.Commit(f.size)
 }
 
 func (f Fragment) setNextPosition(p link.FilePosition) {

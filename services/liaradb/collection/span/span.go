@@ -1,7 +1,6 @@
 package span
 
 import (
-	"errors"
 	"io"
 	"slices"
 
@@ -47,11 +46,7 @@ func (s Span) valid() bool {
 
 func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) (*Fragment, error) {
 	p := bufferpage.New(b, FragmentHeaderSize)
-	h, d, ok := p.Slot(sid)
-	if !ok {
-		return nil, errors.New(" could not read slot")
-	}
-
+	h, d := p.Slot(sid)
 	s.buffers = append(s.buffers, b)
 	return s.Append(p, sid, h, d), nil
 }
@@ -133,14 +128,10 @@ func (s Span) Commit() {
 	}
 }
 
-func (s Span) CommitFull() bool {
+func (s Span) CommitFull() {
 	for _, f := range s.fragments {
-		if !f.commitFull() {
-			return false
-		}
+		f.commitFull()
 	}
-
-	return true
 }
 
 func (s *Span) Release() {

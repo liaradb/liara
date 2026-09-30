@@ -3,6 +3,8 @@ package int16list
 import (
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/util/testing/should"
 )
 
 func TestInt16List_Default(t *testing.T) {
@@ -33,27 +35,23 @@ func TestList_GetSet(t *testing.T) {
 	}
 
 	for i := range int16(8) {
-		if ok := l.Set(i, (i+1)*11); !ok {
-			t.Error("should set value")
-		}
+		l.Set(i, (i+1)*11)
 	}
 
-	if ok := l.Set(8, 55); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		l.Set(8, 55)
+	})
 
 	for i := range int16(8) {
 		want := (i + 1) * 11
-		if v, ok := l.Get(i); !ok {
-			t.Error("should set value")
-		} else if v != want {
+		if v := l.Get(i); v != want {
 			t.Errorf("incorrect value: %v, expected: %v", v, want)
 		}
 	}
 
-	if _, ok := l.Get(8); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		_ = l.Get(8)
+	})
 }
 
 func TestList_GetInt32SetInt32(t *testing.T) {
@@ -70,27 +68,23 @@ func TestList_GetInt32SetInt32(t *testing.T) {
 	}
 
 	for i := range int16(4) {
-		if ok := l.SetInt32(i*2, int32((i+1)*11)); !ok {
-			t.Fatal("should set value")
-		}
+		l.SetInt32(i*2, int32((i+1)*11))
 	}
 
-	if ok := l.SetInt32(8, 55); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		l.SetInt32(8, 55)
+	})
 
 	for i := range int16(4) {
 		want := int32((i + 1) * 11)
-		if v, ok := l.GetInt32(i * 2); !ok {
-			t.Error("should set value")
-		} else if v != want {
+		if v := l.GetInt32(i * 2); v != want {
 			t.Errorf("incorrect value: %v, expected: %v", v, want)
 		}
 	}
 
-	if _, ok := l.GetInt32(8); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		_ = l.GetInt32(8)
+	})
 }
 
 func TestList_GetInt64SetInt64(t *testing.T) {
@@ -107,27 +101,23 @@ func TestList_GetInt64SetInt64(t *testing.T) {
 	}
 
 	for i := range int16(2) {
-		if ok := l.SetInt64(i*4, int64((i+1)*11)); !ok {
-			t.Fatal("should set value")
-		}
+		l.SetInt64(i*4, int64((i+1)*11))
 	}
 
-	if ok := l.SetInt64(8, 55); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		l.SetInt64(8, 55)
+	})
 
 	for i := range int16(2) {
 		want := int64((i + 1) * 11)
-		if v, ok := l.GetInt64(i * 4); !ok {
-			t.Error("should set value")
-		} else if v != want {
+		if v := l.GetInt64(i * 4); v != want {
 			t.Errorf("incorrect value: %v, expected: %v", v, want)
 		}
 	}
 
-	if _, ok := l.GetInt64(8); ok {
-		t.Error("should not set value beyond size")
-	}
+	should.Panic(t, "should not set value beyond size", func() {
+		_ = l.GetInt64(8)
+	})
 }
 
 func TestInt16List_Shift(t *testing.T) {
@@ -176,24 +166,20 @@ func TestInt16List_Shift(t *testing.T) {
 			l := New(make([]byte, 32))
 
 			for i, d := range data {
-				if ok := l.Set(int16(i), d); !ok {
-					t.Error("should set value")
-				}
+				l.Set(int16(i), d)
 			}
 
-			ok := l.Shift(c.index, c.count)
-			if c.succeed && !ok {
-				t.Fatal("should shift")
-			} else if !c.succeed && ok {
-				t.Fatal("should not shift")
+			if c.succeed {
+				l.Shift(c.index, c.count)
+			} else {
+				should.Panic(t, "should not shift", func() {
+					l.Shift(c.index, c.count)
+				})
 			}
 
 			result := make([]int16, 0, len(data))
 			for i := range data {
-				d, ok := l.Get(int16(i))
-				if !ok {
-					t.Error("should get value")
-				}
+				d := l.Get(int16(i))
 				result = append(result, d)
 			}
 
@@ -283,24 +269,20 @@ func TestInt16List_ShiftRange(t *testing.T) {
 			l := New(make([]byte, 16))
 
 			for i, d := range data {
-				if ok := l.Set(int16(i), d); !ok {
-					t.Error("should set value")
-				}
+				l.Set(int16(i), d)
 			}
 
-			ok := l.ShiftRange(c.start, c.end, c.shift)
-			if c.succeed && !ok {
-				t.Fatal("should shift")
-			} else if !c.succeed && ok {
-				t.Fatal("should not shift")
+			if c.succeed {
+				l.ShiftRange(c.start, c.end, c.shift)
+			} else {
+				should.Panic(t, "should not shift", func() {
+					l.ShiftRange(c.start, c.end, c.shift)
+				})
 			}
 
 			result := make([]int16, 0, len(data))
 			for i := range data {
-				d, ok := l.Get(int16(i))
-				if !ok {
-					t.Error("should get value")
-				}
+				d := l.Get(int16(i))
 				result = append(result, d)
 			}
 

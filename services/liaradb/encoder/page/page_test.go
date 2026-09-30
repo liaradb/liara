@@ -3,6 +3,8 @@ package page
 import (
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/util/testing/should"
 )
 
 func TestPage_New(t *testing.T) {
@@ -62,14 +64,9 @@ func TestPage_Next(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	if ok := p.Commit(8); !ok {
-		t.Error("should commit")
-	}
+	p.Commit(8)
 
-	header, data, ok := p.Slot(0)
-	if !ok {
-		t.Error("should get slot")
-	}
+	header, data = p.Slot(0)
 
 	if l := len(header); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
@@ -84,9 +81,7 @@ func TestPage_Next__Empty(t *testing.T) {
 	t.Parallel()
 
 	p := New(32, 4, 4)
-	if ok := p.Commit(18); !ok {
-		t.Error("should commit")
-	}
+	p.Commit(18)
 
 	header, data := p.Next(2)
 	if l := len(header); l != 0 {
@@ -113,14 +108,9 @@ func TestPage_NextMustFit(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	if ok := p.Commit(8); !ok {
-		t.Error("should commit")
-	}
+	p.Commit(8)
 
-	header, data, ok := p.Slot(0)
-	if !ok {
-		t.Error("should get slot")
-	}
+	header, data = p.Slot(0)
 
 	if l := len(header); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
@@ -150,9 +140,7 @@ func TestPage_Insert(t *testing.T) {
 		header[0] = 1
 		data[0] = 2
 
-		if ok := p.Commit(8); !ok {
-			t.Error("should commit")
-		}
+		p.Commit(8)
 	}
 
 	{
@@ -169,16 +157,11 @@ func TestPage_Insert(t *testing.T) {
 		header[0] = 3
 		data[0] = 4
 
-		if ok := p.Insert(8, 0); !ok {
-			t.Error("should commit")
-		}
+		p.Insert(8, 0)
 	}
 
 	{
-		header, data, ok := p.Slot(0)
-		if !ok {
-			t.Error("should get slot")
-		}
+		header, data := p.Slot(0)
 
 		if l := len(header); l != 4 {
 			t.Errorf("incorrect length: %v, expected: %v", l, 4)
@@ -198,10 +181,7 @@ func TestPage_Insert(t *testing.T) {
 	}
 
 	{
-		header, data, ok := p.Slot(1)
-		if !ok {
-			t.Error("should get slot")
-		}
+		header, data := p.Slot(1)
 
 		if l := len(header); l != 4 {
 			t.Errorf("incorrect length: %v, expected: %v", l, 4)
@@ -225,9 +205,10 @@ func TestPage_Slot(t *testing.T) {
 	t.Parallel()
 
 	p := New(32, 4, 4)
-	if _, _, ok := p.Slot(0); ok {
-		t.Error("slot should not exist")
-	}
+
+	should.Panic(t, "slot should not exist", func() {
+		_, _ = p.Slot(0)
+	})
 
 	c := 0
 	for range p.Slots() {
@@ -239,22 +220,13 @@ func TestPage_Slot(t *testing.T) {
 	}
 
 	_, _ = p.Next(8)
-	if ok := p.Commit(8); !ok {
-		t.Error("should commit")
-	}
+	p.Commit(8)
 
 	_, _ = p.Next(8)
-	if ok := p.Commit(8); !ok {
-		t.Error("should commit")
-	}
+	p.Commit(8)
 
-	if _, _, ok := p.Slot(0); !ok {
-		t.Error("slot should exist")
-	}
-
-	if _, _, ok := p.Slot(1); !ok {
-		t.Error("slot should exist")
-	}
+	_, _ = p.Slot(0)
+	_, _ = p.Slot(1)
 
 	c = 0
 	for range p.Slots() {

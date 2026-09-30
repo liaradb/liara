@@ -73,14 +73,10 @@ func (p *Page) Header() []byte {
 	return p.data[:p.headerSize]
 }
 
-func (p *Page) Slot(i link.SlotID) ([]byte, []byte, bool) {
-	slot, ok := p.list.Slot(i)
-	if !ok {
-		return nil, nil, false
-	}
-
+func (p *Page) Slot(i link.SlotID) ([]byte, []byte) {
+	slot := p.list.Slot(i)
 	h, b := p.slot(slot)
-	return h, b, true
+	return h, b
 }
 
 func (p *Page) Slots() iter.Seq2[[]byte, []byte] {
@@ -162,30 +158,22 @@ func (p *Page) Space() int {
 	return max(space, 0)
 }
 
-func (p *Page) Commit(size int) bool {
+func (p *Page) Commit(size int) {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
 	// TODO: Fix this cast
-	if _, _, ok := p.list.Push(int16(start), int16(fullSize)); !ok {
-		return false
-	}
-
+	_, _ = p.list.Push(int16(start), int16(fullSize))
 	p.next = start
-	return true
 }
 
-func (p *Page) Insert(size int, i link.SlotID) bool {
+func (p *Page) Insert(size int, i link.SlotID) {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
 	// TODO: Fix this cast
-	if _, _, ok := p.list.Insert(int16(start), int16(fullSize), i); !ok {
-		return false
-	}
-
+	_, _ = p.list.Insert(int16(start), int16(fullSize), i)
 	p.next = start
-	return true
 }
 
 func (p *Page) Clear() {

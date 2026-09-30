@@ -97,8 +97,7 @@ type testBufferPage struct {
 func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
-func (t *testBufferPage) Commit(size int) bool {
-	return true
+func (t *testBufferPage) Commit(size int) {
 }
 
 type testLogger struct {

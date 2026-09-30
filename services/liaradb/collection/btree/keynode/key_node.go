@@ -1,7 +1,6 @@
 package keynode
 
 import (
-	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -31,11 +30,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 
 	ke.Write(b)
 
-	// TODO: What happens if we return false here?
-	if !kn.node.Commit(size) {
-		return false
-	}
-
+	kn.node.Commit(size)
 	kn.node.SetDirty()
 
 	return true
@@ -54,11 +49,7 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 
 	ke.Write(b)
 
-	// TODO: Is this error ever possible?
-	if !kn.node.Insert(size, i) {
-		return nil, nil, false, errors.New("unable to insert")
-	}
-
+	kn.node.Insert(size, i)
 	kn.node.SetDirty()
 
 	return nil, nil, true, nil
@@ -170,9 +161,8 @@ func (kn *KeyNode) Replace(l byte, entries Iterator) {
 }
 
 func (kn *KeyNode) ReplaceRoot(l byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
-	// This should always have a child
 	// TODO: Will this always be the lower key?
-	key0, _, _ := kn.Child(0)
+	key0, _ := kn.Child(0)
 
 	kn.node.Clear()
 
@@ -200,16 +190,13 @@ func (kn *KeyNode) Children() Iterator {
 	}
 }
 
-func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition, bool) {
-	b, ok := kn.node.Child(i)
-	if !ok {
-		return key.Key{}, 0, false
-	}
+func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition) {
+	b := kn.node.Child(i)
 
 	ke := keyEntry{}
 	ke.Read(b)
 
-	return ke.Key(), ke.Block(), true
+	return ke.Key(), ke.Block()
 }
 
 func (kn *KeyNode) childrenRange(start, end link.SlotID) Iterator {

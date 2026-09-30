@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/should"
 )
 
 type tuple struct {
@@ -30,11 +31,9 @@ func TestSlotList_Default(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 
-	if last, ok := l.Last(); ok {
-		t.Errorf("incorrect next: %v, expected: %v", ok, false)
-	} else if offset := last.Offset(); offset != 0 {
-		t.Errorf("incorrect next: %v, expected: %v", offset, 0)
-	}
+	should.Panic(t, "should not get value", func() {
+		_ = l.Last()
+	})
 }
 
 func TestSlotList_Push(t *testing.T) {
@@ -47,13 +46,11 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 32)
 	}
 
-	if _, ok := l.Last(); ok {
-		t.Errorf("incorrect last: %v, expected: %v", ok, false)
-	}
+	should.Panic(t, "should not get value", func() {
+		_ = l.Last()
+	})
 
-	if s, i, ok := l.Push(2, 10); !ok {
-		t.Error("should push")
-	} else if i != 0 {
+	if s, i := l.Push(2, 10); i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	} else {
 		assertSlot(t, s, 2, 10)
@@ -67,15 +64,11 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
 
-	if last, ok := l.Last(); !ok {
-		t.Errorf("incorrect next: %v, expected: %v", ok, true)
-	} else if offset := last.Offset(); offset != 2 {
+	if offset := l.Last().Offset(); offset != 2 {
 		t.Errorf("incorrect next: %v, expected: %v", offset, 2)
 	}
 
-	if s, i, ok := l.Push(5, 20); !ok {
-		t.Error("should push")
-	} else if i != 1 {
+	if s, i := l.Push(5, 20); i != 1 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	} else {
 		assertSlot(t, s, 5, 20)
@@ -89,31 +82,29 @@ func TestSlotList_Push(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
 	}
 
-	if last, ok := l.Last(); !ok {
-		t.Errorf("incorrect next: %v, expected: %v", ok, true)
-	} else if offset := last.Offset(); offset != 5 {
+	if offset := l.Last().Offset(); offset != 5 {
 		t.Errorf("incorrect next: %v, expected: %v", offset, 5)
 	}
 
-	if slot, ok := l.Slot(0); !ok {
-		t.Errorf("should have value")
-	} else if slot.Offset() != 2 {
+	slot := l.Slot(0)
+	if slot.Offset() != 2 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
-	} else if slot.Size() != 10 {
+	}
+	if slot.Size() != 10 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 10)
 	}
 
-	if slot, ok := l.Slot(1); !ok {
-		t.Errorf("should have value")
-	} else if slot.Offset() != 5 {
+	slot = l.Slot(1)
+	if slot.Offset() != 5 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 5)
-	} else if slot.size != 20 {
+	}
+	if slot.size != 20 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 20)
 	}
 
-	if _, ok := l.Slot(2); ok {
-		t.Errorf("should not have a value")
-	}
+	should.Panic(t, "should not have a value", func() {
+		_ = l.Slot(2)
+	})
 }
 
 func TestSlotList_Pop(t *testing.T) {
@@ -122,23 +113,17 @@ func TestSlotList_Pop(t *testing.T) {
 	data := make([]byte, 18)
 	l := New(data)
 
-	if s, _, ok := l.Push(1, 10); !ok {
-		t.Error("should push")
-	} else {
-		assertSlot(t, s, 1, 10)
-	}
+	s, _ := l.Push(1, 10)
+	assertSlot(t, s, 1, 10)
 
-	if s, _, ok := l.Push(2, 20); !ok {
-		t.Error("should push")
-	} else {
-		assertSlot(t, s, 2, 20)
-	}
+	s, _ = l.Push(2, 20)
+	assertSlot(t, s, 2, 20)
 
-	if slot, ok := l.Pop(); !ok {
-		t.Error("should pop")
-	} else if slot.Offset() != 2 {
+	slot := l.Pop()
+	if slot.Offset() != 2 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 2)
-	} else if slot.Size() != 20 {
+	}
+	if slot.Size() != 20 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 20)
 	}
 
@@ -150,11 +135,11 @@ func TestSlotList_Pop(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
 	}
 
-	if slot, ok := l.Pop(); !ok {
-		t.Error("should pop")
-	} else if slot.Offset() != 1 {
+	slot = l.Pop()
+	if slot.Offset() != 1 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Offset(), 1)
-	} else if slot.Size() != 10 {
+	}
+	if slot.Size() != 10 {
 		t.Errorf("incorrect value: %v, expected: %v", slot.Size(), 10)
 	}
 
@@ -166,9 +151,9 @@ func TestSlotList_Pop(t *testing.T) {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
 	}
 
-	if _, ok := l.Pop(); ok {
-		t.Error("should not pop beyond empty")
-	}
+	should.Panic(t, "should not pop beyond empty", func() {
+		_ = l.Pop()
+	})
 }
 
 func TestSlotList_Replace(t *testing.T) {
@@ -176,43 +161,35 @@ func TestSlotList_Replace(t *testing.T) {
 
 	l := New(make([]byte, 42))
 
-	if l.Replace(10, 10, 0) {
-		t.Fatal("should not replace non-existant slots")
-	}
+	should.Panic(t, "should not replace non-existant slots", func() {
+		l.Replace(10, 10, 0)
+	})
 
-	if l.Replace(11, 11, 1) {
-		t.Fatal("should not replace non-existant slots")
-	}
+	should.Panic(t, "should not replace non-existant slots", func() {
+		l.Replace(11, 11, 1)
+	})
 
-	if _, _, ok := l.Push(5, 0); !ok {
-		t.Fatal("should push")
-	}
+	_, _ = l.Push(5, 0)
 
-	if !l.Replace(10, 10, 0) {
-		t.Fatal("should replace")
-	}
+	l.Replace(10, 10, 0)
 
-	if s, ok := l.Slot(0); !ok {
-		t.Fatal("should get")
-	} else if o := s.Offset(); o != 10 {
+	s := l.Slot(0)
+	if o := s.Offset(); o != 10 {
 		t.Errorf("incorrect offset: %v, expected: %v", o, 10)
-	} else if s := s.Size(); s != 10 {
+	}
+	if s := s.Size(); s != 10 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 10)
 	}
 
-	if _, _, ok := l.Push(5, 0); !ok {
-		t.Fatal("should push")
-	}
+	_, _ = l.Push(5, 0)
 
-	if !l.Replace(11, 11, 1) {
-		t.Fatal("should replace")
-	}
+	l.Replace(11, 11, 1)
 
-	if s, ok := l.Slot(1); !ok {
-		t.Fatal("should get")
-	} else if o := s.Offset(); o != 11 {
+	s = l.Slot(1)
+	if o := s.Offset(); o != 11 {
 		t.Errorf("incorrect offset: %v, expected: %v", o, 11)
-	} else if s := s.Size(); s != 11 {
+	}
+	if s := s.Size(); s != 11 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 11)
 	}
 }
@@ -221,13 +198,9 @@ func TestSloList_Delete(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 42))
-	if _, _, ok := l.Push(3, 3); !ok {
-		t.Fatal("should push")
-	}
 
-	if _, _, ok := l.Push(5, 5); !ok {
-		t.Fatal("should push")
-	}
+	_, _ = l.Push(3, 3)
+	_, _ = l.Push(5, 5)
 
 	if l.IsDeleted(0) {
 		t.Error("should not be deleted")
@@ -247,19 +220,19 @@ func TestSloList_Delete(t *testing.T) {
 		t.Error("should not be deleted")
 	}
 
-	if s, ok := l.Slot(0); !ok {
-		t.Fatal("should get")
-	} else if o := s.Offset(); o != 0 {
+	s := l.Slot(0)
+	if o := s.Offset(); o != 0 {
 		t.Errorf("incorrect offset: %v, expected: %v", o, 0)
-	} else if s := s.Size(); s != 0 {
+	}
+	if s := s.Size(); s != 0 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 0)
 	}
 
-	if s, ok := l.Slot(1); !ok {
-		t.Fatal("should get")
-	} else if o := s.Offset(); o != 5 {
+	s = l.Slot(1)
+	if o := s.Offset(); o != 5 {
 		t.Errorf("incorrect offset: %v, expected: %v", o, 5)
-	} else if s := s.Size(); s != 5 {
+	}
+	if s := s.Size(); s != 5 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 5)
 	}
 }
@@ -268,25 +241,20 @@ func TestSlotList_FirstOffset(t *testing.T) {
 	t.Parallel()
 
 	l := New(make([]byte, 42))
-	if _, _, ok := l.Push(5, 0); !ok {
-		t.Fatal("should push")
-	}
+
+	_, _ = l.Push(5, 0)
 
 	if o := l.FirstOffset(); o != 5 {
 		t.Fatalf("incorrect offset: %v, expected: %v", o, 5)
 	}
 
-	if _, _, ok := l.Push(6, 0); !ok {
-		t.Fatal("should push")
-	}
+	_, _ = l.Push(6, 0)
 
 	if o := l.FirstOffset(); o != 5 {
 		t.Fatalf("incorrect offset: %v, expected: %v", o, 5)
 	}
 
-	if _, _, ok := l.Push(4, 0); !ok {
-		t.Fatal("should push")
-	}
+	_, _ = l.Push(4, 0)
 
 	if o := l.FirstOffset(); o != 4 {
 		t.Fatalf("incorrect offset: %v, expected: %v", o, 4)
@@ -306,9 +274,7 @@ func TestSlotList_Slots(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, _, ok := l.Push(i.a, i.b); !ok {
-			t.Error("should push")
-		}
+		_, _ = l.Push(i.a, i.b)
 	}
 
 	result := make([]tuple, 0, len(data))
@@ -334,9 +300,7 @@ func TestSlotList_SlotsReverse(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, _, ok := l.Push(i.a, i.b); !ok {
-			t.Error("should push")
-		}
+		_, _ = l.Push(i.a, i.b)
 	}
 
 	result := make([]tuple, 0, len(data))
@@ -368,9 +332,7 @@ func TestSlotList_SlotsRange(t *testing.T) {
 		{50, 100}}
 
 	for _, i := range data {
-		if _, _, ok := l.Push(i.a, i.b); !ok {
-			t.Error("should push")
-		}
+		_, _ = l.Push(i.a, i.b)
 	}
 
 	for message, c := range map[string]struct {
@@ -508,16 +470,11 @@ func TestSlotList_Insert(t *testing.T) {
 			l := New(data)
 
 			for _, i := range c.data {
-				if _, _, ok := l.Push(i.a, i.b); !ok {
-					t.Fatal("should push")
-				}
+				_, _ = l.Push(i.a, i.b)
 			}
 
-			if s, _, ok := l.Insert(c.insert.a, c.insert.b, c.index); !ok {
-				t.Fatal("should insert")
-			} else {
-				assertSlot(t, s, c.insert.a, c.insert.b)
-			}
+			s, _ := l.Insert(c.insert.a, c.insert.b, c.index)
+			assertSlot(t, s, c.insert.a, c.insert.b)
 
 			wantCount := link.SlotID(len(c.want))
 			if count := l.Count(); count != wantCount {
@@ -547,16 +504,13 @@ func TestSlotList_Insert(t *testing.T) {
 		l := New(data)
 		for i, slot := range []tuple{
 			{10, 60}} {
-			if s, _, ok := l.Insert(slot.a, slot.b, link.SlotID(i)); !ok {
-				t.Fatal("should insert")
-			} else {
-				assertSlot(t, s, slot.a, slot.b)
-			}
+			s, _ := l.Insert(slot.a, slot.b, link.SlotID(i))
+			assertSlot(t, s, slot.a, slot.b)
 		}
 
-		if _, _, ok := l.Insert(20, 70, 0); ok {
-			t.Error("should not insert beyond size")
-		}
+		should.Panic(t, "should not insert beyond size", func() {
+			_, _ = l.Insert(20, 70, 0)
+		})
 	})
 }
 
@@ -605,9 +559,7 @@ func TestSlotList_Clear(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", length, 16)
 	}
 
-	if _, i, ok := l.Push(1, 2); !ok {
-		t.Error("should push")
-	} else if i != 0 {
+	if _, i := l.Push(1, 2); i != 0 {
 		t.Errorf("incorrect index: %v, expected: %v", i, 0)
 	}
 

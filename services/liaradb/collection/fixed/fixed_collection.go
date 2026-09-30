@@ -144,10 +144,7 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	if !s.CommitFull() {
-		return errors.New("unable to commit")
-	}
-
+	s.CommitFull()
 	return err
 }
 

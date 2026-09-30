@@ -92,32 +92,31 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 }
 
 func (t *Tip) Commit() ([]*bufferpage.BufferPage, bool) {
-	if ok := t.commitPages(); !ok {
-		t.abortPages()
-		return nil, false
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			t.abortPages()
+			panic(r)
+		}
+	}()
 
+	t.commitPages()
 	return t.pages, true
 }
 
 // Commit pages before current to avoid a partial commit
-func (t *Tip) commitPages() bool {
+func (t *Tip) commitPages() {
 	for i, p := range t.pages[1:] {
-		if !t.commitPage(p, i+1) {
-			return false
-		}
+		t.commitPage(p, i+1)
 	}
 
-	return t.commitPage(t.current, 0)
+	t.commitPage(t.current, 0)
 }
 
-func (t *Tip) commitPage(p *bufferpage.BufferPage, i int) bool {
+func (t *Tip) commitPage(p *bufferpage.BufferPage, i int) {
 	size := t.sizes[i]
-	if size == 0 {
-		return true
+	if size != 0 {
+		p.Commit(size)
 	}
-
-	return p.Commit(size)
 }
 
 // Put everything after the first page back

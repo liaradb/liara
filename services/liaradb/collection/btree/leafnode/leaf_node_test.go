@@ -143,11 +143,7 @@ func testLeafNode_Child(t *testing.T) {
 
 	result := make([]leafEntry, 0, len(data))
 	for i := range link.SlotID(len(data)) {
-		c, ok := ln.Child(i)
-		if !ok {
-			t.Fatal("should get child")
-		}
-
+		c := ln.Child(i)
 		result = append(result, c)
 	}
 

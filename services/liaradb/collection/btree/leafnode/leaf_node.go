@@ -1,7 +1,6 @@
 package leafnode
 
 import (
-	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -57,11 +56,7 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 
 	le.Write(b)
 
-	// TODO: What happens if we return false here?
-	if !ln.node.Commit(size) {
-		return false
-	}
-
+	ln.node.Commit(size)
 	ln.node.SetDirty()
 
 	return true
@@ -79,11 +74,7 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 
 	le.Write(b)
 
-	// TODO: Is this error ever possible?
-	if !ln.node.Insert(size, i) {
-		return nil, nil, false, errors.New("cannot insert")
-	}
-
+	ln.node.Insert(size, i)
 	ln.node.SetDirty()
 
 	return nil, nil, true, nil
@@ -206,16 +197,13 @@ func (ln *LeafNode) second(i, mid link.SlotID, le leafEntry) Iterator {
 	}
 }
 
-func (ln *LeafNode) Child(index link.SlotID) (leafEntry, bool) {
-	b, ok := ln.node.Child(index)
-	if !ok {
-		return leafEntry{}, false
-	}
+func (ln *LeafNode) Child(index link.SlotID) leafEntry {
+	b := ln.node.Child(index)
 
 	le := leafEntry{}
 	le.Read(b)
 
-	return le, true
+	return le
 }
 
 func (ln *LeafNode) Children() Iterator {
@@ -258,11 +246,7 @@ func (ln *LeafNode) Search(k key.Key) (link.RecordLocator, bool) {
 		return link.RecordLocator{}, false
 	}
 
-	le, ok := ln.Child(i)
-	if !ok {
-		return link.RecordLocator{}, false
-	}
-
+	le := ln.Child(i)
 	return le.recordID, true
 }
 

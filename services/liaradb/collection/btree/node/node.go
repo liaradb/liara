@@ -69,7 +69,7 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	return b, ok
 }
 
-func (n *Node) Commit(size int16) bool {
+func (n *Node) Commit(size int16) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	lsn, err := n.l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), b)
@@ -79,12 +79,12 @@ func (n *Node) Commit(size int16) bool {
 	}
 
 	n.setLogSequenceNumber(lsn)
-	return n.page.Commit(int(size))
+	n.page.Commit(int(size))
 }
 
-func (n *Node) Insert(size int16, index link.SlotID) bool {
+func (n *Node) Insert(size int16, index link.SlotID) {
 	// TODO: Fix this cast
-	return n.page.Insert(int(size), index)
+	n.page.Insert(int(size), index)
 }
 
 func (n *Node) Length() int16 {
@@ -99,9 +99,9 @@ func (n *Node) Space() int16 {
 	return int16(n.page.Space())
 }
 
-func (n *Node) Child(index link.SlotID) ([]byte, bool) {
-	_, b, ok := n.page.Slot(index)
-	return b, ok
+func (n *Node) Child(index link.SlotID) []byte {
+	_, b := n.page.Slot(index)
+	return b
 }
 
 func (n *Node) Children() iter.Seq[[]byte] {

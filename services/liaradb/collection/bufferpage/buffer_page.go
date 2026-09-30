@@ -42,12 +42,8 @@ func (bp *BufferPage) Release() {
 	bp.buffer.Release()
 }
 
-func (bp *BufferPage) Commit(size int) bool {
-	ok := bp.Page.Commit(size)
-	if ok {
-		// TODO: Verify this the correct time to do this
-		bp.buffer.SetDirty()
-	}
-
-	return ok
+func (bp *BufferPage) Commit(size int) {
+	bp.Page.Commit(size)
+	// TODO: Verify this the correct time to do this
+	bp.buffer.SetDirty()
 }

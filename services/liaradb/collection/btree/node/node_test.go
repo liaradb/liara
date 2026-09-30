@@ -95,9 +95,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if !n.Commit(16) {
-		t.Fatal("should commit")
-	}
+	n.Commit(16)
 
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
@@ -116,9 +114,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if !n.Commit(16) {
-		t.Fatal("should commit")
-	}
+	n.Commit(16)
 
 	if c := n.Count(); c != 2 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
@@ -191,10 +187,7 @@ func testNode_Insert(t *testing.T) {
 		t.Fatal("should get a buffer")
 	}
 
-	ok = n.Insert(16, 0)
-	if !ok {
-		t.Fatal("should get a buffer")
-	}
+	n.Insert(16, 0)
 
 	if s := n.Space(); s != s1 {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
@@ -209,10 +202,7 @@ func testNode_Insert(t *testing.T) {
 		t.Fatal("should get a buffer")
 	}
 
-	ok = n.Insert(16, 1)
-	if !ok {
-		t.Fatal("should get a buffer")
-	}
+	n.Insert(16, 1)
 
 	if s := n.Space(); s != s2 {
 		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
@@ -271,9 +261,7 @@ func testNode_Space(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if !n.Commit(16) {
-		t.Fatal("should commit")
-	}
+	n.Commit(16)
 
 	if s := n.Space(); s != 0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
@@ -305,9 +293,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if !n.Commit(16) {
-		t.Fatal("should commit")
-	}
+	n.Commit(16)
 
 	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
@@ -318,9 +304,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	if !n.Commit(16) {
-		t.Fatal("should commit")
-	}
+	n.Commit(16)
 
 	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
@@ -328,11 +312,7 @@ func testNode_Child(t *testing.T) {
 
 	result := make([][]byte, 0, 2)
 	for i := range link.SlotID(2) {
-		c, ok := n.Child(i)
-		if !ok {
-			t.Fatal("should get a buffer")
-		}
-
+		c := n.Child(i)
 		v := make([]byte, 5)
 		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
 			t.Fatal(err)
@@ -372,9 +352,7 @@ func testNode_Children(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		if !n.Commit(itemSize * int16(len(v))) {
-			t.Fatal("should commit")
-		}
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
@@ -422,9 +400,7 @@ func testNode_ChildrenRange(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		if !n.Commit(itemSize * int16(len(v))) {
-			t.Fatal("should commit")
-		}
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
 			t.Error(err)
@@ -485,9 +461,7 @@ func testNode_Clear(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		if !n.Commit(itemSize * int16(len(v))) {
-			t.Fatal("should commit")
-		}
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
