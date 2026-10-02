@@ -74,10 +74,6 @@ func (n *Node) Insert(size int16, index link.SlotID) {
 	n.page.Insert(int(size), index)
 }
 
-func (n *Node) Length() int16 {
-	return n.page.Length()
-}
-
 func (n *Node) Count() link.SlotID {
 	return n.page.Count()
 }

@@ -52,10 +52,6 @@ func (p *Page) Data() []byte {
 	return p.data
 }
 
-func (p *Page) Length() int16 {
-	return int16(len(p.data) - MagicSize)
-}
-
 func (p *Page) Fill(data []byte) {
 	n := copy(p.data, data)
 	clear(p.data[n:])

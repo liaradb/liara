@@ -25,10 +25,6 @@ func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
 
 func (bp *BufferPage) BlockID() link.BlockID { return bp.buffer.BlockID() }
 
-func (bp *BufferPage) Fill(data []byte) {
-	bp.Page.Fill(data)
-}
-
 func (bp *BufferPage) Shadow(base *BufferPage) {
 	bp.Page.Fill(base.Data())
 }
