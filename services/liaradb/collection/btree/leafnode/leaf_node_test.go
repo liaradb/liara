@@ -7,9 +7,9 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -35,7 +35,7 @@ func testLeafNode_Fill(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	ln.Fill(&testLog{}, 1, 2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Fill(&logtesting.MockLog{}, 1, 2, func(yield func(key.Key, link.RecordLocator) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -85,7 +85,7 @@ func testLeafNode_Replace(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	ln.Replace(&testLog{}, 2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Replace(&logtesting.MockLog{}, 2, func(yield func(key.Key, link.RecordLocator) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -133,11 +133,11 @@ func testLeafNode_Child(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if ok := ln.Append(&testLog{}, data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(&logtesting.MockLog{}, data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	}
 
-	if ok := ln.Append(&testLog{}, data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(&logtesting.MockLog{}, data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	}
 
@@ -174,11 +174,11 @@ func testLeafNode_Children(t *testing.T) {
 			link.NewRecordLocator(3, 4)),
 	}
 
-	if ok := ln.Append(&testLog{}, data[0].key, data[0].recordID); !ok {
+	if ok := ln.Append(&logtesting.MockLog{}, data[0].key, data[0].recordID); !ok {
 		t.Error("should append")
 	}
 
-	if ok := ln.Append(&testLog{}, data[1].key, data[1].recordID); !ok {
+	if ok := ln.Append(&logtesting.MockLog{}, data[1].key, data[1].recordID); !ok {
 		t.Error("should append")
 	}
 
@@ -406,15 +406,4 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	}
 
 	return b
-}
-
-type testLog struct {
-}
-
-func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
-}
-
-func (t *testLog) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }

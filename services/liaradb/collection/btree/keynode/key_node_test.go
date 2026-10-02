@@ -7,9 +7,9 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -61,7 +61,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("key11")), link.FilePosition(11)},
 			}
 
-			if ok := kn.ReplaceRoot(&testLog{}, 1, want[0].block, want[1].key, want[1].block); !ok {
+			if ok := kn.ReplaceRoot(&logtesting.MockLog{}, 1, want[0].block, want[1].key, want[1].block); !ok {
 				t.Error("should replace")
 			}
 
@@ -207,7 +207,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Fill(&testLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Fill(&logtesting.MockLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return
@@ -239,7 +239,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Replace(&testLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Replace(&logtesting.MockLog{}, 1, func(yield func(k key.Key, fp link.FilePosition) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return
@@ -320,15 +320,4 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 	}
 
 	return b
-}
-
-type testLog struct {
-}
-
-func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
-}
-
-func (t *testLog) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }

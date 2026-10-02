@@ -4,8 +4,8 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -17,7 +17,7 @@ const (
 
 func TestTip(t *testing.T) {
 	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
-		tip := NewTip(st.Storage, &testLog{}, link.NewFileName("fn"))
+		tip := NewTip(st.Storage, &logtesting.MockLog{}, link.NewFileName("fn"))
 		want := 128
 		s, err := tip.Span(t.Context(), want)
 		if err != nil {
@@ -41,15 +41,4 @@ func TestTip(t *testing.T) {
 		// }
 		synctest.Wait()
 	})
-}
-
-type testLog struct {
-}
-
-func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
-}
-
-func (t *testLog) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 )
 
 func TestEventLog_Recovery(t *testing.T) {
@@ -91,7 +92,7 @@ func write(
 	}
 
 	for _, r := range events {
-		if err := el.Append(ctx, &testLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
 			t.Fatal(err)
 		}
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 )
 
 func TestSpan_Write(t *testing.T) {
@@ -26,7 +27,7 @@ func TestSpan_Write(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New(&testLogger{})
+	s := New(&logtesting.MockLog{})
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
@@ -66,7 +67,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New(&testLogger{})
+	s := New(&logtesting.MockLog{})
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
@@ -98,15 +99,4 @@ func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
 func (t *testBufferPage) Commit(size int) {
-}
-
-type testLogger struct {
-}
-
-func (*testLogger) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
-}
-
-func (*testLogger) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }

@@ -6,8 +6,8 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -53,7 +53,7 @@ func testCursor_Insert__Root(t *testing.T) {
 	}
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Error(err)
 		}
 	}
@@ -86,7 +86,7 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -119,7 +119,7 @@ func testCursor_Insert__Reverse(t *testing.T) {
 	data := createData()
 
 	for _, e := range reverseData(data) {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -159,7 +159,7 @@ func testCursor_Insert__Random(t *testing.T) {
 	}
 
 	for i, e := range reorderData(order, data) {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Fatal(i, e.key, err)
 		}
 	}
@@ -188,11 +188,11 @@ func testCursor_Insert__Existing(t *testing.T) {
 		key.NewKey([]byte("0")),
 		link.NewRecordLocator(1, 2))
 
-	if err := NewCursor(s).Insert(ctx, &testLog{}, fn, le.key, le.recordID); err != nil {
+	if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, le.key, le.recordID); err != nil {
 		t.Fatal(le.key, err)
 	}
 
-	if err := NewCursor(s).Insert(ctx, &testLog{}, fn, le.key, le.recordID); err == nil {
+	if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, le.key, le.recordID); err == nil {
 		t.Error("should not insert the same key")
 	}
 
@@ -223,7 +223,7 @@ func testCursor_SearchRange(t *testing.T) {
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -284,7 +284,7 @@ func testCursor_All(t *testing.T) {
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &testLog{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -407,15 +407,4 @@ func createData() []leafEntry {
 			key.NewKey([]byte("8")),
 			link.NewRecordLocator(17, 18)),
 	}
-}
-
-type testLog struct {
-}
-
-func (t *testLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
-}
-
-func (t *testLog) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
 }
