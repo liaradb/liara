@@ -1,6 +1,11 @@
 package base
 
-import "testing"
+import (
+	"io"
+	"testing"
+
+	"github.com/liaradb/liaradb/encoder/buffer"
+)
 
 func TestUint64_String(t *testing.T) {
 	t.Parallel()
@@ -36,7 +41,7 @@ func TestUint64_String(t *testing.T) {
 	}
 }
 
-func TestUIn64__Remainder(t *testing.T) {
+func TestUInt64__Remainder(t *testing.T) {
 	t.Parallel()
 
 	b := NewUint64(2)
@@ -61,5 +66,51 @@ func TestUIn64__Remainder(t *testing.T) {
 
 	if s := b.Size(); s != 8 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 8)
+	}
+}
+
+func TestUint64_Read_Write(t *testing.T) {
+	t.Parallel()
+
+	buf := buffer.New(8)
+
+	b := NewUint64(2)
+	if err := b.Write(buf); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+		t.Fatal(err)
+	}
+
+	var b0 Uint64
+	if err := b0.Read(buf); err != nil {
+		t.Fatal(err)
+	}
+
+	if b != b0 {
+		t.Errorf("incorrect value: %v, expected: %v", b, b0)
+	}
+}
+
+func TestUInt64(t *testing.T) {
+	t.Parallel()
+	b0 := NewUint64(2)
+
+	var b1 Uint64
+	_ = b1.ReadData(b0.Bytes())
+
+	if v := b1.Value(); v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
+	}
+}
+
+func TestUint64_Signed(t *testing.T) {
+	t.Parallel()
+
+	b := NewInt64(-10)
+
+	if v := b.Signed(); v != -10 {
+		t.Errorf("incorrect value: %v, expected: %v", v, -10)
 	}
 }
