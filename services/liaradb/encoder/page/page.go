@@ -5,11 +5,12 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/encoder/slotlist"
+	"github.com/liaradb/liaradb/encoder/wrap"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-// TODO: Create magic prefix here, instead of in the header.
 type Page struct {
+	magic          wrap.Int32
 	headerSize     int
 	slotHeaderSize int
 	data           []byte
@@ -34,12 +35,14 @@ func NewFromSlice(
 	headerSize int,
 	slotHeaderSize int,
 ) *Page {
+	magic, data0 := wrap.NewInt32(data)
 	p := Page{
+		magic:          magic,
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		data:           data,
-		body:           data[MagicSize+headerSize:],
-		list:           slotlist.New(data[MagicSize+headerSize:]),
+		body:           data0[headerSize:],
+		list:           slotlist.New(data0[headerSize:]),
 	}
 	p.initNext()
 	return &p
@@ -50,7 +53,7 @@ func (p *Page) Data() []byte {
 }
 
 func (p *Page) Length() int16 {
-	return int16(len(p.data))
+	return int16(len(p.data) - MagicSize)
 }
 
 func (p *Page) Fill(data []byte) {
@@ -180,9 +183,25 @@ func (p *Page) Insert(size int, i link.SlotID) {
 func (p *Page) Clear() {
 	clear(p.data)
 	p.list.Clear()
+	p.initMagic()
 	p.initNext()
 }
 
 func (p *Page) Count() link.SlotID {
 	return p.list.Count()
+}
+
+// TODO: Make sure to call this
+func (p *Page) initMagic() {
+	p.magic.Set(int32(MagicPage))
+}
+
+// TODO: We are not using this
+func (p *Page) isEmpty() bool {
+	return Magic(p.magic.Get()).IsEmpty()
+}
+
+// TODO: We are not using this
+func (p *Page) isPage() bool {
+	return Magic(p.magic.Get()).IsPage()
 }

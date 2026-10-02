@@ -23,10 +23,6 @@ func New(buffer *storage.Buffer) Node {
 	page := page.NewFromSlice(buffer.Raw(), headerSize, 0)
 	header, _ := newHeader(page.Header())
 
-	if header.isEmpty() {
-		header.init()
-	}
-
 	return Node{
 		header: header,
 		page:   page,
@@ -37,10 +33,7 @@ func New(buffer *storage.Buffer) Node {
 func (n *Node) Clear() {
 	// n.buffer.Clear()
 	n.page.Clear()
-	n.header.init()
 }
-
-func (n *Node) IsPage() bool { return n.header.isPage() }
 
 // TODO: Test this
 func (n *Node) Release()  { n.buffer.Release() }

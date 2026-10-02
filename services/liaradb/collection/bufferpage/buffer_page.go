@@ -12,11 +12,6 @@ type BufferPage struct {
 	buffer *storage.Buffer
 }
 
-func (bp *BufferPage) Clear() {
-	bp.Page.Clear()
-	bp.header.init()
-}
-
 // TODO: Remove this parameter once the import cycle with span is fixed.
 func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
 	page := page.NewFromSlice(b.Raw(), headerSize, slotHeaderSize)

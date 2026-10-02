@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/encoder/scan"
 	"github.com/liaradb/liaradb/util/testing/should"
 )
 
@@ -44,6 +45,7 @@ func TestPage_Fill(t *testing.T) {
 	p.Clear()
 
 	want = make([]byte, 8)
+	_ = scan.SetInt32(want, int32(MagicPage))
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
 	}
