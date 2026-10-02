@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+// TODO: Create magic prefix here, instead of in the header.
 type Page struct {
 	headerSize     int
 	slotHeaderSize int

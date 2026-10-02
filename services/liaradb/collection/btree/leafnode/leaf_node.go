@@ -37,6 +37,7 @@ func (ln *LeafNode) setLeftID(block link.FilePosition) {
 	ln.node.SetLowID(block)
 }
 
+// // TODO: This is only used internally
 func (ln *LeafNode) SetRightID(block link.FilePosition) {
 	ln.setRightID(block)
 	ln.node.SetDirty()
