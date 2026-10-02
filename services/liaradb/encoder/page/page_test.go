@@ -21,7 +21,7 @@ func TestPage_New(t *testing.T) {
 func TestPage_NewFromSlice(t *testing.T) {
 	t.Parallel()
 
-	want := []byte{1, 2, 3, 4}
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	p := NewFromSlice(want, 4, 4)
 
 	if data := p.Data(); !slices.Equal(data, want) {
@@ -32,9 +32,9 @@ func TestPage_NewFromSlice(t *testing.T) {
 func TestPage_Fill(t *testing.T) {
 	t.Parallel()
 
-	p := New(4, 4, 4)
+	p := New(8, 4, 4)
 
-	want := []byte{1, 2, 3, 4}
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	p.Fill(want)
 
 	if data := p.Data(); !slices.Equal(data, want) {
@@ -43,7 +43,7 @@ func TestPage_Fill(t *testing.T) {
 
 	p.Clear()
 
-	want = make([]byte, 4)
+	want = make([]byte, 8)
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
 	}

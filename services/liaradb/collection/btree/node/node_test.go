@@ -6,6 +6,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
+	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	testHeaderSize = 2 + headerSize
+	testHeaderSize = 2 + page.MagicSize + headerSize
 )
 
 func TestNode_Dirty(t *testing.T) {

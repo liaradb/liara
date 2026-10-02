@@ -38,8 +38,8 @@ func NewFromSlice(
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		data:           data,
-		body:           data[headerSize:],
-		list:           slotlist.New(data[headerSize:]),
+		body:           data[MagicSize+headerSize:],
+		list:           slotlist.New(data[MagicSize+headerSize:]),
 	}
 	p.initNext()
 	return &p
@@ -71,7 +71,7 @@ func (p *Page) Replace(r io.Reader) error {
 }
 
 func (p *Page) Header() []byte {
-	return p.data[:p.headerSize]
+	return p.data[MagicSize : MagicSize+p.headerSize]
 }
 
 func (p *Page) Slot(i link.SlotID) ([]byte, []byte) {
