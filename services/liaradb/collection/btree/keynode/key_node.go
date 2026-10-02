@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -20,7 +21,7 @@ func New(page node.Node) *KeyNode {
 	}
 }
 
-func (kn *KeyNode) append(l node.Log, key key.Key, block link.FilePosition) bool {
+func (kn *KeyNode) append(l span.Log, key key.Key, block link.FilePosition) bool {
 	ke := newKeyEntry(key, block)
 	size := int16(ke.Size())
 	b, ok := kn.node.Append(size)
@@ -124,7 +125,7 @@ func (kn *KeyNode) second(i, mid link.SlotID, ke keyEntry) Iterator {
 	}
 }
 
-func (kn *KeyNode) Fill(l node.Log, lv byte, entries Iterator) key.Key {
+func (kn *KeyNode) Fill(l span.Log, lv byte, entries Iterator) key.Key {
 	var k key.Key
 	first := true
 	for key, block := range entries {
@@ -141,7 +142,7 @@ func (kn *KeyNode) Fill(l node.Log, lv byte, entries Iterator) key.Key {
 	return k
 }
 
-func (kn *KeyNode) Replace(l node.Log, lv byte, entries Iterator) {
+func (kn *KeyNode) Replace(l span.Log, lv byte, entries Iterator) {
 	// TODO: Find a faster way
 	// This is reading from and writing to the same KeyNode
 	cache := make([]keyEntry, 0, kn.mid())
@@ -160,7 +161,7 @@ func (kn *KeyNode) Replace(l node.Log, lv byte, entries Iterator) {
 	kn.node.SetDirty()
 }
 
-func (kn *KeyNode) ReplaceRoot(l node.Log, lv byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
+func (kn *KeyNode) ReplaceRoot(l span.Log, lv byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
 	// TODO: Will this always be the lower key?
 	key0, _ := kn.Child(0)
 

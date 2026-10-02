@@ -3,8 +3,8 @@ package node
 import (
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -17,11 +17,6 @@ type Node struct {
 	header
 	page   *page.Page
 	buffer *storage.Buffer
-}
-
-type Log interface {
-	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
-	UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(buffer *storage.Buffer) Node {
@@ -68,7 +63,7 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	return b, ok
 }
 
-func (n *Node) Commit(size int16, l Log) {
+func (n *Node) Commit(size int16, l span.Log) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	lsn, err := l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), b)

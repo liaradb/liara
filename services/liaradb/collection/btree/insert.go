@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -25,7 +26,7 @@ func newInsert(s *storage.Storage) insert {
 // Insert key value pair into tree
 func (c *insert) Insert(
 	ctx context.Context,
-	l node.Log,
+	l span.Log,
 	fn link.FileName,
 	k key.Key,
 	rid link.RecordLocator,
@@ -108,7 +109,7 @@ func (c *insert) getChain(
 //   - Insert, and handle a split.
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
-	l node.Log,
+	l span.Log,
 	fn link.FileName,
 	bid link.BlockID,
 	ln *leafnode.LeafNode,
@@ -163,7 +164,7 @@ func (c *insert) insertChainLeaf(
 //   - Insert, and handle a split.
 func (c *insert) insertChainKey(
 	ctx context.Context,
-	l node.Log,
+	l span.Log,
 	fn link.FileName,
 	kn *keynode.KeyNode,
 	k key.Key,
@@ -194,7 +195,7 @@ func (c *insert) insertChainKey(
 // Created new KeyNode and swap with root
 func (c *insert) insertRoot(
 	ctx context.Context,
-	l node.Log,
+	l span.Log,
 	fn link.FileName,
 	level byte,
 	key key.Key,

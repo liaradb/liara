@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -47,7 +48,7 @@ func (ln *LeafNode) setRightID(block link.FilePosition) {
 	ln.node.SetHighID(block)
 }
 
-func (ln *LeafNode) Append(l node.Log, key key.Key, recordID link.RecordLocator) bool {
+func (ln *LeafNode) Append(l span.Log, key key.Key, recordID link.RecordLocator) bool {
 	le := newLeafEntry(key, recordID)
 	size := int16(le.Size())
 	b, ok := ln.node.Append(size)
@@ -82,7 +83,7 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 }
 
 func (ln *LeafNode) Fill(
-	l node.Log,
+	l span.Log,
 	leftID link.FilePosition,
 	rightID link.FilePosition,
 	entries Iterator,
@@ -105,7 +106,7 @@ func (ln *LeafNode) Fill(
 }
 
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(l node.Log, rightID link.FilePosition, entries Iterator) {
+func (ln *LeafNode) Replace(l span.Log, rightID link.FilePosition, entries Iterator) {
 	cache := make([]leafEntry, 0, ln.mid())
 	for key, rid := range entries {
 		cache = append(cache, newLeafEntry(key, rid))
