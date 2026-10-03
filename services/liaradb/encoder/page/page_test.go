@@ -14,6 +14,7 @@ func TestPage_New(t *testing.T) {
 	p := New(32, 4, 4)
 
 	want := make([]byte, 32)
+	_ = scan.SetInt32(want, int32(MagicPage))
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
 	}

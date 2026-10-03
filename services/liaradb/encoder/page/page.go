@@ -44,6 +44,7 @@ func NewFromSlice(
 		body:           data0[headerSize:],
 		list:           slotlist.New(data0[headerSize:]),
 	}
+	p.initMagic() // TODO: Should this be called here?
 	p.initNext()
 	return &p
 }
