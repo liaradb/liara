@@ -128,26 +128,32 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid
 				return
 			}
 
-			d, err := l.fc.GetItemByRecordLocator(ctx, fn, rl)
+			// TODO: Don't use nil for Log
+			s, err := l.fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			var buf buffer.Buffer
-			buf.Reset(d)
-
-			var e entity.Event
-			if err := e.Read(&buf); err != nil {
+			e, err := l.readEvent(s)
+			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if e.AggregateID != id || !yield(&e, nil) {
+			// TODO: Do we need to check this?
+			if e.AggregateID != id || !yield(e, nil) {
 				return
 			}
 		}
 	}
+}
+
+func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
+	defer s.Release()
+
+	t := entity.Event{}
+	return &t, t.Read(s)
 }
 
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
