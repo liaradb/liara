@@ -106,6 +106,28 @@ func (fc *FixedCollection) List(
 	}
 }
 
+func (fc *FixedCollection) ListSpan(
+	ctx context.Context,
+	fn link.FileName,
+	fnIdx link.FileName,
+	pid value.PartitionID,
+) iter.Seq2[*span.Span, error] {
+	return func(yield func(*span.Span, error) bool) {
+		for rid, err := range fc.c.All(ctx, fnIdx, 0, 0) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			// TODO: Don't use nil for Log
+			s, err := fc.GetSpanByRecordLocator(ctx, nil, fn, rid)
+			if !yield(s, err) {
+				return
+			}
+		}
+	}
+}
+
 func (fc *FixedCollection) GetItemByRecordLocator(
 	ctx context.Context,
 	fn link.FileName,

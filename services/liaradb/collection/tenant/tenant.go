@@ -37,10 +37,7 @@ func (t *Tenant) Get(
 		return nil, err
 	}
 
-	defer s.Release()
-
-	e := entity.Tenant{}
-	return &e, e.Read(s)
+	return t.readTenant(s)
 }
 
 func (t *Tenant) List(
@@ -49,19 +46,24 @@ func (t *Tenant) List(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for data, err := range t.fc.List(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
+		for s, err := range t.fc.ListSpan(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			e := &entity.Tenant{}
-			_ = e.ReadData(data)
-			if !yield(e, nil) {
+			if !yield(t.readTenant(s)) {
 				return
 			}
 		}
 	}
+}
+
+func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
+	defer s.Release()
+
+	t := entity.Tenant{}
+	return &t, t.Read(s)
 }
 
 func (t *Tenant) Set(
