@@ -23,7 +23,7 @@ func TestPage_New(t *testing.T) {
 func TestPage_NewFromSlice(t *testing.T) {
 	t.Parallel()
 
-	want := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	want := []byte{0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
 	p := NewFromSlice(want, 4, 4)
 
 	if data := p.Data(); !slices.Equal(data, want) {
@@ -49,6 +49,17 @@ func TestPage_Fill(t *testing.T) {
 	_ = scan.SetInt32(want, int32(MagicPage))
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
+	}
+}
+
+func TestPage_Header(t *testing.T) {
+	t.Parallel()
+
+	want := []byte{0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
+	p := NewFromSlice(want, 4, 4)
+
+	if h := p.Header(); !slices.Equal(h, want[4:8]) {
+		t.Errorf("incorrect data: %v, expected: %v", h, want[4:8])
 	}
 }
 
@@ -243,5 +254,51 @@ func TestPage_Slot(t *testing.T) {
 	// Early return
 	for range p.Slots() {
 		break
+	}
+}
+
+func TestPage_Slots(t *testing.T) {
+	t.Parallel()
+
+	p := New(256, 4, 4)
+
+	want := []int64{101, 102, 103, 104, 105}
+	for _, v := range want {
+		_, b := p.Next(8)
+		_ = scan.SetInt64(b, v)
+		p.Commit(8)
+	}
+
+	result := make([]int64, 0, 5)
+	for _, b := range p.Slots() {
+		v, _ := scan.Int64(b)
+		result = append(result, v)
+	}
+
+	if !slices.Equal(result, want) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
+}
+
+func TestPage_SlotsRange(t *testing.T) {
+	t.Parallel()
+
+	p := New(256, 4, 4)
+
+	want := []int64{101, 102, 103, 104, 105}
+	for _, v := range want {
+		_, b := p.Next(8)
+		_ = scan.SetInt64(b, v)
+		p.Commit(8)
+	}
+
+	result := make([]int64, 0, 5)
+	for _, b := range p.SlotsRange(1, 4) {
+		v, _ := scan.Int64(b)
+		result = append(result, v)
+	}
+
+	if !slices.Equal(result, want[1:4]) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want[1:4])
 	}
 }
