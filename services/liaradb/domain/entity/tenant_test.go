@@ -82,7 +82,7 @@ func TestTenant_ReadWrite(t *testing.T) {
 	}
 
 	tn1 := &Tenant{}
-	data1 := tn1.Read(data)
+	data1 := tn1.ReadData(data)
 
 	if l := len(data1); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

@@ -1,6 +1,11 @@
 package entity
 
-import "github.com/liaradb/liaradb/domain/value"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/serializer"
+)
 
 const (
 	TenantSize = value.TenantIDSize +
@@ -53,8 +58,15 @@ func (t *Tenant) Write(data []byte) []byte {
 	return t.name.WriteData(data1)
 }
 
-func (t *Tenant) Read(data []byte) []byte {
+func (t *Tenant) ReadData(data []byte) []byte {
 	data0 := t.id.ReadData(data)
 	data1 := t.version.ReadData(data0)
 	return t.name.ReadData(data1)
+}
+
+func (t *Tenant) Read(r io.Reader) error {
+	return serializer.ReadAll(r,
+		&t.id,
+		&t.version,
+		&t.name)
 }

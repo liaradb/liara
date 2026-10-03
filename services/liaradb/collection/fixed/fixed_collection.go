@@ -70,6 +70,21 @@ func (fc *FixedCollection) Get(
 	return fc.GetItemByRecordLocator(ctx, fn, rl)
 }
 
+func (fc *FixedCollection) GetSpan(
+	ctx context.Context,
+	fn link.FileName,
+	fnIdx link.FileName,
+	k key.Key,
+) (*span.Span, error) {
+	rl, err := fc.c.Search(ctx, fnIdx, k)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Don't use nil for Log
+	return fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
+}
+
 func (fc *FixedCollection) List(
 	ctx context.Context,
 	fn link.FileName,

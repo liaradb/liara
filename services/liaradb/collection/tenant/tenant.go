@@ -32,14 +32,15 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	data, err := t.fc.Get(ctx, tn.Tenant(), tn.Index(0, pid), k)
+	s, err := t.fc.GetSpan(ctx, tn.Tenant(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}
 
-	e := &entity.Tenant{}
-	_ = e.Read(data)
-	return e, nil
+	defer s.Release()
+
+	e := entity.Tenant{}
+	return &e, e.Read(s)
 }
 
 func (t *Tenant) List(
@@ -55,7 +56,7 @@ func (t *Tenant) List(
 			}
 
 			e := &entity.Tenant{}
-			_ = e.Read(data)
+			_ = e.ReadData(data)
 			if !yield(e, nil) {
 				return
 			}
