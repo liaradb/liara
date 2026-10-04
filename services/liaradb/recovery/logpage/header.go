@@ -12,11 +12,11 @@ const (
 )
 
 type header struct {
-	timeLineID wrap.Int32
+	timeLineID wrap.Int64
 }
 
 func newHeader(data []byte) (header, []byte) {
-	tlid, data0 := wrap.NewInt32(data)
+	tlid, data0 := wrap.NewInt64(data)
 
 	return header{
 		timeLineID: tlid,

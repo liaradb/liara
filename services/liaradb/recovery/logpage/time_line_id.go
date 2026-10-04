@@ -6,18 +6,18 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-type TimeLineID uint32
+type TimeLineID uint64
 
-const TimeLineIDSize = 4
+const TimeLineIDSize = 8
 
-func (tlid TimeLineID) Value() uint32 {
-	return uint32(tlid)
+func (tlid TimeLineID) Value() uint64 {
+	return uint64(tlid)
 }
 
 func (tlid TimeLineID) Write(w io.Writer) error {
-	return raw.WriteInt32(w, tlid)
+	return raw.WriteInt64(w, tlid)
 }
 
 func (tlid *TimeLineID) Read(r io.Reader) error {
-	return raw.ReadInt32(r, tlid)
+	return raw.ReadInt64(r, tlid)
 }
