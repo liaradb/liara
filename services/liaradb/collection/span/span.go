@@ -64,7 +64,6 @@ func (s *Span) AppendSize(b *storage.Buffer, size int) (*Fragment, int) {
 	return s.Append(p, 0, header, data), l
 }
 
-// TODO: Ensure fragments are sorted by BlockID
 func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
 	f := newFragment(s.l, b, sid, header, data)
 	s.fragments = append(s.fragments, f)
@@ -80,11 +79,20 @@ func (s *Span) InitIndexes() {
 		return
 	}
 
+	s.sortFragments()
+
 	for i, f := range s.fragments[:len(s.fragments)-1] {
 		next := s.fragments[i+1]
 		f.setNextPosition(next.p.BlockID().Position())
 		f.setNextSlotID(0) // TODO: Is this necessary?
 	}
+}
+
+// Sort to ensure writes are sequential, and prevent deadlocks
+func (s *Span) sortFragments() {
+	slices.SortFunc(s.fragments, func(a, b *Fragment) int {
+		return int(a.p.BlockID().Position() - b.p.BlockID().Position())
+	})
 }
 
 // TODO: Can we do this without creating a new reader?
@@ -114,8 +122,8 @@ func (s Span) Write(p []byte) (n int, err error) {
 }
 
 func (s Span) SeekStart() error {
-	for _, s := range s.fragments {
-		if _, err := s.buffer.Seek(0, io.SeekStart); err != nil {
+	for _, f := range s.fragments {
+		if _, err := f.buffer.Seek(0, io.SeekStart); err != nil {
 			return err
 		}
 	}
