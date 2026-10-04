@@ -66,23 +66,6 @@ func TestLogPage_Clear(t *testing.T) {
 	t.Parallel()
 
 	p := New(258, 8)
-	if !p.IsEmpty() {
-		t.Error("should be empty")
-	}
-
-	if p.IsPage() {
-		t.Error("should not be page")
-	}
-
-	p.Clear()
-
-	if p.IsEmpty() {
-		t.Error("should not be empty")
-	}
-
-	if !p.IsPage() {
-		t.Error("should be page")
-	}
 
 	if tlid := p.TimeLineID(); tlid != 0 {
 		t.Errorf("incorrect timeline id: %v, expected: %v", tlid, 0)

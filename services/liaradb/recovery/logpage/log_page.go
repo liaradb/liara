@@ -12,7 +12,6 @@ type LogPage struct {
 
 func (lp *LogPage) Clear() {
 	lp.Page.Clear()
-	lp.header.init()
 }
 
 func (lp *LogPage) Reset() {
