@@ -7,8 +7,8 @@ import (
 )
 
 type BufferPage struct {
-	*page.Page
 	header
+	page   *page.Page
 	buffer *storage.Buffer
 }
 
@@ -17,8 +17,8 @@ func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
 	page := page.NewFromSlice(b.Raw(), headerSize, slotHeaderSize)
 	header, _ := newHeader(page.Header())
 	return &BufferPage{
-		Page:   page,
 		header: header,
+		page:   page,
 		buffer: b,
 	}
 }
@@ -26,7 +26,7 @@ func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
 func (bp *BufferPage) BlockID() link.BlockID { return bp.buffer.BlockID() }
 
 func (bp *BufferPage) Shadow(base *BufferPage) {
-	bp.Page.Fill(base.Data())
+	bp.page.Fill(base.page.Data())
 }
 
 func (bp *BufferPage) Release() {
@@ -34,7 +34,19 @@ func (bp *BufferPage) Release() {
 }
 
 func (bp *BufferPage) Commit(size int) {
-	bp.Page.Commit(size)
+	bp.page.Commit(size)
 	// TODO: Verify this the correct time to do this
 	bp.buffer.SetDirty()
+}
+
+func (bp *BufferPage) Count() link.SlotID {
+	return bp.page.Count()
+}
+
+func (bp *BufferPage) Next(size int) ([]byte, []byte) {
+	return bp.page.Next(size)
+}
+
+func (bp *BufferPage) Slot(i link.SlotID) ([]byte, []byte) {
+	return bp.page.Slot(i)
 }

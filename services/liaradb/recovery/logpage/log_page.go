@@ -1,34 +1,57 @@
 package logpage
 
 import (
+	"io"
+	"iter"
+
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
 type LogPage struct {
-	*page.Page
 	header
+	page     *page.Page
 	handlers []func()
-}
-
-func (lp *LogPage) Clear() {
-	lp.Page.Clear()
-}
-
-func (lp *LogPage) Reset() {
-	lp.handlers = nil
 }
 
 func New(size int, slotHeaderSize int) *LogPage {
 	page := page.New(size, HeaderSize, slotHeaderSize)
 	header, _ := newHeader(page.Header())
 	return &LogPage{
-		Page:   page,
 		header: header,
+		page:   page,
 	}
 }
 
+func (lp *LogPage) Clear() {
+	lp.page.Clear()
+}
+
+func (lp *LogPage) Reset() {
+	lp.handlers = nil
+}
+
+func (lp *LogPage) Header() []byte {
+	return lp.page.Header()
+}
+
+func (lp *LogPage) Data() []byte {
+	return lp.page.Data()
+}
+
+func (lp *LogPage) Replace(r io.Reader) error {
+	return lp.page.Replace(r)
+}
+
+func (lp *LogPage) Next(size int) ([]byte, []byte) {
+	return lp.page.Next(size)
+}
+
+func (lp *LogPage) Commit(size int) {
+	lp.page.Commit(size)
+}
+
 func (lp *LogPage) Fill(data []byte) {
-	lp.Page.Fill(data)
+	lp.page.Fill(data)
 	lp.handlers = nil
 }
 
@@ -47,7 +70,15 @@ func (lp *LogPage) AddHandler(handler func()) {
 
 // TODO: Swap receiver and parameter
 func (lp *LogPage) Shadow(base *LogPage) {
-	lp.Page.Fill(base.Data())
+	lp.page.Fill(base.page.Data())
 	lp.handlers = base.handlers
 	base.handlers = nil
+}
+
+func (lp *LogPage) Slots() iter.Seq2[[]byte, []byte] {
+	return lp.page.Slots()
+}
+
+func (lp *LogPage) SlotsReverse() iter.Seq2[[]byte, []byte] {
+	return lp.page.SlotsReverse()
 }
