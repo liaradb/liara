@@ -61,20 +61,6 @@ func (fc *FixedCollection) Get(
 	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
-) ([]byte, error) {
-	rl, err := fc.c.Search(ctx, fnIdx, k)
-	if err != nil {
-		return nil, err
-	}
-
-	return fc.GetItemByRecordLocator(ctx, fn, rl)
-}
-
-func (fc *FixedCollection) GetSpan(
-	ctx context.Context,
-	fn link.FileName,
-	fnIdx link.FileName,
-	k key.Key,
 ) (*span.Span, error) {
 	rl, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
@@ -86,27 +72,6 @@ func (fc *FixedCollection) GetSpan(
 }
 
 func (fc *FixedCollection) List(
-	ctx context.Context,
-	fn link.FileName,
-	fnIdx link.FileName,
-	pid value.PartitionID,
-) iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
-		for rid, err := range fc.c.All(ctx, fnIdx, 0, 0) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			i, err := fc.GetItemByRecordLocator(ctx, fn, rid)
-			if !yield(i, err) {
-				return
-			}
-		}
-	}
-}
-
-func (fc *FixedCollection) ListSpan(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,

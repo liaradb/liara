@@ -158,23 +158,13 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		buf := buffer.NewFromSlice(nil)
-
-		for i, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
+		for s, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			buf.Reset(i)
-
-			var e entity.Event
-			if err := e.Read(buf); err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(&e, nil) {
+			if !yield(l.readEvent(s)) {
 				return
 			}
 		}
@@ -220,5 +210,16 @@ func (l *EventLog) EventsAfterGlobalVersion(
 
 // TODO: Iterate until highwater
 func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
-	return l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid)
+	return func(yield func([]byte, error) bool) {
+		for s, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(s.BytesAndRelease()) {
+				return
+			}
+		}
+	}
 }

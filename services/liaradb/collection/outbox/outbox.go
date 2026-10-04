@@ -32,14 +32,12 @@ func (o *Outbox) Get(
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	data, err := o.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	s, err := o.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}
 
-	e := &entity.Outbox{}
-	_ = e.Read(data)
-	return e, nil
+	return o.readOutbox(s)
 }
 
 func (o *Outbox) List(
@@ -48,19 +46,24 @@ func (o *Outbox) List(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		for data, err := range o.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
+		for s, err := range o.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			e := &entity.Outbox{}
-			_ = e.Read(data)
-			if !yield(e, nil) {
+			if !yield(o.readOutbox(s)) {
 				return
 			}
 		}
 	}
+}
+
+func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
+	defer s.Release()
+
+	o := entity.Outbox{}
+	return &o, o.Read(s)
 }
 
 func (o *Outbox) Set(

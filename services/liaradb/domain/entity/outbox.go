@@ -1,6 +1,11 @@
 package entity
 
-import "github.com/liaradb/liaradb/domain/value"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/serializer"
+)
 
 const (
 	OutboxSize = value.OutboxIDSize +
@@ -45,13 +50,20 @@ func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 }
 
 func (o *Outbox) Write(data []byte) []byte {
-	data0 := o.globalVersion.WriteData(data)
+	data0 := o.id.WriteData(data)
 	data1 := o.partitionRange.WriteData(data0)
-	return o.id.WriteData(data1)
+	return o.globalVersion.WriteData(data1)
 }
 
-func (o *Outbox) Read(data []byte) []byte {
-	data0 := o.globalVersion.ReadData(data)
+func (o *Outbox) ReadData(data []byte) []byte {
+	data0 := o.id.ReadData(data)
 	data1 := o.partitionRange.ReadData(data0)
-	return o.id.ReadData(data1)
+	return o.globalVersion.ReadData(data1)
+}
+
+func (o *Outbox) Read(r io.Reader) error {
+	return serializer.ReadAll(r,
+		&o.id,
+		&o.partitionRange,
+		&o.globalVersion)
 }

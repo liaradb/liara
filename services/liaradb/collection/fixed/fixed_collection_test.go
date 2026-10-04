@@ -46,7 +46,12 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := fc.Get(t.Context(), fn, fnIdx, k)
+		sp, err := fc.Get(t.Context(), fn, fnIdx, k)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		result, err := sp.BytesAndRelease()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -167,11 +172,13 @@ func testGet(
 			t.Fatal(i.key, err)
 		}
 
-		rl := entity.RequestLog{}
-		_ = rl.Read(value)
+		rl, err := readRequestLog(value)
+		if err != nil {
+			t.Fatal(i.key, err)
+		}
 
-		if rl != *i.value {
-			t.Errorf("incorrect result: %v, expected: %v", rl, *i.value)
+		if *rl != *i.value {
+			t.Errorf("incorrect result: %v, expected: %v", *rl, *i.value)
 		}
 	}
 }
@@ -206,18 +213,27 @@ func getListValues(
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for value, err := range fc.List(ctx, fn, fnIdx, pid) {
+	for s, err := range fc.List(ctx, fn, fnIdx, pid) {
 		if err != nil {
 			return nil, err
 		}
 
-		rl := entity.RequestLog{}
-		_ = rl.Read(value)
+		rl, err := readRequestLog(s)
+		if err != nil {
+			return nil, err
+		}
 
-		result = append(result, rl)
+		result = append(result, *rl)
 		i++
 	}
 	return result, nil
+}
+
+func readRequestLog(s *span.Span) (*entity.RequestLog, error) {
+	defer s.Release()
+
+	rl := entity.RequestLog{}
+	return &rl, rl.Read(s)
 }
 
 func createSortedValues(data []item) []entity.RequestLog {

@@ -1,5 +1,11 @@
 package value
 
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/encoder/serializer"
+)
+
 const PartitionRangeSize = PartitionIDSize + PartitionIDSize
 
 type PartitionRange struct {
@@ -30,4 +36,10 @@ func (pr PartitionRange) WriteData(data []byte) []byte {
 func (pr *PartitionRange) ReadData(data []byte) []byte {
 	data0 := pr.low.ReadData(data)
 	return pr.high.ReadData(data0)
+}
+
+func (o *PartitionRange) Read(r io.Reader) error {
+	return serializer.ReadAll(r,
+		&o.low,
+		&o.high)
 }

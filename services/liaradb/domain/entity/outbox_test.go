@@ -70,7 +70,7 @@ func TestOutbox_ReadWrite(t *testing.T) {
 	}
 
 	o1 := &Outbox{}
-	data1 := o1.Read(data)
+	data1 := o1.ReadData(data)
 
 	if l := len(data1); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

@@ -54,7 +54,7 @@ func TestRequestLog_ReadWrite(t *testing.T) {
 	}
 
 	rl1 := &RequestLog{}
-	data1 := rl1.Read(data)
+	data1 := rl1.ReadData(data)
 
 	if l := len(data1); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

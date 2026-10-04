@@ -30,7 +30,12 @@ func (kv *KeyValue) Get(
 	pid value.PartitionID,
 	k key.Key,
 ) ([]byte, error) {
-	return kv.fc.Get(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
+	s, err := kv.fc.Get(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.BytesAndRelease()
 }
 
 func (kv *KeyValue) List(
@@ -38,7 +43,18 @@ func (kv *KeyValue) List(
 	tn tablename.TableName,
 	pid value.PartitionID,
 ) iter.Seq2[[]byte, error] {
-	return kv.fc.List(ctx, tn.KeyValue(pid), tn.Index(0, value.NewPartitionID(0)), pid)
+	return func(yield func([]byte, error) bool) {
+		for s, err := range kv.fc.List(ctx, tn.KeyValue(pid), tn.Index(0, value.NewPartitionID(0)), pid) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if !yield(s.BytesAndRelease()) {
+				return
+			}
+		}
+	}
 }
 
 func (kv *KeyValue) Set(

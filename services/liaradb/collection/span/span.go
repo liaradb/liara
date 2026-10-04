@@ -148,3 +148,19 @@ func (s *Span) Release() {
 		b.Release()
 	}
 }
+
+func (s *Span) Bytes() ([]byte, error) {
+	// Read Span
+	buffer := make([]byte, s.Length())
+	if _, err := s.Read(buffer); err != nil {
+		return nil, err
+	}
+
+	return buffer, nil
+}
+
+func (s *Span) BytesAndRelease() ([]byte, error) {
+	defer s.Release()
+
+	return s.Bytes()
+}

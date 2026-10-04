@@ -1,8 +1,11 @@
 package entity
 
 import (
+	"io"
+
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
+	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 const (
@@ -51,7 +54,13 @@ func (rl *RequestLog) Write(data []byte) []byte {
 	return rl.time.WriteData(data0)
 }
 
-func (rl *RequestLog) Read(data []byte) []byte {
+func (rl *RequestLog) ReadData(data []byte) []byte {
 	data0 := rl.id.ReadData(data)
 	return rl.time.ReadData(data0)
+}
+
+func (rl *RequestLog) Read(r io.Reader) error {
+	return serializer.ReadAll(r,
+		&rl.id,
+		&rl.time)
 }

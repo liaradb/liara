@@ -32,7 +32,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.GetSpan(ctx, tn.Tenant(), tn.Index(0, pid), k)
+	s, err := t.fc.Get(ctx, tn.Tenant(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (t *Tenant) List(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.fc.ListSpan(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
+		for s, err := range t.fc.List(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
 			if err != nil {
 				yield(nil, err)
 				return
