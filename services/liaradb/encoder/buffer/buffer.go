@@ -90,6 +90,10 @@ func (b *Buffer) Seek(offset int64, whence int) (int64, error) {
 	return b.cursor, nil
 }
 
+func (b *Buffer) SeekStart() {
+	b.cursor = 0
+}
+
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	if b.cursor >= int64(len(b.data)) {
 		return 0, io.ErrShortWrite

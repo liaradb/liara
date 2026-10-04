@@ -37,9 +37,7 @@ func TestSpan_Write(t *testing.T) {
 	}
 
 	s.Commit()
-	if err := s.SeekStart(); err != nil {
-		t.Fatal(err)
-	}
+	s.SeekStart()
 
 	tr1 := &testRecord{
 		data: make([]byte, 11),
@@ -102,9 +100,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	}
 
 	s.Commit()
-	if err := s.SeekStart(); err != nil {
-		t.Fatal(err)
-	}
+	s.SeekStart()
 
 	s.fragments[1].buffer.Bytes()[8] = 0
 

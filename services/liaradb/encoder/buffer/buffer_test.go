@@ -531,3 +531,39 @@ func TestBuffer_Seek(t *testing.T) {
 		})
 	}
 }
+
+func TestBuffer_SeekStart(t *testing.T) {
+	t.Parallel()
+
+	const initialPosition = 10
+
+	for message, c := range map[string]struct {
+		skip            bool
+		initialPosition int64
+	}{
+		"should handle defaults": {
+			initialPosition: 0},
+		"should seek start": {
+			initialPosition: initialPosition},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			b := New(20)
+
+			if n, err := b.Seek(c.initialPosition, io.SeekStart); err != nil {
+				t.Error(err)
+			} else if n != c.initialPosition {
+				t.Errorf("%v: incorrect count: %v, expected: %v", message, n, c.initialPosition)
+			}
+
+			b.SeekStart()
+			if o := b.Cursor(); o != 0 {
+				t.Errorf("%v: incorrect cursor: %v, expected: %v", message, o, 0)
+			}
+		})
+	}
+}

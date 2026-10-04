@@ -105,14 +105,11 @@ func (s Span) Write(p []byte) (n int, err error) {
 	return writer.Write(p)
 }
 
-func (s Span) SeekStart() error {
+// TODO: This is unused
+func (s Span) SeekStart() {
 	for _, f := range s.fragments {
-		if _, err := f.buffer.Seek(0, io.SeekStart); err != nil {
-			return err
-		}
+		f.buffer.SeekStart()
 	}
-
-	return nil
 }
 
 func (s Span) Commit() {
