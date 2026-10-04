@@ -52,26 +52,10 @@ func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) (*Fragment, error)
 	return s.Append(p, sid, h, d), nil
 }
 
-func (s *Span) AppendSize(b *storage.Buffer, size int) (*Fragment, int) {
-	p := bufferpage.New(b, FragmentHeaderSize)
-	header, data := p.Next(size)
-	l := len(data)
-	if l == 0 {
-		return nil, 0
-	}
-
-	s.buffers = append(s.buffers, b)
-	return s.Append(p, 0, header, data), l
-}
-
 func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
 	f := newFragment(s.l, b, sid, header, data)
 	s.fragments = append(s.fragments, f)
 	return f
-}
-
-func (s *Span) Reverse() {
-	slices.Reverse(s.fragments)
 }
 
 func (s *Span) InitIndexes() {
@@ -137,6 +121,7 @@ func (s Span) Commit() {
 	}
 }
 
+// TODO: Why do this only on replace?
 func (s Span) CommitFull() {
 	for _, f := range s.fragments {
 		f.commitFull()

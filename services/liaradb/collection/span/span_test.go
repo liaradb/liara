@@ -54,6 +54,31 @@ func TestSpan_Write(t *testing.T) {
 	}
 }
 
+func TestSpan_Length(t *testing.T) {
+	t.Parallel()
+
+	s := New(&logtesting.MockLog{})
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 100))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 10000))
+	s.InitIndexes()
+
+	want := 100 + 10000
+	if l := s.Length(); l != want {
+		t.Errorf("incorrect length: %v, expected: %v", l, want)
+	}
+}
+
+func TestSpan_InitIndexes(t *testing.T) {
+	t.Parallel()
+
+	t.Run("default", func(t *testing.T) {
+		s := New(&logtesting.MockLog{})
+		s.InitIndexes()
+	})
+
+	// TODO: How do we test other cases?
+}
+
 func TestSpan_Read__Invalid(t *testing.T) {
 	t.Parallel()
 
@@ -89,6 +114,30 @@ func TestSpan_Read__Invalid(t *testing.T) {
 
 	if err := tr1.Read(s); !errors.Is(err, page.ErrInvalidCRC) {
 		t.Errorf("incorrect error: %v, expected: %v", err, page.ErrInvalidCRC)
+	}
+}
+
+func TestSpan_Bytes(t *testing.T) {
+	t.Parallel()
+
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+
+	s := New(&logtesting.MockLog{})
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 5))
+	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, len(want)-5))
+	s.InitIndexes()
+
+	if _, err := s.Write(want); err != nil {
+		t.Fatal(err)
+	}
+
+	s.Commit()
+	s.SeekStart()
+
+	if d, err := s.Bytes(); err != nil {
+		t.Fatal(err)
+	} else if !slices.Equal(d, want) {
+		t.Errorf("incorrect result: %v, expected: %v", d, want)
 	}
 }
 
