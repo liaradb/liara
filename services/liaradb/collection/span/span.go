@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -16,11 +15,6 @@ type Span struct {
 	l         Log
 	fragments []*Fragment
 	buffers   []*storage.Buffer
-}
-
-type Log interface {
-	Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
-	UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error)
 }
 
 func New(l Log) *Span {

@@ -57,14 +57,16 @@ func newFragment(
 
 // TODO: Fix this cast
 func (f Fragment) length() int                     { return int(f.buffer.Length()) }
-func (f Fragment) SlotID() link.SlotID             { return f.slotID }
+func (f Fragment) SlotID() link.SlotID             { return f.slotID } // TODO: This is unused
 func (f Fragment) NextPosition() link.FilePosition { return link.FilePosition(f.nextPosition.Get()) }
 func (f Fragment) NextSlotID() link.SlotID         { return link.SlotID(f.nextSlotID.Get()) }
 
+// TODO: This is unused
 func (f Fragment) BlockID(fn link.FileName) link.BlockID {
 	return link.NewBlockID(fn, f.NextPosition())
 }
 
+// TODO: This is unused
 func (f Fragment) RecordID(fn link.FileName) link.RecordID {
 	return link.NewRecordID(f.BlockID(fn), f.NextSlotID())
 }
