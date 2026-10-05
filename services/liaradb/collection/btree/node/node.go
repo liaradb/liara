@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -48,6 +49,14 @@ func (n *Node) SetDirty() {
 
 func (n *Node) SetLevel(l byte) {
 	n.header.setLevel(l)
+}
+
+func (n *Node) LogSequenceNumber() logpage.LogSequenceNumber {
+	return logpage.NewLogSequenceNumber(n.page.TrackingID())
+}
+
+func (n *Node) setLogSequenceNumber(lsn logpage.LogSequenceNumber) {
+	n.page.SetTrackingID(lsn.Value())
 }
 
 func (n *Node) Append(size int16) ([]byte, bool) {

@@ -2,12 +2,16 @@ package bufferpage
 
 import (
 	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+const (
+	headerSize = 0
+)
+
 type BufferPage struct {
-	header
 	page   *page.Page
 	buffer *storage.Buffer
 }
@@ -15,12 +19,18 @@ type BufferPage struct {
 // TODO: Remove this parameter once the import cycle with span is fixed.
 func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
 	page := page.NewFromSlice(b.Raw(), headerSize, slotHeaderSize)
-	header, _ := newHeader(page.Header())
 	return &BufferPage{
-		header: header,
 		page:   page,
 		buffer: b,
 	}
+}
+
+func (h *BufferPage) LogSequenceNumber() logpage.LogSequenceNumber {
+	return logpage.NewLogSequenceNumber(h.page.TrackingID())
+}
+
+func (h *BufferPage) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
+	h.page.SetTrackingID(lsn.Value())
 }
 
 func (bp *BufferPage) BlockID() link.BlockID { return bp.buffer.BlockID() }

@@ -23,7 +23,7 @@ func TestPage_New(t *testing.T) {
 func TestPage_NewFromSlice(t *testing.T) {
 	t.Parallel()
 
-	want := []byte{0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
+	want := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
 	p := NewFromSlice(want, 4, 4)
 
 	if data := p.Data(); !slices.Equal(data, want) {
@@ -34,9 +34,9 @@ func TestPage_NewFromSlice(t *testing.T) {
 func TestPage_Fill(t *testing.T) {
 	t.Parallel()
 
-	p := New(8, 4, 4)
+	p := New(20, 4, 4)
 
-	want := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	want := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
 	p.Fill(want)
 
 	if data := p.Data(); !slices.Equal(data, want) {
@@ -45,7 +45,7 @@ func TestPage_Fill(t *testing.T) {
 
 	p.Clear()
 
-	want = make([]byte, 8)
+	want = make([]byte, 20)
 	_ = scan.SetInt32(want, int32(MagicPage))
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
@@ -55,18 +55,18 @@ func TestPage_Fill(t *testing.T) {
 func TestPage_Header(t *testing.T) {
 	t.Parallel()
 
-	want := []byte{0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
+	want := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
 	p := NewFromSlice(want, 4, 4)
 
-	if h := p.Header(); !slices.Equal(h, want[4:8]) {
-		t.Errorf("incorrect data: %v, expected: %v", h, want[4:8])
+	if h := p.Header(); !slices.Equal(h, want[headerSize:headerSize+4]) {
+		t.Errorf("incorrect data: %v, expected: %v", h, want[headerSize:headerSize+4])
 	}
 }
 
 func TestPage_Next(t *testing.T) {
 	t.Parallel()
 
-	p := New(32, 4, 4)
+	p := New(40, 4, 4)
 
 	header, data := p.Next(8)
 
@@ -110,7 +110,7 @@ func TestPage_Next__Empty(t *testing.T) {
 func TestPage_NextMustFit(t *testing.T) {
 	t.Parallel()
 
-	p := New(32, 4, 4)
+	p := New(40, 4, 4)
 
 	header, data, _ := p.NextMustFit(8)
 
@@ -218,7 +218,7 @@ func TestPage_Insert(t *testing.T) {
 func TestPage_Slot(t *testing.T) {
 	t.Parallel()
 
-	p := New(32, 4, 4)
+	p := New(40, 4, 4)
 
 	should.Panic(t, "slot should not exist", func() {
 		_, _ = p.Slot(0)

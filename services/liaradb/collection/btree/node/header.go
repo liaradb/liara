@@ -2,7 +2,6 @@ package node
 
 import (
 	"github.com/liaradb/liaradb/encoder/wrap"
-	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -12,31 +11,27 @@ const (
 	lowIDSize  = 8
 
 	headerSize = 0 +
-		logpage.LogSequenceNumberSize +
 		levelSize +
 		highIDSize +
 		lowIDSize
 )
 
 type header struct {
-	lsn    wrap.Int64
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
 }
 
 func newHeader(data []byte) (header, []byte) {
-	lsn, data0 := wrap.NewInt64(data)
-	level, data1 := wrap.NewByte(data0)
-	highID, data2 := wrap.NewInt64(data1)
-	lowID, data3 := wrap.NewInt64(data2)
+	level, data0 := wrap.NewByte(data)
+	highID, data1 := wrap.NewInt64(data0)
+	lowID, data2 := wrap.NewInt64(data1)
 
 	return header{
-		lsn:    lsn,
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
-	}, data3
+	}, data2
 }
 
 func (h *header) Level() byte {
@@ -61,12 +56,4 @@ func (h *header) SetHighID(o link.FilePosition) {
 
 func (h *header) SetLowID(o link.FilePosition) {
 	h.lowID.Set(o.Value())
-}
-
-func (h *header) LogSequenceNumber() logpage.LogSequenceNumber {
-	return logpage.NewLogSequenceNumber(h.lsn.GetUnsigned())
-}
-
-func (h *header) setLogSequenceNumber(lsn logpage.LogSequenceNumber) {
-	h.lsn.SetUnsigned(lsn.Value())
 }

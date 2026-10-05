@@ -7,18 +7,21 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 )
 
+const (
+	nextSize = 2
+
+	HeaderSize = 0
+)
+
 type LogPage struct {
-	header
 	page     *page.Page
 	handlers []func()
 }
 
 func New(size int, slotHeaderSize int) *LogPage {
 	page := page.New(size, HeaderSize, slotHeaderSize)
-	header, _ := newHeader(page.Header())
 	return &LogPage{
-		header: header,
-		page:   page,
+		page: page,
 	}
 }
 
@@ -28,6 +31,15 @@ func (lp *LogPage) Clear() {
 
 func (lp *LogPage) Reset() {
 	lp.handlers = nil
+}
+
+// TODO: How do we use this?
+func (lp *LogPage) SetTimeLineID(tlid TimeLineID) {
+	lp.page.SetTrackingID(tlid.Value())
+}
+
+func (lp *LogPage) TimeLineID() TimeLineID {
+	return TimeLineID(lp.page.TrackingID())
 }
 
 func (lp *LogPage) Header() []byte {

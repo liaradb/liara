@@ -9,8 +9,16 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+const (
+	headerSize = 0 +
+		MagicSize +
+		trackingIDSize
+	trackingIDSize = 8
+)
+
 type Page struct {
 	magic          wrap.Int32
+	trackingID     wrap.Int64
 	headerSize     int
 	slotHeaderSize int
 	data           []byte
@@ -36,13 +44,15 @@ func NewFromSlice(
 	slotHeaderSize int,
 ) *Page {
 	magic, data0 := wrap.NewInt32(data)
+	trackingID, data1 := wrap.NewInt64(data0)
 	p := Page{
 		magic:          magic,
+		trackingID:     trackingID,
 		headerSize:     headerSize,
 		slotHeaderSize: slotHeaderSize,
 		data:           data,
-		body:           data0[headerSize:],
-		list:           slotlist.New(data0[headerSize:]),
+		body:           data1[headerSize:],
+		list:           slotlist.New(data1[headerSize:]),
 	}
 	p.initMagic() // TODO: Should this be called here?
 	p.initNext()
@@ -71,7 +81,7 @@ func (p *Page) Replace(r io.Reader) error {
 }
 
 func (p *Page) Header() []byte {
-	return p.data[MagicSize : MagicSize+p.headerSize]
+	return p.data[headerSize : headerSize+p.headerSize]
 }
 
 func (p *Page) Slot(i link.SlotID) ([]byte, []byte) {
@@ -202,3 +212,6 @@ func (p *Page) isEmpty() bool {
 func (p *Page) isPage() bool {
 	return Magic(p.magic.Get()).IsPage()
 }
+
+func (h *Page) TrackingID() uint64              { return h.trackingID.GetUnsigned() }
+func (h *Page) SetTrackingID(trackingID uint64) { h.trackingID.SetUnsigned(trackingID) }
