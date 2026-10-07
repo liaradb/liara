@@ -101,6 +101,7 @@ func (ln *LeafNode) Fill(
 
 	ln.setLeftID(leftID)
 	ln.setRightID(rightID)
+	// TODO: Append log header entry
 	ln.node.SetDirty()
 	return k
 }

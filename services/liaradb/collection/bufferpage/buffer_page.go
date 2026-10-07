@@ -39,6 +39,7 @@ func (bp *BufferPage) Shadow(base *BufferPage) {
 	bp.page.Fill(base.page.Data())
 }
 
+// TODO: Must latch before write
 func (bp *BufferPage) Release() {
 	bp.buffer.Release()
 }
