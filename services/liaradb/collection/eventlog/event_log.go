@@ -107,16 +107,10 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.P
 		return nil, err
 	}
 
-	d, err := l.fc.GetItemByRecordLocator(ctx, tn.EventLog(pid), rl)
+	// TODO: Don't use nil for Log
+	s, err := l.fc.GetSpanByRecordLocator(ctx, nil, tn.EventLog(pid), rl)
 
-	var buf buffer.Buffer
-	buf.Reset(d)
-	var e entity.Event
-	if err := e.Read(&buf); err != nil {
-		return nil, err
-	}
-
-	return &e, nil
+	return l.readEvent(s)
 }
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
@@ -178,8 +172,6 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		buf := buffer.NewFromSlice(nil)
-
 		fn := tn.EventLog(pid)
 		for rl, err := range l.cursor.SearchRange(ctx, tn.Index(2, pid), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
@@ -187,21 +179,20 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			i, err := l.fc.GetItemByRecordLocator(ctx, fn, rl)
+			// TODO: Don't use nil for Log
+			s, err := l.fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			buf.Reset(i)
-
-			var e entity.Event
-			if err := e.Read(buf); err != nil {
+			e, err := l.readEvent(s)
+			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(&e, nil) {
+			if !yield(e, nil) {
 				return
 			}
 		}

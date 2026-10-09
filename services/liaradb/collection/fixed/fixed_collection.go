@@ -93,28 +93,6 @@ func (fc *FixedCollection) List(
 	}
 }
 
-func (fc *FixedCollection) GetItemByRecordLocator(
-	ctx context.Context,
-	fn link.FileName,
-	rl link.RecordLocator,
-) ([]byte, error) {
-	// TODO: Don't use nil for Log
-	s, err := fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
-	if err != nil {
-		return nil, err
-	}
-
-	defer s.Release()
-
-	// Read Span
-	buffer := make([]byte, s.Length())
-	if _, err := s.Read(buffer); err != nil {
-		return nil, err
-	}
-
-	return buffer, nil
-}
-
 // TODO: Use io.Writer?
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
