@@ -56,7 +56,7 @@ func (fc *FixedCollection) Insert(
 	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordLocator())
 }
 
-func (fc *FixedCollection) Get(
+func (fc *FixedCollection) GetByKey(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,
@@ -68,7 +68,7 @@ func (fc *FixedCollection) Get(
 	}
 
 	// TODO: Don't use nil for Log
-	return fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
+	return fc.GetByRecordLocator(ctx, nil, fn, rl)
 }
 
 func (fc *FixedCollection) List(
@@ -85,7 +85,7 @@ func (fc *FixedCollection) List(
 			}
 
 			// TODO: Don't use nil for Log
-			s, err := fc.GetSpanByRecordLocator(ctx, nil, fn, rid)
+			s, err := fc.GetByRecordLocator(ctx, nil, fn, rid)
 			if !yield(s, err) {
 				return
 			}
@@ -108,7 +108,7 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	s, err := fc.GetSpanByRecordLocator(ctx, l, fn, rl)
+	s, err := fc.GetByRecordLocator(ctx, l, fn, rl)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (fc *FixedCollection) Replace(
 	return err
 }
 
-func (fc *FixedCollection) GetSpanByRecordLocator(
+func (fc *FixedCollection) GetByRecordLocator(
 	ctx context.Context,
 	l span.Log,
 	fn link.FileName,

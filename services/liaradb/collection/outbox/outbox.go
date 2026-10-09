@@ -32,7 +32,7 @@ func (o *Outbox) Get(
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	s, err := o.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}

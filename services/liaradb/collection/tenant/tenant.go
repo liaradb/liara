@@ -32,7 +32,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.Get(ctx, tn.Tenant(), tn.Index(0, pid), k)
+	s, err := t.fc.GetByKey(ctx, tn.Tenant(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}

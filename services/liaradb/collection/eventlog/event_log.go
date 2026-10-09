@@ -108,7 +108,7 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.P
 	}
 
 	// TODO: Don't use nil for Log
-	s, err := l.fc.GetSpanByRecordLocator(ctx, nil, tn.EventLog(pid), rl)
+	s, err := l.fc.GetByRecordLocator(ctx, nil, tn.EventLog(pid), rl)
 
 	return l.readEvent(s)
 }
@@ -123,7 +123,7 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid
 			}
 
 			// TODO: Don't use nil for Log
-			s, err := l.fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
+			s, err := l.fc.GetByRecordLocator(ctx, nil, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -180,7 +180,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			}
 
 			// TODO: Don't use nil for Log
-			s, err := l.fc.GetSpanByRecordLocator(ctx, nil, fn, rl)
+			s, err := l.fc.GetByRecordLocator(ctx, nil, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return

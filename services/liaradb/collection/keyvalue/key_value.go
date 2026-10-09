@@ -30,7 +30,7 @@ func (kv *KeyValue) Get(
 	pid value.PartitionID,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.Get(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
+	s, err := kv.fc.GetByKey(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}

@@ -32,7 +32,7 @@ func (i *Idempotency) Get(
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.Get(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	s, err := i.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, pid), k)
 	if err != nil {
 		return nil, err
 	}

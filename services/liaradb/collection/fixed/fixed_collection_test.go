@@ -46,7 +46,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sp, err := fc.Get(t.Context(), fn, fnIdx, k)
+		sp, err := fc.GetByKey(t.Context(), fn, fnIdx, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -167,7 +167,7 @@ func testGet(
 ) {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := fc.Get(ctx, fn, fnIdx, k)
+		value, err := fc.GetByKey(ctx, fn, fnIdx, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
