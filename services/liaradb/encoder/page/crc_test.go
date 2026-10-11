@@ -13,7 +13,7 @@ func TestCRC(t *testing.T) {
 	r, w := iotesting.NewReaderWriter()
 
 	var c CRC = NewCRC([]byte{1, 2, 3, 4, 5})
-	if err := c.Write(w); err != nil {
+	if err := c.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -22,7 +22,7 @@ func TestCRC(t *testing.T) {
 	}
 
 	var c2 CRC
-	if err := c2.Read(r); err != nil && err != io.EOF {
+	if err := c2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 }

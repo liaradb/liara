@@ -11,7 +11,7 @@ func TestRowName(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var rn = NewRowName("name")
-	if err := rn.Write(w); err != nil {
+	if err := rn.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestRowName(t *testing.T) {
 	}
 
 	var rn2 RowName
-	if err := rn2.Read(r); err != nil && err != io.EOF {
+	if err := rn2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

@@ -69,13 +69,13 @@ func TestUInt64__Remainder(t *testing.T) {
 	}
 }
 
-func TestUint64_Read_Write(t *testing.T) {
+func TestUint64_CopyFrom_CopyTo(t *testing.T) {
 	t.Parallel()
 
 	buf := buffer.New(8)
 
 	b := NewUint64(2)
-	if err := b.Write(buf); err != nil {
+	if err := b.CopyTo(buf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func TestUint64_Read_Write(t *testing.T) {
 	}
 
 	var b0 Uint64
-	if err := b0.Read(buf); err != nil {
+	if err := b0.CopyFrom(buf); err != nil {
 		t.Fatal(err)
 	}
 

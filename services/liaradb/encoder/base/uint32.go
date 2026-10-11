@@ -25,11 +25,11 @@ func (b Uint32) Signed() int32  { return int32(b) }
 func (b Uint32) Size() int      { return Uint32Size }
 func (b Uint32) String() string { return fmt.Sprintf("%08x", b.Value()) }
 
-func (b Uint32) Write(w io.Writer) error {
+func (b Uint32) CopyTo(w io.Writer) error {
 	return raw.WriteInt32(w, b)
 }
 
-func (b *Uint32) Read(r io.Reader) error {
+func (b *Uint32) CopyFrom(r io.Reader) error {
 	return raw.ReadInt32(r, b)
 }
 

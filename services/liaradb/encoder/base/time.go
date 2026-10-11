@@ -23,7 +23,7 @@ func NewTime(t time.Time) Time {
 func (t Time) Value() time.Time { return t.baseTime }
 func (Time) Size() int          { return TimeSize }
 
-func (t Time) Write(w io.Writer) error {
+func (t Time) CopyTo(w io.Writer) error {
 	if err := raw.WriteInt64(w, t.baseTime.Unix()); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func (t Time) Write(w io.Writer) error {
 	return raw.WriteInt64(w, int64(t.baseTime.Nanosecond()))
 }
 
-func (t *Time) Read(r io.Reader) error {
+func (t *Time) CopyFrom(r io.Reader) error {
 	var s int64
 	if err := raw.ReadInt64(r, &s); err != nil {
 		return err

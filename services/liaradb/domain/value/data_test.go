@@ -31,7 +31,7 @@ func TestData_WriteRead(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var e Data = NewData([]byte{1, 2, 3, 4})
-	if err := e.Write(w); err != nil {
+	if err := e.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -41,7 +41,7 @@ func TestData_WriteRead(t *testing.T) {
 	}
 
 	var e2 Data
-	if err := e2.Read(r); err != nil && err != io.EOF {
+	if err := e2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

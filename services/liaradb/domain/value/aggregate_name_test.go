@@ -11,7 +11,7 @@ func TestAggregateName(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var a = NewAggregateName("name")
-	if err := a.Write(w); err != nil {
+	if err := a.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestAggregateName(t *testing.T) {
 	}
 
 	var a2 AggregateName
-	if err := a2.Read(r); err != nil && err != io.EOF {
+	if err := a2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

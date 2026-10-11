@@ -11,7 +11,7 @@ func TestCorrelationID(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var cid = NewCorrelationID("name")
-	if err := cid.Write(w); err != nil {
+	if err := cid.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestCorrelationID(t *testing.T) {
 	}
 
 	var cid2 CorrelationID
-	if err := cid2.Read(r); err != nil && err != io.EOF {
+	if err := cid2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

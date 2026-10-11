@@ -33,11 +33,11 @@ const (
 
 func (Action) Size() int { return ActionSize }
 
-func (a Action) Write(w io.Writer) error {
+func (a Action) CopyTo(w io.Writer) error {
 	return raw.WriteInt32(w, a)
 }
 
-func (a *Action) Read(r io.Reader) error {
+func (a *Action) CopyFrom(r io.Reader) error {
 	return raw.ReadInt32(r, a)
 }
 

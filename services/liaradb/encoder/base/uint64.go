@@ -32,11 +32,11 @@ func (b Uint64) Bytes() []byte {
 	return data[:]
 }
 
-func (b Uint64) Write(w io.Writer) error {
+func (b Uint64) CopyTo(w io.Writer) error {
 	return raw.WriteInt64(w, b)
 }
 
-func (b *Uint64) Read(r io.Reader) error {
+func (b *Uint64) CopyFrom(r io.Reader) error {
 	return raw.ReadInt64(r, b)
 }
 

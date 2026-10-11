@@ -11,7 +11,7 @@ func TestClientVersion(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var a = NewClientVersion("version")
-	if err := a.Write(w); err != nil {
+	if err := a.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestClientVersion(t *testing.T) {
 	}
 
 	var a2 ClientVersion
-	if err := a2.Read(r); err != nil && err != io.EOF {
+	if err := a2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

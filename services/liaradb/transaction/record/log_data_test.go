@@ -18,7 +18,7 @@ func TestLogData(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, len(want))
 	}
 
-	if err := ld.Write(w); err != nil {
+	if err := ld.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -27,7 +27,7 @@ func TestLogData(t *testing.T) {
 	}
 
 	ld2 := LogData{}
-	if err := ld2.Read(r); err != nil {
+	if err := ld2.CopyFrom(r); err != nil {
 		t.Fatal(err)
 	}
 

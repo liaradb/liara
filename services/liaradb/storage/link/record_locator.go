@@ -24,13 +24,13 @@ func (rl RecordLocator) Block() FilePosition { return rl.block }
 func (rl RecordLocator) SlotID() SlotID      { return rl.slotID }
 func (rl RecordLocator) Size() int           { return RecordLocatorSize }
 
-func (rl RecordLocator) Write(w io.Writer) error {
+func (rl RecordLocator) CopyTo(w io.Writer) error {
 	return serializer.WriteAll(w,
 		rl.block,
 		rl.slotID)
 }
 
-func (rl *RecordLocator) Read(r io.Reader) error {
+func (rl *RecordLocator) CopyFrom(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&rl.block,
 		&rl.slotID)

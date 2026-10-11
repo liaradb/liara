@@ -13,7 +13,7 @@ func TestFilePosition(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var p FilePosition = 123456
-	if err := p.Write(w); err != nil {
+	if err := p.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -23,7 +23,7 @@ func TestFilePosition(t *testing.T) {
 	}
 
 	var p2 FilePosition
-	if err := p2.Read(r); err != nil && err != io.EOF {
+	if err := p2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

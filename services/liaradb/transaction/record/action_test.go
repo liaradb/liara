@@ -13,7 +13,7 @@ func TestAction(t *testing.T) {
 	r, w := iotesting.NewReaderWriter()
 
 	var a Action = ActionCheckpoint
-	if err := a.Write(w); err != nil {
+	if err := a.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -22,7 +22,7 @@ func TestAction(t *testing.T) {
 	}
 
 	var a2 Action
-	if err := a2.Read(r); err != nil && err != io.EOF {
+	if err := a2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

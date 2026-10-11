@@ -11,7 +11,7 @@ func TestEventName(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var en = NewEventName("name")
-	if err := en.Write(w); err != nil {
+	if err := en.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestEventName(t *testing.T) {
 	}
 
 	var en2 EventName
-	if err := en2.Read(r); err != nil && err != io.EOF {
+	if err := en2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

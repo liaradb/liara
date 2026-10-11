@@ -38,7 +38,7 @@ func (pr *PartitionRange) ReadData(data []byte) []byte {
 	return pr.high.ReadData(data0)
 }
 
-func (o *PartitionRange) Read(r io.Reader) error {
+func (o *PartitionRange) CopyFrom(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&o.low,
 		&o.high)

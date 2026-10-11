@@ -13,7 +13,7 @@ func TestLength(t *testing.T) {
 	r, w := iotesting.NewReaderWriter()
 
 	var l Length = NewLength(5)
-	if err := l.Write(w); err != nil {
+	if err := l.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -22,7 +22,7 @@ func TestLength(t *testing.T) {
 	}
 
 	var l2 Length
-	if err := l2.Read(r); err != nil && err != io.EOF {
+	if err := l2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

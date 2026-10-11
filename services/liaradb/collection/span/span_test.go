@@ -32,7 +32,7 @@ func TestSpan_Write(t *testing.T) {
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s); err != nil {
+	if err := tr0.CopyTo(s); err != nil {
 		t.Fatal(err)
 	}
 
@@ -95,7 +95,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s); err != nil {
+	if err := tr0.CopyTo(s); err != nil {
 		t.Fatal(err)
 	}
 

@@ -21,11 +21,11 @@ func (d Data) String() string { return string(d.data) }
 func (d Data) Value() []byte  { return d.data }
 func (d Data) Size() int      { return len(d.data) }
 
-func (d Data) Write(w io.Writer) error {
+func (d Data) CopyTo(w io.Writer) error {
 	return raw.Write(w, d.data)
 }
 
-func (d *Data) Read(r io.Reader) error {
+func (d *Data) CopyFrom(r io.Reader) error {
 	return raw.Read(r, &d.data)
 }
 

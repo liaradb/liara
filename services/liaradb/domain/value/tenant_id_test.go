@@ -13,7 +13,7 @@ func TestTenantID(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var e TenantID = NewTenantID()
-	if err := e.Write(w); err != nil {
+	if err := e.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -23,7 +23,7 @@ func TestTenantID(t *testing.T) {
 	}
 
 	var e2 TenantID
-	if err := e2.Read(r); err != nil && err != io.EOF {
+	if err := e2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

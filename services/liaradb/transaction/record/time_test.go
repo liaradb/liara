@@ -12,7 +12,7 @@ func TestTime(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var tm Time = NewTime(time.UnixMicro(1234567890))
-	if err := tm.Write(w); err != nil {
+	if err := tm.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -22,7 +22,7 @@ func TestTime(t *testing.T) {
 	}
 
 	var tm2 Time
-	if err := tm2.Read(r); err != nil && err != io.EOF {
+	if err := tm2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

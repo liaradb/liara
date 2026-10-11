@@ -29,11 +29,11 @@ func (i RecordID) Offset(bufferSize int64) Offset {
 }
 
 // TODO: Implement this
-func (i *RecordID) Read(r io.Reader) error {
+func (i *RecordID) CopyFrom(r io.Reader) error {
 	return nil
 }
 
 // TODO: Implement this
-func (i RecordID) Write(w io.Writer) error {
+func (i RecordID) CopyTo(w io.Writer) error {
 	return nil
 }

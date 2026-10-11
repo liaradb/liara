@@ -13,7 +13,7 @@ func TestTransactionID(t *testing.T) {
 	r, w := iotesting.NewReaderWriter()
 
 	var tid = NewTransactionID(123456)
-	if err := tid.Write(w); err != nil {
+	if err := tid.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -22,7 +22,7 @@ func TestTransactionID(t *testing.T) {
 	}
 
 	var tid2 TransactionID
-	if err := tid2.Read(r); err != nil && err != io.EOF {
+	if err := tid2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

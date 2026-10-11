@@ -11,7 +11,7 @@ func TestSlotID(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var id0 SlotID = 123
-	if err := id0.Write(w); err != nil {
+	if err := id0.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestSlotID(t *testing.T) {
 	}
 
 	var id1 SlotID
-	if err := id1.Read(r); err != nil && err != io.EOF {
+	if err := id1.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

@@ -11,7 +11,7 @@ func TestGlobalVersion(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var gv GlobalVersion = NewGlobalVersion(1)
-	if err := gv.Write(w); err != nil {
+	if err := gv.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -21,7 +21,7 @@ func TestGlobalVersion(t *testing.T) {
 	}
 
 	var gv2 GlobalVersion
-	if err := gv2.Read(r); err != nil && err != io.EOF {
+	if err := gv2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

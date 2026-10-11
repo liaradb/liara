@@ -44,13 +44,13 @@ func TestBytes(t *testing.T) {
 	}
 }
 
-func TestBytes_Read_Write(t *testing.T) {
+func TestBytes_CopyFrom_CopyTo(t *testing.T) {
 	t.Parallel()
 
 	buf := buffer.New(8)
 
 	b := NewBytes([]byte{1, 2, 3, 4})
-	if err := b.Write(buf); err != nil {
+	if err := b.CopyTo(buf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,7 +59,7 @@ func TestBytes_Read_Write(t *testing.T) {
 	}
 
 	var b0 Bytes
-	if err := b0.Read(buf); err != nil {
+	if err := b0.CopyFrom(buf); err != nil {
 		t.Fatal(err)
 	}
 

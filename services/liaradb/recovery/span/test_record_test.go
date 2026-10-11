@@ -17,7 +17,7 @@ func (tr *testRecord) ID() base.Uint64 {
 }
 
 func (tr *testRecord) Read(r io.Reader) error {
-	if err := tr.id.Read(r); err != nil {
+	if err := tr.id.CopyFrom(r); err != nil {
 		return err
 	}
 
@@ -34,7 +34,7 @@ func (tr *testRecord) Size() int {
 }
 
 func (tr *testRecord) Write(w io.Writer) error {
-	if err := tr.id.Write(w); err != nil {
+	if err := tr.id.CopyTo(w); err != nil {
 		return err
 	}
 

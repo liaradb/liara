@@ -69,13 +69,13 @@ func TestUIn32__Remainder(t *testing.T) {
 	}
 }
 
-func TestUint32_Read_Write(t *testing.T) {
+func TestUint32_CopyFrom_CopyTo(t *testing.T) {
 	t.Parallel()
 
 	buf := buffer.New(4)
 
 	b := NewUint32(2)
-	if err := b.Write(buf); err != nil {
+	if err := b.CopyTo(buf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func TestUint32_Read_Write(t *testing.T) {
 	}
 
 	var b0 Uint32
-	if err := b0.Read(buf); err != nil {
+	if err := b0.CopyFrom(buf); err != nil {
 		t.Fatal(err)
 	}
 

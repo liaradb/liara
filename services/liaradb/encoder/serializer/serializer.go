@@ -3,12 +3,12 @@ package serializer
 import "io"
 
 type Deserializer interface {
-	Read(r io.Reader) error
+	CopyFrom(r io.Reader) error
 }
 
 func ReadAll(r io.Reader, ders ...Deserializer) error {
 	for _, d := range ders {
-		if err := d.Read(r); err != nil {
+		if err := d.CopyFrom(r); err != nil {
 			return err
 		}
 	}
@@ -17,12 +17,12 @@ func ReadAll(r io.Reader, ders ...Deserializer) error {
 }
 
 type Serializer interface {
-	Write(w io.Writer) error
+	CopyTo(w io.Writer) error
 }
 
 func WriteAll(w io.Writer, sers ...Serializer) error {
 	for _, s := range sers {
-		if err := s.Write(w); err != nil {
+		if err := s.CopyTo(w); err != nil {
 			return err
 		}
 	}

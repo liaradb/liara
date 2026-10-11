@@ -13,7 +13,7 @@ func TestLogSequenceNumber(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var lsn = NewLogSequenceNumber(123456)
-	if err := lsn.Write(w); err != nil {
+	if err := lsn.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -23,7 +23,7 @@ func TestLogSequenceNumber(t *testing.T) {
 	}
 
 	var lsn2 LogSequenceNumber
-	if err := lsn2.Read(r); err != nil && err != io.EOF {
+	if err := lsn2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

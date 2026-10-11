@@ -35,7 +35,7 @@ const BaseIDSize = 16
 
 func (i ID) Size() int { return len(i.baseUUID) }
 
-func (i ID) Write(w io.Writer) error {
+func (i ID) CopyTo(w io.Writer) error {
 	if n, err := w.Write(i.baseUUID[:]); err != nil {
 		return err
 	} else if n < len(i.baseUUID) {
@@ -45,7 +45,7 @@ func (i ID) Write(w io.Writer) error {
 	return nil
 }
 
-func (i *ID) Read(r io.Reader) error {
+func (i *ID) CopyFrom(r io.Reader) error {
 	if n, err := r.Read(i.baseUUID[:]); err != nil {
 		return err
 	} else if n < BaseIDSize {

@@ -19,14 +19,14 @@ func TestTime(t *testing.T) {
 	}
 }
 
-func TestTime_WriteRead(t *testing.T) {
+func TestTime_CopyFrom_CopyTo(t *testing.T) {
 	t.Parallel()
 
 	now := time.Now()
 	tm := NewTime(now)
 
 	r, w := newReaderWriter()
-	if err := tm.Write(w); err != nil {
+	if err := tm.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -37,7 +37,7 @@ func TestTime_WriteRead(t *testing.T) {
 
 	tm2 := Time{}
 
-	if err := tm2.Read(r); err != nil {
+	if err := tm2.CopyFrom(r); err != nil {
 		t.Fatal(err)
 	}
 

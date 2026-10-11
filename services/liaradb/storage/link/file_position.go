@@ -20,11 +20,11 @@ func (p FilePosition) Offset(bufferSize int64) Offset {
 	return Offset(p) * Offset(bufferSize)
 }
 
-func (p FilePosition) Write(w io.Writer) error {
+func (p FilePosition) CopyTo(w io.Writer) error {
 	return raw.WriteInt64(w, p)
 }
 
-func (p *FilePosition) Read(r io.Reader) error {
+func (p *FilePosition) CopyFrom(r io.Reader) error {
 	return raw.ReadInt64(r, p)
 }
 

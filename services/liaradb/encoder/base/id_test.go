@@ -75,13 +75,13 @@ func TestID__Remainder(t *testing.T) {
 	}
 }
 
-func TestID_Read_Write(t *testing.T) {
+func TestID_CopyFrom_CopyTo(t *testing.T) {
 	t.Parallel()
 
 	buf := buffer.New(16)
 
 	b := NewID()
-	if err := b.Write(buf); err != nil {
+	if err := b.CopyTo(buf); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,7 +90,7 @@ func TestID_Read_Write(t *testing.T) {
 	}
 
 	var b0 ID
-	if err := b0.Read(buf); err != nil {
+	if err := b0.CopyFrom(buf); err != nil {
 		t.Fatal(err)
 	}
 

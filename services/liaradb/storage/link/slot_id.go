@@ -16,11 +16,11 @@ func (i SlotID) Value() int16   { return int16(i) }
 func (i SlotID) Size() int      { return SlotIDSize }
 func (i SlotID) String() string { return fmt.Sprintf("%v", i.Value()) }
 
-func (i SlotID) Write(w io.Writer) error {
+func (i SlotID) CopyTo(w io.Writer) error {
 	return raw.WriteInt16(w, i)
 }
 
-func (i *SlotID) Read(r io.Reader) error {
+func (i *SlotID) CopyFrom(r io.Reader) error {
 	return raw.ReadInt16(r, i)
 }
 

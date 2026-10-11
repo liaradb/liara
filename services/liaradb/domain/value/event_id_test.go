@@ -15,7 +15,7 @@ func TestEventID(t *testing.T) {
 	r, w := newReaderWriter()
 
 	var e EventID = NewEventID()
-	if err := e.Write(w); err != nil {
+	if err := e.CopyTo(w); err != nil {
 		t.Fatal(err)
 	}
 
@@ -25,7 +25,7 @@ func TestEventID(t *testing.T) {
 	}
 
 	var e2 EventID
-	if err := e2.Read(r); err != nil && err != io.EOF {
+	if err := e2.CopyFrom(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
 

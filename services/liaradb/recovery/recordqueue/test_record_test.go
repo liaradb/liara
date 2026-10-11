@@ -29,7 +29,7 @@ func (tr *testRecord) LogSequenceNumber() logpage.LogSequenceNumber {
 }
 
 func (tr *testRecord) Read(r io.Reader) error {
-	if err := tr.lsn.Read(r); err != nil {
+	if err := tr.lsn.CopyFrom(r); err != nil {
 		return err
 	}
 
@@ -46,7 +46,7 @@ func (tr *testRecord) Size() int {
 }
 
 func (tr *testRecord) Write(w io.Writer) error {
-	if err := tr.lsn.Write(w); err != nil {
+	if err := tr.lsn.CopyTo(w); err != nil {
 		return err
 	}
 

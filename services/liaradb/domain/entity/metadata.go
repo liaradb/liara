@@ -41,7 +41,7 @@ func (e Metadata) Size() int {
 		e.time)
 }
 
-func (e Metadata) Write(w io.Writer) error {
+func (e Metadata) CopyTo(w io.Writer) error {
 	return serializer.WriteAll(w,
 		e.userID,
 		e.correlationID,
@@ -49,7 +49,7 @@ func (e Metadata) Write(w io.Writer) error {
 		e.time)
 }
 
-func (e *Metadata) Read(r io.Reader) error {
+func (e *Metadata) CopyFrom(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&e.userID,
 		&e.correlationID,
