@@ -75,7 +75,7 @@ func (o *Outbox) Set(
 	e *entity.Outbox,
 ) error {
 	v := make([]byte, entity.OutboxSize)
-	_ = e.Write(v)
+	_ = e.WriteData(v)
 	k := key.NewKey(oid.Bytes())
 	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
 }
@@ -88,13 +88,11 @@ func (o *Outbox) Replace(
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	v := make([]byte, entity.OutboxSize)
-	_ = e.Write(v)
 	return o.fc.Replace(ctx,
 		l,
 		tn.Outbox(pid),
 		tn.Index(0, value.NewPartitionID(0)),
 		pid,
 		key.NewKey(oid.Bytes()),
-		v)
+		e)
 }

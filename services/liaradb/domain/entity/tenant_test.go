@@ -75,7 +75,7 @@ func TestTenant_ReadWrite(t *testing.T) {
 	tn := NewTenant(tid, name)
 
 	data := make([]byte, TenantSize+2)
-	data0 := tn.Write(data)
+	data0 := tn.WriteData(data)
 
 	if l := len(data0); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

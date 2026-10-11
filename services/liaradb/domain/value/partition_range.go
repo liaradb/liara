@@ -38,6 +38,12 @@ func (pr *PartitionRange) ReadData(data []byte) []byte {
 	return pr.high.ReadData(data0)
 }
 
+func (o PartitionRange) Write(r io.Writer) error {
+	return serializer.WriteAll(r,
+		o.low,
+		o.high)
+}
+
 func (o *PartitionRange) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&o.low,

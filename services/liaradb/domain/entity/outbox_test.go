@@ -63,7 +63,7 @@ func TestOutbox_ReadWrite(t *testing.T) {
 		value.NewGlobalVersion(12345))
 
 	data := make([]byte, OutboxSize+2)
-	data0 := o.Write(data)
+	data0 := o.WriteData(data)
 
 	if l := len(data0); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

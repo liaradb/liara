@@ -49,7 +49,7 @@ func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 	o.globalVersion = v
 }
 
-func (o *Outbox) Write(data []byte) []byte {
+func (o *Outbox) WriteData(data []byte) []byte {
 	data0 := o.id.WriteData(data)
 	data1 := o.partitionRange.WriteData(data0)
 	return o.globalVersion.WriteData(data1)
@@ -66,4 +66,11 @@ func (o *Outbox) Read(r io.Reader) error {
 		&o.id,
 		&o.partitionRange,
 		&o.globalVersion)
+}
+
+func (o *Outbox) Write(r io.Writer) error {
+	return serializer.WriteAll(r,
+		o.id,
+		o.partitionRange,
+		o.globalVersion)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -93,7 +94,6 @@ func (fc *FixedCollection) List(
 	}
 }
 
-// TODO: Use io.Writer?
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
 	l span.Log,
@@ -101,22 +101,14 @@ func (fc *FixedCollection) Replace(
 	fnIdx link.FileName,
 	pid value.PartitionID,
 	k key.Key,
-	v []byte,
+	w serializer.Serializer,
 ) error {
-	rl, err := fc.c.Search(ctx, fnIdx, k)
-	if err != nil {
-		return err
-	}
-
-	s, err := fc.GetByRecordLocator(ctx, l, fn, rl)
-	if err != nil {
-		return err
-	}
+	s, err := fc.GetByKey(ctx, fn, fnIdx, k)
 
 	defer s.Release()
 
 	// TODO: Verify data can fit
-	if _, err = s.Write(v); err != nil {
+	if err = w.Write(s); err != nil {
 		return err
 	}
 

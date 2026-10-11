@@ -331,7 +331,7 @@ func (t *Transaction) InsertOutbox(
 	}
 
 	data := make([]byte, entity.OutboxSize)
-	_ = e.Write(data)
+	_ = e.WriteData(data)
 	return t.collection.Outbox.Set(ctx, l, tn, pid, oid, e)
 }
 
@@ -353,12 +353,12 @@ func (t *Transaction) UpdateOutbox(
 	}
 
 	prev := make([]byte, entity.OutboxSize)
-	_ = o.Write(prev)
+	_ = o.WriteData(prev)
 
 	o.UpdateGlobalVersion(v)
 
 	data := make([]byte, entity.OutboxSize)
-	_ = o.Write(data)
+	_ = o.WriteData(data)
 
 	_, err = t.log.Update(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data, prev)
 	if err != nil {
