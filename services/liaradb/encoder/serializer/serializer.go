@@ -29,3 +29,8 @@ func WriteAll(w io.Writer, sers ...Serializer) error {
 
 	return nil
 }
+
+type SizedSerializer interface {
+	Sizer
+	Serializer
+}

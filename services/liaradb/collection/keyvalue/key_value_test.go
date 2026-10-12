@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -126,7 +127,7 @@ func createData() []item {
 
 func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) error {
 	for _, i := range data {
-		if err := kv.Set(ctx, l, tn, pid, key.NewKey([]byte(i.key)), i.value); err != nil {
+		if err := kv.Set(ctx, l, tn, pid, key.NewKey([]byte(i.key)), base.NewFixedBytes(i.value)); err != nil {
 			return err
 		}
 		synctest.Wait()
@@ -142,7 +143,7 @@ func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.Table
 		}
 
 		want := string(i.value)
-		result := string(value)
+		result := string(base.NewFixedBytes(value).Value())
 		if result != want {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
 		}
@@ -169,7 +170,7 @@ func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.
 			return nil, err
 		}
 
-		result = append(result, string(value))
+		result = append(result, string(base.NewFixedBytes(value).Value()))
 		i++
 	}
 	return result, nil

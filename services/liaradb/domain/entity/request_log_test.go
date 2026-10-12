@@ -47,7 +47,7 @@ func TestRequestLog_ReadWrite(t *testing.T) {
 		value.NewTime(time.Now()))
 
 	data := make([]byte, RequestLogSize+2)
-	data0 := rl.Write(data)
+	data0 := rl.WriteData(data)
 
 	if l := len(data0); l != 2 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 2)

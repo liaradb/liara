@@ -44,6 +44,7 @@ func RestoreOutbox(
 func (o *Outbox) ID() value.OutboxID                   { return o.id }
 func (o *Outbox) PartitionRange() value.PartitionRange { return o.partitionRange }
 func (o *Outbox) GlobalVersion() value.GlobalVersion   { return o.globalVersion }
+func (o *Outbox) Size() int                            { return OutboxSize }
 
 func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 	o.globalVersion = v

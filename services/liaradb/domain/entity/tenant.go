@@ -22,6 +22,7 @@ type Tenant struct {
 func (t *Tenant) ID() value.TenantID     { return t.id }
 func (t *Tenant) Version() value.Version { return t.version }
 func (t *Tenant) Name() value.TenantName { return t.name }
+func (t *Tenant) Size() int              { return TenantSize }
 
 func NewTenant(
 	id value.TenantID,

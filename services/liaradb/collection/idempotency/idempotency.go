@@ -74,11 +74,8 @@ func (i *Idempotency) Set(
 	rqid value.RequestID,
 	e *entity.RequestLog,
 ) error {
-	v := make([]byte, entity.RequestLogSize)
-	_ = e.Write(v)
-
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, e)
 }
 
 func (i *Idempotency) Test(

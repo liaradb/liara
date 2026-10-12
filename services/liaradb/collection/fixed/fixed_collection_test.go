@@ -16,6 +16,7 @@ import (
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -41,8 +42,9 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 		// pid := value.NewPartitionID(0)
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
+		b := base.NewFixedBytes(want)
 
-		if err := fc.Insert(t.Context(), lg, fn, fnIdx, k, want); err != nil {
+		if err := fc.Insert(t.Context(), lg, fn, fnIdx, k, b); err != nil {
 			t.Fatal(err)
 		}
 
@@ -51,10 +53,13 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := sp.BytesAndRelease()
-		if err != nil {
+		b0 := base.NewFixedBytesFromSize(5)
+		if err := b0.Read(sp); err != nil {
 			t.Fatal(err)
 		}
+
+		sp.Release()
+		result := b0.Value()
 
 		if !slices.Equal(result, want) {
 			t.Errorf("incorrect result: %v, expected: %v", result, want)
@@ -146,11 +151,8 @@ func createData() []item {
 
 func insertData(ctx context.Context, l span.Log, fc *FixedCollection, fn link.FileName, fnIdx link.FileName, data []item) error {
 	for _, i := range data {
-		d := make([]byte, entity.RequestLogSize)
-		_ = i.value.Write(d)
-
 		k := key.NewKey(i.value.ID().Bytes())
-		if err := fc.Insert(ctx, l, fn, fnIdx, k, d); err != nil {
+		if err := fc.Insert(ctx, l, fn, fnIdx, k, i.value); err != nil {
 			return err
 		}
 	}

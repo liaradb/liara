@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
 )
@@ -63,7 +64,7 @@ func (kv *KeyValue) Set(
 	tn tablename.TableName,
 	pid value.PartitionID,
 	k key.Key,
-	v []byte,
+	w serializer.SizedSerializer,
 ) error {
-	return kv.fc.Insert(ctx, l, tn.KeyValue(pid), tn.Index(0, pid), k, v)
+	return kv.fc.Insert(ctx, l, tn.KeyValue(pid), tn.Index(0, pid), k, w)
 }

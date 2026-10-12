@@ -37,17 +37,17 @@ func (fc *FixedCollection) Insert(
 	fn link.FileName,
 	fnIdx link.FileName,
 	k key.Key,
-	v []byte,
+	w serializer.SizedSerializer,
 ) error {
 	t := tip.NewTip(fc.s, l, fn)
 	defer t.Release()
 
-	s, err := t.Span(ctx, len(v))
+	s, err := t.Span(ctx, w.Size())
 	if err != nil {
 		return err
 	}
 
-	if _, err := s.Write(v); err != nil {
+	if err := w.Write(s); err != nil {
 		return err
 	}
 
@@ -101,13 +101,17 @@ func (fc *FixedCollection) Replace(
 	fnIdx link.FileName,
 	pid value.PartitionID,
 	k key.Key,
-	w serializer.Serializer,
+	w serializer.SizedSerializer,
 ) error {
 	s, err := fc.GetByKey(ctx, fn, fnIdx, k)
 
 	defer s.Release()
 
-	// TODO: Verify data can fit
+	if w.Size() > s.Length() {
+		// TODO: Verify data can fit
+		panic("support resizing")
+	}
+
 	if err = w.Write(s); err != nil {
 		return err
 	}

@@ -74,10 +74,8 @@ func (o *Outbox) Set(
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	v := make([]byte, entity.OutboxSize)
-	_ = e.WriteData(v)
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, v)
+	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, e)
 }
 
 func (o *Outbox) Replace(

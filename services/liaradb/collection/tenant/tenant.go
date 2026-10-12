@@ -74,10 +74,8 @@ func (t *Tenant) Set(
 	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
-	v := make([]byte, entity.TenantSize)
-	_ = e.WriteData(v)
 	k := key.NewKey(tid.Bytes())
-	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, pid), k, v)
+	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, pid), k, e)
 }
 
 func (t *Tenant) Replace(
