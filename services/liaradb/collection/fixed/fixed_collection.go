@@ -40,12 +40,13 @@ func (fc *FixedCollection) Insert(
 	w serializer.SizedSerializer,
 ) error {
 	t := tip.NewTip(fc.s, l, fn)
-	defer t.Release()
 
 	s, err := t.Span(ctx, w.Size())
 	if err != nil {
 		return err
 	}
+
+	defer s.Release()
 
 	if err := w.Write(s); err != nil {
 		return err
@@ -133,12 +134,7 @@ func (fc *FixedCollection) GetByRecordLocator(
 	}
 
 	s := span.New(l)
-
-	f, err := s.AppendSlot(b, rl.SlotID())
-	if err != nil {
-		b.Release()
-		return nil, err
-	}
+	f := s.AppendSlot(b, rl.SlotID())
 
 	for f.NextPosition() != 0 {
 		bid.SetPosition(f.NextPosition())
@@ -148,12 +144,7 @@ func (fc *FixedCollection) GetByRecordLocator(
 			return nil, err
 		}
 
-		f, err = s.AppendSlot(b, link.SlotID(0))
-		if err != nil {
-			b.Release()
-			s.Release()
-			return nil, err
-		}
+		f = s.AppendSlot(b, link.SlotID(0))
 	}
 
 	return s, nil

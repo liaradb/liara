@@ -31,6 +31,7 @@ type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	BlockID() link.BlockID
 	Commit(size int)
+	Release()
 }
 
 func newFragment(

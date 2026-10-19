@@ -62,12 +62,13 @@ func (l *EventLog) AppendEvent(
 	v []byte,
 ) error {
 	t := tip.NewTip(l.storage, sl, tn.EventLog(pid))
-	defer t.Release()
 
 	s, err := t.Span(ctx, len(v))
 	if err != nil {
 		return err
 	}
+
+	defer s.Release()
 
 	if _, err := s.Write(v); err != nil {
 		return err

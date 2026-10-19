@@ -14,7 +14,7 @@ import (
 type Span struct {
 	l         Log
 	fragments []*Fragment
-	buffers   []*storage.Buffer
+	buffers   []BufferPage
 }
 
 func New(l Log) *Span {
@@ -39,14 +39,14 @@ func (s Span) valid() bool {
 	return true
 }
 
-func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) (*Fragment, error) {
+func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) *Fragment {
 	p := bufferpage.New(b, FragmentHeaderSize)
 	h, d := p.Slot(sid)
-	s.buffers = append(s.buffers, b)
-	return s.Append(p, sid, h, d), nil
+	return s.Append(p, sid, h, d)
 }
 
 func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
+	s.buffers = append(s.buffers, b)
 	f := newFragment(s.l, b, sid, header, data)
 	s.fragments = append(s.fragments, f)
 	return f

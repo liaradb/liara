@@ -65,13 +65,15 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 }
 
 func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int) int {
-	t.pages = append(t.pages, p)
 	header, data := p.Next(remaining)
 	l := len(data)
-	t.sizes = append(t.sizes, l)
 	if l == 0 {
+		p.Release()
 		return l
 	}
+
+	t.pages = append(t.pages, p)
+	t.sizes = append(t.sizes, l)
 
 	_ = s.Append(p, 0, header, data)
 	return l
@@ -89,7 +91,7 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 func (t *Tip) Commit() {
 	defer func() {
 		if r := recover(); r != nil {
-			t.abortPages()
+			t.release()
 			panic(r)
 		}
 	}()
@@ -99,6 +101,10 @@ func (t *Tip) Commit() {
 
 // Commit pages before current to avoid a partial commit
 func (t *Tip) commitPages() {
+	if len(t.pages) == 0 {
+		return
+	}
+
 	for i, p := range t.pages[1:] {
 		t.commitPage(p, i+1)
 	}
@@ -113,14 +119,7 @@ func (t *Tip) commitPage(p *bufferpage.BufferPage, i int) {
 	}
 }
 
-// Put everything after the first page back
-func (t *Tip) abortPages() {
-	for _, p := range t.pages[1:] {
-		p.Release()
-	}
-}
-
-func (t *Tip) Release() {
+func (t *Tip) release() {
 	for _, p := range t.pages {
 		p.Release()
 	}

@@ -28,8 +28,8 @@ func TestSpan_Write(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := New(&logtesting.MockLog{})
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {
@@ -56,8 +56,8 @@ func TestSpan_Length(t *testing.T) {
 	t.Parallel()
 
 	s := New(&logtesting.MockLog{})
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 100))
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 10000))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 100))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 10000))
 	s.InitIndexes()
 
 	want := 100 + 10000
@@ -91,8 +91,8 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	s := New(&logtesting.MockLog{})
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
 	if err := tr0.Write(s); err != nil {
@@ -119,8 +119,8 @@ func TestSpan_Bytes(t *testing.T) {
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	s := New(&logtesting.MockLog{})
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 5))
-	s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, len(want)-5))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 5))
+	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, len(want)-5))
 	s.InitIndexes()
 
 	if _, err := s.Write(want); err != nil {
@@ -141,7 +141,12 @@ type testBufferPage struct {
 }
 
 func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
+
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
+
 func (t *testBufferPage) Commit(size int) {
+}
+
+func (t *testBufferPage) Release() {
 }
