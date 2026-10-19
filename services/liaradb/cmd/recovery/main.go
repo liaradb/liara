@@ -41,7 +41,9 @@ func run() error {
 		fsys,
 		path.Join(conf.Directory, "log"))
 
-	it, err := log.Recover()
+	// TODO: Change back to log.Recover()
+	// it, err := log.Recover()
+	it, err := log.Iterate()
 	if err != nil {
 		slog.Error("recovery", "error", err)
 	}
@@ -51,7 +53,11 @@ func run() error {
 			slog.Error("recovery", "error", err)
 		}
 
-		fmt.Printf("%v\t%v\t<%v>\n", rc.LogSequenceNumber(), rc.TransactionID(), rc.Action())
+		fmt.Printf("%v\t%v\t%-12s\t%v\n",
+			rc.LogSequenceNumber(),
+			rc.TransactionID(),
+			fmt.Sprintf("<%v>", rc.Action()),
+			rc.RecordLocator())
 	}
 
 	return nil

@@ -220,3 +220,19 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 
 	return iterator.Reverse[*record.Record](rcs), nil
 }
+
+// TODO: Remove this, it's for testing only
+func (l *Log) Iterate() (iter.Seq[*record.Record], error) {
+	// TODO: Should we use a list, or just iterate forwards?
+	rcs := list.New()
+
+	for rc, err := range l.it.Reverse() {
+		if err != nil {
+			return nil, err
+		}
+
+		rcs.PushBack(rc)
+	}
+
+	return iterator.Reverse[*record.Record](rcs), nil
+}
