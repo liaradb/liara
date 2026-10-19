@@ -40,14 +40,10 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	t.blockID = b.BlockID()
 	t.slotID = link.SlotID(t.current.Count())
 
-	t.pages = append(t.pages, t.current)
-
 	available := 0
 	remaining := size
 
-	p := t.current
-
-	l := t.appendToSpan(s, p, remaining)
+	l := t.appendToSpan(s, t.current, remaining)
 
 	available = l
 	remaining -= l
@@ -69,6 +65,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 }
 
 func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int) int {
+	t.pages = append(t.pages, p)
 	header, data := p.Next(remaining)
 	l := len(data)
 	t.sizes = append(t.sizes, l)
@@ -86,9 +83,7 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 		return nil, err
 	}
 
-	p := bufferpage.New(b, span.FragmentHeaderSize)
-	t.pages = append(t.pages, p)
-	return p, nil
+	return bufferpage.New(b, span.FragmentHeaderSize), nil
 }
 
 func (t *Tip) Commit() {
