@@ -52,7 +52,7 @@ func newFragment(
 		nextSlotID:   nextSlotID,
 		crc:          crc,
 		buffer:       buffer.NewFromSlice(data),
-		size:         len(header) + len(data),
+		size:         len(data),
 	}
 }
 
@@ -73,19 +73,18 @@ func (f Fragment) RecordID(fn link.FileName) link.RecordID {
 }
 
 func (f Fragment) valid() bool {
-	return page.RestoreCRC(f.crc.Get()).
+	return page.RestoreCRC(f.crc.GetUnsigned()).
 		Compare(f.buffer.Bytes())
 }
 
 func (f Fragment) commit() {
-	crc := page.NewCRC(f.buffer.Bytes())
-	f.crc.Set(int32(crc.Value()))
+	f.commitCRC()
+	f.p.Commit(f.size)
 }
 
-func (f Fragment) commitFull() {
+func (f Fragment) commitCRC() {
 	crc := page.NewCRC(f.buffer.Bytes())
-	f.crc.Set(int32(crc.Value()))
-	f.p.Commit(f.size)
+	f.crc.SetUnsigned(crc.Value())
 }
 
 func (f Fragment) setNextPosition(p link.FilePosition) {

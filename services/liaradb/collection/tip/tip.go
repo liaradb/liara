@@ -14,8 +14,6 @@ type Tip struct {
 	l       span.Log
 	fn      link.FileName
 	current *bufferpage.BufferPage
-	pages   []*bufferpage.BufferPage
-	sizes   []int
 	blockID link.BlockID
 	slotID  link.SlotID
 }
@@ -72,9 +70,6 @@ func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int
 		return l
 	}
 
-	t.pages = append(t.pages, p)
-	t.sizes = append(t.sizes, l)
-
 	_ = s.Append(p, 0, header, data)
 	return l
 }
@@ -86,43 +81,6 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 	}
 
 	return bufferpage.New(b, span.FragmentHeaderSize), nil
-}
-
-func (t *Tip) Commit() {
-	defer func() {
-		if r := recover(); r != nil {
-			t.release()
-			panic(r)
-		}
-	}()
-
-	t.commitPages()
-}
-
-// Commit pages before current to avoid a partial commit
-func (t *Tip) commitPages() {
-	if len(t.pages) == 0 {
-		return
-	}
-
-	for i, p := range t.pages[1:] {
-		t.commitPage(p, i+1)
-	}
-
-	t.commitPage(t.current, 0)
-}
-
-func (t *Tip) commitPage(p *bufferpage.BufferPage, i int) {
-	size := t.sizes[i]
-	if size != 0 {
-		p.Commit(size)
-	}
-}
-
-func (t *Tip) release() {
-	for _, p := range t.pages {
-		p.Release()
-	}
 }
 
 func (t *Tip) RecordLocator() link.RecordLocator {

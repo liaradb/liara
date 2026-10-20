@@ -53,7 +53,6 @@ func (fc *FixedCollection) Insert(
 	}
 
 	s.Commit()
-	t.Commit()
 
 	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordLocator())
 }
@@ -117,7 +116,7 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	s.CommitFull()
+	s.Commit()
 	return err
 }
 

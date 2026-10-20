@@ -112,13 +112,6 @@ func (s Span) Commit() {
 	}
 }
 
-// TODO: Why do this only on replace?
-func (s Span) CommitFull() {
-	for _, f := range s.fragments {
-		f.commitFull()
-	}
-}
-
 func (s *Span) Release() {
 	for _, b := range s.buffers {
 		b.Release()

@@ -30,8 +30,7 @@ func TestTip(t *testing.T) {
 
 		// complete := 0
 		// TODO: Test the number of pages
-		tip.Commit()
-
+		s.Commit()
 		s.Release()
 
 		// last := pages[len(pages)-1]

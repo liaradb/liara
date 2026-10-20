@@ -167,6 +167,8 @@ func testGet(
 	fnIdx link.FileName,
 	data []item,
 ) {
+	t.Helper()
+
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
 		value, err := fc.GetByKey(ctx, fn, fnIdx, k)
