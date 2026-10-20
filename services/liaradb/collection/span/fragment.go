@@ -35,7 +35,6 @@ type BufferPage interface {
 }
 
 func newFragment(
-	l Log,
 	p BufferPage,
 	sid link.SlotID,
 	header []byte,
@@ -45,7 +44,6 @@ func newFragment(
 	nextSlotID, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
 	return &Fragment{
-		l:            l,
 		p:            p,
 		slotID:       sid,
 		nextPosition: nextPosition,
@@ -107,6 +105,10 @@ func (f Fragment) Write(p []byte) (int, error) {
 
 	f.p.SetLogSequenceNumber(lsn)
 	return f.buffer.Write(p)
+}
+
+func (f *Fragment) setLogger(l Log) {
+	f.l = l
 }
 
 func (f Fragment) recordLocator() link.RecordLocator {

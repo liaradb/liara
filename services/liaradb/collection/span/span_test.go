@@ -27,12 +27,12 @@ func TestSpan_Write(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New(&logtesting.MockLog{})
+	s := New()
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s); err != nil {
+	if err := tr0.Write(s.Writer(&logtesting.MockLog{})); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,7 +55,7 @@ func TestSpan_Write(t *testing.T) {
 func TestSpan_Length(t *testing.T) {
 	t.Parallel()
 
-	s := New(&logtesting.MockLog{})
+	s := New()
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 100))
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 10000))
 	s.InitIndexes()
@@ -70,7 +70,7 @@ func TestSpan_InitIndexes(t *testing.T) {
 	t.Parallel()
 
 	t.Run("default", func(t *testing.T) {
-		s := New(&logtesting.MockLog{})
+		s := New()
 		s.InitIndexes()
 	})
 
@@ -90,12 +90,12 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New(&logtesting.MockLog{})
+	s := New()
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, a))
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s); err != nil {
+	if err := tr0.Write(s.Writer(&logtesting.MockLog{})); err != nil {
 		t.Fatal(err)
 	}
 
@@ -118,12 +118,12 @@ func TestSpan_Bytes(t *testing.T) {
 
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
-	s := New(&logtesting.MockLog{})
+	s := New()
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, 5))
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, len(want)-5))
 	s.InitIndexes()
 
-	if _, err := s.Write(want); err != nil {
+	if _, err := s.Writer(&logtesting.MockLog{}).Write(want); err != nil {
 		t.Fatal(err)
 	}
 

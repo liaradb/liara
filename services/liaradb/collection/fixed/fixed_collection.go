@@ -39,7 +39,7 @@ func (fc *FixedCollection) Insert(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	t := tip.NewTip(fc.s, l, fn)
+	t := tip.NewTip(fc.s, fn)
 
 	s, err := t.Span(ctx, w.Size())
 	if err != nil {
@@ -48,7 +48,7 @@ func (fc *FixedCollection) Insert(
 
 	defer s.Release()
 
-	if err := w.Write(s); err != nil {
+	if err := w.Write(s.Writer(l)); err != nil {
 		return err
 	}
 
@@ -68,8 +68,7 @@ func (fc *FixedCollection) GetByKey(
 		return nil, err
 	}
 
-	// TODO: Don't use nil for Log
-	return fc.GetByRecordLocator(ctx, nil, fn, rl)
+	return fc.GetByRecordLocator(ctx, fn, rl)
 }
 
 func (fc *FixedCollection) List(
@@ -85,8 +84,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			// TODO: Don't use nil for Log
-			s, err := fc.GetByRecordLocator(ctx, nil, fn, rid)
+			s, err := fc.GetByRecordLocator(ctx, fn, rid)
 			if !yield(s, err) {
 				return
 			}
@@ -112,7 +110,7 @@ func (fc *FixedCollection) Replace(
 		panic("support resizing")
 	}
 
-	if err = w.Write(s); err != nil {
+	if err = w.Write(s.Writer(l)); err != nil {
 		return err
 	}
 
@@ -122,7 +120,6 @@ func (fc *FixedCollection) Replace(
 
 func (fc *FixedCollection) GetByRecordLocator(
 	ctx context.Context,
-	l span.Log,
 	fn link.FileName,
 	rl link.RecordLocator,
 ) (*span.Span, error) {
@@ -132,7 +129,7 @@ func (fc *FixedCollection) GetByRecordLocator(
 		return nil, err
 	}
 
-	s := span.New(l)
+	s := span.New()
 	f := s.AppendSlot(b, rl.SlotID())
 
 	for f.NextPosition() != 0 {

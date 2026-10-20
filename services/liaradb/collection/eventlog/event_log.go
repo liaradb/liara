@@ -61,7 +61,7 @@ func (l *EventLog) AppendEvent(
 	id value.EventID,
 	v []byte,
 ) error {
-	t := tip.NewTip(l.storage, sl, tn.EventLog(pid))
+	t := tip.NewTip(l.storage, tn.EventLog(pid))
 
 	s, err := t.Span(ctx, len(v))
 	if err != nil {
@@ -70,7 +70,7 @@ func (l *EventLog) AppendEvent(
 
 	defer s.Release()
 
-	if _, err := s.Write(v); err != nil {
+	if _, err := s.Writer(sl).Write(v); err != nil {
 		return err
 	}
 
@@ -107,8 +107,7 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.P
 		return nil, err
 	}
 
-	// TODO: Don't use nil for Log
-	s, err := l.fc.GetByRecordLocator(ctx, nil, tn.EventLog(pid), rl)
+	s, err := l.fc.GetByRecordLocator(ctx, tn.EventLog(pid), rl)
 
 	return l.readEvent(s)
 }
@@ -122,8 +121,7 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid
 				return
 			}
 
-			// TODO: Don't use nil for Log
-			s, err := l.fc.GetByRecordLocator(ctx, nil, fn, rl)
+			s, err := l.fc.GetByRecordLocator(ctx, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -179,8 +177,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			// TODO: Don't use nil for Log
-			s, err := l.fc.GetByRecordLocator(ctx, nil, fn, rl)
+			s, err := l.fc.GetByRecordLocator(ctx, fn, rl)
 			if err != nil {
 				yield(nil, err)
 				return

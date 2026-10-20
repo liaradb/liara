@@ -12,15 +12,12 @@ import (
 )
 
 type Span struct {
-	l         Log
 	fragments []*Fragment
 	buffers   []BufferPage
 }
 
-func New(l Log) *Span {
-	return &Span{
-		l: l,
-	}
+func New() *Span {
+	return &Span{}
 }
 
 func (s Span) Length() (l int) {
@@ -47,7 +44,7 @@ func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) *Fragment {
 
 func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
 	s.buffers = append(s.buffers, b)
-	f := newFragment(s.l, b, sid, header, data)
+	f := newFragment(b, sid, header, data)
 	s.fragments = append(s.fragments, f)
 	return f
 }
@@ -89,14 +86,14 @@ func (s Span) Read(p []byte) (n int, err error) {
 }
 
 // TODO: Can we do this without creating a new writer?
-func (s Span) Write(p []byte) (n int, err error) {
+func (s *Span) Writer(l Log) io.Writer {
 	writers := make([]io.Writer, 0, len(s.fragments))
 	for _, f := range s.fragments {
+		f.setLogger(l)
 		writers = append(writers, f)
 	}
 
-	writer := multi.NewWriter(writers...)
-	return writer.Write(p)
+	return multi.NewWriter(writers...)
 }
 
 // TODO: This is unused

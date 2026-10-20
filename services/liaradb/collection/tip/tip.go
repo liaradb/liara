@@ -11,23 +11,21 @@ import (
 
 type Tip struct {
 	s       *storage.Storage
-	l       span.Log
 	fn      link.FileName
 	current *bufferpage.BufferPage
 	blockID link.BlockID
 	slotID  link.SlotID
 }
 
-func NewTip(s *storage.Storage, l span.Log, fn link.FileName) Tip {
+func NewTip(s *storage.Storage, fn link.FileName) Tip {
 	return Tip{
 		s:  s,
-		l:  l,
 		fn: fn,
 	}
 }
 
 func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
-	s := span.New(t.l)
+	s := span.New()
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -17,7 +16,7 @@ const (
 
 func TestTip(t *testing.T) {
 	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
-		tip := NewTip(st.Storage, &logtesting.MockLog{}, link.NewFileName("fn"))
+		tip := NewTip(st.Storage, link.NewFileName("fn"))
 		want := 128
 		s, err := tip.Span(t.Context(), want)
 		if err != nil {
