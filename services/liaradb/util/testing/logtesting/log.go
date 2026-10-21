@@ -12,6 +12,10 @@ func (t *MockLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber,
 	return logpage.LogSequenceNumber{}, nil
 }
 
+func (t *MockLog) Update(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
+}
+
 func (t *MockLog) UpdateHeader(link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }
