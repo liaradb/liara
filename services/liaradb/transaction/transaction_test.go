@@ -144,7 +144,6 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 
 func TestTransaction_Commit(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testTransaction_Commit)
 }
 
@@ -217,7 +216,6 @@ func testTransaction_Commit(t *testing.T) {
 		resultActions = append(resultActions, rc.Action())
 	}
 
-	// TODO: Restore this
 	if !slices.Equal(resultLSNs, lsns) {
 		t.Errorf("incorrect lsns: %v, expected: %v", resultLSNs, lsns)
 	}

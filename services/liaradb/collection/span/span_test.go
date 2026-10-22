@@ -32,11 +32,15 @@ func TestSpan_Write(t *testing.T) {
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s.Writer(&logtesting.MockLog{})); err != nil {
+	if err := tr0.Write(s.Writer()); err != nil {
 		t.Fatal(err)
 	}
 
 	s.Commit()
+	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+		t.Fatal(err)
+	}
+
 	s.SeekStart()
 
 	tr1 := &testRecord{
@@ -95,11 +99,15 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, b))
 	s.InitIndexes()
 
-	if err := tr0.Write(s.Writer(&logtesting.MockLog{})); err != nil {
+	if err := tr0.Write(s.Writer()); err != nil {
 		t.Fatal(err)
 	}
 
 	s.Commit()
+	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+		t.Fatal(err)
+	}
+
 	s.SeekStart()
 
 	s.fragments[1].buffer.Bytes()[8] = 0
@@ -123,11 +131,15 @@ func TestSpan_Bytes(t *testing.T) {
 	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, FragmentHeaderSize), make([]byte, len(want)-5))
 	s.InitIndexes()
 
-	if _, err := s.Writer(&logtesting.MockLog{}).Write(want); err != nil {
+	if _, err := s.Writer().Write(want); err != nil {
 		t.Fatal(err)
 	}
 
 	s.Commit()
+	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+		t.Fatal(err)
+	}
+
 	s.SeekStart()
 
 	if d, err := s.Bytes(); err != nil {

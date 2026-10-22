@@ -86,10 +86,10 @@ func (s Span) Read(p []byte) (n int, err error) {
 }
 
 // TODO: Can we do this without creating a new writer?
-func (s *Span) Writer(l Log) io.Writer {
+func (s *Span) Writer() io.Writer {
 	writers := make([]io.Writer, 0, len(s.fragments))
 	for _, f := range s.fragments {
-		f.setLogger(l)
+		f.prepareWrite()
 		writers = append(writers, f)
 	}
 
@@ -107,6 +107,26 @@ func (s Span) Commit() {
 	for _, f := range s.fragments {
 		f.commit()
 	}
+}
+
+func (s Span) LogAppend(l Log) error {
+	for _, f := range s.fragments {
+		if err := f.logAppend(l); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s Span) LogUpdate(l Log) error {
+	for _, f := range s.fragments {
+		if err := f.logUpdate(l); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Span) Release() {

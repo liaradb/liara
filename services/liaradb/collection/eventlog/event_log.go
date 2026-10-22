@@ -49,11 +49,14 @@ func (l *EventLog) Append(
 
 	defer s.Release()
 
-	if err := e.Write(s.Writer(sl)); err != nil {
+	if err := e.Write(s.Writer()); err != nil {
 		return err
 	}
 
 	s.Commit()
+	if err := s.LogAppend(sl); err != nil {
+		return err
+	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordLocator()); err != nil {

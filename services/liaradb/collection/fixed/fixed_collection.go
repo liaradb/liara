@@ -48,11 +48,14 @@ func (fc *FixedCollection) Insert(
 
 	defer s.Release()
 
-	if err := w.Write(s.Writer(l)); err != nil {
+	if err := w.Write(s.Writer()); err != nil {
 		return err
 	}
 
 	s.Commit()
+	if err := s.LogAppend(l); err != nil {
+		return err
+	}
 
 	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordLocator())
 }
@@ -102,6 +105,9 @@ func (fc *FixedCollection) Replace(
 	w serializer.SizedSerializer,
 ) error {
 	s, err := fc.GetByKey(ctx, fn, fnIdx, k)
+	if err != nil {
+		return err
+	}
 
 	defer s.Release()
 
@@ -110,12 +116,12 @@ func (fc *FixedCollection) Replace(
 		panic("support resizing")
 	}
 
-	if err = w.Write(s.Writer(l)); err != nil {
+	if err := w.Write(s.Writer()); err != nil {
 		return err
 	}
 
 	s.Commit()
-	return err
+	return s.LogUpdate(l)
 }
 
 func (fc *FixedCollection) GetByRecordLocator(

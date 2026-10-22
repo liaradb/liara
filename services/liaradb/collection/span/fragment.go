@@ -1,6 +1,8 @@
 package span
 
 import (
+	"slices"
+
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -17,7 +19,6 @@ const (
 )
 
 type Fragment struct {
-	l            Log
 	p            BufferPage
 	slotID       link.SlotID
 	nextPosition wrap.Int64
@@ -25,6 +26,7 @@ type Fragment struct {
 	crc          wrap.Int32
 	buffer       *buffer.Buffer
 	size         int
+	base         []byte
 }
 
 type BufferPage interface {
@@ -97,20 +99,38 @@ func (f Fragment) Read(p []byte) (int, error) {
 	return f.buffer.Read(p)
 }
 
-// TODO: A partial write may cause multiple log entries
 func (f Fragment) Write(p []byte) (int, error) {
-	lsn, err := f.l.Append(f.recordLocator(), p)
-	// lsn, err := f.l.Update(f.recordLocator(), p, f.buffer.Bytes())
-	if err != nil {
-		return 0, err
-	}
-
-	f.p.SetLogSequenceNumber(lsn)
 	return f.buffer.Write(p)
 }
 
-func (f *Fragment) setLogger(l Log) {
-	f.l = l
+func (f *Fragment) prepareWrite() {
+	f.base = f.cloneBuffer()
+}
+
+func (f *Fragment) cloneBuffer() []byte {
+	return slices.Clone(f.buffer.Bytes())
+}
+
+// TODO: Can we do this without the allocations?
+func (f *Fragment) logAppend(l Log) error {
+	lsn, err := l.Append(f.recordLocator(), f.cloneBuffer())
+	if err != nil {
+		return err
+	}
+
+	f.p.SetLogSequenceNumber(lsn)
+	return nil
+}
+
+// TODO: Can we do this without the allocations?
+func (f *Fragment) logUpdate(l Log) error {
+	lsn, err := l.Update(f.recordLocator(), f.cloneBuffer(), f.base)
+	if err != nil {
+		return err
+	}
+
+	f.p.SetLogSequenceNumber(lsn)
+	return nil
 }
 
 func (f Fragment) recordLocator() link.RecordLocator {
