@@ -103,13 +103,23 @@ func (s Span) SeekStart() {
 	}
 }
 
-func (s Span) Commit() {
+func (s Span) CommitAppend(l Log) error {
+	s.commit()
+	return s.logAppend(l)
+}
+
+func (s Span) CommitUpdate(l Log) error {
+	s.commit()
+	return s.logUpdate(l)
+}
+
+func (s Span) commit() {
 	for _, f := range s.fragments {
 		f.commit()
 	}
 }
 
-func (s Span) LogAppend(l Log) error {
+func (s Span) logAppend(l Log) error {
 	for _, f := range s.fragments {
 		if err := f.logAppend(l); err != nil {
 			return err
@@ -119,7 +129,7 @@ func (s Span) LogAppend(l Log) error {
 	return nil
 }
 
-func (s Span) LogUpdate(l Log) error {
+func (s Span) logUpdate(l Log) error {
 	for _, f := range s.fragments {
 		if err := f.logUpdate(l); err != nil {
 			return err

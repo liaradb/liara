@@ -36,8 +36,7 @@ func TestSpan_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s.Commit()
-	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+	if err := s.CommitAppend(&logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -103,8 +102,7 @@ func TestSpan_Read__Invalid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s.Commit()
-	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+	if err := s.CommitAppend(&logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -135,8 +133,7 @@ func TestSpan_Bytes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s.Commit()
-	if err := s.LogAppend(&logtesting.MockLog{}); err != nil {
+	if err := s.CommitAppend(&logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 

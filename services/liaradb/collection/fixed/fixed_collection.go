@@ -52,8 +52,7 @@ func (fc *FixedCollection) Insert(
 		return err
 	}
 
-	s.Commit()
-	if err := s.LogAppend(l); err != nil {
+	if err := s.CommitAppend(l); err != nil {
 		return err
 	}
 
@@ -120,8 +119,7 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	s.Commit()
-	return s.LogUpdate(l)
+	return s.CommitUpdate(l)
 }
 
 func (fc *FixedCollection) GetByRecordLocator(

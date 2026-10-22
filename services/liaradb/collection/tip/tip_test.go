@@ -5,6 +5,7 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -29,7 +30,10 @@ func TestTip(t *testing.T) {
 
 		// complete := 0
 		// TODO: Test the number of pages
-		s.Commit()
+		if err := s.CommitAppend(&logtesting.MockLog{}); err != nil {
+			t.Fatal(err)
+		}
+
 		s.Release()
 
 		// last := pages[len(pages)-1]
