@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
 )
@@ -42,49 +41,30 @@ func (l *EventLog) Append(
 	pid value.PartitionID,
 	e *entity.Event,
 ) error {
-	b := buffer.New(l.storage.BufferSize())
-	if err := e.Write(b); err != nil {
-		return err
-	}
-
-	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	return l.AppendEvent(ctx, sl, tn, pid, k, e.GlobalVersion, e.ID, b.Bytes()[:b.Cursor()])
-}
-
-func (l *EventLog) AppendEvent(
-	ctx context.Context,
-	sl span.Log,
-	tn tablename.TableName,
-	pid value.PartitionID,
-	k key.Key,
-	gV value.GlobalVersion,
-	id value.EventID,
-	v []byte,
-) error {
 	t := tip.NewTip(l.storage, tn.EventLog(pid))
-
-	s, err := t.Span(ctx, len(v))
+	s, err := t.Span(ctx, e.Size())
 	if err != nil {
 		return err
 	}
 
 	defer s.Release()
 
-	if _, err := s.Writer(sl).Write(v); err != nil {
+	if err := e.Write(s.Writer(sl)); err != nil {
 		return err
 	}
 
 	s.Commit()
 
+	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
 		return err
 	}
 
-	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(id.Bytes()), t.RecordLocator()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(e.ID.Bytes()), t.RecordLocator()); err != nil {
 		return err
 	}
 
-	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(gV.Bytes()), t.RecordLocator())
+	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(e.GlobalVersion.Bytes()), t.RecordLocator())
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {

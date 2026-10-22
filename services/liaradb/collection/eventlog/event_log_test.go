@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -260,48 +259,6 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 		return reflect.DeepEqual(a, b)
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
-	}
-
-	synctest.Wait()
-}
-
-func TestEventLog_AppendEvent(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 1024, testEventLog_AppendEvent)
-}
-
-func testEventLog_AppendEvent(t *testing.T, s storagetesting.Storage) {
-	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	el := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
-	pid := value.NewPartitionID(0)
-
-	records := [][]byte{
-		{1, 2},
-		{3, 4},
-		{5, 6},
-		{7, 8},
-		{9, 10}}
-
-	for i, r := range records {
-		k := key.NewKey2([]byte(""), int64(i))
-		if err := el.AppendEvent(ctx, &logtesting.MockLog{}, tn, pid, k, value.NewGlobalVersion(uint64(i)), value.NewEventID(), r); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	result := make([][]byte, 0)
-
-	for n, err := range el.Iterate(ctx, tn, pid) {
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		result = append(result, n)
-	}
-
-	if !slices.EqualFunc(result, records, slices.Equal) {
-		t.Errorf("incorrect result: %v, expected: %v", result, records)
 	}
 
 	synctest.Wait()

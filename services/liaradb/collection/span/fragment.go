@@ -97,8 +97,10 @@ func (f Fragment) Read(p []byte) (int, error) {
 	return f.buffer.Read(p)
 }
 
+// TODO: A partial write may cause multiple log entries
 func (f Fragment) Write(p []byte) (int, error) {
 	lsn, err := f.l.Append(f.recordLocator(), p)
+	// lsn, err := f.l.Update(f.recordLocator(), p, f.buffer.Bytes())
 	if err != nil {
 		return 0, err
 	}
