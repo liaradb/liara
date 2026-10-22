@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestRow_Default(t *testing.T) {
@@ -22,7 +21,7 @@ func TestRow_Default(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	size := w.Len() - raw.HeaderSize
+	size := w.Len()
 	if s := row.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}

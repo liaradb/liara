@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/encoder/raw"
 )
 
 func TestEvent(t *testing.T) {
@@ -24,7 +23,7 @@ func TestEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	size := w.Len() - raw.HeaderSize
+	size := w.Len()
 	if s := e.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}

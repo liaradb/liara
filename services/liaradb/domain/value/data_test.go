@@ -20,7 +20,7 @@ func TestData(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", v, []byte(value))
 	}
 
-	if s := data.Size(); s != len(value) {
+	if s := data.Size(); s != len(value)+raw.HeaderSize {
 		t.Errorf("incorrect size: %v, expected: %v", s, len(value))
 	}
 }
@@ -35,7 +35,7 @@ func TestData_WriteRead(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	size := w.Len() - raw.HeaderSize
+	size := w.Len()
 	if s := e.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}

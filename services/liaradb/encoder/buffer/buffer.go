@@ -95,6 +95,10 @@ func (b *Buffer) SeekStart() {
 }
 
 func (b *Buffer) Write(p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+
 	if b.cursor >= int64(len(b.data)) {
 		return 0, io.ErrShortWrite
 	}

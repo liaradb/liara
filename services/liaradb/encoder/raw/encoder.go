@@ -11,6 +11,10 @@ func StringSize[S ~string](s S) int {
 	return HeaderSize + len(s)
 }
 
+func BytesSize(value []byte) int {
+	return HeaderSize + len(value)
+}
+
 func Write(w io.Writer, value []byte) error {
 	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
