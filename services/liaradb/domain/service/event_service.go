@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bytes"
 	"context"
 	"iter"
 	"time"
@@ -59,19 +58,13 @@ func (es *EventService) Append(
 			}
 		}
 
-		buf := bytes.NewBuffer(nil)
-
 		for _, em := range cmd.Events {
 			e, err := em.ToEvent(cmd.PartitionID, cmd.Options, es.gvg.Next(tn))
 			if err != nil {
 				return err
 			}
 
-			if err := e.Write(buf); err != nil {
-				return err
-			}
-
-			if err := tx.Insert(ctx, tn, &e, buf.Bytes()); err != nil {
+			if err := tx.Insert(ctx, tn, &e); err != nil {
 				return err
 			}
 		}

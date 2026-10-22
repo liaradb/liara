@@ -12,13 +12,8 @@ import (
 )
 
 type EventLogTransaction struct {
-	events []eventItem
+	events []*entity.Event
 	el     *eventlog.EventLog
-}
-
-type eventItem struct {
-	e    *entity.Event
-	data []byte
 }
 
 func (t *EventLogTransaction) CanAppend(ctx context.Context, tid value.TenantID, e *entity.Event) error {
@@ -27,19 +22,14 @@ func (t *EventLogTransaction) CanAppend(ctx context.Context, tid value.TenantID,
 	return t.el.CanAppend(ctx, tn, e.PartitionID, k)
 }
 
-func (t *EventLogTransaction) Append(e *entity.Event, data []byte) {
-	t.events = append(t.events, eventItem{
-		e:    e,
-		data: data,
-	})
+func (t *EventLogTransaction) Append(e *entity.Event) {
+	t.events = append(t.events, e)
 }
 
 func (t *EventLogTransaction) Commit(ctx context.Context, l span.Log, tx *Transaction) error {
 	tn := tablename.New(tx.tid)
-	for _, item := range t.events {
-		k := key.NewKey2(item.e.AggregateID.Bytes(), item.e.Version.Value())
-		err := t.el.AppendEvent(ctx, l, tn, item.e.PartitionID, k, item.e.GlobalVersion, item.e.ID, item.data)
-		if err != nil {
+	for _, e := range t.events {
+		if err := t.el.Append(ctx, l, tn, e.PartitionID, e); err != nil {
 			return err
 		}
 	}

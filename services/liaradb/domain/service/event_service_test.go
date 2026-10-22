@@ -22,7 +22,7 @@ func TestEventService_Append(t *testing.T) {
 }
 
 func testEventService_Append(t *testing.T) {
-	m, _ := createManager(t, 256)
+	m, _ := createManager(t, 1024)
 	es := NewEventService(m)
 
 	aggregateID := value.NewAggregateID(uuid.NewString())

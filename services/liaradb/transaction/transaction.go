@@ -162,7 +162,6 @@ func (t *Transaction) Insert(
 	ctx context.Context,
 	tn tablename.TableName,
 	e *entity.Event,
-	data []byte,
 ) error {
 	if err := t.concurrencyMgr.XLock(ctx, ItemID(e.AggregateID.String())); err != nil {
 		return err
@@ -181,7 +180,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	t.eventLog.Append(e, data)
+	t.eventLog.Append(e)
 
 	return nil
 }

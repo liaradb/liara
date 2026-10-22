@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -32,7 +33,7 @@ func testTransaction_Insert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.Insert(ctx, tablename.NewFromString("a"), &entity.Event{}, nil); err != nil {
+	if err := tx.Insert(ctx, tablename.NewFromString("a"), &entity.Event{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -83,7 +84,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
-		}, nil)
+		})
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +100,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
-		}, nil)
+		})
 	}); !errors.Is(err, btree.ErrExists) {
 		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
@@ -127,14 +128,14 @@ func testTransaction_Insert__UniqueCurrent(t *testing.T) {
 	if err := tx.Insert(ctx, tn, &entity.Event{
 		AggregateID: id,
 		Version:     version,
-	}, nil); err != nil {
+	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := tx.Insert(ctx, tn, &entity.Event{
 		AggregateID: id,
 		Version:     version,
-	}, nil); !errors.Is(err, btree.ErrExists) {
+	}); !errors.Is(err, btree.ErrExists) {
 		t.Fatalf("incorrect error: %v, expected: %v", err, btree.ErrExists)
 	}
 
@@ -170,31 +171,18 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	type item struct {
-		e    *entity.Event
-		data []byte
+	items := []*entity.Event{
+		{Data: value.NewData([]byte{1})},
+		{Data: value.NewData([]byte{2})},
+		{Data: value.NewData([]byte{3})},
+		{Data: value.NewData([]byte{4})},
+		{Data: value.NewData([]byte{5})},
 	}
-	items := []item{{
-		e:    &entity.Event{},
-		data: []byte{1},
-	}, {
-		e:    &entity.Event{},
-		data: []byte{2},
-	}, {
-		e:    &entity.Event{},
-		data: []byte{3},
-	}, {
-		e:    &entity.Event{},
-		data: []byte{4},
-	}, {
-		e:    &entity.Event{},
-		data: []byte{5},
-	}}
 
 	tn := tablename.New(tid)
 	pid := value.NewPartitionID(0)
 
-	if err := tx.Insert(ctx, tn, items[0].e, items[0].data); err != nil {
+	if err := tx.Insert(ctx, tn, items[0]); err != nil {
 		t.Fatal(err)
 	}
 
@@ -245,10 +233,16 @@ func testTransaction_Commit(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result = append(result, n)
+		b := buffer.NewFromSlice(n)
+		e := entity.Event{}
+		if err := e.Read(b); err != nil {
+			t.Error(err)
+		}
+
+		result = append(result, e.Data.Value())
 	}
 
-	records := [][]byte{items[0].data}
+	records := [][]byte{items[0].Data.Value()}
 	if !slices.EqualFunc(result, records, slices.Equal) {
 		t.Errorf("incorrect records do not match: %v, expected: %v", result, records)
 	}
@@ -290,7 +284,9 @@ func testTransaction_Rollback(t *testing.T) {
 	tn := tablename.NewFromString("a")
 	pid := value.NewPartitionID(0)
 
-	if err := tx.Insert(ctx, tn, &entity.Event{}, records[0]); err != nil {
+	if err := tx.Insert(ctx, tn, &entity.Event{
+		Data: value.NewData(records[0]),
+	}); err != nil {
 		t.Fatal(err)
 	}
 
