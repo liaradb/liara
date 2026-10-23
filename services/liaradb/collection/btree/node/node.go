@@ -2,6 +2,7 @@ package node
 
 import (
 	"iter"
+	"slices"
 
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -109,7 +110,9 @@ func (n *Node) CommitInsert(size int16, index link.SlotID) {
 
 func (n *Node) addHeaderAction(rl link.RecordLocator) {
 	if n.header.dirty {
-		n.addAction(newHeaderAction(rl, n.header.data, n.header.base))
+		n.addAction(newHeaderAction(rl,
+			slices.Clone(n.header.data),
+			slices.Clone(n.header.base)))
 		n.header.commit()
 	}
 }
