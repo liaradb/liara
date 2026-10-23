@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/collection/span"
 )
 
 // TODO: Create latch crabbing support
@@ -95,4 +96,21 @@ func (c *chain) unlatch() {
 			kn.Unlatch()
 		}
 	}
+}
+
+func (c *chain) logActions(l span.Log) error {
+	for i, n := range c.items() {
+		if i == 0 {
+			ln := n.(*leafnode.LeafNode)
+			if err := ln.LogActions(l); err != nil {
+				return err
+			}
+		} else {
+			kn := n.(*keynode.KeyNode)
+			if err := kn.LogActions(l); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

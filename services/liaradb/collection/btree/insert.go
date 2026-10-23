@@ -69,7 +69,11 @@ func (c *insert) Insert(
 		}
 	}
 
-	return c.insertRoot(ctx, fn, level, key, bid)
+	if err := c.insertRoot(ctx, fn, level, key, bid); err != nil {
+		return err
+	}
+
+	return chain.logActions(l)
 }
 
 func (c *insert) getChain(

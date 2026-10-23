@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -18,6 +19,10 @@ func New(page node.Node) *KeyNode {
 	return &KeyNode{
 		node: page,
 	}
+}
+
+func (n *KeyNode) LogActions(l span.Log) error {
+	return n.node.LogActions(l)
 }
 
 func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
