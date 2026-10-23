@@ -169,22 +169,24 @@ func (p *Page) Space() int {
 	return max(space, 0)
 }
 
-func (p *Page) Commit(size int) {
+func (p *Page) Commit(size int) link.SlotID {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
 	// TODO: Fix this cast
-	_, _ = p.list.Push(int16(start), int16(fullSize))
+	_, sid := p.list.Push(int16(start), int16(fullSize))
 	p.next = start
+	return sid
 }
 
-func (p *Page) Insert(size int, i link.SlotID) {
+func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
 	// TODO: Fix this cast
-	_, _ = p.list.Insert(int16(start), int16(fullSize), i)
+	_, sid := p.list.Insert(int16(start), int16(fullSize), i)
 	p.next = start
+	return sid
 }
 
 func (p *Page) Clear() {

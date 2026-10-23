@@ -35,8 +35,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 
 	ke.Write(b)
 
-	// TODO: Append log
-	kn.node.Commit(size)
+	kn.node.CommitAppend(size)
 
 	return true
 }
@@ -54,7 +53,7 @@ func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Itera
 
 	ke.Write(b)
 
-	kn.node.Insert(size, i)
+	kn.node.CommitInsert(size, i)
 	kn.node.SetDirty()
 
 	return nil, nil, true

@@ -18,10 +18,10 @@ type Node struct {
 	header
 	page    *page.Page
 	buffer  *storage.Buffer
-	actions []Action
+	actions []action
 }
 
-type Action interface {
+type action interface {
 	Log(span.Log) (logpage.LogSequenceNumber, error)
 }
 
@@ -64,7 +64,7 @@ func (n *Node) setLogSequenceNumber(lsn logpage.LogSequenceNumber) {
 	n.page.SetTrackingID(lsn.Value())
 }
 
-func (n *Node) AddAction(a Action) {
+func (n *Node) addAction(a action) {
 	n.actions = append(n.actions, a)
 }
 
@@ -87,14 +87,24 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	return b, ok
 }
 
-func (n *Node) Commit(size int16) {
+func (n *Node) CommitAppend(size int16) {
 	// TODO: Fix this cast
-	n.page.Commit(int(size))
+	_, b, _ := n.page.NextMustFit(int(size))
+	sid := n.page.Commit(int(size))
+	n.addAction(newAppendAction(
+		n.buffer.BlockID().RecordLocator(sid),
+		b,
+	))
 }
 
-func (n *Node) Insert(size int16, index link.SlotID) {
+func (n *Node) CommitInsert(size int16, index link.SlotID) {
 	// TODO: Fix this cast
-	n.page.Insert(int(size), index)
+	_, b, _ := n.page.NextMustFit(int(size))
+	sid := n.page.Insert(int(size), index)
+	n.addAction(newInsertAction(
+		n.buffer.BlockID().RecordLocator(sid),
+		b,
+	))
 }
 
 func (n *Node) Count() link.SlotID {

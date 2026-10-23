@@ -62,8 +62,7 @@ func (ln *LeafNode) Append(key key.Key, recordID link.RecordLocator) bool {
 
 	le.Write(b)
 
-	// TODO: Append Log
-	ln.node.Commit(size)
+	ln.node.CommitAppend(size)
 	ln.node.SetDirty()
 
 	return true
@@ -81,7 +80,7 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 
 	le.Write(b)
 
-	ln.node.Insert(size, i)
+	ln.node.CommitInsert(size, i)
 	ln.node.SetDirty()
 
 	return nil, nil, true

@@ -59,7 +59,7 @@ func (lp *LogPage) Next(size int) ([]byte, []byte) {
 }
 
 func (lp *LogPage) Commit(size int) {
-	lp.page.Commit(size)
+	_ = lp.page.Commit(size)
 }
 
 func (lp *LogPage) Fill(data []byte) {

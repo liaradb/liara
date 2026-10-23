@@ -78,7 +78,7 @@ func TestPage_Next(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	p.Commit(8)
+	_ = p.Commit(8)
 
 	header, data = p.Slot(0)
 
@@ -95,7 +95,7 @@ func TestPage_Next__Empty(t *testing.T) {
 	t.Parallel()
 
 	p := New(32, 4, 4)
-	p.Commit(18)
+	_ = p.Commit(18)
 
 	header, data := p.Next(2)
 	if l := len(header); l != 0 {
@@ -122,7 +122,7 @@ func TestPage_NextMustFit(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 8)
 	}
 
-	p.Commit(8)
+	_ = p.Commit(8)
 
 	header, data = p.Slot(0)
 
@@ -154,7 +154,7 @@ func TestPage_Insert(t *testing.T) {
 		header[0] = 1
 		data[0] = 2
 
-		p.Commit(8)
+		_ = p.Commit(8)
 	}
 
 	{
@@ -171,7 +171,7 @@ func TestPage_Insert(t *testing.T) {
 		header[0] = 3
 		data[0] = 4
 
-		p.Insert(8, 0)
+		_ = p.Insert(8, 0)
 	}
 
 	{
@@ -234,10 +234,10 @@ func TestPage_Slot(t *testing.T) {
 	}
 
 	_, _ = p.Next(8)
-	p.Commit(8)
+	_ = p.Commit(8)
 
 	_, _ = p.Next(8)
-	p.Commit(8)
+	_ = p.Commit(8)
 
 	_, _ = p.Slot(0)
 	_, _ = p.Slot(1)
@@ -266,7 +266,7 @@ func TestPage_Slots(t *testing.T) {
 	for _, v := range want {
 		_, b := p.Next(8)
 		_ = scan.SetInt64(b, v)
-		p.Commit(8)
+		_ = p.Commit(8)
 	}
 
 	result := make([]int64, 0, 5)
@@ -289,7 +289,7 @@ func TestPage_SlotsRange(t *testing.T) {
 	for _, v := range want {
 		_, b := p.Next(8)
 		_ = scan.SetInt64(b, v)
-		p.Commit(8)
+		_ = p.Commit(8)
 	}
 
 	result := make([]int64, 0, 5)

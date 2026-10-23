@@ -45,7 +45,7 @@ func (bp *BufferPage) Release() {
 }
 
 func (bp *BufferPage) Commit(size int) {
-	bp.page.Commit(size)
+	_ = bp.page.Commit(size)
 	// TODO: Verify this the correct time to do this
 	bp.buffer.SetDirty()
 }
