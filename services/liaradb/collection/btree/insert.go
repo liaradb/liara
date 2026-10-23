@@ -30,8 +30,9 @@ func (c *insert) Insert(
 	fn link.FileName,
 	k key.Key,
 	rid link.RecordLocator,
-) error {
-	chain, err := c.getChain(ctx, fn, k)
+) (err error) {
+	var chain *chain
+	chain, err = c.getChain(ctx, fn, k)
 	if err != nil {
 		return err
 	}
@@ -41,6 +42,12 @@ func (c *insert) Insert(
 	chain.latch()
 	defer chain.unlatch()
 
+	defer func() {
+		if err == nil {
+			err = chain.logActions(l)
+		}
+	}()
+
 	var bid link.BlockID
 	var key = k
 	var level byte
@@ -49,31 +56,30 @@ func (c *insert) Insert(
 		if i == 0 {
 			ln, ok := n.(*leafnode.LeafNode)
 			if !ok {
-				return ErrTypeMismatch
+				err = ErrTypeMismatch
+				return
 			}
 
 			bid, key, split, err = c.insertChainLeaf(ctx, fn, bid, ln, key, rid)
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
-				return ErrTypeMismatch
+				err = ErrTypeMismatch
+				return
 			}
 
 			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position())
 			level++
 		}
 		if err != nil {
-			return err
+			return
 		} else if !split {
-			return nil
+			return
 		}
 	}
 
-	if err := c.insertRoot(ctx, fn, level, key, bid); err != nil {
-		return err
-	}
-
-	return chain.logActions(l)
+	err = c.insertRoot(ctx, fn, level, key, bid)
+	return
 }
 
 func (c *insert) getChain(

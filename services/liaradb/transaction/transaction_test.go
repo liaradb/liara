@@ -201,8 +201,18 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lsns := []logpage.LogSequenceNumber{logpage.NewLogSequenceNumber(1), logpage.NewLogSequenceNumber(2)}
-	actions := []record.Action{record.ActionInsert, record.ActionCommit}
+	lsns := []logpage.LogSequenceNumber{
+		logpage.NewLogSequenceNumber(1),
+		logpage.NewLogSequenceNumber(2),
+		logpage.NewLogSequenceNumber(3),
+		logpage.NewLogSequenceNumber(4),
+		logpage.NewLogSequenceNumber(5)}
+	actions := []record.Action{
+		record.ActionInsert,
+		record.ActionInsert,
+		record.ActionInsert,
+		record.ActionInsert,
+		record.ActionCommit}
 
 	it, err := l2.Recover()
 	if err != nil {
