@@ -1,6 +1,7 @@
 package keynode
 
 import (
+	"context"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -21,8 +22,8 @@ func New(page node.Node) *KeyNode {
 	}
 }
 
-func (n *KeyNode) LogActions(l span.Log) error {
-	return n.node.LogActions(l)
+func (n *KeyNode) LogActions(ctx context.Context, l span.Log) error {
+	return n.node.LogActions(ctx, l)
 }
 
 func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {

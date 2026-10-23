@@ -53,7 +53,7 @@ func (l *EventLog) Append(
 		return err
 	}
 
-	if err := s.CommitAppend(sl); err != nil {
+	if err := s.CommitAppend(ctx, sl); err != nil {
 		return err
 	}
 

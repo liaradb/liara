@@ -109,7 +109,7 @@ func testManager_ActiveTestManager_Active(t *testing.T) {
 		t.Errorf("should include: %v", tx0.ID())
 	}
 
-	lg := tx0.Logger(ctx, record.CollectionEvent)
+	lg := tx0.Logger(record.CollectionEvent)
 
 	if err := Run(ctx, lg, tx0, func() error {
 		return nil

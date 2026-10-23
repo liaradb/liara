@@ -44,7 +44,7 @@ func (es *EventService) Append(
 		return err
 	}
 
-	lg := tx.Logger(ctx, record.CollectionEvent)
+	lg := tx.Logger(record.CollectionEvent)
 
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
@@ -88,7 +88,7 @@ func (es *EventService) TestIdempotency(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	return transaction.RunResult(ctx, lg, tx, func() (bool, error) {
 		tn := tablename.New(qry.TenantID)
@@ -146,7 +146,7 @@ func (es *EventService) GetAfterGlobalVersion(
 		}
 
 		// TODO: Should this log?
-		lg := tx.Logger(ctx, record.CollectionOutbox)
+		lg := tx.Logger(record.CollectionOutbox)
 
 		// TODO: How do we handle a range?
 		count := 0
@@ -201,7 +201,7 @@ func (es *EventService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	// TODO: How do we handle a range?
 	return transaction.RunResult(ctx, lg, tx, func() (value.OutboxID, error) {
@@ -226,7 +226,7 @@ func (es *EventService) GetOutbox(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	return transaction.RunResult(ctx, lg, tx, func() (*entity.Outbox, error) {
 		tn := tablename.New(tid)
@@ -245,7 +245,7 @@ func (es *EventService) UpdateOutboxPosition(
 		return err
 	}
 
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	return transaction.Run(ctx, lg, tx, func() error {
 		tn := tablename.New(tid)

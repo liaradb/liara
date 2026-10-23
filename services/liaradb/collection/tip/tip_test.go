@@ -30,7 +30,7 @@ func TestTip(t *testing.T) {
 
 		// complete := 0
 		// TODO: Test the number of pages
-		if err := s.CommitAppend(&logtesting.MockLog{}); err != nil {
+		if err := s.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
 			t.Fatal(err)
 		}
 

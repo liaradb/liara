@@ -78,7 +78,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lg := tx.Logger(ctx, record.CollectionEvent)
+	lg := tx.Logger(record.CollectionEvent)
 
 	if err := Run(ctx, lg, tx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
@@ -94,7 +94,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lg = tx.Logger(ctx, record.CollectionEvent)
+	lg = tx.Logger(record.CollectionEvent)
 
 	if err := Run(ctx, lg, tx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
@@ -186,7 +186,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, tx.Logger(ctx, record.CollectionEvent)); err != nil {
+	if err := tx.commit(ctx, tx.Logger(record.CollectionEvent)); err != nil {
 		t.Fatal(err)
 	}
 

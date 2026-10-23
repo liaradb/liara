@@ -12,7 +12,6 @@ import (
 
 // TODO: Simplify transaction package reference
 type Logger struct {
-	ctx  context.Context
 	log  *log.Log
 	txid record.TransactionID
 	c    record.Collection
@@ -21,13 +20,11 @@ type Logger struct {
 var _ span.Log = (*Logger)(nil)
 
 func New(
-	ctx context.Context,
 	log *log.Log,
 	txid record.TransactionID,
 	c record.Collection,
 ) *Logger {
 	return &Logger{
-		ctx:  ctx,
 		log:  log,
 		txid: txid,
 		c:    c,
@@ -35,10 +32,11 @@ func New(
 }
 
 func (l *Logger) Append(
+	ctx context.Context,
 	rl link.RecordLocator,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Insert(l.ctx,
+	return l.log.Insert(ctx,
 		l.txid,
 		rl,
 		l.c,
@@ -46,11 +44,12 @@ func (l *Logger) Append(
 }
 
 func (l *Logger) Update(
+	ctx context.Context,
 	rl link.RecordLocator,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Update(l.ctx,
+	return l.log.Update(ctx,
 		l.txid,
 		rl,
 		l.c,
@@ -59,9 +58,16 @@ func (l *Logger) Update(
 }
 
 func (l *Logger) UpdateHeader(
+	ctx context.Context,
 	rl link.RecordLocator,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return logpage.LogSequenceNumber{}, nil
+	// TODO: Fix log method
+	return l.log.Update(ctx,
+		l.txid,
+		rl,
+		l.c,
+		data,
+		prev)
 }

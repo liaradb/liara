@@ -54,7 +54,7 @@ func TestKeyValue(t *testing.T) {
 				tn := tablename.NewFromString("testfile")
 				pid := value.NewPartitionID(0)
 
-				lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+				lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 				if err := insertData(ctx, lg, kv, tn, pid, c.data); err != nil {
 					t.Fatal(err)
 				}
@@ -89,7 +89,7 @@ func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, kv, tn, pid, data); err != nil {
 		t.Fatal(err)
 	}

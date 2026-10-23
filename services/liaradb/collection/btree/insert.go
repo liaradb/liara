@@ -44,7 +44,7 @@ func (c *insert) Insert(
 
 	defer func() {
 		if err == nil {
-			err = chain.logActions(l)
+			err = chain.logActions(ctx, l)
 		}
 	}()
 

@@ -29,7 +29,7 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 		t.Fatal(err)
 	}
 
-	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionEvent)
+	lg := logger.New(l, record.NewTransactionID(1), record.CollectionEvent)
 	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage), l))
 	pid := value.NewPartitionID(0)
 

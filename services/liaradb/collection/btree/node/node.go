@@ -1,6 +1,7 @@
 package node
 
 import (
+	"context"
 	"iter"
 	"slices"
 
@@ -23,7 +24,7 @@ type Node struct {
 }
 
 type action interface {
-	Log(span.Log) (logpage.LogSequenceNumber, error)
+	Log(context.Context, span.Log) (logpage.LogSequenceNumber, error)
 }
 
 func New(buffer *storage.Buffer) Node {
@@ -69,9 +70,9 @@ func (n *Node) addAction(a action) {
 	n.actions = append(n.actions, a)
 }
 
-func (n *Node) LogActions(l span.Log) error {
+func (n *Node) LogActions(ctx context.Context, l span.Log) error {
 	for _, a := range n.actions {
-		lsn, err := a.Log(l)
+		lsn, err := a.Log(ctx, l)
 		if err != nil {
 			return err
 		}

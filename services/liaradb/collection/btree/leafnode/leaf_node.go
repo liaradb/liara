@@ -1,6 +1,7 @@
 package leafnode
 
 import (
+	"context"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -21,8 +22,8 @@ func New(page node.Node) *LeafNode {
 	}
 }
 
-func (n *LeafNode) LogActions(l span.Log) error {
-	return n.node.LogActions(l)
+func (n *LeafNode) LogActions(ctx context.Context, l span.Log) error {
+	return n.node.LogActions(ctx, l)
 }
 
 func (ln *LeafNode) LeftID() link.FilePosition {

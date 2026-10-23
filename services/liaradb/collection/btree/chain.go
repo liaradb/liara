@@ -2,6 +2,7 @@ package btree
 
 import (
 	"container/list"
+	"context"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/keynode"
@@ -98,16 +99,16 @@ func (c *chain) unlatch() {
 	}
 }
 
-func (c *chain) logActions(l span.Log) error {
+func (c *chain) logActions(ctx context.Context, l span.Log) error {
 	for i, n := range c.items() {
 		if i == 0 {
 			ln := n.(*leafnode.LeafNode)
-			if err := ln.LogActions(l); err != nil {
+			if err := ln.LogActions(ctx, l); err != nil {
 				return err
 			}
 		} else {
 			kn := n.(*keynode.KeyNode)
-			if err := kn.LogActions(l); err != nil {
+			if err := kn.LogActions(ctx, l); err != nil {
 				return err
 			}
 		}

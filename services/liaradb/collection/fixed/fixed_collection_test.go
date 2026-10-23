@@ -34,7 +34,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 
 		fn := link.NewFileName("testfile")
@@ -87,7 +87,7 @@ func TestFixedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		lg := logger.New(ctx, l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 
 		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
@@ -120,7 +120,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 		data := createData()
 
-		lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+		lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}

@@ -1,6 +1,8 @@
 package node
 
 import (
+	"context"
+
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -26,6 +28,6 @@ func newHeaderAction(
 	}
 }
 
-func (a *headerAction) Log(l span.Log) (logpage.LogSequenceNumber, error) {
-	return l.UpdateHeader(a.rl, a.data, a.prev)
+func (a *headerAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
+	return l.UpdateHeader(ctx, a.rl, a.data, a.prev)
 }

@@ -1,6 +1,7 @@
 package span
 
 import (
+	"context"
 	"slices"
 
 	"github.com/liaradb/liaradb/encoder/base"
@@ -112,8 +113,8 @@ func (f *Fragment) cloneBuffer() []byte {
 }
 
 // TODO: Can we do this without the allocations?
-func (f *Fragment) logAppend(l Log) error {
-	lsn, err := l.Append(f.recordLocator(), f.cloneBuffer())
+func (f *Fragment) logAppend(ctx context.Context, l Log) error {
+	lsn, err := l.Append(ctx, f.recordLocator(), f.cloneBuffer())
 	if err != nil {
 		return err
 	}
@@ -123,8 +124,8 @@ func (f *Fragment) logAppend(l Log) error {
 }
 
 // TODO: Can we do this without the allocations?
-func (f *Fragment) logUpdate(l Log) error {
-	lsn, err := l.Update(f.recordLocator(), f.cloneBuffer(), f.base)
+func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
+	lsn, err := l.Update(ctx, f.recordLocator(), f.cloneBuffer(), f.base)
 	if err != nil {
 		return err
 	}

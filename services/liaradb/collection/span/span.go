@@ -1,6 +1,7 @@
 package span
 
 import (
+	"context"
 	"io"
 	"slices"
 
@@ -103,14 +104,14 @@ func (s Span) SeekStart() {
 	}
 }
 
-func (s Span) CommitAppend(l Log) error {
+func (s Span) CommitAppend(ctx context.Context, l Log) error {
 	s.commit()
-	return s.logAppend(l)
+	return s.logAppend(ctx, l)
 }
 
-func (s Span) CommitUpdate(l Log) error {
+func (s Span) CommitUpdate(ctx context.Context, l Log) error {
 	s.commit()
-	return s.logUpdate(l)
+	return s.logUpdate(ctx, l)
 }
 
 func (s Span) commit() {
@@ -119,9 +120,9 @@ func (s Span) commit() {
 	}
 }
 
-func (s Span) logAppend(l Log) error {
+func (s Span) logAppend(ctx context.Context, l Log) error {
 	for _, f := range s.fragments {
-		if err := f.logAppend(l); err != nil {
+		if err := f.logAppend(ctx, l); err != nil {
 			return err
 		}
 	}
@@ -129,9 +130,9 @@ func (s Span) logAppend(l Log) error {
 	return nil
 }
 
-func (s Span) logUpdate(l Log) error {
+func (s Span) logUpdate(ctx context.Context, l Log) error {
 	for _, f := range s.fragments {
-		if err := f.logUpdate(l); err != nil {
+		if err := f.logUpdate(ctx, l); err != nil {
 			return err
 		}
 	}

@@ -398,6 +398,6 @@ func (t *Transaction) TestRequestID(
 	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
 
-func (t *Transaction) Logger(ctx context.Context, c record.Collection) *logger.Logger {
-	return logger.New(ctx, t.log, t.id, c)
+func (t *Transaction) Logger(c record.Collection) *logger.Logger {
+	return logger.New(t.log, t.id, c)
 }

@@ -39,7 +39,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	return transaction.RunResult(ctx, lg, tx, func() (value.TenantID, error) {
 		// TODO: Use a logger
@@ -104,7 +104,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(ctx, record.CollectionOutbox)
+	lg := tx.Logger(record.CollectionOutbox)
 
 	return transaction.Run(ctx, lg, tx, func() error {
 		// TODO: Use a logger

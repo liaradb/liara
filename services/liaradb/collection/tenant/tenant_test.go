@@ -42,7 +42,7 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := logger.New(t.Context(), l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
