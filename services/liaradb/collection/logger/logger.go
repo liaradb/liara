@@ -63,8 +63,7 @@ func (l *Logger) UpdateHeader(
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	// TODO: Fix log method
-	return l.log.Update(ctx,
+	return l.log.UpdateHeader(ctx,
 		l.txid,
 		rl,
 		l.c,

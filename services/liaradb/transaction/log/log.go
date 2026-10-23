@@ -169,6 +169,23 @@ func (l *Log) Update(
 		prev))
 }
 
+func (l *Log) UpdateHeader(
+	ctx context.Context,
+	txid record.TransactionID,
+	rl link.RecordLocator,
+	collection record.Collection,
+	data []byte,
+	prev []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.rq.Append(ctx, record.New(
+		txid,
+		rl,
+		record.ActionUpdateHeader,
+		collection,
+		data,
+		prev))
+}
+
 // Manager thread
 func (l *Log) Checkpoint(
 	ctx context.Context,

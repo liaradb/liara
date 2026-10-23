@@ -11,13 +11,14 @@ type Action uint32
 const ActionSize = 4
 
 const (
-	ActionCheckpoint Action = 1
-	ActionStart      Action = 2
-	ActionCommit     Action = 3
-	ActionRollback   Action = 4
-	ActionInsert     Action = 5
-	ActionUpdate     Action = 6
-	ActionRemove     Action = 7
+	ActionCheckpoint   Action = 1
+	ActionStart        Action = 2
+	ActionCommit       Action = 3
+	ActionRollback     Action = 4
+	ActionInsert       Action = 5
+	ActionUpdate       Action = 6
+	ActionUpdateHeader Action = 7
+	ActionRemove       Action = 8
 )
 
 const (
