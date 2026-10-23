@@ -1,6 +1,8 @@
 package node
 
 import (
+	"slices"
+
 	"github.com/liaradb/liaradb/encoder/wrap"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -20,6 +22,9 @@ type header struct {
 	level  wrap.Byte
 	highID wrap.Int64
 	lowID  wrap.Int64
+	base   []byte
+	data   []byte
+	dirty  bool
 }
 
 func newHeader(data []byte) (header, []byte) {
@@ -31,6 +36,8 @@ func newHeader(data []byte) (header, []byte) {
 		level:  level,
 		highID: highID,
 		lowID:  lowID,
+		base:   slices.Clone(data),
+		data:   data,
 	}, data2
 }
 
@@ -48,12 +55,20 @@ func (h *header) LowID() link.FilePosition {
 
 func (h *header) setLevel(l byte) {
 	h.level.SetUnsigned(l)
+	h.dirty = true
 }
 
 func (h *header) SetHighID(o link.FilePosition) {
 	h.highID.Set(o.Value())
+	h.dirty = true
 }
 
 func (h *header) SetLowID(o link.FilePosition) {
 	h.lowID.Set(o.Value())
+	h.dirty = true
+}
+
+func (h *header) commit() {
+	copy(h.base, h.data)
+	h.dirty = false
 }

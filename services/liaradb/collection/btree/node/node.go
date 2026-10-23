@@ -91,20 +91,27 @@ func (n *Node) CommitAppend(size int16) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.Commit(int(size))
-	n.addAction(newAppendAction(
-		n.buffer.BlockID().RecordLocator(sid),
-		b,
-	))
+	rl := n.buffer.BlockID().RecordLocator(sid)
+
+	n.addAction(newAppendAction(rl, b))
+	n.addHeaderAction(rl)
 }
 
 func (n *Node) CommitInsert(size int16, index link.SlotID) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.Insert(int(size), index)
-	n.addAction(newInsertAction(
-		n.buffer.BlockID().RecordLocator(sid),
-		b,
-	))
+	rl := n.buffer.BlockID().RecordLocator(sid)
+
+	n.addAction(newInsertAction(rl, b))
+	n.addHeaderAction(rl)
+}
+
+func (n *Node) addHeaderAction(rl link.RecordLocator) {
+	if n.header.dirty {
+		n.addAction(newHeaderAction(rl, n.header.data, n.header.base))
+		n.header.commit()
+	}
 }
 
 func (n *Node) Count() link.SlotID {
