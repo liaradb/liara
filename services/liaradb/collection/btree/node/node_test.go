@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -96,7 +95,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16, &logtesting.MockLog{})
+	n.Commit(16)
 
 	if c := n.Count(); c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
@@ -115,7 +114,7 @@ func testNode_Append(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16, &logtesting.MockLog{})
+	n.Commit(16)
 
 	if c := n.Count(); c != 2 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 2)
@@ -262,7 +261,7 @@ func testNode_Space(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16, &logtesting.MockLog{})
+	n.Commit(16)
 
 	if s := n.Space(); s != 0 {
 		t.Errorf("incorrect space: %v, expected: %v", s, 0)
@@ -294,7 +293,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16, &logtesting.MockLog{})
+	n.Commit(16)
 
 	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
 		t.Error(err)
@@ -305,7 +304,7 @@ func testNode_Child(t *testing.T) {
 		t.Error("should get a buffer")
 	}
 
-	n.Commit(16, &logtesting.MockLog{})
+	n.Commit(16)
 
 	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
 		t.Error(err)
@@ -353,7 +352,7 @@ func testNode_Children(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize*int16(len(v)), &logtesting.MockLog{})
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
@@ -401,7 +400,7 @@ func testNode_ChildrenRange(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize*int16(len(v)), &logtesting.MockLog{})
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
 			t.Error(err)
@@ -462,7 +461,7 @@ func testNode_Clear(t *testing.T) {
 			t.Error("should get a buffer")
 		}
 
-		n.Commit(itemSize*int16(len(v)), &logtesting.MockLog{})
+		n.Commit(itemSize * int16(len(v)))
 
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)

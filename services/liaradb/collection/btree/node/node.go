@@ -2,9 +2,7 @@ package node
 
 import (
 	"iter"
-	"slices"
 
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
@@ -66,16 +64,8 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 	return b, ok
 }
 
-func (n *Node) Commit(size int16, l span.Log) {
+func (n *Node) Commit(size int16) {
 	// TODO: Fix this cast
-	_, b, _ := n.page.NextMustFit(int(size))
-	lsn, err := l.Append(n.buffer.BlockID().RecordLocator(n.page.Count()), slices.Clone(b))
-	if err != nil {
-		// TODO: What should we do with this error?
-		panic(err)
-	}
-
-	n.setLogSequenceNumber(lsn)
 	n.page.Commit(int(size))
 }
 

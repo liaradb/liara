@@ -52,14 +52,14 @@ func (c *insert) Insert(
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, l, fn, bid, ln, key, rid)
+			bid, key, split, err = c.insertChainLeaf(ctx, fn, bid, ln, key, rid)
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
 				return ErrTypeMismatch
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, l, fn, kn, key, bid.Position())
+			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position())
 			level++
 		}
 		if err != nil {
@@ -69,7 +69,7 @@ func (c *insert) Insert(
 		}
 	}
 
-	return c.insertRoot(ctx, l, fn, level, key, bid)
+	return c.insertRoot(ctx, fn, level, key, bid)
 }
 
 func (c *insert) getChain(
@@ -109,7 +109,6 @@ func (c *insert) getChain(
 //   - Insert, and handle a split.
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
-	l span.Log,
 	fn link.FileName,
 	bid link.BlockID,
 	ln *leafnode.LeafNode,
@@ -154,8 +153,8 @@ func (c *insert) insertChainLeaf(
 		right.SetLeftID(bid2.Position())
 	}
 
-	key := middle.Fill(l, bid.Position(), ln.RightID(), second)
-	ln.Replace(l, bid2.Position(), first)
+	key := middle.Fill(bid.Position(), ln.RightID(), second)
+	ln.Replace(bid2.Position(), first)
 
 	return bid2, key, true, nil
 }
@@ -164,7 +163,6 @@ func (c *insert) insertChainLeaf(
 //   - Insert, and handle a split.
 func (c *insert) insertChainKey(
 	ctx context.Context,
-	l span.Log,
 	fn link.FileName,
 	kn *keynode.KeyNode,
 	k key.Key,
@@ -186,8 +184,8 @@ func (c *insert) insertChainKey(
 	defer kn2.Unlatch()
 
 	level := kn.Level()
-	key := kn2.Fill(l, level, second)
-	kn.Replace(l, level, first)
+	key := kn2.Fill(level, second)
+	kn.Replace(level, first)
 
 	return bid, key, true, nil
 }
@@ -195,7 +193,6 @@ func (c *insert) insertChainKey(
 // Created new KeyNode and swap with root
 func (c *insert) insertRoot(
 	ctx context.Context,
-	l span.Log,
 	fn link.FileName,
 	level byte,
 	key key.Key,
@@ -227,7 +224,6 @@ func (c *insert) insertRoot(
 
 	// This should always return true
 	_ = keynode.New(node.New(b0)).ReplaceRoot(
-		l,
 		level+1,
 		b2.BlockID().Position(),
 		key,
