@@ -3,6 +3,7 @@ package node
 import (
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
@@ -15,8 +16,13 @@ const (
 
 type Node struct {
 	header
-	page   *page.Page
-	buffer *storage.Buffer
+	page    *page.Page
+	buffer  *storage.Buffer
+	actions []Action
+}
+
+type Action interface {
+	Log(span.Log) (logpage.LogSequenceNumber, error)
 }
 
 func New(buffer *storage.Buffer) Node {
@@ -56,6 +62,23 @@ func (n *Node) LogSequenceNumber() logpage.LogSequenceNumber {
 
 func (n *Node) setLogSequenceNumber(lsn logpage.LogSequenceNumber) {
 	n.page.SetTrackingID(lsn.Value())
+}
+
+func (n *Node) AddAction(a Action) {
+	n.actions = append(n.actions, a)
+}
+
+func (n *Node) LogActions(l span.Log) error {
+	for _, a := range n.actions {
+		lsn, err := a.Log(l)
+		if err != nil {
+			return err
+		}
+
+		n.setLogSequenceNumber(lsn)
+	}
+
+	return nil
 }
 
 func (n *Node) Append(size int16) ([]byte, bool) {
