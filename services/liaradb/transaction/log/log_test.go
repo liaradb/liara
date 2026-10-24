@@ -43,7 +43,6 @@ func testLog_Append(t *testing.T) {
 	if lsn, err := l.Update(ctx,
 		record.NewTransactionID(2),
 		rid,
-		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -74,7 +73,6 @@ func testLog_Append__Large(t *testing.T) {
 	if _, err := l.Update(ctx,
 		record.NewTransactionID(2),
 		rid,
-		record.CollectionValue,
 		data,
 		reverse,
 	); err != raw.ErrInsufficientSpace {
@@ -100,7 +98,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -112,7 +109,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -139,7 +135,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -149,7 +144,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -175,7 +169,6 @@ func TestLog_Flush(t *testing.T) {
 				if _, err := l.Update(ctx,
 					record.NewTransactionID(2),
 					rid,
-					record.CollectionValue,
 					data,
 					reverse,
 				); err != nil {
@@ -203,7 +196,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err == nil {
@@ -222,7 +214,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -236,7 +227,6 @@ func TestLog_Flush(t *testing.T) {
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
 				rid,
-				record.CollectionValue,
 				data,
 				reverse,
 			); err != nil {
@@ -269,7 +259,6 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	if _, err := l.Update(ctx,
 		record.NewTransactionID(2),
 		rid,
-		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -341,7 +330,6 @@ func testLog_Iterate(t *testing.T) {
 		if _, err := l.Update(ctx,
 			rec.TransactionID(),
 			rl,
-			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {
@@ -406,7 +394,6 @@ func testLog_Recover(t *testing.T) {
 		if _, err := l.Update(ctx,
 			r0.TransactionID(),
 			link.NewRecordID(link.NewBlockID("", 1), 2),
-			r0.Collection(),
 			r0.Data(),
 			r0.Reverse(),
 		); err != nil {
@@ -420,7 +407,6 @@ func testLog_Recover(t *testing.T) {
 		if _, err := l.Update(ctx,
 			r1.TransactionID(),
 			link.NewRecordID(link.NewBlockID("", 1), 2),
-			r1.Collection(),
 			r1.Data(),
 			r1.Reverse(),
 		); err != nil {
@@ -499,7 +485,6 @@ func testLog_RecoverMany(t *testing.T) {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
 				link.NewRecordID(link.NewBlockID("", 1), 2),
-				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
 			); err != nil {
@@ -563,7 +548,6 @@ func testLog_RecoverMany(t *testing.T) {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
 				link.NewRecordID(link.NewBlockID("", 1), 2),
-				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
 			); err != nil {
@@ -633,7 +617,6 @@ func testLog_Recover__Iterate(t *testing.T) {
 		if _, err := l.Update(ctx,
 			rec.TransactionID(),
 			link.NewRecordID(link.NewBlockID("", 1), 2),
-			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {
@@ -692,7 +675,6 @@ func testLog_Commit(t *testing.T) {
 	if _, err := l.Insert(ctx,
 		txid1,
 		link.NewRecordID(link.NewBlockID("", 1), 2),
-		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
@@ -710,7 +692,6 @@ func testLog_Commit(t *testing.T) {
 	if _, err := l.Insert(ctx,
 		txid2,
 		link.NewRecordID(link.NewBlockID("", 1), 2),
-		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
@@ -783,7 +764,6 @@ func testLog_Insert(t *testing.T) {
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
 		link.NewRecordID(link.NewBlockID("", 1), 2),
-		record.CollectionEvent,
 		data,
 	); err != nil {
 		t.Error(err)
@@ -840,7 +820,6 @@ func testLog_InsertAndCommit(t *testing.T) {
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
 		link.NewRecordID(link.NewBlockID("", 1), 2),
-		record.CollectionEvent,
 		data,
 	); err != nil {
 		t.Error(err)
@@ -985,7 +964,6 @@ func testLog_Update(t *testing.T) {
 	if lsn, err := l.Update(ctx,
 		record.NewTransactionID(2),
 		link.NewRecordID(link.NewBlockID("", 1), 2),
-		record.CollectionValue,
 		data,
 		reverse,
 	); err != nil {
@@ -1097,7 +1075,6 @@ func createRecords(count, offset uint64) ([]*record.Record, logpage.LogSequenceN
 			record.NewTransactionID(2),
 			link.NewRecordID(link.NewBlockID("", 1), 2),
 			record.ActionUpdate,
-			record.CollectionValue,
 			data,
 			reverse)
 		rc.SetLogSequenceNumber(logpage.NewLogSequenceNumber(i + 1 + offset))

@@ -13,7 +13,6 @@ type Record struct {
 	transactionID     TransactionID
 	recordID          link.RecordID
 	action            Action
-	collection        Collection
 	data              LogData
 	reverse           LogData
 }
@@ -22,7 +21,6 @@ func New(
 	txid TransactionID,
 	recordID link.RecordID,
 	action Action,
-	collection Collection,
 	data []byte,
 	reverse []byte,
 ) *Record {
@@ -30,7 +28,6 @@ func New(
 		transactionID: txid,
 		recordID:      recordID,
 		action:        action,
-		collection:    collection,
 		data:          LogData{data},
 		reverse:       LogData{reverse},
 	}
@@ -40,7 +37,6 @@ func (rc *Record) LogSequenceNumber() logpage.LogSequenceNumber { return rc.logS
 func (rc *Record) TransactionID() TransactionID                 { return rc.transactionID }
 func (rc *Record) RecordID() link.RecordID                      { return rc.recordID }
 func (rc *Record) Action() Action                               { return rc.action }
-func (rc *Record) Collection() Collection                       { return rc.collection }
 func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                              { return rc.reverse.Bytes() }
 func (rc *Record) IsCheckpoint() bool                           { return rc.action == ActionCheckpoint }
@@ -55,7 +51,6 @@ func (rc *Record) Size() int {
 		rc.transactionID,
 		rc.recordID,
 		rc.action,
-		rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -66,7 +61,6 @@ func (rc *Record) Write(w io.Writer) error {
 		rc.transactionID,
 		rc.recordID,
 		rc.action,
-		rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -77,7 +71,6 @@ func (rc *Record) Read(r io.Reader) error {
 		&rc.transactionID,
 		&rc.recordID,
 		&rc.action,
-		&rc.collection,
 		&rc.data,
 		&rc.reverse)
 }
@@ -91,7 +84,6 @@ func (rc *Record) Compare(b *Record) bool {
 		rc.transactionID == b.transactionID &&
 		rc.recordID == b.recordID &&
 		rc.action == b.action &&
-		rc.collection == b.collection &&
 		rc.data.Compare(&b.data) &&
 		rc.reverse.Compare(&b.reverse)
 }

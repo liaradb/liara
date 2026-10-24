@@ -11,7 +11,6 @@ import (
 	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/iterator"
 )
 
@@ -44,7 +43,7 @@ func (es *EventService) Append(
 		return err
 	}
 
-	lg := tx.Logger(record.CollectionEvent)
+	lg := tx.Logger()
 
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
@@ -88,7 +87,7 @@ func (es *EventService) TestIdempotency(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	return transaction.RunResult(ctx, lg, tx, func() (bool, error) {
 		tn := tablename.New(qry.TenantID)
@@ -146,7 +145,7 @@ func (es *EventService) GetAfterGlobalVersion(
 		}
 
 		// TODO: Should this log?
-		lg := tx.Logger(record.CollectionOutbox)
+		lg := tx.Logger()
 
 		// TODO: How do we handle a range?
 		count := 0
@@ -201,7 +200,7 @@ func (es *EventService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	// TODO: How do we handle a range?
 	return transaction.RunResult(ctx, lg, tx, func() (value.OutboxID, error) {
@@ -226,7 +225,7 @@ func (es *EventService) GetOutbox(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	return transaction.RunResult(ctx, lg, tx, func() (*entity.Outbox, error) {
 		tn := tablename.New(tid)
@@ -245,7 +244,7 @@ func (es *EventService) UpdateOutboxPosition(
 		return err
 	}
 
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	return transaction.Run(ctx, lg, tx, func() error {
 		tn := tablename.New(tid)

@@ -14,7 +14,6 @@ import (
 type Logger struct {
 	log  *log.Log
 	txid record.TransactionID
-	c    record.Collection
 }
 
 var _ span.Log = (*Logger)(nil)
@@ -22,12 +21,10 @@ var _ span.Log = (*Logger)(nil)
 func New(
 	log *log.Log,
 	txid record.TransactionID,
-	c record.Collection,
 ) *Logger {
 	return &Logger{
 		log:  log,
 		txid: txid,
-		c:    c,
 	}
 }
 
@@ -39,7 +36,6 @@ func (l *Logger) Append(
 	return l.log.Insert(ctx,
 		l.txid,
 		rid,
-		l.c,
 		data)
 }
 
@@ -52,7 +48,6 @@ func (l *Logger) Update(
 	return l.log.Update(ctx,
 		l.txid,
 		rid,
-		l.c,
 		data,
 		prev)
 }
@@ -66,7 +61,6 @@ func (l *Logger) UpdateHeader(
 	return l.log.UpdateHeader(ctx,
 		l.txid,
 		rid,
-		l.c,
 		data,
 		prev)
 }

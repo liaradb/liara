@@ -23,9 +23,7 @@ func NewBufferRecord(
 	tid value.TenantID,
 	txid TransactionID,
 	recordID link.RecordID,
-	time Time,
 	action Action,
-	collection Collection,
 	data []byte,
 	reverse []byte,
 ) *BufferRecord {

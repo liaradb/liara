@@ -44,7 +44,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(l, record.NewTransactionID(1))
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := logger.New(l, record.NewTransactionID(1), record.CollectionValue)
+	lg := logger.New(l, record.NewTransactionID(1))
 	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}

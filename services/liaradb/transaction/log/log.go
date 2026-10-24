@@ -105,7 +105,6 @@ func (l *Log) Start(
 		txid,
 		link.RecordID{},
 		record.ActionStart,
-		record.CollectionSystem,
 		nil,
 		nil))
 }
@@ -118,7 +117,6 @@ func (l *Log) Commit(
 		txid,
 		link.RecordID{},
 		record.ActionCommit,
-		record.CollectionSystem,
 		nil,
 		nil))
 }
@@ -131,7 +129,6 @@ func (l *Log) Rollback(
 		txid,
 		link.RecordID{},
 		record.ActionRollback,
-		record.CollectionSystem,
 		nil,
 		nil))
 }
@@ -140,14 +137,12 @@ func (l *Log) Insert(
 	ctx context.Context,
 	txid record.TransactionID,
 	rid link.RecordID,
-	collection record.Collection,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
 		rid,
 		record.ActionInsert,
-		collection,
 		data,
 		nil))
 }
@@ -156,7 +151,6 @@ func (l *Log) Update(
 	ctx context.Context,
 	txid record.TransactionID,
 	rid link.RecordID,
-	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
@@ -164,7 +158,6 @@ func (l *Log) Update(
 		txid,
 		rid,
 		record.ActionUpdate,
-		collection,
 		data,
 		prev))
 }
@@ -173,7 +166,6 @@ func (l *Log) UpdateHeader(
 	ctx context.Context,
 	txid record.TransactionID,
 	rid link.RecordID,
-	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
@@ -181,7 +173,6 @@ func (l *Log) UpdateHeader(
 		txid,
 		rid,
 		record.ActionUpdateHeader,
-		collection,
 		data,
 		prev))
 }
@@ -195,7 +186,6 @@ func (l *Log) Checkpoint(
 		record.TransactionID{},
 		link.RecordID{},
 		record.ActionCheckpoint,
-		record.CollectionSystem,
 		l.txIDsToData(txids),
 		nil))
 }

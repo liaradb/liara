@@ -6,8 +6,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/span"
-	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -84,168 +82,39 @@ func (re *Replay) recoverCommit(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
-	switch r.Collection() {
-	case record.CollectionEvent:
-		return re.recoverInsertEvent(ctx, r)
-	case record.CollectionGraph:
-		return re.recoverInsertGraph(ctx, r)
-	case record.CollectionOutbox:
-		return re.recoverInsertOutbox(ctx, r)
-	case record.CollectionRequest:
-		return re.recoverInsertRequest(ctx, r)
-	case record.CollectionTenant:
-		return re.recoverTenant(ctx, r)
-	case record.CollectionValue:
-		return re.recoverInsertValue(ctx, r)
-	default:
-		return ErrCollectionUnknown
-	}
-}
-
-func (re *Replay) recoverInsertEvent(ctx context.Context, r *record.Record) error {
-	var e entity.Event
-	if err := e.Read(buffer.NewFromSlice(r.Data())); err != nil {
-		return err
-	}
-
-	fmt.Printf("recover: %v: %v\n", r.Action(), e.AggregateID.String())
-	// tn := tablename.New(r.TenantID())
-	// TODO: This should not use a logger
-	// return re.collections.EventLog.Append(ctx, tn, e.PartitionID, &logtesting.MockLog{}, &e)
-	return nil
-}
-
-func (re *Replay) recoverInsertGraph(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverInsertOutbox(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverInsertRequest(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverTenant(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
 	}
+
+	defer b.Release()
 
 	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
 	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 
-func (re *Replay) recoverInsertValue(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
 func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
-	switch r.Collection() {
-	case record.CollectionEvent:
-		return re.recoverRemoveEvent(ctx, r)
-	case record.CollectionGraph:
-		return re.recoverRemoveGraph(ctx, r)
-	case record.CollectionOutbox:
-		return re.recoverRemoveOutbox(ctx, r)
-	case record.CollectionRequest:
-		return re.recoverRemoveRequest(ctx, r)
-	case record.CollectionValue:
-		return re.recoverRemoveValue(ctx, r)
-	default:
-		return ErrCollectionUnknown
-	}
-}
-
-func (re *Replay) recoverRemoveEvent(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverRemoveGraph(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverRemoveOutbox(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverRemoveRequest(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverRemoveValue(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverRollback(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }
 
 func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
-	switch r.Collection() {
-	case record.CollectionEvent:
-		return re.recoverUpdateEvent(ctx, r)
-	case record.CollectionGraph:
-		return re.recoverUpdateGraph(ctx, r)
-	case record.CollectionOutbox:
-		return re.recoverUpdateOutbox(ctx, r)
-	case record.CollectionRequest:
-		return re.recoverUpdateRequest(ctx, r)
-	case record.CollectionTenant:
-		return re.recoverUpdateTenant(ctx, r)
-	case record.CollectionValue:
-		return re.recoverUpdateValue(ctx, r)
-	default:
-		return ErrCollectionUnknown
-	}
-}
-
-func (re *Replay) recoverUpdateEvent(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverUpdateGraph(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverUpdateOutbox(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverUpdateRequest(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverUpdateTenant(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
 	}
 
+	defer b.Release()
+
 	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
 	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 
-func (re *Replay) recoverUpdateValue(ctx context.Context, r *record.Record) error {
+func (re *Replay) recoverRollback(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }

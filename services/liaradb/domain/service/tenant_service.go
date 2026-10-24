@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type TenantService struct {
@@ -39,7 +38,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	return transaction.RunResult(ctx, lg, tx, func() (value.TenantID, error) {
 		// TODO: Use a logger
@@ -104,7 +103,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger(record.CollectionOutbox)
+	lg := tx.Logger()
 
 	return transaction.Run(ctx, lg, tx, func() error {
 		// TODO: Use a logger

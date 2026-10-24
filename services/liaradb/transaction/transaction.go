@@ -359,7 +359,7 @@ func (t *Transaction) UpdateOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = o.WriteData(data)
 
-	_, err = t.log.Update(ctx, t.id, link.RecordID{}, record.CollectionOutbox, data, prev)
+	_, err = t.log.Update(ctx, t.id, link.RecordID{}, data, prev)
 	if err != nil {
 		return err
 	}
@@ -398,6 +398,6 @@ func (t *Transaction) TestRequestID(
 	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
 
-func (t *Transaction) Logger(c record.Collection) *logger.Logger {
-	return logger.New(t.log, t.id, c)
+func (t *Transaction) Logger() *logger.Logger {
+	return logger.New(t.log, t.id)
 }

@@ -17,11 +17,10 @@ func TestRecord(t *testing.T) {
 	txid := NewTransactionID(2)
 	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
-	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(txid, rid, action, collection, data, reverse)
+	rc := New(txid, rid, action, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	if i := rc.LogSequenceNumber(); i != lsn {
@@ -38,10 +37,6 @@ func TestRecord(t *testing.T) {
 
 	if i := rc.Action(); i != action {
 		t.Errorf("incorrect action: %v, expected: %v", i, action)
-	}
-
-	if i := rc.Collection(); i != collection {
-		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
 	}
 
 	if i := rc.Data(); !slices.Equal(i, data) {
@@ -64,11 +59,10 @@ func TestRecord_Write(t *testing.T) {
 	txid := NewTransactionID(2)
 	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
-	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(txid, rid, action, collection, data, reverse)
+	rc := New(txid, rid, action, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	r, w := newReaderWriter()
@@ -103,10 +97,6 @@ func TestRecord_Write(t *testing.T) {
 		t.Errorf("incorrect action: %v, expected: %v", i, action)
 	}
 
-	if i := rc2.Collection(); i != collection {
-		t.Errorf("incorrect collection: %v, expected: %v", i, collection)
-	}
-
 	if i := rc2.Data(); !slices.Equal(i, data) {
 		t.Errorf("incorrect data: %v, expected: %v", i, data)
 	}
@@ -126,7 +116,6 @@ func TestRecord_Compare(t *testing.T) {
 	txid := NewTransactionID(2)
 	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
-	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
@@ -149,13 +138,13 @@ func TestRecord_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should equal same values": {
-			a:     New(txid, rid, action, collection, data, reverse),
-			b:     New(txid, rid, action, collection, data, reverse),
+			a:     New(txid, rid, action, data, reverse),
+			b:     New(txid, rid, action, data, reverse),
 			equal: true,
 		},
 		"should not equal different values": {
-			a:     New(txid, rid, action, collection, data, reverse),
-			b:     New(NewTransactionID(3), rid, action, collection, data, reverse),
+			a:     New(txid, rid, action, data, reverse),
+			b:     New(NewTransactionID(3), rid, action, data, reverse),
 			equal: false,
 		},
 	} {
