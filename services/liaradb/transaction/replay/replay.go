@@ -84,6 +84,10 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 	defer b.Release()
 
 	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
+
 	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
 	return nil
 }
@@ -95,7 +99,12 @@ func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
 	}
 
 	defer b.Release()
+	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
 
+	// TODO: Run remove method
 	return nil
 }
 
@@ -108,6 +117,10 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 	defer b.Release()
 
 	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
+
 	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
 	return nil
 }
@@ -122,4 +135,8 @@ func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
 	}
 
 	return page.NewFromSlice(b.Raw(), node.HeaderSize, 0)
+}
+
+func (re *Replay) skipLSN(r *record.Record, p *page.Page) bool {
+	return p.TrackingID() >= r.LogSequenceNumber().Value()
 }
