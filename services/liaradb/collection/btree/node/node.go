@@ -28,7 +28,7 @@ type action interface {
 }
 
 func New(buffer *storage.Buffer) Node {
-	page := page.NewFromSlice(buffer.Raw(), headerSize, 0)
+	page := page.NewFromSlice(buffer.Raw(), HeaderSize, 0)
 	header, _ := newHeader(page.Header())
 
 	return Node{

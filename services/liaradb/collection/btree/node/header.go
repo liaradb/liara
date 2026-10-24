@@ -12,7 +12,7 @@ const (
 	highIDSize = 8
 	lowIDSize  = 8
 
-	headerSize = 0 +
+	HeaderSize = 0 +
 		levelSize +
 		highIDSize +
 		lowIDSize

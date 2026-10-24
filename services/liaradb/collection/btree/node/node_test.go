@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	testHeaderSize = 2 + page.MagicSize + 8 + headerSize
+	testHeaderSize = 2 + page.MagicSize + 8 + HeaderSize
 )
 
 func TestNode_Dirty(t *testing.T) {

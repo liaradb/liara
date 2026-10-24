@@ -2,10 +2,11 @@ package replay
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/liaradb/liaradb/collection"
+	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -67,22 +68,18 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverCheckpoint(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }
 
 func (re *Replay) recoverStart(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }
 
 func (re *Replay) recoverCommit(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	return nil
 }
 
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
@@ -90,18 +87,12 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 
 	defer b.Release()
 
-	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+	p := re.getPage(r, b)
 	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 
 func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
-	return nil
-}
-
-func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
@@ -109,12 +100,30 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 
 	defer b.Release()
 
-	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+	return nil
+}
+
+func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	p := re.getPage(r, b)
 	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 
 func (re *Replay) recoverRollback(ctx context.Context, r *record.Record) error {
-	fmt.Printf("recover: %v\n", r.Action())
 	return nil
+}
+
+func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
+	if tablename.IsIndex(r.RecordID().BlockID().FileName().String()) {
+		return page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+	}
+
+	return page.NewFromSlice(b.Raw(), node.HeaderSize, 0)
 }
