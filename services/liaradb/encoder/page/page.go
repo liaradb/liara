@@ -189,6 +189,30 @@ func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
 	return sid
 }
 
+// TODO: Is this correct?
+func (p *Page) RecoverAppend(i link.SlotID, data []byte) {
+	if n := copy(p.list.Slot(i).SliceUnsafe(), data); n < len(data) {
+		panic("incomplete recovery")
+	}
+}
+
+func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {
+	if n := copy(p.list.Slot(i).SliceUnsafe(), data); n < len(data) {
+		panic("incomplete recovery")
+	}
+}
+
+func (p *Page) RecoverInsert(i link.SlotID, data []byte) {
+	_ = p.Insert(len(data), i)
+	p.RecoverAppend(i, data)
+}
+
+func (p *Page) RecoverHeader(data []byte) {
+	if n := copy(p.Header(), data); n < len(data) {
+		panic("incomplete recovery")
+	}
+}
+
 func (p *Page) Clear() {
 	clear(p.data)
 	p.list.Clear()

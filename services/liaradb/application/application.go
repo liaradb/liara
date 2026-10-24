@@ -127,7 +127,7 @@ func (a *Application) run(ctx context.Context) error {
 }
 
 func (a *Application) recover(ctx context.Context) error {
-	r := replay.NewReplay(a.collections, a.log)
+	r := replay.NewReplay(a.storage, a.collections, a.log)
 	return r.Recover(ctx)
 }
 

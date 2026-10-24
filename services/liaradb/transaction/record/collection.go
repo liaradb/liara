@@ -12,11 +12,12 @@ const CollectionSize = 2
 
 const (
 	CollectionSystem  Collection = 1
-	CollectionRequest Collection = 2
-	CollectionOutbox  Collection = 3
-	CollectionEvent   Collection = 4
-	CollectionValue   Collection = 5
-	CollectionGraph   Collection = 6
+	CollectionTenant  Collection = 2
+	CollectionRequest Collection = 3
+	CollectionOutbox  Collection = 4
+	CollectionEvent   Collection = 5
+	CollectionValue   Collection = 6
+	CollectionGraph   Collection = 7
 )
 
 func (c Collection) Size() int { return CollectionSize }
@@ -33,6 +34,8 @@ func (c Collection) String() string {
 	switch c {
 	case CollectionSystem:
 		return "system"
+	case CollectionTenant:
+		return "tenant"
 	case CollectionRequest:
 		return "request"
 	case CollectionOutbox:

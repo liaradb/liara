@@ -5,22 +5,30 @@ import (
 	"fmt"
 
 	"github.com/liaradb/liaradb/collection"
+	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
+	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type Replay struct {
+	s           *storage.Storage
 	collections *collection.Collections
 	log         *log.Log
 }
 
 func NewReplay(
+	s *storage.Storage,
 	collections *collection.Collections,
 	log *log.Log,
 ) *Replay {
 	return &Replay{
+		s:           s,
 		collections: collections,
 		log:         log,
 	}
@@ -87,6 +95,8 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 		return re.recoverInsertOutbox(ctx, r)
 	case record.CollectionRequest:
 		return re.recoverInsertRequest(ctx, r)
+	case record.CollectionTenant:
+		return re.recoverTenant(ctx, r)
 	case record.CollectionValue:
 		return re.recoverInsertValue(ctx, r)
 	default:
@@ -119,6 +129,18 @@ func (re *Replay) recoverInsertOutbox(ctx context.Context, r *record.Record) err
 
 func (re *Replay) recoverInsertRequest(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverTenant(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	b, err := re.s.Request(ctx, link.NewBlockID(tablename.Tenant.Tenant(), r.RecordLocator().Block()))
+	if err != nil {
+		return err
+	}
+
+	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+	p.RecoverInsert(r.RecordLocator().SlotID(), r.Data())
 	return nil
 }
 
@@ -184,6 +206,8 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 		return re.recoverUpdateOutbox(ctx, r)
 	case record.CollectionRequest:
 		return re.recoverUpdateRequest(ctx, r)
+	case record.CollectionTenant:
+		return re.recoverUpdateTenant(ctx, r)
 	case record.CollectionValue:
 		return re.recoverUpdateValue(ctx, r)
 	default:
@@ -208,6 +232,18 @@ func (re *Replay) recoverUpdateOutbox(ctx context.Context, r *record.Record) err
 
 func (re *Replay) recoverUpdateRequest(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
+	return nil
+}
+
+func (re *Replay) recoverUpdateTenant(ctx context.Context, r *record.Record) error {
+	fmt.Printf("recover: %v\n", r.Action())
+	b, err := re.s.Request(ctx, link.NewBlockID(tablename.Tenant.Tenant(), r.RecordLocator().Block()))
+	if err != nil {
+		return err
+	}
+
+	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+	p.RecoverUpdate(r.RecordLocator().SlotID(), r.Data())
 	return nil
 }
 
