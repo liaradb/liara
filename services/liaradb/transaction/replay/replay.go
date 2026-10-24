@@ -2,6 +2,7 @@ package replay
 
 import (
 	"context"
+	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/span"
@@ -10,11 +11,13 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/set"
 )
 
 type Replay struct {
-	s   *storage.Storage
-	log *log.Log
+	s     *storage.Storage
+	log   *log.Log
+	txIDs set.Set[record.TransactionID]
 }
 
 func NewReplay(
@@ -45,17 +48,17 @@ func (re *Replay) Recover(ctx context.Context) error {
 func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	switch r.Action() {
 	case record.ActionCheckpoint:
-		return re.recoverCheckpoint(ctx, r)
+		return re.recoverCheckpoint(r)
 	case record.ActionStart:
-		return re.recoverStart(ctx, r)
+		return re.recoverStart(r)
 	case record.ActionCommit:
-		return re.recoverCommit(ctx, r)
+		return re.recoverCommit(r)
 	case record.ActionInsert:
 		return re.recoverInsert(ctx, r)
 	case record.ActionRemove:
 		return re.recoverRemove(ctx, r)
 	case record.ActionRollback:
-		return re.recoverRollback(ctx, r)
+		return re.recoverRollback(r)
 	case record.ActionUpdate:
 		return re.recoverUpdate(ctx, r)
 	default:
@@ -63,15 +66,35 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	}
 }
 
-func (re *Replay) recoverCheckpoint(ctx context.Context, r *record.Record) error {
+func (re *Replay) recoverCheckpoint(r *record.Record) error {
+	for txID := range re.txIDsFromData(r.Data()) {
+		re.txIDs.Add(txID)
+	}
 	return nil
 }
 
-func (re *Replay) recoverStart(ctx context.Context, r *record.Record) error {
+func (*Replay) txIDsFromData(
+	data []byte,
+) iter.Seq[record.TransactionID] {
+	return func(yield func(record.TransactionID) bool) {
+		for i := range len(data) % record.TransactionIDSize {
+			start := i * record.TransactionIDSize
+			item := data[start : start+record.TransactionIDSize]
+			txID := record.TransactionID{}
+			_ = txID.ReadData(item)
+			if !yield(txID) {
+				return
+			}
+		}
+	}
+}
+
+func (re *Replay) recoverStart(r *record.Record) error {
+	re.txIDs.Remove(r.TransactionID())
 	return nil
 }
 
-func (re *Replay) recoverCommit(ctx context.Context, r *record.Record) error {
+func (re *Replay) recoverCommit(r *record.Record) error {
 	return nil
 }
 
@@ -99,6 +122,7 @@ func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
 	}
 
 	defer b.Release()
+
 	p := re.getPage(r, b)
 	if re.skipLSN(r, p) {
 		return nil
@@ -125,7 +149,7 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 	return nil
 }
 
-func (re *Replay) recoverRollback(ctx context.Context, r *record.Record) error {
+func (re *Replay) recoverRollback(r *record.Record) error {
 	return nil
 }
 
