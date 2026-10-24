@@ -9,7 +9,6 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
-	"github.com/liaradb/liaradb/application/replay"
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/tenant"
@@ -21,6 +20,7 @@ import (
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/transaction/log"
+	"github.com/liaradb/liaradb/transaction/replay"
 	"google.golang.org/grpc"
 )
 
@@ -127,7 +127,7 @@ func (a *Application) run(ctx context.Context) error {
 }
 
 func (a *Application) recover(ctx context.Context) error {
-	r := replay.NewReplay(a.storage, a.collections, a.log)
+	r := replay.NewReplay(a.storage, a.log)
 	return r.Recover(ctx)
 }
 

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -16,7 +15,7 @@ import (
 func TestReplay(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		l := log.New(256, 2, 256, 100, s.FSys, "dir")
-		r := NewReplay(s.Storage, collection.NewCollections(s.Storage, l), l)
+		r := NewReplay(s.Storage, l)
 
 		if err := l.Run(t.Context()); err != nil {
 			t.Fatal(err)

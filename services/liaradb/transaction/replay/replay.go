@@ -3,7 +3,6 @@ package replay
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -14,20 +13,17 @@ import (
 )
 
 type Replay struct {
-	s           *storage.Storage
-	collections *collection.Collections
-	log         *log.Log
+	s   *storage.Storage
+	log *log.Log
 }
 
 func NewReplay(
 	s *storage.Storage,
-	collections *collection.Collections,
 	log *log.Log,
 ) *Replay {
 	return &Replay{
-		s:           s,
-		collections: collections,
-		log:         log,
+		s:   s,
+		log: log,
 	}
 }
 
