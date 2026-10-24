@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
-// TODO: Simplify transaction package reference
 type Logger struct {
 	log  *log.Log
 	txid record.TransactionID

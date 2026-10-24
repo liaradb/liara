@@ -27,7 +27,6 @@ func NewTenantService(
 	}
 }
 
-// TODO: Create transaction
 func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (value.TenantID, error) {
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
@@ -41,7 +40,6 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	lg := tx.Logger()
 
 	return transaction.RunResult(ctx, lg, tx, func() (value.TenantID, error) {
-		// TODO: Use a logger
 		if err := ts.tc.Set(ctx, lg, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
 			return value.TenantID{}, err
 		}
@@ -86,7 +84,6 @@ func (ts *TenantService) Delete(ctx context.Context, cmd command.DeleteTenant) e
 	// })
 }
 
-// TODO: Create transaction
 func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
 	tnt, err := ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID)
 	if err != nil {
@@ -106,7 +103,6 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	lg := tx.Logger()
 
 	return transaction.Run(ctx, lg, tx, func() error {
-		// TODO: Use a logger
 		return ts.tc.Replace(ctx, lg, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
 	})
 }

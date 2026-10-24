@@ -112,7 +112,6 @@ func (f *Fragment) cloneBuffer() []byte {
 	return slices.Clone(f.buffer.Bytes())
 }
 
-// TODO: Can we do this without the allocations?
 func (f *Fragment) logAppend(ctx context.Context, l Log) error {
 	lsn, err := l.Append(ctx, f.recordLocator(), f.cloneBuffer())
 	if err != nil {
@@ -123,7 +122,6 @@ func (f *Fragment) logAppend(ctx context.Context, l Log) error {
 	return nil
 }
 
-// TODO: Can we do this without the allocations?
 func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
 	lsn, err := l.Update(ctx, f.recordLocator(), f.cloneBuffer(), f.base)
 	if err != nil {
