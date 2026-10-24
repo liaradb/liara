@@ -1,5 +1,11 @@
 package link
 
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/encoder/serializer"
+)
+
 type BlockID struct {
 	fileName FileName
 	position FilePosition
@@ -16,7 +22,9 @@ func NewBlockID(fn FileName, position FilePosition) BlockID {
 }
 
 func (b BlockID) Size() int {
-	return b.position.Size() + b.fileName.Size()
+	return serializer.Size(
+		b.fileName,
+		b.position)
 }
 
 func (b BlockID) Offset(bufferSize int64) Offset {
@@ -43,4 +51,16 @@ func (b BlockID) Next() BlockID {
 		fileName: b.fileName,
 		position: b.position + 1,
 	}
+}
+
+func (i *BlockID) Read(r io.Reader) error {
+	return serializer.ReadAll(r,
+		&i.fileName,
+		&i.position)
+}
+
+func (i BlockID) Write(w io.Writer) error {
+	return serializer.WriteAll(w,
+		i.fileName,
+		i.position)
 }

@@ -6,12 +6,10 @@ import (
 
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/span"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
 )
@@ -134,13 +132,13 @@ func (re *Replay) recoverInsertRequest(ctx context.Context, r *record.Record) er
 
 func (re *Replay) recoverTenant(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
-	b, err := re.s.Request(ctx, link.NewBlockID(tablename.Tenant.Tenant(), r.RecordLocator().Block()))
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
 	}
 
 	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
-	p.RecoverInsert(r.RecordLocator().SlotID(), r.Data())
+	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 
@@ -237,13 +235,13 @@ func (re *Replay) recoverUpdateRequest(ctx context.Context, r *record.Record) er
 
 func (re *Replay) recoverUpdateTenant(ctx context.Context, r *record.Record) error {
 	fmt.Printf("recover: %v\n", r.Action())
-	b, err := re.s.Request(ctx, link.NewBlockID(tablename.Tenant.Tenant(), r.RecordLocator().Block()))
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
 		return err
 	}
 
 	p := page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
-	p.RecoverUpdate(r.RecordLocator().SlotID(), r.Data())
+	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
 	return nil
 }
 

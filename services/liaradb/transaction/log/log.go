@@ -103,7 +103,7 @@ func (l *Log) Start(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		link.RecordLocator{},
+		link.RecordID{},
 		record.ActionStart,
 		record.CollectionSystem,
 		nil,
@@ -116,7 +116,7 @@ func (l *Log) Commit(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
 		txid,
-		link.RecordLocator{},
+		link.RecordID{},
 		record.ActionCommit,
 		record.CollectionSystem,
 		nil,
@@ -129,7 +129,7 @@ func (l *Log) Rollback(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
 		txid,
-		link.RecordLocator{},
+		link.RecordID{},
 		record.ActionRollback,
 		record.CollectionSystem,
 		nil,
@@ -139,13 +139,13 @@ func (l *Log) Rollback(
 func (l *Log) Insert(
 	ctx context.Context,
 	txid record.TransactionID,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	collection record.Collection,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rl,
+		rid,
 		record.ActionInsert,
 		collection,
 		data,
@@ -155,14 +155,14 @@ func (l *Log) Insert(
 func (l *Log) Update(
 	ctx context.Context,
 	txid record.TransactionID,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rl,
+		rid,
 		record.ActionUpdate,
 		collection,
 		data,
@@ -172,14 +172,14 @@ func (l *Log) Update(
 func (l *Log) UpdateHeader(
 	ctx context.Context,
 	txid record.TransactionID,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	collection record.Collection,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rl,
+		rid,
 		record.ActionUpdateHeader,
 		collection,
 		data,
@@ -193,7 +193,7 @@ func (l *Log) Checkpoint(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		record.TransactionID{},
-		link.RecordLocator{},
+		link.RecordID{},
 		record.ActionCheckpoint,
 		record.CollectionSystem,
 		l.txIDsToData(txids),

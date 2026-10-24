@@ -15,13 +15,13 @@ func TestRecord(t *testing.T) {
 
 	lsn := logpage.NewLogSequenceNumber(1)
 	txid := NewTransactionID(2)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(txid, rl, action, collection, data, reverse)
+	rc := New(txid, rid, action, collection, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	if i := rc.LogSequenceNumber(); i != lsn {
@@ -32,8 +32,8 @@ func TestRecord(t *testing.T) {
 		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
 	}
 
-	if i := rc.RecordLocator(); i != rl {
-		t.Errorf("incorrect record locator: %v, expected: %v", i, rl)
+	if i := rc.RecordID(); i != rid {
+		t.Errorf("incorrect record locator: %v, expected: %v", i, rid)
 	}
 
 	if i := rc.Action(); i != action {
@@ -62,13 +62,13 @@ func TestRecord_Write(t *testing.T) {
 
 	lsn := logpage.NewLogSequenceNumber(1)
 	txid := NewTransactionID(2)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
 	reverse := []byte("fghij")
 
-	rc := New(txid, rl, action, collection, data, reverse)
+	rc := New(txid, rid, action, collection, data, reverse)
 	rc.SetLogSequenceNumber(lsn)
 
 	r, w := newReaderWriter()
@@ -95,8 +95,8 @@ func TestRecord_Write(t *testing.T) {
 		t.Errorf("incorrect transaction id: %v, expected: %v", i, txid)
 	}
 
-	if i := rc2.RecordLocator(); i != rl {
-		t.Errorf("incorrect record locator: %v, expected: %v", i, rl)
+	if i := rc2.RecordID(); i != rid {
+		t.Errorf("incorrect record locator: %v, expected: %v", i, rid)
 	}
 
 	if i := rc2.Action(); i != action {
@@ -124,7 +124,7 @@ func TestRecord_Compare(t *testing.T) {
 	t.Parallel()
 
 	txid := NewTransactionID(2)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	action := ActionInsert
 	collection := CollectionEvent
 	data := []byte("abcde")
@@ -149,13 +149,13 @@ func TestRecord_Compare(t *testing.T) {
 			equal: true,
 		},
 		"should equal same values": {
-			a:     New(txid, rl, action, collection, data, reverse),
-			b:     New(txid, rl, action, collection, data, reverse),
+			a:     New(txid, rid, action, collection, data, reverse),
+			b:     New(txid, rid, action, collection, data, reverse),
 			equal: true,
 		},
 		"should not equal different values": {
-			a:     New(txid, rl, action, collection, data, reverse),
-			b:     New(NewTransactionID(3), rl, action, collection, data, reverse),
+			a:     New(txid, rid, action, collection, data, reverse),
+			b:     New(NewTransactionID(3), rid, action, collection, data, reverse),
 			equal: false,
 		},
 	} {

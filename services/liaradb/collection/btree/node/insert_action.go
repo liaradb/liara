@@ -9,22 +9,22 @@ import (
 )
 
 type insertAction struct {
-	rl   link.RecordLocator
+	rid  link.RecordID
 	data []byte
 }
 
 var _ action = (*insertAction)(nil)
 
 func newInsertAction(
-	rl link.RecordLocator,
+	rid link.RecordID,
 	data []byte,
 ) *insertAction {
 	return &insertAction{
-		rl:   rl,
+		rid:  rid,
 		data: data,
 	}
 }
 
 func (a *insertAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
-	return l.Append(ctx, a.rl, a.data)
+	return l.Append(ctx, a.rid, a.data)
 }

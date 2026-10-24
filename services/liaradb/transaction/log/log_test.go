@@ -36,13 +36,13 @@ func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if lsn, err := l.Update(ctx,
 		record.NewTransactionID(2),
-		rl,
+		rid,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -64,7 +64,7 @@ func testLog_Append__Large(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 	var data = make([]byte, 0, 1024)
 	for i := range 1024 {
 		data = append(data, byte(i%255))
@@ -73,7 +73,7 @@ func testLog_Append__Large(t *testing.T) {
 
 	if _, err := l.Update(ctx,
 		record.NewTransactionID(2),
-		rl,
+		rid,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -95,11 +95,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rl := link.NewRecordLocator(1, 2)
+			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -111,7 +111,7 @@ func TestLog_Flush(t *testing.T) {
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -134,11 +134,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rl := link.NewRecordLocator(1, 2)
+			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -148,7 +148,7 @@ func TestLog_Flush(t *testing.T) {
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -169,12 +169,12 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 352, 4, 352)
-			rl := link.NewRecordLocator(1, 2)
+			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 			count := 14
 			for range count {
 				if _, err := l.Update(ctx,
 					record.NewTransactionID(2),
-					rl,
+					rid,
 					record.CollectionValue,
 					data,
 					reverse,
@@ -198,11 +198,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 48, 1, 2)
-			rl := link.NewRecordLocator(1, 2)
+			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -217,11 +217,11 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rl := link.NewRecordLocator(1, 2)
+			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -235,7 +235,7 @@ func TestLog_Flush(t *testing.T) {
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
-				rl,
+				rid,
 				record.CollectionValue,
 				data,
 				reverse,
@@ -261,14 +261,14 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	ctx := t.Context()
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
-	rl := link.NewRecordLocator(1, 2)
+	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
 	if _, err := l.Update(ctx,
 		record.NewTransactionID(2),
-		rl,
+		rid,
 		record.CollectionValue,
 		data,
 		reverse,
@@ -333,7 +333,7 @@ func testLog_Iterate(t *testing.T) {
 	fsys, dir := createFiles()
 
 	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
-	rl := link.NewRecordLocator(1, 2)
+	rl := link.NewRecordID(link.NewBlockID("", 1), 2)
 
 	count := 100
 	records, _ := createRecords(uint64(count), 0)
@@ -405,7 +405,7 @@ func testLog_Recover(t *testing.T) {
 
 		if _, err := l.Update(ctx,
 			r0.TransactionID(),
-			link.NewRecordLocator(1, 2),
+			link.NewRecordID(link.NewBlockID("", 1), 2),
 			r0.Collection(),
 			r0.Data(),
 			r0.Reverse(),
@@ -419,7 +419,7 @@ func testLog_Recover(t *testing.T) {
 
 		if _, err := l.Update(ctx,
 			r1.TransactionID(),
-			link.NewRecordLocator(1, 2),
+			link.NewRecordID(link.NewBlockID("", 1), 2),
 			r1.Collection(),
 			r1.Data(),
 			r1.Reverse(),
@@ -498,7 +498,7 @@ func testLog_RecoverMany(t *testing.T) {
 		for _, rec := range records1 {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
-				link.NewRecordLocator(1, 2),
+				link.NewRecordID(link.NewBlockID("", 1), 2),
 				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
@@ -562,7 +562,7 @@ func testLog_RecoverMany(t *testing.T) {
 		for _, rec := range records2 {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
-				link.NewRecordLocator(1, 2),
+				link.NewRecordID(link.NewBlockID("", 1), 2),
 				rec.Collection(),
 				rec.Data(),
 				rec.Reverse(),
@@ -632,7 +632,7 @@ func testLog_Recover__Iterate(t *testing.T) {
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			rec.TransactionID(),
-			link.NewRecordLocator(1, 2),
+			link.NewRecordID(link.NewBlockID("", 1), 2),
 			rec.Collection(),
 			rec.Data(),
 			rec.Reverse(),
@@ -691,7 +691,7 @@ func testLog_Commit(t *testing.T) {
 
 	if _, err := l.Insert(ctx,
 		txid1,
-		link.NewRecordLocator(1, 2),
+		link.NewRecordID(link.NewBlockID("", 1), 2),
 		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
@@ -709,7 +709,7 @@ func testLog_Commit(t *testing.T) {
 
 	if _, err := l.Insert(ctx,
 		txid2,
-		link.NewRecordLocator(1, 2),
+		link.NewRecordID(link.NewBlockID("", 1), 2),
 		record.CollectionSystem,
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
@@ -782,7 +782,7 @@ func testLog_Insert(t *testing.T) {
 
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordLocator(1, 2),
+		link.NewRecordID(link.NewBlockID("", 1), 2),
 		record.CollectionEvent,
 		data,
 	); err != nil {
@@ -839,7 +839,7 @@ func testLog_InsertAndCommit(t *testing.T) {
 
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordLocator(1, 2),
+		link.NewRecordID(link.NewBlockID("", 1), 2),
 		record.CollectionEvent,
 		data,
 	); err != nil {
@@ -984,7 +984,7 @@ func testLog_Update(t *testing.T) {
 
 	if lsn, err := l.Update(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordLocator(1, 2),
+		link.NewRecordID(link.NewBlockID("", 1), 2),
 		record.CollectionValue,
 		data,
 		reverse,
@@ -1095,7 +1095,7 @@ func createRecords(count, offset uint64) ([]*record.Record, logpage.LogSequenceN
 	for i := range count {
 		rc := record.New(
 			record.NewTransactionID(2),
-			link.NewRecordLocator(1, 2),
+			link.NewRecordID(link.NewBlockID("", 1), 2),
 			record.ActionUpdate,
 			record.CollectionValue,
 			data,

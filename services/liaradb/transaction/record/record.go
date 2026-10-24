@@ -11,7 +11,7 @@ import (
 type Record struct {
 	logSequenceNumber logpage.LogSequenceNumber
 	transactionID     TransactionID
-	recordLocator     link.RecordLocator
+	recordID          link.RecordID
 	action            Action
 	collection        Collection
 	data              LogData
@@ -20,7 +20,7 @@ type Record struct {
 
 func New(
 	txid TransactionID,
-	recordLocator link.RecordLocator,
+	recordID link.RecordID,
 	action Action,
 	collection Collection,
 	data []byte,
@@ -28,7 +28,7 @@ func New(
 ) *Record {
 	return &Record{
 		transactionID: txid,
-		recordLocator: recordLocator,
+		recordID:      recordID,
 		action:        action,
 		collection:    collection,
 		data:          LogData{data},
@@ -38,7 +38,7 @@ func New(
 
 func (rc *Record) LogSequenceNumber() logpage.LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TransactionID() TransactionID                 { return rc.transactionID }
-func (rc *Record) RecordLocator() link.RecordLocator            { return rc.recordLocator }
+func (rc *Record) RecordID() link.RecordID                      { return rc.recordID }
 func (rc *Record) Action() Action                               { return rc.action }
 func (rc *Record) Collection() Collection                       { return rc.collection }
 func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
@@ -53,7 +53,7 @@ func (rc *Record) Size() int {
 	return serializer.Size(
 		rc.logSequenceNumber,
 		rc.transactionID,
-		rc.recordLocator,
+		rc.recordID,
 		rc.action,
 		rc.collection,
 		&rc.data,
@@ -64,7 +64,7 @@ func (rc *Record) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		rc.logSequenceNumber,
 		rc.transactionID,
-		rc.recordLocator,
+		rc.recordID,
 		rc.action,
 		rc.collection,
 		&rc.data,
@@ -75,7 +75,7 @@ func (rc *Record) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&rc.logSequenceNumber,
 		&rc.transactionID,
-		&rc.recordLocator,
+		&rc.recordID,
 		&rc.action,
 		&rc.collection,
 		&rc.data,
@@ -89,7 +89,7 @@ func (rc *Record) Compare(b *Record) bool {
 
 	return rc.logSequenceNumber == b.logSequenceNumber &&
 		rc.transactionID == b.transactionID &&
-		rc.recordLocator == b.recordLocator &&
+		rc.recordID == b.recordID &&
 		rc.action == b.action &&
 		rc.collection == b.collection &&
 		rc.data.Compare(&b.data) &&

@@ -134,6 +134,6 @@ func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
 	return nil
 }
 
-func (f Fragment) recordLocator() link.RecordLocator {
-	return f.p.BlockID().RecordLocator(f.slotID)
+func (f Fragment) recordLocator() link.RecordID {
+	return f.p.BlockID().RecordID(f.slotID)
 }

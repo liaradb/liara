@@ -33,25 +33,25 @@ func New(
 
 func (l *Logger) Append(
 	ctx context.Context,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,
 		l.txid,
-		rl,
+		rid,
 		l.c,
 		data)
 }
 
 func (l *Logger) Update(
 	ctx context.Context,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Update(ctx,
 		l.txid,
-		rl,
+		rid,
 		l.c,
 		data,
 		prev)
@@ -59,13 +59,13 @@ func (l *Logger) Update(
 
 func (l *Logger) UpdateHeader(
 	ctx context.Context,
-	rl link.RecordLocator,
+	rid link.RecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.UpdateHeader(ctx,
 		l.txid,
-		rl,
+		rid,
 		l.c,
 		data,
 		prev)

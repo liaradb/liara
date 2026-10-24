@@ -16,8 +16,8 @@ import (
 //   - Delete Range
 //   - Change header
 type Log interface {
-	Append(context.Context, link.RecordLocator, []byte) (logpage.LogSequenceNumber, error)
-	Update(context.Context, link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error)
-	// Insert(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) // TODO: Support shifting
-	UpdateHeader(context.Context, link.RecordLocator, []byte, []byte) (logpage.LogSequenceNumber, error)
+	Append(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
+	Update(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
+	// Insert(link.RecordID, []byte) (logpage.LogSequenceNumber, error) // TODO: Support shifting
+	UpdateHeader(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
 }

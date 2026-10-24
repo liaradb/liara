@@ -1,6 +1,10 @@
 package link
 
-import "io"
+import (
+	"io"
+
+	"github.com/liaradb/liaradb/encoder/serializer"
+)
 
 type RecordID struct {
 	blockID BlockID
@@ -21,19 +25,23 @@ func (i RecordID) BlockID() BlockID { return i.blockID }
 func (i RecordID) SlotID() SlotID   { return i.slotID }
 
 func (i RecordID) Size() int {
-	return i.blockID.Size() + i.slotID.Size()
+	return serializer.Size(
+		i.blockID,
+		i.slotID)
 }
 
 func (i RecordID) Offset(bufferSize int64) Offset {
 	return i.blockID.Offset(bufferSize) * Offset(i.slotID)
 }
 
-// TODO: Implement this
 func (i *RecordID) Read(r io.Reader) error {
-	return nil
+	return serializer.ReadAll(r,
+		&i.blockID,
+		&i.slotID)
 }
 
-// TODO: Implement this
 func (i RecordID) Write(w io.Writer) error {
-	return nil
+	return serializer.WriteAll(w,
+		i.blockID,
+		i.slotID)
 }

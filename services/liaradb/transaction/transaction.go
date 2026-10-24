@@ -359,7 +359,7 @@ func (t *Transaction) UpdateOutbox(
 	data := make([]byte, entity.OutboxSize)
 	_ = o.WriteData(data)
 
-	_, err = t.log.Update(ctx, t.id, link.RecordLocator{}, record.CollectionOutbox, data, prev)
+	_, err = t.log.Update(ctx, t.id, link.RecordID{}, record.CollectionOutbox, data, prev)
 	if err != nil {
 		return err
 	}
