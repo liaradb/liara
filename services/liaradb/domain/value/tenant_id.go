@@ -1,7 +1,8 @@
 package value
 
 import (
-	"github.com/google/uuid"
+	"uuid"
+
 	"github.com/liaradb/liaradb/encoder/base"
 )
 

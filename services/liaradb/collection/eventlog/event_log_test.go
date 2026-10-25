@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 	"testing/synctest"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -206,7 +206,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	el := New(s.Storage, btree.NewCursor(s.Storage), l)
 	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
 
-	aggregateID := value.NewAggregateID(uuid.NewString())
+	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),

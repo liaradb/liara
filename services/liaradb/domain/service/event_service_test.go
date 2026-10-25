@@ -5,8 +5,8 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
@@ -25,7 +25,7 @@ func testEventService_Append(t *testing.T) {
 	m, _ := createManager(t, 1024)
 	es := NewEventService(m)
 
-	aggregateID := value.NewAggregateID(uuid.NewString())
+	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID:    value.NewTenantID(),
 		Options:     command.AppendOptions{},
@@ -80,7 +80,7 @@ func testEventService_Append__Large(t *testing.T) {
 	m, _ := createManager(t, 1024)
 	es := NewEventService(m)
 
-	aggregateID := value.NewAggregateID(uuid.NewString())
+	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID:    value.NewTenantID(),
 		Options:     command.AppendOptions{},
@@ -134,7 +134,7 @@ func TestEventService_Append__Invalid(t *testing.T) {
 func testEventService_Append__Invalid(t *testing.T) {
 	es := NewEventService(nil)
 
-	aggregateID := value.NewAggregateID(uuid.NewString())
+	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	want := command.EventOptions{
 		AggregateName: value.NewAggregateName("example"),
 		// ID:            value.NewEventID(),

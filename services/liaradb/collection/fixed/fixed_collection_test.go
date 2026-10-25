@@ -8,8 +8,8 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/logger"

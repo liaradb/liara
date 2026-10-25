@@ -4,15 +4,15 @@ import (
 	"io"
 	"slices"
 	"testing"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestID_NewIDFromUUID(t *testing.T) {
 	t.Parallel()
 
-	id := uuid.New()
+	id := uuid.NewV7()
 	b := NewIDFromUUID(id)
 	b.Bytes()
 
@@ -24,7 +24,7 @@ func TestID_NewIDFromUUID(t *testing.T) {
 func TestID_NewIDFromString(t *testing.T) {
 	t.Parallel()
 
-	id := uuid.New()
+	id := uuid.NewV7()
 	b, err := NewIDFromString(id.String())
 	if err != nil {
 		t.Fatal(err)

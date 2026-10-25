@@ -3,8 +3,7 @@ package value
 import (
 	"io"
 	"testing"
-
-	"github.com/google/uuid"
+	"uuid"
 )
 
 func TestRequestID(t *testing.T) {
@@ -36,7 +35,7 @@ func TestRequestID(t *testing.T) {
 func TestRequestID_NewRequestIDFromString(t *testing.T) {
 	t.Parallel()
 
-	value := uuid.NewString()
+	value := uuid.NewV7().String()
 
 	e, err := NewRequestIDFromString(value)
 	if err != nil {

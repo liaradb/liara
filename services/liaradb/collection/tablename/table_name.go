@@ -2,14 +2,14 @@ package tablename
 
 import (
 	"fmt"
+	"uuid"
 
-	"github.com/google/uuid"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-var defaultTenantID = value.NewTenantIDFromUUID(uuid.Nil)
+var defaultTenantID = value.NewTenantIDFromUUID(uuid.Nil())
 
 type TableName struct {
 	tenantID value.TenantID

@@ -2,8 +2,7 @@ package base
 
 import (
 	"io"
-
-	"github.com/google/uuid"
+	"uuid"
 )
 
 type baseUUID = uuid.UUID
@@ -13,7 +12,7 @@ type ID struct {
 }
 
 func NewID() ID {
-	return ID{uuid.New()}
+	return ID{uuid.NewV7()}
 }
 
 func NewIDFromUUID(id uuid.UUID) ID {

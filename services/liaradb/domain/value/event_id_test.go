@@ -5,8 +5,7 @@ import (
 	"bytes"
 	"io"
 	"testing"
-
-	"github.com/google/uuid"
+	"uuid"
 )
 
 func TestEventID(t *testing.T) {
@@ -38,7 +37,7 @@ func TestEventID(t *testing.T) {
 func TestEventID_NewEventIDFromString(t *testing.T) {
 	t.Parallel()
 
-	value := uuid.NewString()
+	value := uuid.NewV7().String()
 
 	e, err := NewEventIDFromString(value)
 	if err != nil {
