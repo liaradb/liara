@@ -3,37 +3,36 @@ package service
 import (
 	"sync"
 
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
 type GlobalVersionGenerator struct {
 	mux      sync.Mutex
-	versions map[tablename.TableName]*tableVersion
+	versions map[value.TenantID]*tableVersion
 }
 
-func (g *GlobalVersionGenerator) Init(tn tablename.TableName, v value.GlobalVersion) {
-	tv := g.getTableVersion(tn)
+func (g *GlobalVersionGenerator) Init(tid value.TenantID, v value.GlobalVersion) {
+	tv := g.getTableVersion(tid)
 	tv.setValue(v)
 }
 
-func (g *GlobalVersionGenerator) getTableVersion(tn tablename.TableName) *tableVersion {
+func (g *GlobalVersionGenerator) getTableVersion(tid value.TenantID) *tableVersion {
 	g.mux.Lock()
 	defer g.mux.Unlock()
 
 	if g.versions == nil {
-		g.versions = make(map[tablename.TableName]*tableVersion)
+		g.versions = make(map[value.TenantID]*tableVersion)
 	}
 
-	tv, ok := g.versions[tn]
+	tv, ok := g.versions[tid]
 	if !ok {
 		tv = &tableVersion{}
-		g.versions[tn] = tv
+		g.versions[tid] = tv
 	}
 	return tv
 }
 
-func (g *GlobalVersionGenerator) Next(tn tablename.TableName) value.GlobalVersion {
-	tv := g.getTableVersion(tn)
+func (g *GlobalVersionGenerator) Next(tid value.TenantID) value.GlobalVersion {
+	tv := g.getTableVersion(tid)
 	return tv.increment()
 }

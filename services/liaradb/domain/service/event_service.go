@@ -58,7 +58,7 @@ func (es *EventService) Append(
 		}
 
 		for _, em := range cmd.Events {
-			e, err := em.ToEvent(cmd.PartitionID, cmd.Options, es.gvg.Next(tn))
+			e, err := em.ToEvent(cmd.PartitionID, cmd.Options, es.gvg.Next(cmd.TenantID))
 			if err != nil {
 				return err
 			}
