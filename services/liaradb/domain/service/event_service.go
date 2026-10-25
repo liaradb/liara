@@ -5,6 +5,7 @@ import (
 	"iter"
 	"time"
 
+	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -16,18 +17,32 @@ import (
 
 type EventService struct {
 	txManager *transaction.Manager
-	gvg       *GlobalVersionGenerator
+	eventLog  *eventlog.EventLog
+	gvg       GlobalVersionGenerator
 }
 
 func NewEventService(
 	txManager *transaction.Manager,
+	eventLog *eventlog.EventLog,
 ) *EventService {
-	// TODO: Restore from disk
-	gvg := GlobalVersionGenerator{}
 	return &EventService{
 		txManager: txManager,
-		gvg:       &gvg,
+		eventLog:  eventLog,
 	}
+}
+
+func (es *EventService) InitGlobalVersions(ctx context.Context, tIDs []value.TenantID) error {
+	for _, tid := range tIDs {
+		// TODO: Restore all partitions from disk
+		gv, err := es.eventLog.GetMaxGlobalVersion(ctx, tablename.New(tid), value.NewPartitionID(0))
+		if err != nil {
+			return err
+		}
+
+		es.gvg.Init(tid, gv)
+	}
+
+	return nil
 }
 
 func (es *EventService) Append(

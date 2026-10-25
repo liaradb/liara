@@ -17,7 +17,7 @@ type Collections struct {
 	storage     *storage.Storage
 	manager     *manager.Manager
 	schemaMgr   *schema.Manager
-	tenant      *tenant.Tenant
+	Tenant      *tenant.Tenant
 	EventLog    *eventlog.EventLog
 	keyValue    *keyvalue.KeyValue
 	Outbox      *outbox.Outbox
@@ -33,7 +33,7 @@ func NewCollections(
 	return &Collections{
 		storage:     storage,
 		manager:     manager.New(kv),
-		tenant:      tenant.New(storage, cursor, log),
+		Tenant:      tenant.New(storage, cursor, log),
 		EventLog:    eventlog.New(storage, cursor, log),
 		keyValue:    kv,
 		Outbox:      outbox.New(storage, cursor, log),

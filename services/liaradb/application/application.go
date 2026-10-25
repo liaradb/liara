@@ -10,10 +10,9 @@ import (
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/collection"
-	"github.com/liaradb/liaradb/collection/btree"
-	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
+	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/storage"
@@ -32,6 +31,8 @@ type Application struct {
 	txManager   *transaction.Manager
 	log         *log.Log
 	ot          openTelemetry
+	es          *service.EventService
+	ts          *service.TenantService
 }
 
 const (
@@ -62,11 +63,24 @@ func New(conf configuration) *Application {
 
 // TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
+	a.es = service.NewEventService(
+		a.txManager,
+		a.collections.EventLog)
+
+	a.ts = service.NewTenantService(
+		a.txManager,
+		a.collections.Tenant)
+
 	ctxMain, cancelMain := context.WithCancel(ctx)
 
 	a.ot.init(ctxMain)
 
 	if err := a.run(ctxMain); err != nil {
+		cancelMain()
+		return err
+	}
+
+	if err := a.initEventLog(ctxMain); err != nil {
 		cancelMain()
 		return err
 	}
@@ -90,6 +104,19 @@ func (a *Application) Run(ctx context.Context) error {
 	<-ctxListen.Done()
 
 	return nil
+}
+
+func (a *Application) initEventLog(ctx context.Context) error {
+	var tIDs []value.TenantID
+	for t, err := range a.ts.List(ctx, 0, 0) {
+		if err != nil {
+			return err
+		}
+
+		tIDs = append(tIDs, t.ID())
+	}
+
+	return a.es.InitGlobalVersions(ctx, tIDs)
 }
 
 func (a *Application) run(ctx context.Context) error {
@@ -186,12 +213,8 @@ func (a *Application) initService() {
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		service.NewEventService(
-			a.txManager,
-		),
-		service.NewTenantService(
-			a.txManager,
-			tenant.New(a.storage, btree.NewCursor(a.storage), a.log)),
+		a.es,
+		a.ts,
 	))
 
 	a.s = s

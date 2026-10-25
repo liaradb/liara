@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/encoder/scan"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
 )
@@ -192,4 +193,18 @@ func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid valu
 			}
 		}
 	}
+}
+
+func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName, pid value.PartitionID) (value.GlobalVersion, error) {
+	k, err := l.cursor.Maximum(ctx, tn.Index(2, pid))
+	if err != nil {
+		if errors.Is(err, btree.ErrNotFound) {
+			return value.NewGlobalVersion(0), nil
+		}
+
+		return value.GlobalVersion{}, err
+	}
+
+	v, _ := scan.Uint64([]byte(k.A.String()))
+	return value.NewGlobalVersion(v), nil
 }

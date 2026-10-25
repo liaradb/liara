@@ -6,12 +6,14 @@ type Cursor struct {
 	insert
 	level
 	search
+	maximum
 }
 
 func NewCursor(s *storage.Storage) *Cursor {
 	return &Cursor{
-		insert: newInsert(s),
-		level:  newLevel(s),
-		search: newSearch(s),
+		insert:  newInsert(s),
+		level:   newLevel(s),
+		search:  newSearch(s),
+		maximum: newMaximum(s),
 	}
 }
