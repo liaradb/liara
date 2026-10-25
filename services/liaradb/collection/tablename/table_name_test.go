@@ -57,4 +57,19 @@ func TestTableName(t *testing.T) {
 	if idx := tn.Index(1, value.NewPartitionID(2)); idx != wantIdx1 {
 		t.Errorf("incorrect index file: %v, expected: %v", idx, wantIdx1)
 	}
+
+	wantOut := link.NewFileName("00000000-0000-0000-0000-000000000000--testfile--00000001.out")
+	if out := tn.Outbox(value.NewPartitionID(1)); out != wantOut {
+		t.Errorf("incorrect outbox file: %v, expected: %v", out, wantEL)
+	}
+
+	wantRl := link.NewFileName("00000000-0000-0000-0000-000000000000--testfile.rl")
+	if rl := tn.RequestLog(); rl != wantRl {
+		t.Errorf("incorrect request log file: %v, expected: %v", rl, wantRl)
+	}
+
+	wantTn := link.NewFileName("00000000-0000-0000-0000-000000000000--testfile.tn")
+	if tn := tn.Tenant(); tn != wantTn {
+		t.Errorf("incorrect tenant file: %v, expected: %v", tn, wantTn)
+	}
 }
