@@ -237,6 +237,34 @@ func TestSloList_Delete(t *testing.T) {
 	}
 }
 
+func TestSlotList_Remove(t *testing.T) {
+	t.Parallel()
+
+	l := New(make([]byte, 42))
+
+	_, _ = l.Push(3, 3)
+	_, _ = l.Push(5, 5)
+	_, _ = l.Push(7, 7)
+
+	l.Remove(1)
+
+	s := l.Slot(0)
+	if o := s.Offset(); o != 3 {
+		t.Errorf("incorrect offset: %v, expected: %v", o, 3)
+	}
+	if s := s.Size(); s != 3 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 3)
+	}
+
+	s = l.Slot(1)
+	if o := s.Offset(); o != 7 {
+		t.Errorf("incorrect offset: %v, expected: %v", o, 7)
+	}
+	if s := s.Size(); s != 7 {
+		t.Errorf("incorrect size: %v, expected: %v", s, 7)
+	}
+}
+
 func TestSlotList_FirstOffset(t *testing.T) {
 	t.Parallel()
 

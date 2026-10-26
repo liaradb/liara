@@ -158,12 +158,20 @@ func (sl *SlotList) Insert(offset int16, size int16, i link.SlotID) (Slot, link.
 	return newSlot(i, offset, size, sl.data), count
 }
 
+func (sl *SlotList) Remove(i link.SlotID) {
+	start := sl.position(i + 1)
+	end := sl.position(sl.count)
+	sl.list.ShiftRange(start, end, -slotSize)
+	sl.setCount(sl.count - 1)
+}
+
 func (sl *SlotList) Pop() Slot {
 	if sl.count == 0 {
 		panic("invalid slot")
 	}
 
 	slot := sl.Slot(sl.count - 1)
+	// TODO: Clearing the slot is only required if idempotent with Push
 	sl.setSlot(sl.position(sl.count-1), 0, 0)
 	sl.setCount(sl.count - 1)
 	return slot
