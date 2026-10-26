@@ -164,6 +164,7 @@ func (sl *SlotList) Pop() Slot {
 	}
 
 	slot := sl.Slot(sl.count - 1)
+	sl.setSlot(sl.position(sl.count-1), 0, 0)
 	sl.setCount(sl.count - 1)
 	return slot
 }
