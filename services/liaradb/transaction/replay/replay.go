@@ -52,13 +52,13 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	case record.ActionStart:
 		return re.recoverStart(r)
 	case record.ActionCommit:
-		return re.recoverCommit(r)
+		return re.recoverCommit()
 	case record.ActionInsert:
 		return re.recoverInsert(ctx, r)
 	case record.ActionRemove:
 		return re.recoverRemove(ctx, r)
 	case record.ActionRollback:
-		return re.recoverRollback(r)
+		return re.recoverRollback()
 	case record.ActionUpdate:
 		return re.recoverUpdate(ctx, r)
 	default:
@@ -94,7 +94,7 @@ func (re *Replay) recoverStart(r *record.Record) error {
 	return nil
 }
 
-func (re *Replay) recoverCommit(r *record.Record) error {
+func (re *Replay) recoverCommit() error {
 	return nil
 }
 
@@ -149,7 +149,7 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 	return nil
 }
 
-func (re *Replay) recoverRollback(r *record.Record) error {
+func (re *Replay) recoverRollback() error {
 	return nil
 }
 

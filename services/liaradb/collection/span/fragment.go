@@ -33,7 +33,7 @@ type Fragment struct {
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	BlockID() link.BlockID
-	Commit(size int)
+	CommitAppend(size int)
 	Release()
 }
 
@@ -80,7 +80,7 @@ func (f Fragment) valid() bool {
 
 func (f Fragment) commit() {
 	f.commitCRC()
-	f.p.Commit(f.size)
+	f.p.CommitAppend(f.size)
 }
 
 func (f Fragment) commitCRC() {

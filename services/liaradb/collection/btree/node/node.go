@@ -92,7 +92,7 @@ func (n *Node) Append(size int16) ([]byte, bool) {
 func (n *Node) CommitAppend(size int16) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
-	sid := n.page.Commit(int(size))
+	sid := n.page.CommitAppend(int(size))
 	rid := n.buffer.BlockID().RecordID(sid)
 
 	n.addAction(newAppendAction(rid, b))

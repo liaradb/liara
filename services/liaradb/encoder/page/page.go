@@ -131,16 +131,24 @@ func (p *Page) initNext() {
 }
 
 func (p *Page) Next(size int) ([]byte, []byte) {
+	data, ok := p.nextSlot(size)
+	if !ok {
+		return nil, nil
+	}
+
+	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
+}
+
+func (p *Page) nextSlot(size int) ([]byte, bool) {
 	space := p.Space()
 	size = min(size, space)
 	end := p.next
 	start := (end - size) - p.slotHeaderSize
 	if end-start <= p.slotHeaderSize {
-		return nil, nil
+		return nil, false
 	}
 
-	data := p.body[start:end]
-	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
+	return p.body[start:end], true
 }
 
 func (p *Page) NextMustFit(size int) ([]byte, []byte, bool) {
@@ -169,7 +177,7 @@ func (p *Page) Space() int {
 	return max(space, 0)
 }
 
-func (p *Page) Commit(size int) link.SlotID {
+func (p *Page) CommitAppend(size int) link.SlotID {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
@@ -191,9 +199,16 @@ func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
 
 // TODO: Is this correct?
 func (p *Page) RecoverAppend(i link.SlotID, data []byte) {
-	if n := copy(p.list.Slot(i).SliceUnsafe(), data); n < len(data) {
+	slot, _ := p.nextSlot(len(data))
+	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
 	}
+
+	p.CommitAppend(len(data))
+}
+
+func (p *Page) RevertAppend() {
+	clear(p.list.Pop().SliceUnsafe())
 }
 
 func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {

@@ -154,7 +154,7 @@ func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
 
-func (t *testBufferPage) Commit(size int) {
+func (t *testBufferPage) CommitAppend(size int) {
 }
 
 func (t *testBufferPage) Release() {

@@ -44,8 +44,8 @@ func (bp *BufferPage) Release() {
 	bp.buffer.Release()
 }
 
-func (bp *BufferPage) Commit(size int) {
-	_ = bp.page.Commit(size)
+func (bp *BufferPage) CommitAppend(size int) {
+	_ = bp.page.CommitAppend(size)
 	// TODO: Verify this the correct time to do this
 	bp.buffer.SetDirty()
 }
