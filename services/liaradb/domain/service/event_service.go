@@ -58,11 +58,9 @@ func (es *EventService) Append(
 		return err
 	}
 
-	lg := tx.Logger()
-
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
-	return transaction.Run(ctx, lg, tx, func() error {
+	return tx.Run(ctx, func() error {
 		tn := tablename.New(cmd.TenantID)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
@@ -85,7 +83,7 @@ func (es *EventService) Append(
 
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
-			return tx.InsertRequestID(ctx, lg, tn, rqid, value.NewTime(now))
+			return tx.InsertRequestID(ctx, tx, tn, rqid, value.NewTime(now))
 		}
 
 		return nil
@@ -102,9 +100,7 @@ func (es *EventService) TestIdempotency(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger()
-
-	return transaction.RunResult(ctx, lg, tx, func() (bool, error) {
+	return tx.RunResult(ctx, func() (bool, error) {
 		tn := tablename.New(qry.TenantID)
 		return tx.TestRequestID(ctx, tn, qry.RequestID)
 	})
@@ -160,11 +156,9 @@ func (es *EventService) GetAfterGlobalVersion(
 		}
 
 		// TODO: Should this log?
-		lg := tx.Logger()
-
 		// TODO: How do we handle a range?
 		count := 0
-		if err := transaction.Run(ctx, lg, tx, func() error {
+		if err := tx.Run(ctx, func() error {
 			tn := tablename.New(tid)
 			for e, err := range tx.EventsAfterGlobalVersion(ctx, tn, partitionRange.Low(), version) {
 				if err != nil {
@@ -215,14 +209,12 @@ func (es *EventService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	lg := tx.Logger()
-
 	// TODO: How do we handle a range?
-	return transaction.RunResult(ctx, lg, tx, func() (value.OutboxID, error) {
+	return tx.RunResult(ctx, func() (value.OutboxID, error) {
 		tn := tablename.New(tid)
 		oid := value.NewOutboxID()
 		outbox := entity.NewOutbox(oid, partitionRange)
-		if err := tx.InsertOutbox(ctx, lg, tn, partitionRange.Low(), oid, outbox); err != nil {
+		if err := tx.InsertOutbox(ctx, tx, tn, partitionRange.Low(), oid, outbox); err != nil {
 			return value.OutboxID{}, err
 		}
 		return oid, nil
@@ -240,9 +232,7 @@ func (es *EventService) GetOutbox(
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger()
-
-	return transaction.RunResult(ctx, lg, tx, func() (*entity.Outbox, error) {
+	return tx.RunResult(ctx, func() (*entity.Outbox, error) {
 		tn := tablename.New(tid)
 		return tx.GetOutbox(ctx, tn, value.NewPartitionID(0), outboxID)
 	})
@@ -259,11 +249,9 @@ func (es *EventService) UpdateOutboxPosition(
 		return err
 	}
 
-	lg := tx.Logger()
-
-	return transaction.Run(ctx, lg, tx, func() error {
+	return tx.Run(ctx, func() error {
 		tn := tablename.New(tid)
-		return tx.UpdateOutbox(ctx, lg, tn, value.NewPartitionID(0), outboxID, globalVersion)
+		return tx.UpdateOutbox(ctx, tx, tn, value.NewPartitionID(0), outboxID, globalVersion)
 	})
 }
 

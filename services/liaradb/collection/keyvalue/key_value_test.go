@@ -9,13 +9,12 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/transaction/log"
-	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -54,8 +53,7 @@ func TestKeyValue(t *testing.T) {
 				tn := tablename.NewFromString("testfile")
 				pid := value.NewPartitionID(0)
 
-				lg := logger.New(l, record.NewTransactionID(1))
-				if err := insertData(ctx, lg, kv, tn, pid, c.data); err != nil {
+				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, pid, c.data); err != nil {
 					t.Fatal(err)
 				}
 
@@ -89,8 +87,7 @@ func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := logger.New(l, record.NewTransactionID(1))
-	if err := insertData(ctx, lg, kv, tn, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, pid, data); err != nil {
 		t.Fatal(err)
 	}
 

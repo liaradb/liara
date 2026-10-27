@@ -9,10 +9,9 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
-	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -29,7 +28,6 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 		t.Fatal(err)
 	}
 
-	lg := logger.New(l, record.NewTransactionID(1))
 	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage), l))
 	pid := value.NewPartitionID(0)
 
@@ -37,7 +35,7 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 	want := createValues(data)
 
 	for _, d := range data {
-		if err := m.Insert(t.Context(), lg, pid, key.NewKey([]byte(d.key)), d.value); err != nil {
+		if err := m.Insert(t.Context(), &logtesting.MockLog{}, pid, key.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}

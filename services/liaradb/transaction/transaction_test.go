@@ -78,9 +78,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lg := tx.Logger()
-
-	if err := Run(ctx, lg, tx, func() error {
+	if err := tx.Run(ctx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -94,9 +92,7 @@ func testTransaction_Insert__Unique(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lg = tx.Logger()
-
-	if err := Run(ctx, lg, tx, func() error {
+	if err := tx.Run(ctx, func() error {
 		return tx.Insert(ctx, tn, &entity.Event{
 			AggregateID: id,
 			Version:     version,
@@ -186,7 +182,7 @@ func testTransaction_Commit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := tx.commit(ctx, tx.Logger()); err != nil {
+	if err := tx.commit(ctx); err != nil {
 		t.Fatal(err)
 	}
 

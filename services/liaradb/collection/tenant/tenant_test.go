@@ -9,13 +9,12 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
-	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -42,8 +41,7 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	lg := logger.New(l, record.NewTransactionID(1))
-	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,8 +72,7 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	lg := logger.New(l, record.NewTransactionID(1))
-	if err := insertData(ctx, lg, o, n, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, n, pid, data); err != nil {
 		t.Fatal(err)
 	}
 

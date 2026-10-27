@@ -12,14 +12,13 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
-	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
@@ -34,7 +33,6 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		lg := logger.New(l, record.NewTransactionID(1))
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 
 		fn := link.NewFileName("testfile")
@@ -44,7 +42,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		if err := fc.Insert(t.Context(), lg, fn, fnIdx, k, b); err != nil {
+		if err := fc.Insert(t.Context(), &logtesting.MockLog{}, fn, fnIdx, k, b); err != nil {
 			t.Fatal(err)
 		}
 
@@ -87,9 +85,7 @@ func TestFixedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		lg := logger.New(l, record.NewTransactionID(1))
-
-		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}
 
@@ -120,8 +116,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 		data := createData()
 
-		lg := logger.New(l, record.NewTransactionID(1))
-		if err := insertData(ctx, lg, fc, fn, fnIdx, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, fc, fn, fnIdx, data); err != nil {
 			t.Fatal(err)
 		}
 

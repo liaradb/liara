@@ -8,11 +8,11 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/logger"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -216,13 +216,11 @@ func (t *Transaction) SetValue(
 	return nil
 }
 
-func Run(
+func (t *Transaction) Run(
 	ctx context.Context,
-	l span.Log,
-	t *Transaction,
 	f func() error,
 ) error {
-	_, err := t.run(ctx, l, func() (any, error) {
+	_, err := t.run(ctx, func() (any, error) {
 		return struct{}{}, f()
 	})
 	if err != nil {
@@ -232,13 +230,11 @@ func Run(
 	return nil
 }
 
-func RunResult[R any](
+func (t *Transaction) RunResult[R any](
 	ctx context.Context,
-	l span.Log,
-	t *Transaction,
 	f func() (R, error),
 ) (R, error) {
-	r, err := t.run(ctx, l, func() (any, error) {
+	r, err := t.run(ctx, func() (R, error) {
 		return f()
 	})
 	if err != nil {
@@ -246,31 +242,33 @@ func RunResult[R any](
 		return r, errTransactionFailed(t.id, err)
 	}
 
-	return r.(R), nil
+	return r, nil
 }
 
-func (t *Transaction) run(
+func (t *Transaction) run[R any](
 	ctx context.Context,
-	l span.Log,
-	f func() (any, error),
-) (any, error) {
+	f func() (R, error),
+) (R, error) {
 	_, err := t.log.Start(ctx, t.id)
 	if err != nil {
-		return nil, err
+		var r R
+		return r, err
 	}
 
 	defer t.release()
 
 	r, err := f()
 	if err != nil {
-		return nil, errors.Join(err, t.rollback(ctx))
+		var r R
+		return r, errors.Join(err, t.rollback(ctx))
 	}
 
 	if t.forceRollback {
-		return nil, t.rollback(ctx)
+		var r R
+		return r, t.rollback(ctx)
 	}
 
-	return r, t.commit(ctx, l)
+	return r, t.commit(ctx)
 }
 
 func (t *Transaction) release() {
@@ -281,9 +279,9 @@ func (t *Transaction) release() {
 
 func (t *Transaction) commit(
 	ctx context.Context,
-	l span.Log,
 ) error {
-	if err := t.eventLog.Commit(ctx, l, t); err != nil {
+	// TODO: We shouldn't have to pass Transaction twice.
+	if err := t.eventLog.Commit(ctx, t, t); err != nil {
 		return err
 	}
 
@@ -398,6 +396,39 @@ func (t *Transaction) TestRequestID(
 	return t.collection.Idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
 
-func (t *Transaction) Logger() *logger.Logger {
-	return logger.New(t.log, t.id)
+func (l *Transaction) Append(
+	ctx context.Context,
+	rid link.RecordID,
+	data []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.log.Insert(ctx,
+		l.id,
+		rid,
+		data)
+}
+
+func (l *Transaction) Update(
+	ctx context.Context,
+	rid link.RecordID,
+	data []byte,
+	prev []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.log.Update(ctx,
+		l.id,
+		rid,
+		data,
+		prev)
+}
+
+func (l *Transaction) UpdateHeader(
+	ctx context.Context,
+	rid link.RecordID,
+	data []byte,
+	prev []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.log.UpdateHeader(ctx,
+		l.id,
+		rid,
+		data,
+		prev)
 }

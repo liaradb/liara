@@ -109,9 +109,7 @@ func testManager_ActiveTestManager_Active(t *testing.T) {
 		t.Errorf("should include: %v", tx0.ID())
 	}
 
-	lg := tx0.Logger()
-
-	if err := Run(ctx, lg, tx0, func() error {
+	if err := tx0.Run(ctx, func() error {
 		return nil
 	}); err != nil {
 		t.Fatal(err)

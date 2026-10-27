@@ -37,10 +37,8 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger()
-
-	return transaction.RunResult(ctx, lg, tx, func() (value.TenantID, error) {
-		if err := ts.tc.Set(ctx, lg, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
+	return tx.RunResult(ctx, func() (value.TenantID, error) {
+		if err := ts.tc.Set(ctx, tx, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
 			return value.TenantID{}, err
 		}
 		return tid, nil
@@ -100,10 +98,8 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	}
 
 	// TODO: Should this log?
-	lg := tx.Logger()
-
-	return transaction.Run(ctx, lg, tx, func() error {
-		return ts.tc.Replace(ctx, lg, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
+	return tx.Run(ctx, func() error {
+		return ts.tc.Replace(ctx, tx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
 	})
 }
 
