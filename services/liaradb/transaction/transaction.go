@@ -6,7 +6,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection"
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -27,9 +26,8 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	collection     *collection.Collections
-	eventLog       EventLogTransaction
+	eventLog       eventLogTransaction
 	values         []valueItem
-	keys           set.Set[key.Key]
 	forceRollback  bool
 	manager        *Manager
 }
@@ -55,8 +53,7 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		collection:     collection,
-		eventLog:       EventLogTransaction{el: collection.EventLog},
-		keys:           set.Set[key.Key]{},
+		eventLog:       eventLogTransaction{el: collection.EventLog, keys: set.Set[key.Key]{}},
 		manager:        manager,
 	}
 }
@@ -167,22 +164,7 @@ func (t *Transaction) Insert(
 		return err
 	}
 
-	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	// Verify this AggregateID and Version is unique in this transaction
-	if t.keys.Includes(k) {
-		return btree.ErrExists
-	}
-
-	t.keys.Add(k)
-
-	// Verify this AggregateID and Version is unique in Index
-	if err := t.collection.EventLog.CanAppend(ctx, tn, e.PartitionID, k); err != nil {
-		return err
-	}
-
-	t.eventLog.Append(e)
-
-	return nil
+	return t.eventLog.append(ctx, tn, e)
 }
 
 func (t *Transaction) SetValue(
@@ -277,11 +259,8 @@ func (t *Transaction) release() {
 	t.manager.End(t.id)
 }
 
-func (t *Transaction) commit(
-	ctx context.Context,
-) error {
-	// TODO: We shouldn't have to pass Transaction twice.
-	if err := t.eventLog.Commit(ctx, t, t); err != nil {
+func (t *Transaction) commit(ctx context.Context) error {
+	if err := t.eventLog.commit(ctx, t); err != nil {
 		return err
 	}
 
