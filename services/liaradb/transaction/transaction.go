@@ -61,7 +61,7 @@ func (t *Transaction) GetAggregate(
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		if err := t.concurrencyMgr.SLock(ctx, ItemID(id.String())); err != nil {
+		if err := t.concurrencyMgr.SLock(ctx, newItemID(tn, id.String())); err != nil {
 			yield(nil, err)
 			return
 		}
@@ -84,7 +84,7 @@ func (t *Transaction) GetAggregateByIDAndName(
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		if err := t.concurrencyMgr.SLock(ctx, ItemID(id.String())); err != nil {
+		if err := t.concurrencyMgr.SLock(ctx, newItemID(tn, id.String())); err != nil {
 			yield(nil, err)
 			return
 		}
@@ -154,7 +154,7 @@ func (t *Transaction) Insert(
 	tn tablename.TableName,
 	e *entity.Event,
 ) error {
-	if err := t.concurrencyMgr.XLock(ctx, ItemID(e.AggregateID.String())); err != nil {
+	if err := t.concurrencyMgr.XLock(ctx, newItemID(tn, e.AggregateID.String())); err != nil {
 		return err
 	}
 
@@ -167,7 +167,7 @@ func (t *Transaction) SetValue(
 	r *entity.Row,
 	data []byte,
 ) error {
-	if err := t.concurrencyMgr.XLock(ctx, ItemID(r.ID().String())); err != nil {
+	if err := t.concurrencyMgr.XLock(ctx, newItemID(tn, r.ID().String())); err != nil {
 		return err
 	}
 
@@ -263,7 +263,7 @@ func (t *Transaction) GetOutbox(
 	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
-	if err := t.concurrencyMgr.SLock(ctx, ItemID(oid.String())); err != nil {
+	if err := t.concurrencyMgr.SLock(ctx, newItemID(tn, oid.String())); err != nil {
 		return nil, err
 	}
 
@@ -278,7 +278,7 @@ func (t *Transaction) InsertOutbox(
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
-	if err := t.concurrencyMgr.XLock(ctx, ItemID(oid.String())); err != nil {
+	if err := t.concurrencyMgr.XLock(ctx, newItemID(tn, oid.String())); err != nil {
 		return err
 	}
 
@@ -295,7 +295,7 @@ func (t *Transaction) UpdateOutbox(
 	oid value.OutboxID,
 	v value.GlobalVersion,
 ) error {
-	if err := t.concurrencyMgr.XLock(ctx, ItemID(oid.String())); err != nil {
+	if err := t.concurrencyMgr.XLock(ctx, newItemID(tn, oid.String())); err != nil {
 		return err
 	}
 
