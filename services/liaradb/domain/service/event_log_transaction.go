@@ -1,4 +1,4 @@
-package transaction
+package service
 
 import (
 	"context"
@@ -8,23 +8,26 @@ import (
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/set"
 )
 
 type eventLogTransaction struct {
+	el     *eventlog.EventLog
+	tn     tablename.TableName
 	events []*entity.Event
 	keys   set.Set[key.Key]
-	el     *eventlog.EventLog
 }
 
-func newEventLogTransaction(el *eventlog.EventLog) eventLogTransaction {
+func newEventLogTransaction(el *eventlog.EventLog, tn tablename.TableName) eventLogTransaction {
 	return eventLogTransaction{
 		el:   el,
+		tn:   tn,
 		keys: set.Set[key.Key]{},
 	}
 }
 
-func (t *eventLogTransaction) append(ctx context.Context, tn tablename.TableName, e *entity.Event) error {
+func (t *eventLogTransaction) append(ctx context.Context, e *entity.Event) error {
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 
 	// Verify this AggregateID and Version is unique in this transaction
@@ -35,7 +38,7 @@ func (t *eventLogTransaction) append(ctx context.Context, tn tablename.TableName
 	t.keys.Add(k)
 
 	// Verify this AggregateID and Version is unique in Index
-	if err := t.el.CanAppend(ctx, tn, e.PartitionID, k); err != nil {
+	if err := t.el.CanAppend(ctx, t.tn, e.PartitionID, k); err != nil {
 		return err
 	}
 
@@ -43,10 +46,9 @@ func (t *eventLogTransaction) append(ctx context.Context, tn tablename.TableName
 	return nil
 }
 
-func (t *eventLogTransaction) commit(ctx context.Context, tx *Transaction) error {
-	tn := tablename.New(tx.tid)
+func (t *eventLogTransaction) commit(ctx context.Context, tx *transaction.Transaction) error {
 	for _, e := range t.events {
-		if err := t.el.Append(ctx, tx, tn, e.PartitionID, e); err != nil {
+		if err := t.el.Append(ctx, tx, t.tn, e.PartitionID, e); err != nil {
 			return err
 		}
 	}

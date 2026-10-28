@@ -62,6 +62,7 @@ func (es *EventService) Append(
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, func() error {
 		tn := tablename.New(cmd.TenantID)
+		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
 			// TODO: What should this return if requestID is present?
@@ -76,7 +77,11 @@ func (es *EventService) Append(
 				return err
 			}
 
-			if err := tx.Insert(ctx, tn, &e); err != nil {
+			if err := tx.XLock(ctx, tn, e.AggregateID.String()); err != nil {
+				return err
+			}
+
+			if err := elt.append(ctx, &e); err != nil {
 				return err
 			}
 		}
@@ -86,7 +91,7 @@ func (es *EventService) Append(
 			return tx.InsertRequestID(ctx, tx, tn, rqid, value.NewTime(now))
 		}
 
-		return nil
+		return elt.commit(ctx, tx)
 	})
 }
 

@@ -24,7 +24,6 @@ type Transaction struct {
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	collection     *collection.Collections
-	eventLog       eventLogTransaction
 	keyValue       keyValueTransaction
 	forceRollback  bool
 	manager        *Manager
@@ -46,7 +45,6 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		collection:     collection,
-		eventLog:       newEventLogTransaction(collection.EventLog),
 		keyValue:       newKeyValueTransaction(collection.KeyValue),
 		manager:        manager,
 	}
@@ -165,18 +163,6 @@ func (t *Transaction) EventsAfterGlobalVersion(
 	}
 }
 
-func (t *Transaction) Insert(
-	ctx context.Context,
-	tn tablename.TableName,
-	e *entity.Event,
-) error {
-	if err := t.XLock(ctx, tn, e.AggregateID.String()); err != nil {
-		return err
-	}
-
-	return t.eventLog.append(ctx, tn, e)
-}
-
 func (t *Transaction) SetValue(
 	ctx context.Context,
 	tn tablename.TableName,
@@ -252,16 +238,8 @@ func (t *Transaction) release() {
 }
 
 func (t *Transaction) commit(ctx context.Context) error {
-	if err := t.eventLog.commit(ctx, t); err != nil {
-		return err
-	}
-
 	_, err := t.log.Commit(ctx, t.id)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (t *Transaction) rollback(ctx context.Context) error {
