@@ -6,7 +6,6 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection"
-	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -16,7 +15,6 @@ import (
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
-	"github.com/liaradb/liaradb/util/set"
 )
 
 type Transaction struct {
@@ -27,14 +25,9 @@ type Transaction struct {
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	collection     *collection.Collections
 	eventLog       eventLogTransaction
-	values         []valueItem
+	keyValue       keyValueTransaction
 	forceRollback  bool
 	manager        *Manager
-}
-
-type valueItem struct {
-	r    *entity.Row
-	data []byte
 }
 
 func newTransaction(
@@ -53,7 +46,8 @@ func newTransaction(
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
 		collection:     collection,
-		eventLog:       eventLogTransaction{el: collection.EventLog, keys: set.Set[key.Key]{}},
+		eventLog:       newEventLogTransaction(collection.EventLog),
+		keyValue:       newKeyValueTransaction(collection.KeyValue),
 		manager:        manager,
 	}
 }
@@ -177,25 +171,7 @@ func (t *Transaction) SetValue(
 		return err
 	}
 
-	// k := key.NewKey2(r.ID().Bytes(), r.Version().Value())
-	// // Verify this AggregateID and Version is unique in this transaction
-	// if t.keys.Includes(k) {
-	// 	return btree.ErrExists
-	// }
-
-	// t.keys.Add(k)
-
-	// // Verify this AggregateID and Version is unique in Index
-	// if err := t.keyValue.CanAppend(ctx, tn, r.PartitionID(), k); err != nil {
-	// 	return err
-	// }
-
-	t.values = append(t.values, valueItem{
-		r:    r,
-		data: data,
-	})
-
-	return nil
+	return t.keyValue.setValue(ctx, tn, r, data)
 }
 
 func (t *Transaction) Run(

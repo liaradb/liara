@@ -17,6 +17,13 @@ type eventLogTransaction struct {
 	el     *eventlog.EventLog
 }
 
+func newEventLogTransaction(el *eventlog.EventLog) eventLogTransaction {
+	return eventLogTransaction{
+		el:   el,
+		keys: set.Set[key.Key]{},
+	}
+}
+
 func (t *eventLogTransaction) append(ctx context.Context, tn tablename.TableName, e *entity.Event) error {
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
 

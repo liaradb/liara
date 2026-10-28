@@ -19,7 +19,7 @@ type Collections struct {
 	schemaMgr   *schema.Manager
 	Tenant      *tenant.Tenant
 	EventLog    *eventlog.EventLog
-	keyValue    *keyvalue.KeyValue
+	KeyValue    *keyvalue.KeyValue
 	Outbox      *outbox.Outbox
 	Idempotency *idempotency.Idempotency
 }
@@ -35,7 +35,7 @@ func NewCollections(
 		manager:     manager.New(kv),
 		Tenant:      tenant.New(storage, cursor, log),
 		EventLog:    eventlog.New(storage, cursor, log),
-		keyValue:    kv,
+		KeyValue:    kv,
 		Outbox:      outbox.New(storage, cursor, log),
 		Idempotency: idempotency.New(storage, cursor, log),
 	}
