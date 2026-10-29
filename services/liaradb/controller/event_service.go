@@ -16,12 +16,6 @@ type EventService interface {
 		cmd command.AppendEvent,
 	) error
 
-	CreateOutbox(
-		ctx context.Context,
-		tid value.TenantID,
-		partitionRange value.PartitionRange,
-	) (value.OutboxID, error)
-
 	Get(
 		ctx context.Context,
 		tid value.TenantID,
@@ -52,26 +46,8 @@ type EventService interface {
 		limit value.Limit,
 	) iter.Seq2[*entity.Event, error]
 
-	GetOutbox(
-		ctx context.Context,
-		tid value.TenantID,
-		outboxID value.OutboxID,
-	) (*entity.Outbox, error)
-
-	ListOutboxes(
-		ctx context.Context,
-		tid value.TenantID,
-	) iter.Seq2[*entity.Outbox, error]
-
 	TestIdempotency(
 		ctx context.Context,
 		qry query.TestIdempotency,
 	) (result bool, err error)
-
-	UpdateOutboxPosition(
-		ctx context.Context,
-		tid value.TenantID,
-		outboxID value.OutboxID,
-		globalVersion value.GlobalVersion,
-	) error
 }

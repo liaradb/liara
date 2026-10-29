@@ -15,7 +15,6 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
 )
@@ -80,7 +79,7 @@ func (es *EventService) Append(
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
 			// TODO: What should this return if requestID is present?
-			if ok, err := es.TestRequestID(ctx, tn, rqid); err != nil || !ok {
+			if ok, err := es.testRequestID(ctx, tn, rqid); err != nil || !ok {
 				return err
 			}
 		}
@@ -102,7 +101,7 @@ func (es *EventService) Append(
 
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// TODO: Do we want to store this if the transaction doesn't complete?
-			return es.InsertRequestID(ctx, tx, tn, rqid, value.NewTime(now))
+			return es.insertRequestID(ctx, tx, tn, rqid, value.NewTime(now))
 		}
 
 		return elt.commit(ctx, tx)
@@ -121,7 +120,7 @@ func (es *EventService) TestIdempotency(
 	// TODO: Should this log?
 	return tx.RunResult(ctx, func() (bool, error) {
 		tn := tablename.New(qry.TenantID)
-		return es.TestRequestID(ctx, tn, qry.RequestID)
+		return es.testRequestID(ctx, tn, qry.RequestID)
 	})
 }
 
@@ -272,7 +271,7 @@ func (es *EventService) EventsAfterGlobalVersion(
 	}
 }
 
-func (es *EventService) GetOutbox(
+func (es *EventService) getOutbox(
 	ctx context.Context,
 	tid value.TenantID,
 	oid value.OutboxID,
@@ -293,90 +292,7 @@ func (es *EventService) GetOutbox(
 	return es.outbox.Get(ctx, tn, value.NewPartitionID(0), oid)
 }
 
-func (es *EventService) InsertOutbox(
-	ctx context.Context,
-	l span.Log,
-	tn tablename.TableName,
-	pid value.PartitionID,
-	oid value.OutboxID,
-	e *entity.Outbox,
-) error {
-	tx, err := es.txManager.Next(ctx, tn.TenantID())
-	if err != nil {
-		return err
-	}
-
-	return tx.Run(ctx, func() error {
-		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-			return err
-		}
-
-		data := make([]byte, entity.OutboxSize)
-		_ = e.WriteData(data)
-		return es.outbox.Set(ctx, l, tn, pid, oid, e)
-	})
-}
-
-func (es *EventService) UpdateOutbox(
-	ctx context.Context,
-	l span.Log,
-	tn tablename.TableName,
-	pid value.PartitionID,
-	oid value.OutboxID,
-	v value.GlobalVersion,
-) error {
-	tx, err := es.txManager.Next(ctx, tn.TenantID())
-	if err != nil {
-		return err
-	}
-
-	return tx.Run(ctx, func() error {
-		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-			return err
-		}
-
-		o, err := es.outbox.Get(ctx, tn, pid, oid)
-		if err != nil {
-			return err
-		}
-
-		prev := make([]byte, entity.OutboxSize)
-		_ = o.WriteData(prev)
-
-		o.UpdateGlobalVersion(v)
-
-		data := make([]byte, entity.OutboxSize)
-		_ = o.WriteData(data)
-
-		_, err = tx.Update(ctx, link.RecordID{}, data, prev)
-		if err != nil {
-			return err
-		}
-
-		return es.outbox.Replace(ctx, l, tn, pid, oid, o)
-	})
-}
-
-func (es *EventService) ListOutboxes(
-	ctx context.Context,
-	tid value.TenantID,
-) iter.Seq2[*entity.Outbox, error] {
-	// tx, err := es.txManager.Next(ctx, tid)
-	// if err != nil {
-	// 	return iterator.Error[*entity.Outbox](err)
-	// }
-
-	// TODO: How do we lock this query?
-	// if err := t.concurrencyMgr.SLock(ctx, ItemID(oid.String())); err != nil {
-	// 	return nil, err
-	// }
-
-	tn := tablename.New(tid)
-	// TODO: What should PartitionID be?
-	return es.outbox.List(ctx, tn, value.NewPartitionID(0))
-}
-
-func (es *EventService) InsertRequestID(
+func (es *EventService) insertRequestID(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
@@ -386,7 +302,7 @@ func (es *EventService) InsertRequestID(
 	return es.idempotency.Set(ctx, l, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
 }
 
-func (es *EventService) TestRequestID(
+func (es *EventService) testRequestID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rqid value.RequestID,
@@ -405,51 +321,12 @@ func (es *EventService) GetByOutbox(
 	// 	return iterator.Error[*entity.Event](err)
 	// }
 
-	o, err := es.GetOutbox(ctx, tid, outboxID)
+	o, err := es.getOutbox(ctx, tid, outboxID)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
 
 	return es.GetAfterGlobalVersion(ctx, tid, o.GlobalVersion(), o.PartitionRange(), limit)
-}
-
-func (es *EventService) CreateOutbox(
-	ctx context.Context,
-	tid value.TenantID,
-	partitionRange value.PartitionRange,
-) (value.OutboxID, error) {
-	tx, err := es.txManager.Next(ctx, tid)
-	if err != nil {
-		return value.OutboxID{}, err
-	}
-
-	// TODO: How do we handle a range?
-	return tx.RunResult(ctx, func() (value.OutboxID, error) {
-		tn := tablename.New(tid)
-		oid := value.NewOutboxID()
-		outbox := entity.NewOutbox(oid, partitionRange)
-		if err := es.InsertOutbox(ctx, tx, tn, partitionRange.Low(), oid, outbox); err != nil {
-			return value.OutboxID{}, err
-		}
-		return oid, nil
-	})
-}
-
-func (es *EventService) UpdateOutboxPosition(
-	ctx context.Context,
-	tid value.TenantID,
-	outboxID value.OutboxID,
-	globalVersion value.GlobalVersion,
-) error {
-	tx, err := es.txManager.Next(ctx, tid)
-	if err != nil {
-		return err
-	}
-
-	return tx.Run(ctx, func() error {
-		tn := tablename.New(tid)
-		return es.UpdateOutbox(ctx, tx, tn, value.NewPartitionID(0), outboxID, globalVersion)
-	})
 }
 
 func (es *EventService) SetValue(

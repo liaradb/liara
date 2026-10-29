@@ -10,7 +10,10 @@ import (
 func TestEventSourceController__Outbox(t *testing.T) {
 	t.Parallel()
 
-	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+	esc := NewEventSourceController(
+		&testEventService{},
+		&testOutboxService{},
+		&testTenantService{})
 
 	tid := uuid.NewV7().String()
 
@@ -72,7 +75,10 @@ func TestEventSourceController__Outbox(t *testing.T) {
 func TestEventSourceController__Event(t *testing.T) {
 	t.Parallel()
 
-	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+	esc := NewEventSourceController(
+		&testEventService{},
+		&testOutboxService{},
+		&testTenantService{})
 
 	tid := uuid.NewV7().String()
 	var pid int32 = 1
@@ -140,7 +146,10 @@ func TestEventSourceController__Event(t *testing.T) {
 func TestEventSourceController__Idempotency(t *testing.T) {
 	t.Parallel()
 
-	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+	esc := NewEventSourceController(
+		&testEventService{},
+		&testOutboxService{},
+		&testTenantService{})
 
 	tid := uuid.NewV7().String()
 	var pid int32 = 1
@@ -217,7 +226,10 @@ func TestEventSourceController__Idempotency(t *testing.T) {
 func TestEventSourceController__Tenant(t *testing.T) {
 	t.Parallel()
 
-	esc := NewEventSourceController(&testEventService{}, &testTenantService{})
+	esc := NewEventSourceController(
+		&testEventService{},
+		&testOutboxService{},
+		&testTenantService{})
 
 	name0 := "name0"
 	name1 := "name1"

@@ -12,15 +12,18 @@ import (
 type EventSourceController struct {
 	pb.UnimplementedEventSourceServiceServer
 	eventService  EventService
+	outboxService OutboxService
 	tenantService TenantService
 }
 
 func NewEventSourceController(
 	eventService EventService,
+	outboxService OutboxService,
 	tenantService TenantService,
 ) *EventSourceController {
 	return &EventSourceController{
 		eventService:  eventService,
+		outboxService: outboxService,
 		tenantService: tenantService,
 	}
 }
@@ -196,7 +199,7 @@ func (esc *EventSourceController) CreateOutbox(
 		return nil, err
 	}
 
-	outboxID, err := esc.eventService.CreateOutbox(ctx,
+	outboxID, err := esc.outboxService.CreateOutbox(ctx,
 		tid,
 		dtoToPartitionRange(request.Low, request.High))
 	if err != nil {
@@ -222,7 +225,7 @@ func (esc *EventSourceController) GetOutbox(
 		return nil, err
 	}
 
-	result, err := esc.eventService.GetOutbox(ctx,
+	result, err := esc.outboxService.GetOutbox(ctx,
 		tid,
 		oid)
 	if err != nil {
@@ -246,7 +249,7 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 		return nil, err
 	}
 
-	if err := esc.eventService.UpdateOutboxPosition(ctx,
+	if err := esc.outboxService.UpdateOutboxPosition(ctx,
 		tid,
 		oid,
 		value.NewGlobalVersion(request.GlobalVersion)); err != nil {
@@ -322,7 +325,7 @@ func (esc *EventSourceController) ListOutboxes(request *pb.ListOutboxesRequest, 
 		return err
 	}
 
-	for o, err := range esc.eventService.ListOutboxes(stream.Context(), tid) {
+	for o, err := range esc.outboxService.ListOutboxes(stream.Context(), tid) {
 		if err != nil {
 			return err
 		}

@@ -32,6 +32,7 @@ type Application struct {
 	log         *log.Log
 	ot          openTelemetry
 	es          *service.EventService
+	os          *service.OutboxService
 	ts          *service.TenantService
 }
 
@@ -69,6 +70,10 @@ func (a *Application) Run(ctx context.Context) error {
 		a.collections.KeyValue,
 		a.collections.Outbox,
 		a.collections.Idempotency)
+
+	a.os = service.NewOutboxService(
+		a.txManager,
+		a.collections.Outbox)
 
 	a.ts = service.NewTenantService(
 		a.txManager,
@@ -217,6 +222,7 @@ func (a *Application) initService() {
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
 		a.es,
+		a.os,
 		a.ts,
 	))
 

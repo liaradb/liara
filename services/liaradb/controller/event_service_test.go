@@ -66,21 +66,6 @@ func (es *testEventService) Append(
 	return nil
 }
 
-func (es *testEventService) CreateOutbox(
-	ctx context.Context,
-	tid value.TenantID,
-	partitionRange value.PartitionRange,
-) (value.OutboxID, error) {
-	if es.outboxes == nil {
-		es.outboxes = make(map[value.OutboxID]*entity.Outbox)
-	}
-
-	id := value.NewOutboxID()
-	es.outboxes[id] = entity.NewOutbox(id, partitionRange)
-
-	return id, nil
-}
-
 func (es *testEventService) Get(
 	ctx context.Context,
 	tid value.TenantID,
@@ -138,51 +123,10 @@ func (es *testEventService) GetByOutbox(
 	panic("unimplemented")
 }
 
-func (es *testEventService) GetOutbox(
-	ctx context.Context,
-	tid value.TenantID,
-	outboxID value.OutboxID,
-) (*entity.Outbox, error) {
-	o, ok := es.outboxes[outboxID]
-	if !ok {
-		return nil, baseerror.ErrNotFound
-	}
-
-	return o, nil
-}
-
-func (es *testEventService) ListOutboxes(
-	ctx context.Context,
-	tid value.TenantID,
-) iter.Seq2[*entity.Outbox, error] {
-	return func(yield func(*entity.Outbox, error) bool) {
-		for _, o := range es.outboxes {
-			if !yield(o, nil) {
-				return
-			}
-		}
-	}
-}
-
 func (es *testEventService) TestIdempotency(
 	ctx context.Context,
 	qry query.TestIdempotency,
 ) (result bool, err error) {
 	_, ok := es.requests[qry.RequestID]
 	return !ok, nil
-}
-
-func (es *testEventService) UpdateOutboxPosition(
-	ctx context.Context,
-	tid value.TenantID,
-	outboxID value.OutboxID,
-	globalVersion value.GlobalVersion,
-) error {
-	o, ok := es.outboxes[outboxID]
-	if !ok {
-		return baseerror.ErrNotFound
-	}
-
-	o.UpdateGlobalVersion(globalVersion)
-	return nil
 }
