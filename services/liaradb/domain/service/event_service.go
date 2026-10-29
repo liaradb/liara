@@ -145,7 +145,7 @@ func (es *EventService) Get(
 func (es *EventService) GetByAggregateIDAndName(
 	ctx context.Context,
 	tid value.TenantID,
-	partitionID value.PartitionID,
+	pid value.PartitionID,
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
@@ -155,7 +155,24 @@ func (es *EventService) GetByAggregateIDAndName(
 		return iterator.Error[*entity.Event](err)
 	}
 
-	return tx.GetAggregateByIDAndName(ctx, tn, partitionID, id, name)
+	defer tx.Release()
+
+	if err := tx.SLock(ctx, tn, id.String()); err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
+
+	return func(yield func(*entity.Event, error) bool) {
+		for e, err := range es.eventLog.GetAggregate(ctx, tn, pid, id) {
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if e.AggregateName == name && !yield(e, nil) {
+				return
+			}
+		}
+	}
 }
 
 func (es *EventService) GetAfterGlobalVersion(

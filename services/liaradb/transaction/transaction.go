@@ -66,34 +66,6 @@ func (t *Transaction) SLock(
 	return t.concurrencyMgr.SLock(ctx, newItemID(tn, id))
 }
 
-func (t *Transaction) GetAggregateByIDAndName(
-	ctx context.Context,
-	tn tablename.TableName,
-	pid value.PartitionID,
-	id value.AggregateID,
-	name value.AggregateName,
-) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		if err := t.SLock(ctx, tn, id.String()); err != nil {
-			yield(nil, err)
-			return
-		}
-
-		defer t.Release()
-
-		for e, err := range t.collection.EventLog.GetAggregate(ctx, tn, pid, id) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if e.AggregateName == name && !yield(e, nil) {
-				return
-			}
-		}
-	}
-}
-
 func (t *Transaction) Events(
 	ctx context.Context,
 	tn tablename.TableName,
