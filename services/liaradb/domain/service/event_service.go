@@ -91,6 +91,7 @@ func (es *EventService) Append(
 				return err
 			}
 
+			// TODO: What do we lock?
 			if err := tx.XLock(ctx, tn, e.AggregateID.String()); err != nil {
 				return err
 			}
