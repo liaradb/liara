@@ -4,6 +4,7 @@ import (
 	"context"
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -14,17 +15,20 @@ import (
 )
 
 type OutboxService struct {
+	baseService
 	txManager *transaction.Manager
 	outbox    *outbox.Outbox
 }
 
 func NewOutboxService(
 	txManager *transaction.Manager,
+	idempotency *idempotency.Idempotency,
 	outbox *outbox.Outbox,
 ) *OutboxService {
 	return &OutboxService{
-		txManager: txManager,
-		outbox:    outbox,
+		baseService: newBaseService(txManager, idempotency),
+		txManager:   txManager,
+		outbox:      outbox,
 	}
 }
 

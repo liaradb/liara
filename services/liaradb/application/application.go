@@ -66,13 +66,14 @@ func New(conf configuration) *Application {
 func (a *Application) Run(ctx context.Context) error {
 	a.es = service.NewEventService(
 		a.txManager,
+		a.collections.Idempotency,
 		a.collections.EventLog,
 		a.collections.KeyValue,
-		a.collections.Outbox,
-		a.collections.Idempotency)
+		a.collections.Outbox)
 
 	a.os = service.NewOutboxService(
 		a.txManager,
+		a.collections.Idempotency,
 		a.collections.Outbox)
 
 	a.ts = service.NewTenantService(

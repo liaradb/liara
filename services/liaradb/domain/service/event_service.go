@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -20,27 +19,29 @@ import (
 )
 
 type EventService struct {
+	baseService
 	txManager   *transaction.Manager
+	idempotency *idempotency.Idempotency
 	eventLog    *eventlog.EventLog
 	keyValue    *keyvalue.KeyValue
 	outbox      *outbox.Outbox
-	idempotency *idempotency.Idempotency
 	gvg         GlobalVersionGenerator
 }
 
 func NewEventService(
 	txManager *transaction.Manager,
+	idempotency *idempotency.Idempotency,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 	outbox *outbox.Outbox,
-	idempotency *idempotency.Idempotency,
 ) *EventService {
 	return &EventService{
+		baseService: newBaseService(txManager, idempotency),
 		txManager:   txManager,
+		idempotency: idempotency,
 		eventLog:    eventLog,
 		keyValue:    keyValue,
 		outbox:      outbox,
-		idempotency: idempotency,
 	}
 }
 
@@ -290,24 +291,6 @@ func (es *EventService) getOutbox(
 
 	// TODO: What should PartitionID be?
 	return es.outbox.Get(ctx, tn, value.NewPartitionID(0), oid)
-}
-
-func (es *EventService) insertRequestID(
-	ctx context.Context,
-	l span.Log,
-	tn tablename.TableName,
-	rqid value.RequestID,
-	now value.Time,
-) error {
-	return es.idempotency.Set(ctx, l, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
-}
-
-func (es *EventService) testRequestID(
-	ctx context.Context,
-	tn tablename.TableName,
-	rqid value.RequestID,
-) (bool, error) {
-	return es.idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
 }
 
 func (es *EventService) GetByOutbox(

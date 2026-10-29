@@ -31,10 +31,10 @@ func testEventService_Append(t *testing.T) {
 	m, s, l := createManager(t, 1024)
 	c := btree.NewCursor(s)
 	es := NewEventService(m,
+		idempotency.New(s, c, l),
 		eventlog.New(s, c, l),
 		keyvalue.New(s, c, l),
-		outbox.New(s, c, l),
-		idempotency.New(s, c, l))
+		outbox.New(s, c, l))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -91,10 +91,10 @@ func testEventService_Append__Large(t *testing.T) {
 	m, s, l := createManager(t, 1024)
 	c := btree.NewCursor(s)
 	es := NewEventService(m,
+		idempotency.New(s, c, l),
 		eventlog.New(s, c, l),
 		keyvalue.New(s, c, l),
-		outbox.New(s, c, l),
-		idempotency.New(s, c, l))
+		outbox.New(s, c, l))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
