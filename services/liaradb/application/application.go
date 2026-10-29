@@ -66,7 +66,9 @@ func (a *Application) Run(ctx context.Context) error {
 	a.es = service.NewEventService(
 		a.txManager,
 		a.collections.EventLog,
-		a.collections.KeyValue)
+		a.collections.KeyValue,
+		a.collections.Outbox,
+		a.collections.Idempotency)
 
 	a.ts = service.NewTenantService(
 		a.txManager,

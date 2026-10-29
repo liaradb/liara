@@ -101,7 +101,6 @@ func (m *Manager) next(r *async.Request[value.TenantID, *Transaction]) {
 		m.log,
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
-		m.collections,
 		m,
 	), nil)
 }
