@@ -118,7 +118,7 @@ func (es *EventService) TestIdempotency(
 func (es *EventService) Get(
 	ctx context.Context,
 	tid value.TenantID,
-	partitionID value.PartitionID,
+	pid value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
 	tn := tablename.New(tid)
@@ -127,7 +127,19 @@ func (es *EventService) Get(
 		return iterator.Error[*entity.Event](err)
 	}
 
-	return tx.GetAggregate(ctx, tn, partitionID, id)
+	defer tx.Release()
+
+	if err := tx.SLock(ctx, tn, id.String()); err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
+
+	return func(yield func(*entity.Event, error) bool) {
+		for e, err := range es.eventLog.GetAggregate(ctx, tn, pid, id) {
+			if !yield(e, err) {
+				return
+			}
+		}
+	}
 }
 
 func (es *EventService) GetByAggregateIDAndName(

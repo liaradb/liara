@@ -66,28 +66,6 @@ func (t *Transaction) SLock(
 	return t.concurrencyMgr.SLock(ctx, newItemID(tn, id))
 }
 
-func (t *Transaction) GetAggregate(
-	ctx context.Context,
-	tn tablename.TableName,
-	pid value.PartitionID,
-	id value.AggregateID,
-) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		if err := t.SLock(ctx, tn, id.String()); err != nil {
-			yield(nil, err)
-			return
-		}
-
-		defer t.release()
-
-		for e, err := range t.collection.EventLog.GetAggregate(ctx, tn, pid, id) {
-			if !yield(e, err) {
-				return
-			}
-		}
-	}
-}
-
 func (t *Transaction) GetAggregateByIDAndName(
 	ctx context.Context,
 	tn tablename.TableName,
@@ -101,7 +79,7 @@ func (t *Transaction) GetAggregateByIDAndName(
 			return
 		}
 
-		defer t.release()
+		defer t.Release()
 
 		for e, err := range t.collection.EventLog.GetAggregate(ctx, tn, pid, id) {
 			if err != nil {
@@ -200,7 +178,7 @@ func (t *Transaction) run[R any](
 		return r, err
 	}
 
-	defer t.release()
+	defer t.Release()
 
 	r, err := f()
 	if err != nil {
@@ -216,7 +194,7 @@ func (t *Transaction) run[R any](
 	return r, t.commit(ctx)
 }
 
-func (t *Transaction) release() {
+func (t *Transaction) Release() {
 	t.concurrencyMgr.Release()
 	t.bufferList.Release()
 	t.manager.End(t.id)
