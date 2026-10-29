@@ -9,6 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
@@ -26,7 +27,10 @@ func TestEventService_Append(t *testing.T) {
 
 func testEventService_Append(t *testing.T) {
 	m, s, l := createManager(t, 1024)
-	es := NewEventService(m, eventlog.New(s, btree.NewCursor(s), l))
+	c := btree.NewCursor(s)
+	es := NewEventService(m,
+		eventlog.New(s, c, l),
+		keyvalue.New(s, c, l))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -81,7 +85,10 @@ func TestEventService_Append__Large(t *testing.T) {
 
 func testEventService_Append__Large(t *testing.T) {
 	m, s, l := createManager(t, 1024)
-	es := NewEventService(m, eventlog.New(s, btree.NewCursor(s), l))
+	c := btree.NewCursor(s)
+	es := NewEventService(m,
+		eventlog.New(s, c, l),
+		keyvalue.New(s, c, l))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -135,7 +142,7 @@ func TestEventService_Append__Invalid(t *testing.T) {
 }
 
 func testEventService_Append__Invalid(t *testing.T) {
-	es := NewEventService(nil, nil)
+	es := NewEventService(nil, nil, nil)
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	want := command.EventOptions{

@@ -1,4 +1,4 @@
-package transaction
+package service
 
 import (
 	"context"
@@ -51,5 +51,9 @@ func (kv *keyValueTransaction) setValue(
 		r:    r,
 		data: data,
 	})
+	return nil
+}
+
+func (kv *keyValueTransaction) commit(ctx context.Context) error {
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -18,16 +19,19 @@ import (
 type EventService struct {
 	txManager *transaction.Manager
 	eventLog  *eventlog.EventLog
+	keyValue  *keyvalue.KeyValue
 	gvg       GlobalVersionGenerator
 }
 
 func NewEventService(
 	txManager *transaction.Manager,
 	eventLog *eventlog.EventLog,
+	keyValue *keyvalue.KeyValue,
 ) *EventService {
 	return &EventService{
 		txManager: txManager,
 		eventLog:  eventLog,
+		keyValue:  keyValue,
 	}
 }
 
@@ -271,4 +275,30 @@ func (es *EventService) ListOutboxes(
 
 	tn := tablename.New(tid)
 	return tx.ListOutboxes(ctx, tn, value.NewPartitionID(0))
+}
+
+func (es *EventService) SetValue(
+	ctx context.Context,
+	tn tablename.TableName,
+	r *entity.Row,
+	data []byte,
+) error {
+	tx, err := es.txManager.Next(ctx, tn.TenantID())
+	if err != nil {
+		return err
+	}
+
+	if err := tx.XLock(ctx, tn, r.ID().String()); err != nil {
+		return err
+	}
+
+	return tx.Run(ctx, func() error {
+		kvt := newKeyValueTransaction(es.keyValue)
+
+		if err := kvt.setValue(ctx, tn, r, data); err != nil {
+			return err
+		}
+
+		return kvt.commit(ctx)
+	})
 }
