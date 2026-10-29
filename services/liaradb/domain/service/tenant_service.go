@@ -36,50 +36,17 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 		return value.TenantID{}, err
 	}
 
-	// TODO: Should this log?
 	return tx.RunResult(ctx, func() (value.TenantID, error) {
 		if err := ts.tc.Set(ctx, tx, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
 			return value.TenantID{}, err
 		}
+
 		return tid, nil
-
-		// 	if err := ts.eventRepository.CreateTable(ctx, id); err != nil {
-		// 		return err
-		// 	}
-
-		// 	if err := ts.eventRepository.CreateIndex(ctx, id); err != nil {
-		// 		return err
-		// 	}
-
-		// 	if err := ts.outboxRepository.CreateTable(ctx, id); err != nil {
-		// 		return err
-		// 	}
-
-		// 	if err := ts.requestRepository.CreateTable(ctx, id); err != nil {
-		// 		return err
-		// 	}
-
-		// 	return ts.tenantRepository.Insert(ctx, tenant)
 	})
 }
 
 func (ts *TenantService) Delete(ctx context.Context, cmd command.DeleteTenant) error {
 	panic("unimplemented")
-	// return ts.transactionContainer.Run(ctx, func() error {
-	// 	if err := ts.eventRepository.DropTable(ctx, cmd.TenantID); err != nil {
-	// 		return nil
-	// 	}
-
-	// 	if err := ts.outboxRepository.DropTable(ctx, cmd.TenantID); err != nil {
-	// 		return nil
-	// 	}
-
-	// 	if err := ts.requestRepository.DropTable(ctx, cmd.TenantID); err != nil {
-	// 		return nil
-	// 	}
-
-	// 	return ts.tenantRepository.Delete(ctx, cmd.TenantID)
-	// })
 }
 
 func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
@@ -97,14 +64,23 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 		return err
 	}
 
-	// TODO: Should this log?
 	return tx.Run(ctx, func() error {
 		return ts.tc.Replace(ctx, tx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
 	})
 }
 
-// TODO: Create transaction
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
+	tx, err := ts.txManager.Next(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer tx.Release()
+
+	if err := tx.SLock(ctx, tablename.New(tenantID), tenantID.String()); err != nil {
+		return nil, err
+	}
+
 	return ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), tenantID)
 }
 

@@ -282,6 +282,8 @@ func (es *EventService) GetOutbox(
 		return nil, err
 	}
 
+	defer tx.Release()
+
 	tn := tablename.New(tid)
 	if err := tx.SLock(ctx, tn, oid.String()); err != nil {
 		return nil, err
@@ -304,13 +306,15 @@ func (es *EventService) InsertOutbox(
 		return err
 	}
 
-	if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-		return err
-	}
+	return tx.Run(ctx, func() error {
+		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
+			return err
+		}
 
-	data := make([]byte, entity.OutboxSize)
-	_ = e.WriteData(data)
-	return es.outbox.Set(ctx, l, tn, pid, oid, e)
+		data := make([]byte, entity.OutboxSize)
+		_ = e.WriteData(data)
+		return es.outbox.Set(ctx, l, tn, pid, oid, e)
+	})
 }
 
 func (es *EventService) UpdateOutbox(
@@ -326,29 +330,31 @@ func (es *EventService) UpdateOutbox(
 		return err
 	}
 
-	if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-		return err
-	}
+	return tx.Run(ctx, func() error {
+		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
+			return err
+		}
 
-	o, err := es.outbox.Get(ctx, tn, pid, oid)
-	if err != nil {
-		return err
-	}
+		o, err := es.outbox.Get(ctx, tn, pid, oid)
+		if err != nil {
+			return err
+		}
 
-	prev := make([]byte, entity.OutboxSize)
-	_ = o.WriteData(prev)
+		prev := make([]byte, entity.OutboxSize)
+		_ = o.WriteData(prev)
 
-	o.UpdateGlobalVersion(v)
+		o.UpdateGlobalVersion(v)
 
-	data := make([]byte, entity.OutboxSize)
-	_ = o.WriteData(data)
+		data := make([]byte, entity.OutboxSize)
+		_ = o.WriteData(data)
 
-	_, err = tx.Update(ctx, link.RecordID{}, data, prev)
-	if err != nil {
-		return err
-	}
+		_, err = tx.Update(ctx, link.RecordID{}, data, prev)
+		if err != nil {
+			return err
+		}
 
-	return es.outbox.Replace(ctx, l, tn, pid, oid, o)
+		return es.outbox.Replace(ctx, l, tn, pid, oid, o)
+	})
 }
 
 func (es *EventService) ListOutboxes(
