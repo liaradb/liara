@@ -243,7 +243,7 @@ func testLeafNode_Insert(t *testing.T) {
 		}
 
 		result := make([]link.RecordLocator, 0, len(want))
-		for c := range ln.RecordIDs() {
+		for _, c := range ln.RecordIDs() {
 			result = append(result, c)
 		}
 

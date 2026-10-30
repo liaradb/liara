@@ -16,6 +16,11 @@ type search struct {
 	ns *nodeStorage
 }
 
+type SearchResult struct {
+	Key           key.Key
+	RecordLocator link.RecordLocator
+}
+
 func newSearch(s *storage.Storage) search {
 	return search{
 		ns: newNodeStorage(s),
@@ -217,7 +222,7 @@ func (s *search) searchRangeNext(
 		ln.RLatch()
 		defer ln.RUnlatch()
 
-		for rid := range ln.RecordIDs() {
+		for _, rid := range ln.RecordIDs() {
 			if !yield(rid) {
 				return
 			}
@@ -292,22 +297,22 @@ func (s *search) All(
 	fn link.FileName,
 	skip int,
 	limit int,
-) iter.Seq2[link.RecordLocator, error] {
+) iter.Seq2[SearchResult, error] {
 	skipped := 0
 	returned := 0
-	return func(yield func(link.RecordLocator, error) bool) {
+	return func(yield func(SearchResult, error) bool) {
 		nextBID, rids, err := s.allFirst(ctx, fn)
 		if err != nil {
-			yield(link.RecordLocator{}, err)
+			yield(SearchResult{}, err)
 			return
 		}
 
-		for rid := range rids {
+		for k, rid := range rids {
 			if skip > skipped {
 				skipped++
 				continue
 			}
-			if s.isLimit(limit, returned) || !yield(rid, nil) {
+			if s.isLimit(limit, returned) || !yield(SearchResult{k, rid}, nil) {
 				return
 			}
 			returned++
@@ -320,16 +325,16 @@ func (s *search) All(
 
 			nextBID, rids, err = s.allNext(ctx, fn, nextBID)
 			if err != nil {
-				yield(link.RecordLocator{}, err)
+				yield(SearchResult{}, err)
 				return
 			}
 
-			for rid := range rids {
+			for k, rid := range rids {
 				if skip > skipped {
 					skipped++
 					continue
 				}
-				if s.isLimit(limit, returned) || !yield(rid, nil) {
+				if s.isLimit(limit, returned) || !yield(SearchResult{k, rid}, nil) {
 					return
 				}
 				returned++
@@ -341,20 +346,20 @@ func (s *search) All(
 func (s *search) allFirst(
 	ctx context.Context,
 	fn link.FileName,
-) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+) (link.FilePosition, leafnode.Iterator, error) {
 	ln, err := s.all(ctx, fn)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(key.Key, link.RecordLocator) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
 		defer ln.RUnlatch()
 
-		for rid := range ln.RecordIDs() {
-			if !yield(rid) {
+		for k, rid := range ln.RecordIDs() {
+			if !yield(k, rid) {
 				return
 			}
 		}
@@ -365,20 +370,20 @@ func (s *search) allNext(
 	ctx context.Context,
 	fn link.FileName,
 	block link.FilePosition,
-) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+) (link.FilePosition, leafnode.Iterator, error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.BlockID(block))
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(key.Key, link.RecordLocator) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
 		defer ln.RUnlatch()
 
-		for rid := range ln.RecordIDs() {
-			if !yield(rid) {
+		for k, rid := range ln.RecordIDs() {
+			if !yield(k, rid) {
 				return
 			}
 		}

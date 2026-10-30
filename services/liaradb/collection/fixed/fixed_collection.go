@@ -80,13 +80,15 @@ func (fc *FixedCollection) List(
 	pid value.PartitionID,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
-		for rid, err := range fc.c.All(ctx, fnIdx, 0, 0) {
+		for r, err := range fc.c.All(ctx, fnIdx, 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := fc.GetByRecordLocator(ctx, fn, rid)
+			// TODO: Lock record
+
+			s, err := fc.GetByRecordLocator(ctx, fn, r.RecordLocator)
 			if !yield(s, err) {
 				return
 			}

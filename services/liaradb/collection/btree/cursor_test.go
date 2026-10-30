@@ -297,12 +297,12 @@ func testCursor_All(t *testing.T) {
 	for i := range data {
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.All(ctx, fn, i, 0) {
+		for r, err := range c.All(ctx, fn, i, 0) {
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result = append(result, rid)
+			result = append(result, r.RecordLocator)
 		}
 
 		want := wantAll[i:]
@@ -315,12 +315,12 @@ func testCursor_All(t *testing.T) {
 	{
 		c := NewCursor(s)
 		result := make([]link.RecordLocator, 0, len(data))
-		for rid, err := range c.All(ctx, fn, 1, 3) {
+		for r, err := range c.All(ctx, fn, 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result = append(result, rid)
+			result = append(result, r.RecordLocator)
 		}
 
 		want := wantAll[1:4]

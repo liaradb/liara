@@ -238,10 +238,10 @@ func (ln *LeafNode) childrenRange(start, end link.SlotID) Iterator {
 	}
 }
 
-func (ln *LeafNode) RecordIDs() iter.Seq[link.RecordLocator] {
-	return func(yield func(link.RecordLocator) bool) {
-		for _, rid := range ln.Children() {
-			if !yield(rid) {
+func (ln *LeafNode) RecordIDs() Iterator {
+	return func(yield func(key.Key, link.RecordLocator) bool) {
+		for k, rid := range ln.Children() {
+			if !yield(k, rid) {
 				return
 			}
 		}
