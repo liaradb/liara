@@ -139,6 +139,17 @@ func (l *Transaction) Append(
 	rid link.RecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
+	return l.log.Append(ctx,
+		l.id,
+		rid,
+		data)
+}
+
+func (l *Transaction) Insert(
+	ctx context.Context,
+	rid link.RecordID,
+	data []byte,
+) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,
 		l.id,
 		rid,

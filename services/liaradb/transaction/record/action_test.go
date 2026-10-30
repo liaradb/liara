@@ -53,6 +53,9 @@ func TestAction_String(t *testing.T) {
 		"should handle rollback": {
 			action: ActionRollback,
 			result: "Rollback"},
+		"should handle append": {
+			action: ActionAppend,
+			result: "Append"},
 		"should handle insert": {
 			action: ActionInsert,
 			result: "Insert"},

@@ -23,6 +23,7 @@ type Log interface {
 	SLock(context.Context, tablename.TableName, string) error
 
 	Append(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
+	Insert(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
 	Update(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
 	// Insert(link.RecordID, []byte) (logpage.LogSequenceNumber, error) // TODO: Support shifting
 	UpdateHeader(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)

@@ -133,6 +133,20 @@ func (l *Log) Rollback(
 		nil))
 }
 
+func (l *Log) Append(
+	ctx context.Context,
+	txid record.TransactionID,
+	rid link.RecordID,
+	data []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.rq.Append(ctx, record.New(
+		txid,
+		rid,
+		record.ActionAppend,
+		data,
+		nil))
+}
+
 func (l *Log) Insert(
 	ctx context.Context,
 	txid record.TransactionID,

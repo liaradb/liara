@@ -15,10 +15,11 @@ const (
 	ActionStart        Action = 2
 	ActionCommit       Action = 3
 	ActionRollback     Action = 4
-	ActionInsert       Action = 5
-	ActionUpdate       Action = 6
-	ActionUpdateHeader Action = 7
-	ActionRemove       Action = 8
+	ActionAppend       Action = 5
+	ActionInsert       Action = 6
+	ActionUpdate       Action = 7
+	ActionUpdateHeader Action = 8
+	ActionRemove       Action = 9
 )
 
 const (
@@ -26,6 +27,7 @@ const (
 	actionNameStart      = "Start"
 	actionNameCommit     = "Commit"
 	actionNameRollback   = "Rollback"
+	actionNameAppend     = "Append"
 	actionNameInsert     = "Insert"
 	actionNameRemove     = "Remove"
 	actionNameUpdate     = "Update"
@@ -52,6 +54,8 @@ func (a Action) String() string {
 		return actionNameCommit
 	case ActionRollback:
 		return actionNameRollback
+	case ActionAppend:
+		return actionNameAppend
 	case ActionInsert:
 		return actionNameInsert
 	case ActionRemove:

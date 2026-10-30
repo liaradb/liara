@@ -23,6 +23,10 @@ func (t *MockLog) Append(context.Context, link.RecordID, []byte) (logpage.LogSeq
 	return logpage.LogSequenceNumber{}, nil
 }
 
+func (t *MockLog) Insert(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
+}
+
 func (t *MockLog) Update(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

@@ -26,5 +26,5 @@ func newInsertAction(
 }
 
 func (a *insertAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
-	return l.Append(ctx, a.rid, a.data)
+	return l.Insert(ctx, a.rid, a.data)
 }
