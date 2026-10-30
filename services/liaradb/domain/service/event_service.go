@@ -79,6 +79,10 @@ func (es *EventService) Append(
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
+			if err := tx.XLock(ctx, tn, rqid.String()); err != nil {
+				return err
+			}
+
 			// TODO: What should this return if requestID is present?
 			if ok, err := es.testRequestID(ctx, tn, rqid); err != nil || !ok {
 				return err
@@ -102,8 +106,9 @@ func (es *EventService) Append(
 		}
 
 		if rqid, ok := cmd.Options.RequestID(); ok {
-			// TODO: Do we want to store this if the transaction doesn't complete?
-			return es.insertRequestID(ctx, tx, tn, rqid, value.NewTime(now))
+			if err := es.insertRequestID(ctx, tx, tn, rqid, value.NewTime(now)); err != nil {
+				return err
+			}
 		}
 
 		return elt.commit(ctx, tx)
@@ -119,11 +124,14 @@ func (es *EventService) TestIdempotency(
 		return false, err
 	}
 
-	// TODO: Should this log?
-	return tx.RunResult(ctx, func() (bool, error) {
-		tn := tablename.New(qry.TenantID)
-		return es.testRequestID(ctx, tn, qry.RequestID)
-	})
+	defer tx.Release()
+
+	tn := tablename.New(qry.TenantID)
+	if err := tx.SLock(ctx, tn, qry.RequestID.String()); err != nil {
+		return false, err
+	}
+
+	return es.testRequestID(ctx, tn, qry.RequestID)
 }
 
 func (es *EventService) Get(
