@@ -65,19 +65,24 @@ func (p *Page) Data() []byte {
 
 func (p *Page) Fill(data []byte) {
 	n := copy(p.data, data)
-	clear(p.data[n:])
-	p.list.Reset()
-	p.initNext()
+	p.reset(n)
 }
 
 func (p *Page) Replace(r io.Reader) error {
-	if _, err := r.Read(p.data); err != nil {
+	n, err := r.Read(p.data)
+	if err != nil {
 		return err
 	}
 
+	p.reset(n)
+	return nil
+}
+
+func (p *Page) reset(n int) {
+	// TODO: If n < len(p.data) should we panic?
+	clear(p.data[n:])
 	p.list.Reset()
 	p.initNext()
-	return nil
 }
 
 func (p *Page) Header() []byte {
