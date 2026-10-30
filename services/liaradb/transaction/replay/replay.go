@@ -53,8 +53,12 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 		return re.recoverStart(r)
 	case record.ActionCommit:
 		return re.recoverCommit()
+	case record.ActionAppend:
+		return re.recoverAppend(ctx, r)
 	case record.ActionInsert:
 		return re.recoverInsert(ctx, r)
+	case record.ActionUpdateHeader:
+		return re.recoverUpdateHeader(ctx, r)
 	case record.ActionRemove:
 		return re.recoverRemove(ctx, r)
 	case record.ActionRollback:
@@ -98,6 +102,23 @@ func (re *Replay) recoverCommit() error {
 	return nil
 }
 
+func (re *Replay) recoverAppend(ctx context.Context, r *record.Record) error {
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
+
+	p.RecoverAppend(r.Data())
+	return nil
+}
+
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 	b, err := re.s.Request(ctx, r.RecordID().BlockID())
 	if err != nil {
@@ -112,6 +133,23 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 	}
 
 	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
+	return nil
+}
+
+func (re *Replay) recoverUpdateHeader(ctx context.Context, r *record.Record) error {
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
+
+	p.RecoverHeader(r.Data())
 	return nil
 }
 

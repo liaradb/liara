@@ -408,3 +408,21 @@ func TestPage_RecoverInsert(t *testing.T) {
 		t.Errorf("incorrect data:\n%v,\nexpected:\n%v", slots0, slots1)
 	}
 }
+
+func TestPage_RecoverHeader(t *testing.T) {
+	t.Parallel()
+
+	p0 := New(40, 4, 4)
+
+	header0 := p0.Header()
+	header0[1] = 1
+
+	p1 := New(40, 4, 4)
+	p1.RecoverHeader(header0)
+
+	header1 := p1.Header()
+
+	if !slices.Equal(header1, header0) {
+		t.Errorf("incorrect data:\n%v,\nexpected:\n%v", header1, header0)
+	}
+}
