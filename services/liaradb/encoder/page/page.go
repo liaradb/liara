@@ -209,8 +209,7 @@ func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
 	return sid
 }
 
-// TODO: Is this correct?
-func (p *Page) RecoverAppend(i link.SlotID, data []byte) {
+func (p *Page) RecoverAppend(data []byte) {
 	slot, _ := p.nextSlice(len(data))
 	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
@@ -232,7 +231,7 @@ func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {
 
 func (p *Page) RecoverInsert(i link.SlotID, data []byte) {
 	_ = p.Insert(len(data), i)
-	p.RecoverAppend(i, data)
+	p.RecoverAppend(data)
 }
 
 func (p *Page) RecoverHeader(data []byte) {

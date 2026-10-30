@@ -306,6 +306,39 @@ func TestPage_SlotsRange(t *testing.T) {
 func TestPage_RecoverAppend(t *testing.T) {
 	t.Parallel()
 
+	p0 := New(40, 4, 4)
+
+	header, data := p0.Next(8)
+	header[1] = 1
+	data[2] = 2
+
+	_ = p0.CommitAppend(8)
+
+	slots0 := make([][]byte, 0)
+	for h, b := range p0.Slots() {
+		slot := append(slices.Clone(h), b...)
+		slots0 = append(slots0, slot)
+	}
+
+	p1 := New(40, 4, 4)
+	for _, slot := range slots0 {
+		p1.RecoverAppend(slot)
+	}
+
+	slots1 := make([][]byte, 0)
+	for h, b := range p1.Slots() {
+		slot := append(slices.Clone(h), b...)
+		slots1 = append(slots1, slot)
+	}
+
+	if !slices.EqualFunc(slots1, slots0, slices.Equal) {
+		t.Errorf("incorrect data:\n%v,\nexpected:\n%v", slots0, slots1)
+	}
+}
+
+func TestPage_RevertAppend(t *testing.T) {
+	t.Parallel()
+
 	p := New(40, 4, 4)
 
 	base := slices.Clone(p.Data())
@@ -324,7 +357,7 @@ func TestPage_RecoverAppend(t *testing.T) {
 		t.Errorf("incorrect base: %v, expected: %v", p.Data(), base)
 	}
 
-	p.RecoverAppend(0, slot)
+	p.RecoverAppend(slot)
 	if !slices.Equal(p.Data(), version0) {
 		t.Errorf("incorrect data:\n%v,\nexpected:\n%v", p.Data(), version0)
 	}
