@@ -156,16 +156,12 @@ func (p *Page) nextSlot(size int) ([]byte, bool) {
 	return p.body[start:end], true
 }
 
-func (p *Page) nextSlice(size int) ([]byte, bool) {
+func (p *Page) recoverSlot(size int) []byte {
 	space := p.Space()
 	size = min(size, space)
 	end := p.next
 	start := (end - size)
-	if end-start <= 0 {
-		return nil, false
-	}
-
-	return p.body[start:end], true
+	return p.body[start:end]
 }
 
 func (p *Page) NextMustFit(size int) ([]byte, []byte, bool) {
@@ -215,7 +211,7 @@ func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
 }
 
 func (p *Page) RecoverAppend(data []byte) {
-	slot, _ := p.nextSlice(len(data))
+	slot := p.recoverSlot(len(data))
 	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
 	}
@@ -235,7 +231,7 @@ func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {
 }
 
 func (p *Page) RecoverInsert(i link.SlotID, data []byte) {
-	slot, _ := p.nextSlice(len(data))
+	slot := p.recoverSlot(len(data))
 	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
 	}
