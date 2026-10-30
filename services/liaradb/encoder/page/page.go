@@ -230,8 +230,12 @@ func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {
 }
 
 func (p *Page) RecoverInsert(i link.SlotID, data []byte) {
-	_ = p.Insert(len(data), i)
-	p.RecoverAppend(data)
+	slot, _ := p.nextSlice(len(data))
+	if n := copy(slot, data); n < len(data) {
+		panic("incomplete recovery")
+	}
+
+	_ = p.Insert(len(data)-p.slotHeaderSize, i)
 }
 
 func (p *Page) RecoverHeader(data []byte) {
