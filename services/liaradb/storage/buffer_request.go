@@ -8,7 +8,7 @@ import (
 type bufferRequest = async.Request[bufferQuery, *Buffer]
 
 type bufferQuery struct {
-	bid       link.BlockID
+	fbid      link.FileBlockID
 	fileName  link.FileName
 	queryType bufferQueryType
 }
@@ -21,9 +21,9 @@ const (
 	bufferQueryTypeNext
 )
 
-func newBufferByIDQuery(bid link.BlockID) bufferQuery {
+func newBufferByIDQuery(fbid link.FileBlockID) bufferQuery {
 	return bufferQuery{
-		bid:       bid,
+		fbid:      fbid,
 		queryType: bufferQueryTypeByID,
 	}
 }

@@ -9,27 +9,27 @@ import (
 
 type BufferList struct {
 	storage *storage.Storage
-	buffers map[link.BlockID]*storage.Buffer
+	buffers map[link.FileBlockID]*storage.Buffer
 }
 
 func NewBufferList(s *storage.Storage) *BufferList {
 	return &BufferList{
 		storage: s,
-		buffers: make(map[link.BlockID]*storage.Buffer),
+		buffers: make(map[link.FileBlockID]*storage.Buffer),
 	}
 }
 
-func (bl *BufferList) Pin(ctx context.Context, bid link.BlockID) (*storage.Buffer, error) {
-	if b, ok := bl.buffers[bid]; ok {
+func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+	if b, ok := bl.buffers[fbid]; ok {
 		return b, nil
 	}
 
-	b, err := bl.storage.Request(ctx, bid)
+	b, err := bl.storage.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
 
-	bl.buffers[bid] = b
+	bl.buffers[fbid] = b
 	return b, nil
 }
 
@@ -41,5 +41,5 @@ func (bl *BufferList) Release() {
 
 func (bl *BufferList) ReleaseBuffer(b *storage.Buffer) {
 	b.Release()
-	delete(bl.buffers, b.BlockID())
+	delete(bl.buffers, b.FileBlockID())
 }

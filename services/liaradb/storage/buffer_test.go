@@ -51,12 +51,12 @@ func testBuffer_Clone(t *testing.T) {
 	s := createStorage(t, 2, 16)
 	ctx := t.Context()
 
-	b0, err := s.Request(ctx, link.NewBlockID(link.NewFileName(""), 0))
+	b0, err := s.Request(ctx, link.NewFileBlockID(link.NewFileName(""), 0))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	b1, err := s.Request(ctx, link.NewBlockID(link.NewFileName(""), 0))
+	b1, err := s.Request(ctx, link.NewFileBlockID(link.NewFileName(""), 0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +130,7 @@ func testNode_Clear(t *testing.T) {
 }
 
 func createBuffer(t *testing.T, s *Storage) *Buffer {
-	b, err := s.Request(t.Context(), link.BlockID{})
+	b, err := s.Request(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

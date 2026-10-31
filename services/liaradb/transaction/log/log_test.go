@@ -36,7 +36,7 @@ func testLog_Append(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
 
@@ -63,7 +63,7 @@ func testLog_Append__Large(t *testing.T) {
 	ctx := t.Context()
 
 	l := createLogStart(t, 320, 3, 320)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 	var data = make([]byte, 0, 1024)
 	for i := range 1024 {
 		data = append(data, byte(i%255))
@@ -93,7 +93,7 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+			rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
@@ -130,7 +130,7 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+			rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
@@ -163,7 +163,7 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 352, 4, 352)
-			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+			rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 			count := 14
 			for range count {
 				if _, err := l.Update(ctx,
@@ -191,7 +191,7 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 48, 1, 2)
-			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+			rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
@@ -209,7 +209,7 @@ func TestLog_Flush(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			ctx := t.Context()
 			l := createLogStart(t, 320, 3, 320)
-			rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+			rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 			if _, err := l.Update(ctx,
 				record.NewTransactionID(2),
@@ -251,7 +251,7 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	ctx := t.Context()
 	fsys, dir := createFiles()
 	l := createLogAllStart(t, 320, 3, 320, fsys, dir)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 	var data = []byte{0, 1, 2, 3, 4, 5}
 	var reverse = []byte{6, 7, 8, 9, 10, 11}
@@ -322,7 +322,7 @@ func testLog_Iterate(t *testing.T) {
 	fsys, dir := createFiles()
 
 	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
-	rl := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rl := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 
 	count := 100
 	records, _ := createRecords(uint64(count), 0)
@@ -393,7 +393,7 @@ func testLog_Recover(t *testing.T) {
 
 		if _, err := l.Update(ctx,
 			r0.TransactionID(),
-			link.NewRecordID(link.NewBlockID("", 1), 2),
+			link.NewRecordID(link.NewFileBlockID("", 1), 2),
 			r0.Data(),
 			r0.Reverse(),
 		); err != nil {
@@ -406,7 +406,7 @@ func testLog_Recover(t *testing.T) {
 
 		if _, err := l.Update(ctx,
 			r1.TransactionID(),
-			link.NewRecordID(link.NewBlockID("", 1), 2),
+			link.NewRecordID(link.NewFileBlockID("", 1), 2),
 			r1.Data(),
 			r1.Reverse(),
 		); err != nil {
@@ -484,7 +484,7 @@ func testLog_RecoverMany(t *testing.T) {
 		for _, rec := range records1 {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
-				link.NewRecordID(link.NewBlockID("", 1), 2),
+				link.NewRecordID(link.NewFileBlockID("", 1), 2),
 				rec.Data(),
 				rec.Reverse(),
 			); err != nil {
@@ -547,7 +547,7 @@ func testLog_RecoverMany(t *testing.T) {
 		for _, rec := range records2 {
 			if _, err := l.Update(ctx,
 				rec.TransactionID(),
-				link.NewRecordID(link.NewBlockID("", 1), 2),
+				link.NewRecordID(link.NewFileBlockID("", 1), 2),
 				rec.Data(),
 				rec.Reverse(),
 			); err != nil {
@@ -616,7 +616,7 @@ func testLog_Recover__Iterate(t *testing.T) {
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			rec.TransactionID(),
-			link.NewRecordID(link.NewBlockID("", 1), 2),
+			link.NewRecordID(link.NewFileBlockID("", 1), 2),
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {
@@ -674,7 +674,7 @@ func testLog_Commit(t *testing.T) {
 
 	if _, err := l.Insert(ctx,
 		txid1,
-		link.NewRecordID(link.NewBlockID("", 1), 2),
+		link.NewRecordID(link.NewFileBlockID("", 1), 2),
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
@@ -691,7 +691,7 @@ func testLog_Commit(t *testing.T) {
 
 	if _, err := l.Insert(ctx,
 		txid2,
-		link.NewRecordID(link.NewBlockID("", 1), 2),
+		link.NewRecordID(link.NewFileBlockID("", 1), 2),
 		make([]byte, 200)); err != nil {
 		t.Fatal(err)
 	}
@@ -763,7 +763,7 @@ func testLog_Insert(t *testing.T) {
 
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordID(link.NewBlockID("", 1), 2),
+		link.NewRecordID(link.NewFileBlockID("", 1), 2),
 		data,
 	); err != nil {
 		t.Error(err)
@@ -819,7 +819,7 @@ func testLog_InsertAndCommit(t *testing.T) {
 
 	if lsn, err := l.Insert(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordID(link.NewBlockID("", 1), 2),
+		link.NewRecordID(link.NewFileBlockID("", 1), 2),
 		data,
 	); err != nil {
 		t.Error(err)
@@ -963,7 +963,7 @@ func testLog_Update(t *testing.T) {
 
 	if lsn, err := l.Update(ctx,
 		record.NewTransactionID(2),
-		link.NewRecordID(link.NewBlockID("", 1), 2),
+		link.NewRecordID(link.NewFileBlockID("", 1), 2),
 		data,
 		reverse,
 	); err != nil {
@@ -1073,7 +1073,7 @@ func createRecords(count, offset uint64) ([]*record.Record, logpage.LogSequenceN
 	for i := range count {
 		rc := record.New(
 			record.NewTransactionID(2),
-			link.NewRecordID(link.NewBlockID("", 1), 2),
+			link.NewRecordID(link.NewFileBlockID("", 1), 2),
 			record.ActionUpdate,
 			data,
 			reverse)

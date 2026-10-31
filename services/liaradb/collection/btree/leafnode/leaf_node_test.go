@@ -399,7 +399,7 @@ func testLeafNode_SetRightID(t *testing.T) {
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), link.BlockID{})
+	b, err := s.Request(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

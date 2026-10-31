@@ -10,11 +10,11 @@ import (
 )
 
 type Tip struct {
-	s       *storage.Storage
-	fn      link.FileName
-	current *bufferpage.BufferPage
-	blockID link.BlockID
-	slotID  link.SlotID
+	s           *storage.Storage
+	fn          link.FileName
+	current     *bufferpage.BufferPage
+	fileBlockID link.FileBlockID
+	slotID      link.SlotID
 }
 
 func NewTip(s *storage.Storage, fn link.FileName) Tip {
@@ -33,7 +33,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	}
 
 	t.current = bufferpage.New(b, span.FragmentHeaderSize)
-	t.blockID = b.BlockID()
+	t.fileBlockID = b.FileBlockID()
 	t.slotID = link.SlotID(t.current.Count())
 
 	available := 0
@@ -82,5 +82,5 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 }
 
 func (t *Tip) RecordLocator() link.RecordLocator {
-	return link.NewRecordLocator(t.blockID.Position(), t.slotID)
+	return link.NewRecordLocator(t.fileBlockID.Position(), t.slotID)
 }

@@ -32,7 +32,7 @@ type Fragment struct {
 
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
-	BlockID() link.BlockID
+	FileBlockID() link.FileBlockID
 	CommitAppend(size int)
 	Release()
 }
@@ -64,13 +64,13 @@ func (f Fragment) NextPosition() link.FilePosition { return link.FilePosition(f.
 func (f Fragment) NextSlotID() link.SlotID         { return link.SlotID(f.nextSlotID.Get()) }
 
 // TODO: This is unused
-func (f Fragment) BlockID(fn link.FileName) link.BlockID {
-	return link.NewBlockID(fn, f.NextPosition())
+func (f Fragment) FileBlockID(fn link.FileName) link.FileBlockID {
+	return link.NewFileBlockID(fn, f.NextPosition())
 }
 
 // TODO: This is unused
 func (f Fragment) RecordID(fn link.FileName) link.RecordID {
-	return link.NewRecordID(f.BlockID(fn), f.NextSlotID())
+	return link.NewRecordID(f.FileBlockID(fn), f.NextSlotID())
 }
 
 func (f Fragment) valid() bool {
@@ -133,5 +133,5 @@ func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
 }
 
 func (f Fragment) recordLocator() link.RecordID {
-	return f.p.BlockID().RecordID(f.slotID)
+	return f.p.FileBlockID().RecordID(f.slotID)
 }

@@ -8,15 +8,15 @@ import (
 )
 
 type Buffer struct {
-	blockID link.BlockID
-	oldBID  link.BlockID
-	data    []byte
-	status  BufferStatus
-	s       *Storage
-	pins    int
-	reads   uint
-	mux     sync.RWMutex
-	loader  func() error
+	fileBlockID link.FileBlockID
+	oldFBID     link.FileBlockID
+	data        []byte
+	status      BufferStatus
+	s           *Storage
+	pins        int
+	reads       uint
+	mux         sync.RWMutex
+	loader      func() error
 }
 
 func newBuffer(s *Storage) *Buffer {
@@ -26,13 +26,13 @@ func newBuffer(s *Storage) *Buffer {
 	}
 }
 
-func (b *Buffer) BlockID() link.BlockID { return b.blockID }
-func (b *Buffer) Dirty() bool           { return b.status == BufferStatusDirty }
-func (b *Buffer) Pins() int             { return b.pins }
-func (b *Buffer) Reads() uint           { return b.reads }
-func (b *Buffer) Size() int64           { return b.s.BufferSize() }
-func (b *Buffer) Raw() []byte           { return b.data }
-func (b *Buffer) Status() BufferStatus  { return b.status }
+func (b *Buffer) FileBlockID() link.FileBlockID { return b.fileBlockID }
+func (b *Buffer) Dirty() bool                   { return b.status == BufferStatusDirty }
+func (b *Buffer) Pins() int                     { return b.pins }
+func (b *Buffer) Reads() uint                   { return b.reads }
+func (b *Buffer) Size() int64                   { return b.s.BufferSize() }
+func (b *Buffer) Raw() []byte                   { return b.data }
+func (b *Buffer) Status() BufferStatus          { return b.status }
 
 // TODO: Test these
 func (b *Buffer) Latch()    { b.mux.Lock() }
@@ -63,10 +63,10 @@ func (b *Buffer) Release() {
 }
 
 // Load from file system
-//   - blockID will always be changing
+//   - fileBlockID will always be changing
 //   - status is dirty only if already loaded
-func (b *Buffer) load(bid link.BlockID, next bool) {
-	b.blockID = bid
+func (b *Buffer) load(fbid link.FileBlockID, next bool) {
+	b.fileBlockID = fbid
 	b.reads = 0
 	b.initLoader(next)
 }
@@ -95,8 +95,8 @@ func (b *Buffer) flushAndLoad(next bool) error {
 		return err
 	}
 
-	// Only change oldBID after it has flushed
-	b.oldBID = b.blockID
+	// Only change oldFBID after it has flushed
+	b.oldFBID = b.fileBlockID
 	b.status = BufferStatusLoading
 
 	if err := b.clearOrLoad(next); err != nil {
@@ -121,7 +121,7 @@ func (b *Buffer) clearOrLoad(next bool) error {
 		return nil
 	}
 
-	r, err := b.s.openFile(b.blockID)
+	r, err := b.s.openFile(b.fileBlockID)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (b *Buffer) flushIfDirty() error {
 }
 
 func (b *Buffer) flush() error {
-	w, err := b.s.openFile(b.oldBID)
+	w, err := b.s.openFile(b.oldFBID)
 	if err != nil {
 		return err
 	}
@@ -180,11 +180,11 @@ func (b *Buffer) flush() error {
 }
 
 func (b *Buffer) offset() int64 {
-	return b.blockID.Offset(int64(len(b.data))).Value()
+	return b.fileBlockID.Offset(int64(len(b.data))).Value()
 }
 
 func (b *Buffer) offsetOld() int64 {
-	return b.oldBID.Offset(int64(len(b.data))).Value()
+	return b.oldFBID.Offset(int64(len(b.data))).Value()
 }
 
 func (b *Buffer) Clear() {

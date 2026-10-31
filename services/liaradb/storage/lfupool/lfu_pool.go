@@ -28,10 +28,10 @@ func (p *LFUPool) Pop() (*storage.Buffer, bool) {
 	panic("unimplemented")
 }
 
-func (p *LFUPool) Push(k link.BlockID, v *storage.Buffer) {
+func (p *LFUPool) Push(k link.FileBlockID, v *storage.Buffer) {
 	panic("unimplemented")
 }
 
-func (p *LFUPool) Remove(k link.BlockID) (*storage.Buffer, bool) {
+func (p *LFUPool) Remove(k link.FileBlockID) (*storage.Buffer, bool) {
 	panic("unimplemented")
 }

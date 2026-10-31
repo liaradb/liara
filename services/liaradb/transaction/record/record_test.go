@@ -15,7 +15,7 @@ func TestRecord(t *testing.T) {
 
 	lsn := logpage.NewLogSequenceNumber(1)
 	txid := NewTransactionID(2)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
@@ -57,7 +57,7 @@ func TestRecord_Write(t *testing.T) {
 
 	lsn := logpage.NewLogSequenceNumber(1)
 	txid := NewTransactionID(2)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")
@@ -114,7 +114,7 @@ func TestRecord_Compare(t *testing.T) {
 	t.Parallel()
 
 	txid := NewTransactionID(2)
-	rid := link.NewRecordID(link.NewBlockID("", 1), 2)
+	rid := link.NewRecordID(link.NewFileBlockID("", 1), 2)
 	action := ActionInsert
 	data := []byte("abcde")
 	reverse := []byte("fghij")

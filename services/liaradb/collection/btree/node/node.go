@@ -40,7 +40,7 @@ func New(buffer *storage.Buffer) Node {
 
 func (n *Node) Clear() {
 	// n.buffer.Clear()
-	n.addAction(newClearAction(n.buffer.BlockID().RecordID(0), n.page.Data()))
+	n.addAction(newClearAction(n.buffer.FileBlockID().RecordID(0), n.page.Data()))
 	n.page.Clear()
 }
 
@@ -94,7 +94,7 @@ func (n *Node) CommitAppend(size int16) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.CommitAppend(int(size))
-	rid := n.buffer.BlockID().RecordID(sid)
+	rid := n.buffer.FileBlockID().RecordID(sid)
 
 	n.addAction(newAppendAction(rid, b))
 	n.addHeaderAction(rid)
@@ -104,7 +104,7 @@ func (n *Node) CommitInsert(size int16, index link.SlotID) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.Insert(int(size), index)
-	rid := n.buffer.BlockID().RecordID(sid)
+	rid := n.buffer.FileBlockID().RecordID(sid)
 
 	n.addAction(newInsertAction(rid, b))
 	n.addHeaderAction(rid)

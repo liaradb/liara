@@ -33,7 +33,7 @@ func (h *BufferPage) SetLogSequenceNumber(lsn logpage.LogSequenceNumber) {
 	h.page.SetTrackingID(lsn.Value())
 }
 
-func (bp *BufferPage) BlockID() link.BlockID { return bp.buffer.BlockID() }
+func (bp *BufferPage) FileBlockID() link.FileBlockID { return bp.buffer.FileBlockID() }
 
 func (bp *BufferPage) Shadow(base *BufferPage) {
 	bp.page.Fill(base.page.Data())

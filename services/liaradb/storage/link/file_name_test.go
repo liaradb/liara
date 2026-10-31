@@ -10,8 +10,8 @@ func TestFileName(t *testing.T) {
 		t.Errorf("incorrect string: %v, expected: %v", s, n)
 	}
 
-	want := NewBlockID(fn, 1)
-	if bid := fn.BlockID(1); bid != want {
-		t.Errorf("incorrect block id: %v, expected: %v", bid, want)
+	want := NewFileBlockID(fn, 1)
+	if fbid := fn.FileBlockID(1); fbid != want {
+		t.Errorf("incorrect block id: %v, expected: %v", fbid, want)
 	}
 }

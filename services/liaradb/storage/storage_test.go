@@ -28,17 +28,17 @@ func testStorage(t *testing.T) {
 
 	fn := link.NewFileName("testfile")
 
-	bid0 := fn.BlockID(1)
-	b, err := s.Request(ctx, bid0)
+	fbid0 := fn.FileBlockID(1)
+	b, err := s.Request(ctx, fbid0)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if i := b.BlockID(); i != bid0 {
-		t.Errorf("incorrect block id: %v, expected: %v", i, bid0)
+	if i := b.FileBlockID(); i != fbid0 {
+		t.Errorf("incorrect block id: %v, expected: %v", i, fbid0)
 	}
 
-	if p := b.BlockID().Position(); p != 1 {
+	if p := b.FileBlockID().Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
@@ -61,17 +61,17 @@ func testStorage(t *testing.T) {
 		t.Errorf("incorrect raw value: %v, expected: %v", bytes, data)
 	}
 
-	bid1 := fn.BlockID(2)
-	b0, err := s.Request(ctx, bid1)
+	fbid1 := fn.FileBlockID(2)
+	b0, err := s.Request(ctx, fbid1)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if i := b0.BlockID(); i != bid1 {
-		t.Errorf("incorrect block id: %v, expected: %v", i, bid1)
+	if i := b0.FileBlockID(); i != fbid1 {
+		t.Errorf("incorrect block id: %v, expected: %v", i, fbid1)
 	}
 
-	if p := b0.BlockID().Position(); p != 2 {
+	if p := b0.FileBlockID().Position(); p != 2 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 
@@ -117,16 +117,16 @@ func testStorage_RequestBeforeRun(t *testing.T) {
 		t.Error("should return error")
 	}
 
-	if b, err := s.Request(t.Context(), link.BlockID{}); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
+	if b, err := s.Request(t.Context(), link.FileBlockID{}); b != nil || err == nil {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.FileBlockID().Position())
 	}
 
 	if b, err := s.RequestCurrent(t.Context(), link.NewFileName("")); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.FileBlockID().Position())
 	}
 
 	if b, err := s.RequestNext(t.Context(), link.NewFileName("")); b != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.BlockID().Position())
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, b.FileBlockID().Position())
 	}
 }
 
@@ -138,7 +138,7 @@ func TestStorage_Run(t *testing.T) {
 func testStorage_Run(t *testing.T) {
 	fsys := filetesting.New(nil)
 	dir := path.Join(t.TempDir(), "dir")
-	s := New(fsys, &queue.MapQueue[link.BlockID, *Buffer]{}, 2, 1024, dir)
+	s := New(fsys, &queue.MapQueue[link.FileBlockID, *Buffer]{}, 2, 1024, dir)
 
 	if _, err := fsys.Stat(dir); !errors.Is(err, os.ErrNotExist) {
 		t.Fatal("dir should not exist")
@@ -157,12 +157,12 @@ func testStorage_Run(t *testing.T) {
 	defer cancel2()
 
 	fn := link.NewFileName("testfile")
-	b, err := s.Request(ctx2, fn.BlockID(1))
+	b, err := s.Request(ctx2, fn.FileBlockID(1))
 	if err != nil {
 		t.Error(err)
 	}
 
-	if p := b.BlockID().Position(); p != 1 {
+	if p := b.FileBlockID().Position(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 
@@ -172,8 +172,8 @@ func testStorage_Run(t *testing.T) {
 
 	cancel()
 
-	if r, err := s.Request(ctx2, link.BlockID{}); r != nil || err == nil {
-		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.BlockID().Position())
+	if r, err := s.Request(ctx2, link.FileBlockID{}); r != nil || err == nil {
+		t.Errorf("incorrect result: expected %v, recieved %v", 0, r.FileBlockID().Position())
 	}
 }
 
@@ -187,9 +187,9 @@ func testStorage_Pinned(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	bid := fn.BlockID(0)
+	fbid := fn.FileBlockID(0)
 
-	b, err := s.Request(ctx, bid)
+	b, err := s.Request(ctx, fbid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +204,7 @@ func testStorage_Pinned(t *testing.T) {
 		t.Error("should be dirty")
 	}
 
-	b0, err := s.Request(ctx, bid)
+	b0, err := s.Request(ctx, fbid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,12 +229,12 @@ func testStorage_Flush(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	bid0 := fn.BlockID(0)
-	bid1 := fn.BlockID(1)
-	bid2 := fn.BlockID(2)
+	fbid0 := fn.FileBlockID(0)
+	fbid1 := fn.FileBlockID(1)
+	fbid2 := fn.FileBlockID(2)
 
 	// Request Buffer 0
-	b0, err := s.Request(ctx, bid0)
+	b0, err := s.Request(ctx, fbid0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +244,7 @@ func testStorage_Flush(t *testing.T) {
 	}
 
 	// Request Buffer 1
-	b1, err := s.Request(ctx, bid1)
+	b1, err := s.Request(ctx, fbid1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +257,7 @@ func testStorage_Flush(t *testing.T) {
 	defer cancel()
 
 	// Request Buffer 2 - none available
-	_, err = s.Request(ctx2, bid2)
+	_, err = s.Request(ctx2, fbid2)
 	if err != context.Canceled {
 		t.Error("should be cancelled")
 	}
@@ -276,7 +276,7 @@ func testStorage_Flush(t *testing.T) {
 	defer cancel()
 
 	// Request Buffer 2 again - available
-	b2, err := s.Request(ctx2, bid2)
+	b2, err := s.Request(ctx2, fbid2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -299,7 +299,7 @@ func testStorage_Flush(t *testing.T) {
 	b2.Release()
 
 	// Request Buffer 1 again
-	b1, err = s.Request(ctx, bid1)
+	b1, err = s.Request(ctx, fbid1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -329,7 +329,7 @@ func testStorage_Wait(t *testing.T) {
 	wg := sync.WaitGroup{}
 
 	wg.Go(func() {
-		b, err := s.Request(ctx, fn.BlockID(0))
+		b, err := s.Request(ctx, fn.FileBlockID(0))
 		if err != nil {
 			t.Error(err)
 			return
@@ -339,7 +339,7 @@ func testStorage_Wait(t *testing.T) {
 	})
 
 	wg.Go(func() {
-		b, err := s.Request(ctx, fn.BlockID(1))
+		b, err := s.Request(ctx, fn.FileBlockID(1))
 		if err != nil {
 			t.Error(err)
 			return
@@ -349,7 +349,7 @@ func testStorage_Wait(t *testing.T) {
 	})
 
 	wg.Go(func() {
-		b, err := s.Request(ctx, fn.BlockID(2))
+		b, err := s.Request(ctx, fn.FileBlockID(2))
 		if err != nil {
 			t.Error(err)
 			return
@@ -385,7 +385,7 @@ func testStorage_Wait__NoLeak(t *testing.T) {
 	wg := sync.WaitGroup{}
 
 	wg.Go(func() {
-		b, err := s.Request(ctx, fn.BlockID(0))
+		b, err := s.Request(ctx, fn.FileBlockID(0))
 		if err != nil {
 
 			// Wait until file load is complete
@@ -416,11 +416,11 @@ func testStorage_Reads(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	bid0 := fn.BlockID(0)
-	bid1 := fn.BlockID(1)
+	fbid0 := fn.FileBlockID(0)
+	fbid1 := fn.FileBlockID(1)
 
 	// Request Buffer 0
-	b0, err := s.Request(ctx, bid0)
+	b0, err := s.Request(ctx, fbid0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -432,7 +432,7 @@ func testStorage_Reads(t *testing.T) {
 	b0.Release()
 
 	// Request Buffer 0 again
-	b0, err = s.Request(ctx, bid0)
+	b0, err = s.Request(ctx, fbid0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -444,7 +444,7 @@ func testStorage_Reads(t *testing.T) {
 	b0.Release()
 
 	// Request Buffer 1
-	b1, err := s.Request(ctx, bid1)
+	b1, err := s.Request(ctx, fbid1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -468,14 +468,14 @@ func testStorage_Load__Error(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	bid0 := fn.BlockID(0)
+	fbid0 := fn.FileBlockID(0)
 
 	mfs := fsys.FSYS().(*filetesting.FileSystem)
 
 	mfs.SetFail(true)
 
 	// Request Buffer 0
-	b0, err := s.Request(ctx, bid0)
+	b0, err := s.Request(ctx, fbid0)
 	if err == nil {
 		t.Fatal("should return error")
 	}
@@ -489,7 +489,7 @@ func testStorage_Load__Error(t *testing.T) {
 	mfs.SetFail(false)
 
 	// Request Buffer 0 again
-	b1, err := s.Request(ctx, bid0)
+	b1, err := s.Request(ctx, fbid0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -528,7 +528,7 @@ func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache
 	t.Helper()
 
 	dir := t.TempDir()
-	s := New(fsys, &queue.MapQueue[link.BlockID, *Buffer]{}, max, bs, dir)
+	s := New(fsys, &queue.MapQueue[link.FileBlockID, *Buffer]{}, max, bs, dir)
 
 	if d := s.Dir(); d != dir {
 		t.Fatalf("incorrect dir: %v, expected: %v", d, dir)
@@ -565,7 +565,7 @@ func testStorage_FlushUnpinned(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	b0, err := s.Request(ctx, fn.BlockID(0))
+	b0, err := s.Request(ctx, fn.FileBlockID(0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -575,7 +575,7 @@ func testStorage_FlushUnpinned(t *testing.T) {
 		t.Error("should be dirty")
 	}
 
-	b1, err := s.Request(ctx, fn.BlockID(1))
+	b1, err := s.Request(ctx, fn.FileBlockID(1))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -587,7 +587,7 @@ func testStorage_FlushUnpinned(t *testing.T) {
 
 	b1.Release()
 
-	b2, err := s.Request(ctx, fn.BlockID(2))
+	b2, err := s.Request(ctx, fn.FileBlockID(2))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -645,7 +645,7 @@ func testStorage_Request__AlreadyLoaded(t *testing.T) {
 	ctx := t.Context()
 
 	fn := link.NewFileName("testfile")
-	b0, err := s.Request(ctx, fn.BlockID(0))
+	b0, err := s.Request(ctx, fn.FileBlockID(0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -654,7 +654,7 @@ func testStorage_Request__AlreadyLoaded(t *testing.T) {
 
 	synctest.Wait()
 
-	b1, err := s.Request(ctx, fn.BlockID(0))
+	b1, err := s.Request(ctx, fn.FileBlockID(0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -680,7 +680,7 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if p := b0.BlockID().Position().Value(); p != 0 {
+	if p := b0.FileBlockID().Position().Value(); p != 0 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 0)
 	}
 
@@ -691,7 +691,7 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if p := b1.BlockID().Position().Value(); p != 1 {
+	if p := b1.FileBlockID().Position().Value(); p != 1 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 1)
 	}
 
@@ -713,7 +713,7 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if p := b2.BlockID().Position().Value(); p != 2 {
+	if p := b2.FileBlockID().Position().Value(); p != 2 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 2)
 	}
 
@@ -735,7 +735,7 @@ func testStorage_RequestCurrent_RequestNext(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if p := b3.BlockID().Position().Value(); p != 2 {
+	if p := b3.FileBlockID().Position().Value(); p != 2 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 2)
 	}
 
@@ -757,8 +757,8 @@ func testStorage_Highwater(t *testing.T) {
 
 	if h, err := s.Highwater(ctx, fn); err != nil {
 		t.Fatal(err)
-	} else if h != fn.BlockID(0) {
-		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.BlockID(0))
+	} else if h != fn.FileBlockID(0) {
+		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.FileBlockID(0))
 	}
 
 	if b, err := s.RequestNext(ctx, fn); err != nil {
@@ -769,8 +769,8 @@ func testStorage_Highwater(t *testing.T) {
 
 	if h, err := s.Highwater(ctx, fn); err != nil {
 		t.Fatal(err)
-	} else if h != fn.BlockID(1) {
-		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.BlockID(1))
+	} else if h != fn.FileBlockID(1) {
+		t.Errorf("incorrect highwater: %v, expected: %v", h, fn.FileBlockID(1))
 	}
 
 	synctest.Wait()
@@ -805,12 +805,12 @@ func testStorage_Release__NonBlocking(t *testing.T) {
 	// Complete Release Block 1
 
 	wg.Go(func() {
-		b0, err := s.Request(ctx, fn.BlockID(0))
+		b0, err := s.Request(ctx, fn.FileBlockID(0))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		b1, err := s.Request(ctx, fn.BlockID(1))
+		b1, err := s.Request(ctx, fn.FileBlockID(1))
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -105,7 +105,7 @@ func (re *Replay) recoverCommit() error {
 }
 
 func (re *Replay) recoverAppend(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (re *Replay) recoverAppend(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverUpdateHeader(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (re *Replay) recoverUpdateHeader(ctx context.Context, r *record.Record) err
 }
 
 func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recordClear(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func (re *Replay) recoverRollback() error {
 }
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
-	if tablename.IsIndex(r.RecordID().BlockID().FileName().String()) {
+	if tablename.IsIndex(r.RecordID().FileBlockID().FileName().String()) {
 		return page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
 	}
 

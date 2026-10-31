@@ -6,6 +6,6 @@ import (
 	"github.com/liaradb/liaradb/util/queue"
 )
 
-func New() *queue.MapQueue[link.BlockID, *storage.Buffer] {
-	return &queue.MapQueue[link.BlockID, *storage.Buffer]{}
+func New() *queue.MapQueue[link.FileBlockID, *storage.Buffer] {
+	return &queue.MapQueue[link.FileBlockID, *storage.Buffer]{}
 }

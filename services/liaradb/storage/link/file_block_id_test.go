@@ -2,33 +2,33 @@ package link
 
 import "testing"
 
-func TestBlockID(t *testing.T) {
+func TestFileBlockID(t *testing.T) {
 	fn := NewFileName("testfile")
 	pos := FilePosition(1)
-	bid := NewBlockID(fn, pos)
+	fbid := NewFileBlockID(fn, pos)
 
-	if n := bid.FileName(); n != fn {
+	if n := fbid.FileName(); n != fn {
 		t.Errorf("incorrect file name: %v, expected: %v", n, fn)
 	}
 
-	if p := bid.Position(); p != pos {
+	if p := fbid.Position(); p != pos {
 		t.Errorf("incorrect position: %v, expected: %v", p, pos)
 	}
 
-	bid.SetPosition(2)
-	if p := bid.Position(); p != 2 {
+	fbid.SetPosition(2)
+	if p := fbid.Position(); p != 2 {
 		t.Errorf("incorrect position: %v, expected: %v", p, 2)
 	}
 }
 
-func TestBlockID_RecordID(t *testing.T) {
+func TestFileBlockID_RecordID(t *testing.T) {
 	fn := NewFileName("testfile")
 	fPos := FilePosition(1)
 	rSID := SlotID(2)
-	bid := NewBlockID(fn, fPos)
-	rid := NewRecordID(bid, rSID)
+	fbid := NewFileBlockID(fn, fPos)
+	rid := NewRecordID(fbid, rSID)
 
-	if r := bid.RecordID(rSID); r != rid {
+	if r := fbid.RecordID(rSID); r != rid {
 		t.Errorf("incorrect record id: %v, expected: %v", r, rid)
 	}
 }

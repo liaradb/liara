@@ -28,7 +28,7 @@ func (s Span) valid() bool {
 	return true
 }
 
-// TODO: Ensure fragments are sorted by BlockID
+// TODO: Ensure fragments are sorted by FileBlockID
 func (s *Span) Append(header []byte, data []byte) *Fragment {
 	f := newFragment(header, data)
 	s.fragments = append(s.fragments, f)

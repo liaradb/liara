@@ -149,7 +149,7 @@ func TestSpan_Bytes(t *testing.T) {
 type testBufferPage struct {
 }
 
-func (t *testBufferPage) BlockID() link.BlockID { return link.BlockID{} }
+func (t *testBufferPage) FileBlockID() link.FileBlockID { return link.FileBlockID{} }
 
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }

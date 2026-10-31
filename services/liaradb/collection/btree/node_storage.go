@@ -18,12 +18,12 @@ func newNodeStorage(s *storage.Storage) *nodeStorage {
 	return &nodeStorage{s}
 }
 
-func (ns *nodeStorage) getBuffer(ctx context.Context, bid link.BlockID) (*storage.Buffer, error) {
-	return ns.s.Request(ctx, bid)
+func (ns *nodeStorage) getBuffer(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+	return ns.s.Request(ctx, fbid)
 }
 
-func (ns *nodeStorage) getKeyNode(ctx context.Context, bid link.BlockID) (*keynode.KeyNode, error) {
-	b, err := ns.s.Request(ctx, bid)
+func (ns *nodeStorage) getKeyNode(ctx context.Context, fbid link.FileBlockID) (*keynode.KeyNode, error) {
+	b, err := ns.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +31,8 @@ func (ns *nodeStorage) getKeyNode(ctx context.Context, bid link.BlockID) (*keyno
 	return keynode.New(node.New(b)), nil
 }
 
-func (ns *nodeStorage) getLeafNode(ctx context.Context, bid link.BlockID) (*leafnode.LeafNode, error) {
-	b, err := ns.s.Request(ctx, bid)
+func (ns *nodeStorage) getLeafNode(ctx context.Context, fbid link.FileBlockID) (*leafnode.LeafNode, error) {
+	b, err := ns.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -44,26 +44,26 @@ func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn link.FileName) (*st
 	return ns.s.RequestNext(ctx, fn)
 }
 
-func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn link.FileName) (*keynode.KeyNode, link.BlockID, error) {
+func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn link.FileName) (*keynode.KeyNode, link.FileBlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
-		return nil, link.BlockID{}, err
+		return nil, link.FileBlockID{}, err
 	}
 
-	return keynode.New(node.New(b)), b.BlockID(), nil
+	return keynode.New(node.New(b)), b.FileBlockID(), nil
 }
 
-func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn link.FileName) (*leafnode.LeafNode, link.BlockID, error) {
+func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn link.FileName) (*leafnode.LeafNode, link.FileBlockID, error) {
 	b, err := ns.s.RequestNext(ctx, fn)
 	if err != nil {
-		return nil, link.BlockID{}, err
+		return nil, link.FileBlockID{}, err
 	}
 
-	return leafnode.New(node.New(b)), b.BlockID(), nil
+	return leafnode.New(node.New(b)), b.FileBlockID(), nil
 }
 
-func (ns *nodeStorage) getPage(ctx context.Context, bid link.BlockID) (node.Node, error) {
-	b, err := ns.getBuffer(ctx, bid)
+func (ns *nodeStorage) getPage(ctx context.Context, fbid link.FileBlockID) (node.Node, error) {
+	b, err := ns.getBuffer(ctx, fbid)
 	if err != nil {
 		return node.Node{}, err
 	}

@@ -10,6 +10,6 @@ type FreePool interface {
 	Count() int
 	Iterate() iter.Seq[*Buffer]
 	Pop() (*Buffer, bool)
-	Push(k link.BlockID, v *Buffer)
-	Remove(k link.BlockID) (*Buffer, bool)
+	Push(k link.FileBlockID, v *Buffer)
+	Remove(k link.FileBlockID) (*Buffer, bool)
 }

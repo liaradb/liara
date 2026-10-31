@@ -129,8 +129,8 @@ func (fc *FixedCollection) GetByRecordLocator(
 	fn link.FileName,
 	rl link.RecordLocator,
 ) (*span.Span, error) {
-	bid := fn.BlockID(rl.Block())
-	b, err := fc.s.Request(ctx, bid)
+	fbid := fn.FileBlockID(rl.Block())
+	b, err := fc.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +139,8 @@ func (fc *FixedCollection) GetByRecordLocator(
 	f := s.AppendSlot(b, rl.SlotID())
 
 	for f.NextPosition() != 0 {
-		bid.SetPosition(f.NextPosition())
-		b, err := fc.s.Request(ctx, bid)
+		fbid.SetPosition(f.NextPosition())
+		b, err := fc.s.Request(ctx, fbid)
 		if err != nil {
 			s.Release()
 			return nil, err

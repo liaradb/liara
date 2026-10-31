@@ -48,7 +48,7 @@ func (c *insert) Insert(
 		}
 	}()
 
-	var bid link.BlockID
+	var fbid link.FileBlockID
 	var key = k
 	var level byte
 	for i, n := range chain.items() {
@@ -60,7 +60,7 @@ func (c *insert) Insert(
 				return
 			}
 
-			bid, key, split, err = c.insertChainLeaf(ctx, fn, bid, ln, key, rid)
+			fbid, key, split, err = c.insertChainLeaf(ctx, fn, fbid, ln, key, rid)
 		} else {
 			kn, ok := n.(*keynode.KeyNode)
 			if !ok {
@@ -68,7 +68,7 @@ func (c *insert) Insert(
 				return
 			}
 
-			bid, key, split, err = c.insertChainKey(ctx, fn, kn, key, bid.Position())
+			fbid, key, split, err = c.insertChainKey(ctx, fn, kn, key, fbid.Position())
 			level++
 		}
 		if err != nil {
@@ -78,7 +78,7 @@ func (c *insert) Insert(
 		}
 	}
 
-	err = c.insertRoot(ctx, fn, level, key, bid)
+	err = c.insertRoot(ctx, fn, level, key, fbid)
 	return
 }
 
@@ -87,7 +87,7 @@ func (c *insert) getChain(
 	fn link.FileName,
 	k key.Key,
 ) (*chain, error) {
-	p, err := c.ns.getPage(ctx, fn.BlockID(0))
+	p, err := c.ns.getPage(ctx, fn.FileBlockID(0))
 	if err != nil {
 		return nil, err
 	}
@@ -103,8 +103,8 @@ func (c *insert) getChain(
 		kn := keynode.New(p)
 		chain.append(kn)
 
-		bid := fn.BlockID(kn.Search(k))
-		if p, err = c.ns.getPage(ctx, bid); err != nil {
+		fbid := fn.FileBlockID(kn.Search(k))
+		if p, err = c.ns.getPage(ctx, fbid); err != nil {
 			chain.release()
 			return nil, err
 		}
@@ -120,25 +120,25 @@ func (c *insert) getChain(
 func (c *insert) insertChainLeaf(
 	ctx context.Context,
 	fn link.FileName,
-	bid link.BlockID,
+	fbid link.FileBlockID,
 	ln *leafnode.LeafNode,
 	k key.Key,
 	rid link.RecordLocator,
-) (link.BlockID, key.Key, bool, error) {
+) (link.FileBlockID, key.Key, bool, error) {
 	// Does it exist already?
 	if _, ok := ln.Search(k); ok {
-		return link.BlockID{}, key.Key{}, false, ErrExists
+		return link.FileBlockID{}, key.Key{}, false, ErrExists
 	}
 
 	first, second, ok := ln.Insert(k, rid)
 	if ok {
 		// no split
-		return link.BlockID{}, key.Key{}, false, nil
+		return link.FileBlockID{}, key.Key{}, false, nil
 	}
 
-	middle, bid2, err := c.ns.getNextLeafNode(ctx, fn)
+	middle, fbid2, err := c.ns.getNextLeafNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, key.Key{}, false, err
+		return link.FileBlockID{}, key.Key{}, false, err
 	}
 
 	defer middle.Release()
@@ -146,12 +146,12 @@ func (c *insert) insertChainLeaf(
 	middle.Latch()
 	defer middle.Unlatch()
 
-	rightID := fn.BlockID(ln.RightID())
+	rightID := fn.FileBlockID(ln.RightID())
 	if rightID.Position() != 0 {
 		// Only update right node if not root
 		right, err := c.ns.getLeafNode(ctx, rightID)
 		if err != nil {
-			return link.BlockID{}, key.Key{}, false, err
+			return link.FileBlockID{}, key.Key{}, false, err
 		}
 
 		defer right.Release()
@@ -160,13 +160,13 @@ func (c *insert) insertChainLeaf(
 		// ln3.Latch()
 		// defer ln3.Unlatch()
 
-		right.SetLeftID(bid2.Position())
+		right.SetLeftID(fbid2.Position())
 	}
 
-	key := middle.Fill(bid.Position(), ln.RightID(), second)
-	ln.Replace(bid2.Position(), first)
+	key := middle.Fill(fbid.Position(), ln.RightID(), second)
+	ln.Replace(fbid2.Position(), first)
 
-	return bid2, key, true, nil
+	return fbid2, key, true, nil
 }
 
 // This is a key level page.
@@ -177,15 +177,15 @@ func (c *insert) insertChainKey(
 	kn *keynode.KeyNode,
 	k key.Key,
 	block link.FilePosition,
-) (link.BlockID, key.Key, bool, error) {
+) (link.FileBlockID, key.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
-		return link.BlockID{}, key.Key{}, false, nil
+		return link.FileBlockID{}, key.Key{}, false, nil
 	}
 
-	kn2, bid, err := c.ns.getNextKeyNode(ctx, fn)
+	kn2, fbid, err := c.ns.getNextKeyNode(ctx, fn)
 	if err != nil {
-		return link.BlockID{}, key.Key{}, false, err
+		return link.FileBlockID{}, key.Key{}, false, err
 	}
 
 	defer kn2.Release()
@@ -197,7 +197,7 @@ func (c *insert) insertChainKey(
 	key := kn2.Fill(level, second)
 	kn.Replace(level, first)
 
-	return bid, key, true, nil
+	return fbid, key, true, nil
 }
 
 // Created new KeyNode and swap with root
@@ -206,9 +206,9 @@ func (c *insert) insertRoot(
 	fn link.FileName,
 	level byte,
 	key key.Key,
-	bid link.BlockID,
+	fbid link.FileBlockID,
 ) error {
-	b0, err := c.ns.getBuffer(ctx, fn.BlockID(0))
+	b0, err := c.ns.getBuffer(ctx, fn.FileBlockID(0))
 	if err != nil {
 		return err
 	}
@@ -235,9 +235,9 @@ func (c *insert) insertRoot(
 	// This should always return true
 	_ = keynode.New(node.New(b0)).ReplaceRoot(
 		level+1,
-		b2.BlockID().Position(),
+		b2.FileBlockID().Position(),
 		key,
-		bid.Position())
+		fbid.Position())
 
 	return nil
 }
