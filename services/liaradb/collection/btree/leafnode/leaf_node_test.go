@@ -28,13 +28,13 @@ func testLeafNode_Fill(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("abcde")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("fghij")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 	}
 
-	ln.Fill(1, 2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Fill(1, 2, func(yield func(key.Key, link.RecordID) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -43,8 +43,8 @@ func testLeafNode_Fill(t *testing.T) {
 	})
 
 	result := make([]leafEntry, 0, len(data))
-	for key, rl := range ln.Children() {
-		result = append(result, newLeafEntry(key, rl))
+	for key, rid := range ln.Children() {
+		result = append(result, newLeafEntry(key, rid))
 	}
 
 	if !slices.Equal(result, data) {
@@ -78,13 +78,13 @@ func testLeafNode_Replace(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("abcde")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("fghij")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 	}
 
-	ln.Replace(2, func(yield func(key.Key, link.RecordLocator) bool) {
+	ln.Replace(2, func(yield func(key.Key, link.RecordID) bool) {
 		for _, le := range data {
 			if !yield(le.Key(), le.RecordID()) {
 				return
@@ -93,8 +93,8 @@ func testLeafNode_Replace(t *testing.T) {
 	})
 
 	result := make([]leafEntry, 0, len(data))
-	for key, rl := range ln.Children() {
-		result = append(result, newLeafEntry(key, rl))
+	for key, rid := range ln.Children() {
+		result = append(result, newLeafEntry(key, rid))
 	}
 
 	if !slices.Equal(result, data) {
@@ -126,10 +126,10 @@ func testLeafNode_Child(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("abcde")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("fghij")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 	}
 
 	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -167,10 +167,10 @@ func testLeafNode_Children(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("abcde")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("fghij")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 	}
 
 	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
@@ -207,13 +207,13 @@ func testLeafNode_Insert(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("a")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("b")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.NewKey([]byte("c")),
-			link.NewRecordLocator(5, 6)),
+			link.NewRecordID(5, 6)),
 	}
 
 	// Insert in mixed order
@@ -237,12 +237,12 @@ func testLeafNode_Insert(t *testing.T) {
 
 	// Verify record ids
 	{
-		want := make([]link.RecordLocator, 0, len(data))
+		want := make([]link.RecordID, 0, len(data))
 		for _, e := range data {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]link.RecordLocator, 0, len(want))
+		result := make([]link.RecordID, 0, len(want))
 		for _, c := range ln.RecordIDs() {
 			result = append(result, c)
 		}
@@ -263,12 +263,12 @@ func testLeafNode_Insert(t *testing.T) {
 
 	// Verify search range
 	for i, e := range data {
-		want := make([]link.RecordLocator, 0, len(data[i:]))
+		want := make([]link.RecordID, 0, len(data[i:]))
 		for _, e := range data[i:] {
 			want = append(want, e.RecordID())
 		}
 
-		result := make([]link.RecordLocator, 0, len(want))
+		result := make([]link.RecordID, 0, len(want))
 		for c := range ln.SearchRange(e.Key()) {
 			result = append(result, c)
 		}
@@ -294,13 +294,13 @@ func testLeafNode_Insert__Split(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("a")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("b")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.NewKey([]byte("c")),
-			link.NewRecordLocator(5, 6)),
+			link.NewRecordID(5, 6)),
 	}
 
 	// Insert in mixed order

@@ -3,25 +3,25 @@ package graph
 import "github.com/liaradb/liaradb/storage/link"
 
 type Edge struct {
-	id        link.RecordLocator
-	start     link.RecordLocator
-	end       link.RecordLocator
+	id        link.RecordID
+	start     link.RecordID
+	end       link.RecordID
 	direction Direction
-	property  link.RecordLocator
+	property  link.RecordID
 }
 
-const EdgeSize = link.RecordLocatorSize +
-	link.RecordLocatorSize +
-	link.RecordLocatorSize +
+const EdgeSize = link.RecordIDSize +
+	link.RecordIDSize +
+	link.RecordIDSize +
 	DirectionSize +
-	link.RecordLocatorSize
+	link.RecordIDSize
 
 func NewEdge(
-	id link.RecordLocator,
-	start link.RecordLocator,
-	end link.RecordLocator,
+	id link.RecordID,
+	start link.RecordID,
+	end link.RecordID,
 	direction Direction,
-	property link.RecordLocator,
+	property link.RecordID,
 ) *Edge {
 	return &Edge{
 		id:        id,
@@ -32,9 +32,9 @@ func NewEdge(
 	}
 }
 
-func (e *Edge) ID() link.RecordLocator       { return e.id }
-func (e *Edge) Start() link.RecordLocator    { return e.start }
-func (e *Edge) End() link.RecordLocator      { return e.end }
-func (e *Edge) Direction() Direction         { return e.direction }
-func (e *Edge) Property() link.RecordLocator { return e.property }
-func (e *Edge) Size() int                    { return EdgeSize }
+func (e *Edge) ID() link.RecordID       { return e.id }
+func (e *Edge) Start() link.RecordID    { return e.start }
+func (e *Edge) End() link.RecordID      { return e.end }
+func (e *Edge) Direction() Direction    { return e.direction }
+func (e *Edge) Property() link.RecordID { return e.property }
+func (e *Edge) Size() int               { return EdgeSize }

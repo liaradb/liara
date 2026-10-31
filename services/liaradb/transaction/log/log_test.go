@@ -322,14 +322,14 @@ func testLog_Iterate(t *testing.T) {
 	fsys, dir := createFiles()
 
 	l := createLogAllStart(t, 320, 2, 320, fsys, dir)
-	rl := link.NewFileRecordID(link.NewFileBlockID("", 1), 2)
+	frid := link.NewFileRecordID(link.NewFileBlockID("", 1), 2)
 
 	count := 100
 	records, _ := createRecords(uint64(count), 0)
 	for _, rec := range records {
 		if _, err := l.Update(ctx,
 			rec.TransactionID(),
-			rl,
+			frid,
 			rec.Data(),
 			rec.Reverse(),
 		); err != nil {

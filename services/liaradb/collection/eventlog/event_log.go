@@ -59,15 +59,15 @@ func (l *EventLog) Append(
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordLocator()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordID()); err != nil {
 		return err
 	}
 
-	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(e.ID.Bytes()), t.RecordLocator()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(e.ID.Bytes()), t.RecordID()); err != nil {
 		return err
 	}
 
-	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(e.GlobalVersion.Bytes()), t.RecordLocator())
+	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(e.GlobalVersion.Bytes()), t.RecordID())
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {
@@ -85,12 +85,12 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid va
 }
 
 func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.EventID) (*entity.Event, error) {
-	rl, err := l.cursor.Search(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()))
+	rid, err := l.cursor.Search(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()))
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := l.fc.GetByRecordLocator(ctx, tn.EventLog(pid), rl)
+	s, err := l.fc.GetByRecordID(ctx, tn.EventLog(pid), rid)
 
 	return l.readEvent(s)
 }
@@ -98,13 +98,13 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.P
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		fn := tn.EventLog(pid)
-		for rl, err := range l.cursor.SearchRange(ctx, tn.Index(0, pid), key.NewKey(id.Bytes()), 0, 0) {
+		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(0, pid), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordLocator(ctx, fn, rl)
+			s, err := l.fc.GetByRecordID(ctx, fn, rid)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -154,13 +154,13 @@ func (l *EventLog) EventsAfterGlobalVersion(
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		fn := tn.EventLog(pid)
-		for rl, err := range l.cursor.SearchRange(ctx, tn.Index(2, pid), key.NewKey(version.Bytes()), 0, 0) {
+		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(2, pid), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordLocator(ctx, fn, rl)
+			s, err := l.fc.GetByRecordID(ctx, fn, rid)
 			if err != nil {
 				yield(nil, err)
 				return

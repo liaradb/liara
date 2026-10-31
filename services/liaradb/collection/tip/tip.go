@@ -81,6 +81,6 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 	return bufferpage.New(b, span.FragmentHeaderSize), nil
 }
 
-func (t *Tip) RecordLocator() link.RecordLocator {
-	return link.NewRecordLocator(t.fileBlockID.BlockID(), t.slotID)
+func (t *Tip) RecordID() link.RecordID {
+	return link.NewRecordID(t.fileBlockID.BlockID(), t.slotID)
 }

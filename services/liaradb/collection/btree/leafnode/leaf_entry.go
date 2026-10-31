@@ -7,19 +7,19 @@ import (
 
 type leafEntry struct {
 	key      key.Key
-	recordID link.RecordLocator
+	recordID link.RecordID
 }
 
-func newLeafEntry(key key.Key, recordID link.RecordLocator) leafEntry {
+func newLeafEntry(key key.Key, recordID link.RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
 	}
 }
 
-func (le leafEntry) Key() key.Key                 { return le.key }
-func (le leafEntry) RecordID() link.RecordLocator { return le.recordID }
-func (le leafEntry) Size() int                    { return le.key.Size() + link.RecordLocatorSize }
+func (le leafEntry) Key() key.Key            { return le.key }
+func (le leafEntry) RecordID() link.RecordID { return le.recordID }
+func (le leafEntry) Size() int               { return le.key.Size() + link.RecordIDSize }
 
 func (le leafEntry) Write(data []byte) {
 	data0 := le.recordID.WriteData(data)

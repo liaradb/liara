@@ -2,10 +2,10 @@ package link
 
 import "testing"
 
-func TestRecordLocator_Defaults(t *testing.T) {
+func TestRecordID_Defaults(t *testing.T) {
 	t.Parallel()
 
-	id := RecordLocator{}
+	id := RecordID{}
 
 	if b := id.Block(); b != 0 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 0)
@@ -20,10 +20,10 @@ func TestRecordLocator_Defaults(t *testing.T) {
 	}
 }
 
-func TestRecordLocator_New(t *testing.T) {
+func TestRecordID_New(t *testing.T) {
 	t.Parallel()
 
-	id := NewRecordLocator(1, 2)
+	id := NewRecordID(1, 2)
 
 	if b := id.Block(); b != 1 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
@@ -34,15 +34,15 @@ func TestRecordLocator_New(t *testing.T) {
 	}
 }
 
-func TestRecordLocator_WriteRead(t *testing.T) {
+func TestRecordID_WriteRead(t *testing.T) {
 	t.Parallel()
 
-	id := NewRecordLocator(1, 2)
+	id := NewRecordID(1, 2)
 
-	data := make([]byte, RecordLocatorSize)
+	data := make([]byte, RecordIDSize)
 	id.WriteData(data)
 
-	id0 := RecordLocator{}
+	id0 := RecordID{}
 	id0.ReadData(data)
 
 	if b := id0.Block(); b != 1 {

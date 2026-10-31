@@ -3,16 +3,16 @@ package graph
 import "github.com/liaradb/liaradb/storage/link"
 
 type EdgeProperty struct {
-	id   link.RecordLocator
-	next link.RecordLocator
+	id   link.RecordID
+	next link.RecordID
 }
 
-const EdgePropertySize = link.RecordLocatorSize +
-	link.RecordLocatorSize
+const EdgePropertySize = link.RecordIDSize +
+	link.RecordIDSize
 
 func NewEdgeProperty(
-	id link.RecordLocator,
-	next link.RecordLocator,
+	id link.RecordID,
+	next link.RecordID,
 ) *EdgeProperty {
 	return &EdgeProperty{
 		id:   id,
@@ -20,6 +20,6 @@ func NewEdgeProperty(
 	}
 }
 
-func (ep *EdgeProperty) ID() link.RecordLocator   { return ep.id }
-func (ep *EdgeProperty) Next() link.RecordLocator { return ep.next }
-func (ep *EdgeProperty) Size() int                { return EdgePropertySize }
+func (ep *EdgeProperty) ID() link.RecordID   { return ep.id }
+func (ep *EdgeProperty) Next() link.RecordID { return ep.next }
+func (ep *EdgeProperty) Size() int           { return EdgePropertySize }

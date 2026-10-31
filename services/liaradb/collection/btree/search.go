@@ -17,8 +17,8 @@ type search struct {
 }
 
 type SearchResult struct {
-	Key           key.Key
-	RecordLocator link.RecordLocator
+	Key      key.Key
+	RecordID link.RecordID
 }
 
 func newSearch(s *storage.Storage) search {
@@ -31,10 +31,10 @@ func (c *search) Search(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (link.RecordLocator, error) {
+) (link.RecordID, error) {
 	level, block, rid, err := c.searchRoot(ctx, fn, k)
 	if err != nil {
-		return link.RecordLocator{}, err
+		return link.RecordID{}, err
 	}
 
 	if level == 0 {
@@ -44,7 +44,7 @@ func (c *search) Search(
 	for i := level - 1; i > 0; i-- {
 		_, block, err = c.searchKey(ctx, fn.FileBlockID(block), k)
 		if err != nil {
-			return link.RecordLocator{}, err
+			return link.RecordID{}, err
 		}
 	}
 
@@ -55,10 +55,10 @@ func (c *search) searchRoot(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (byte, link.BlockID, link.RecordLocator, error) {
+) (byte, link.BlockID, link.RecordID, error) {
 	p, err := c.ns.getPage(ctx, fn.FileBlockID(0))
 	if err != nil {
-		return 0, 0, link.RecordLocator{}, err
+		return 0, 0, link.RecordID{}, err
 	}
 
 	if l := p.Level(); l == 0 {
@@ -70,7 +70,7 @@ func (c *search) searchRoot(
 
 		rid, ok := ln.Search(k)
 		if !ok {
-			return l, 0, link.RecordLocator{}, ErrNotFound
+			return l, 0, link.RecordID{}, ErrNotFound
 		}
 
 		return l, 0, rid, nil
@@ -81,7 +81,7 @@ func (c *search) searchRoot(
 		kn.RLatch()
 		defer kn.RUnlatch()
 
-		return l, kn.Search(k), link.RecordLocator{}, nil
+		return l, kn.Search(k), link.RecordID{}, nil
 	}
 }
 
@@ -107,10 +107,10 @@ func (c *search) searchLeaf(
 	ctx context.Context,
 	fbid link.FileBlockID,
 	k key.Key,
-) (link.RecordLocator, error) {
+) (link.RecordID, error) {
 	ln, err := c.ns.getLeafNode(ctx, fbid)
 	if err != nil {
-		return link.RecordLocator{}, err
+		return link.RecordID{}, err
 	}
 
 	defer ln.Release()
@@ -120,7 +120,7 @@ func (c *search) searchLeaf(
 
 	rid, ok := ln.Search(k)
 	if !ok {
-		return link.RecordLocator{}, ErrNotFound
+		return link.RecordID{}, ErrNotFound
 	}
 
 	return rid, nil
@@ -132,13 +132,13 @@ func (s *search) SearchRange(
 	k key.Key,
 	skip int,
 	limit int,
-) iter.Seq2[link.RecordLocator, error] {
+) iter.Seq2[link.RecordID, error] {
 	skipped := 0
 	returned := 0
-	return func(yield func(link.RecordLocator, error) bool) {
+	return func(yield func(link.RecordID, error) bool) {
 		block, rids, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
-			yield(link.RecordLocator{}, err)
+			yield(link.RecordID{}, err)
 			return
 		}
 
@@ -160,7 +160,7 @@ func (s *search) SearchRange(
 
 			block, rids, err = s.searchRangeNext(ctx, fn, block)
 			if err != nil {
-				yield(link.RecordLocator{}, err)
+				yield(link.RecordID{}, err)
 				return
 			}
 
@@ -186,13 +186,13 @@ func (s *search) searchRangeFirst(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (link.BlockID, iter.Seq[link.RecordLocator], error) {
+) (link.BlockID, iter.Seq[link.RecordID], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(link.RecordID) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
@@ -210,13 +210,13 @@ func (s *search) searchRangeNext(
 	ctx context.Context,
 	fn link.FileName,
 	block link.BlockID,
-) (link.BlockID, iter.Seq[link.RecordLocator], error) {
+) (link.BlockID, iter.Seq[link.RecordID], error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.FileBlockID(block))
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(link.RecordID) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
@@ -352,7 +352,7 @@ func (s *search) allFirst(
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(key.Key, link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(key.Key, link.RecordID) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
@@ -376,7 +376,7 @@ func (s *search) allNext(
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(key.Key, link.RecordLocator) bool) {
+	return ln.RightID(), func(yield func(key.Key, link.RecordID) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
@@ -455,6 +455,6 @@ func (c *search) allKey(
 type noopLog struct {
 }
 
-func (noopLog) Append(link.RecordLocator, []byte) (logpage.LogSequenceNumber, error) {
+func (noopLog) Append(link.RecordID, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }

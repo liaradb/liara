@@ -56,7 +56,7 @@ func (fc *FixedCollection) Insert(
 		return err
 	}
 
-	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordLocator())
+	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordID())
 }
 
 func (fc *FixedCollection) GetByKey(
@@ -65,12 +65,12 @@ func (fc *FixedCollection) GetByKey(
 	fnIdx link.FileName,
 	k key.Key,
 ) (*span.Span, error) {
-	rl, err := fc.c.Search(ctx, fnIdx, k)
+	rid, err := fc.c.Search(ctx, fnIdx, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return fc.GetByRecordLocator(ctx, fn, rl)
+	return fc.GetByRecordID(ctx, fn, rid)
 }
 
 func (fc *FixedCollection) List(
@@ -88,7 +88,7 @@ func (fc *FixedCollection) List(
 
 			// TODO: Lock record
 
-			s, err := fc.GetByRecordLocator(ctx, fn, r.RecordLocator)
+			s, err := fc.GetByRecordID(ctx, fn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -124,19 +124,19 @@ func (fc *FixedCollection) Replace(
 	return s.CommitUpdate(ctx, l)
 }
 
-func (fc *FixedCollection) GetByRecordLocator(
+func (fc *FixedCollection) GetByRecordID(
 	ctx context.Context,
 	fn link.FileName,
-	rl link.RecordLocator,
+	rid link.RecordID,
 ) (*span.Span, error) {
-	fbid := fn.FileBlockID(rl.Block())
+	fbid := fn.FileBlockID(rid.Block())
 	b, err := fc.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
 
 	s := span.New()
-	f := s.AppendSlot(b, rl.SlotID())
+	f := s.AppendSlot(b, rid.SlotID())
 
 	for f.NextBlockID() != 0 {
 		fbid.SetBlockID(f.NextBlockID())

@@ -3,16 +3,16 @@ package graph
 import "github.com/liaradb/liaradb/storage/link"
 
 type PointProperty struct {
-	id   link.RecordLocator
-	next link.RecordLocator
+	id   link.RecordID
+	next link.RecordID
 }
 
-const PointPropertySize = link.RecordLocatorSize +
-	link.RecordLocatorSize
+const PointPropertySize = link.RecordIDSize +
+	link.RecordIDSize
 
 func NewPointProperty(
-	id link.RecordLocator,
-	next link.RecordLocator,
+	id link.RecordID,
+	next link.RecordID,
 ) *PointProperty {
 	return &PointProperty{
 		id:   id,
@@ -20,6 +20,6 @@ func NewPointProperty(
 	}
 }
 
-func (pp *PointProperty) ID() link.RecordLocator   { return pp.id }
-func (pp *PointProperty) Next() link.RecordLocator { return pp.next }
-func (pp *PointProperty) Size() int                { return PointPropertySize }
+func (pp *PointProperty) ID() link.RecordID   { return pp.id }
+func (pp *PointProperty) Next() link.RecordID { return pp.next }
+func (pp *PointProperty) Size() int           { return PointPropertySize }

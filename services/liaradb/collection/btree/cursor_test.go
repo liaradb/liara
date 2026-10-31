@@ -43,13 +43,13 @@ func testCursor_Insert__Root(t *testing.T) {
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("a")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("b")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.NewKey([]byte("c")),
-			link.NewRecordLocator(5, 6)),
+			link.NewRecordID(5, 6)),
 	}
 
 	for _, e := range data {
@@ -186,7 +186,7 @@ func testCursor_Insert__Existing(t *testing.T) {
 
 	le := newLeafEntry(
 		key.NewKey([]byte("0")),
-		link.NewRecordLocator(1, 2))
+		link.NewRecordID(1, 2))
 
 	if err := NewCursor(s).Insert(ctx, &logtesting.MockLog{}, fn, le.key, le.recordID); err != nil {
 		t.Fatal(le.key, err)
@@ -228,14 +228,14 @@ func testCursor_SearchRange(t *testing.T) {
 		}
 	}
 
-	wantAll := make([]link.RecordLocator, 0, len(data))
+	wantAll := make([]link.RecordID, 0, len(data))
 	for _, e := range data {
 		wantAll = append(wantAll, e.recordID)
 	}
 
 	for i, e := range data {
 		c := NewCursor(s)
-		result := make([]link.RecordLocator, 0, len(data))
+		result := make([]link.RecordID, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, fn, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
@@ -253,7 +253,7 @@ func testCursor_SearchRange(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]link.RecordLocator, 0, len(data))
+		result := make([]link.RecordID, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, fn, key.NewKey([]byte("1")), 1, 3) {
 			if err != nil {
 				t.Fatal(err)
@@ -289,20 +289,20 @@ func testCursor_All(t *testing.T) {
 		}
 	}
 
-	wantAll := make([]link.RecordLocator, 0, len(data))
+	wantAll := make([]link.RecordID, 0, len(data))
 	for _, e := range data {
 		wantAll = append(wantAll, e.recordID)
 	}
 
 	for i := range data {
 		c := NewCursor(s)
-		result := make([]link.RecordLocator, 0, len(data))
+		result := make([]link.RecordID, 0, len(data))
 		for r, err := range c.All(ctx, fn, i, 0) {
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result = append(result, r.RecordLocator)
+			result = append(result, r.RecordID)
 		}
 
 		want := wantAll[i:]
@@ -314,13 +314,13 @@ func testCursor_All(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]link.RecordLocator, 0, len(data))
+		result := make([]link.RecordID, 0, len(data))
 		for r, err := range c.All(ctx, fn, 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result = append(result, r.RecordLocator)
+			result = append(result, r.RecordID)
 		}
 
 		want := wantAll[1:4]
@@ -367,10 +367,10 @@ func reorderData(order []int, data []leafEntry) []leafEntry {
 
 type leafEntry struct {
 	key      key.Key
-	recordID link.RecordLocator
+	recordID link.RecordID
 }
 
-func newLeafEntry(key key.Key, recordID link.RecordLocator) leafEntry {
+func newLeafEntry(key key.Key, recordID link.RecordID) leafEntry {
 	return leafEntry{
 		key:      key,
 		recordID: recordID,
@@ -381,30 +381,30 @@ func createData() []leafEntry {
 	return []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("0")),
-			link.NewRecordLocator(1, 2)),
+			link.NewRecordID(1, 2)),
 		newLeafEntry(
 			key.NewKey([]byte("1")),
-			link.NewRecordLocator(3, 4)),
+			link.NewRecordID(3, 4)),
 		newLeafEntry(
 			key.NewKey([]byte("2")),
-			link.NewRecordLocator(5, 6)),
+			link.NewRecordID(5, 6)),
 		newLeafEntry(
 			key.NewKey([]byte("3")),
-			link.NewRecordLocator(7, 8)),
+			link.NewRecordID(7, 8)),
 		newLeafEntry(
 			key.NewKey([]byte("4")),
-			link.NewRecordLocator(9, 10)),
+			link.NewRecordID(9, 10)),
 		newLeafEntry(
 			key.NewKey([]byte("5")),
-			link.NewRecordLocator(11, 12)),
+			link.NewRecordID(11, 12)),
 		newLeafEntry(
 			key.NewKey([]byte("6")),
-			link.NewRecordLocator(13, 14)),
+			link.NewRecordID(13, 14)),
 		newLeafEntry(
 			key.NewKey([]byte("7")),
-			link.NewRecordLocator(15, 16)),
+			link.NewRecordID(15, 16)),
 		newLeafEntry(
 			key.NewKey([]byte("8")),
-			link.NewRecordLocator(17, 18)),
+			link.NewRecordID(17, 18)),
 	}
 }

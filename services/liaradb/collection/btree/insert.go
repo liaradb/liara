@@ -29,7 +29,7 @@ func (c *insert) Insert(
 	l span.Log,
 	fn link.FileName,
 	k key.Key,
-	rid link.RecordLocator,
+	rid link.RecordID,
 ) (err error) {
 	var chain *chain
 	chain, err = c.getChain(ctx, fn, k)
@@ -123,7 +123,7 @@ func (c *insert) insertChainLeaf(
 	fbid link.FileBlockID,
 	ln *leafnode.LeafNode,
 	k key.Key,
-	rid link.RecordLocator,
+	rid link.RecordID,
 ) (link.FileBlockID, key.Key, bool, error) {
 	// Does it exist already?
 	if _, ok := ln.Search(k); ok {
