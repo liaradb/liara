@@ -69,8 +69,8 @@ func (f Fragment) FileBlockID(fn link.FileName) link.FileBlockID {
 }
 
 // TODO: This is unused
-func (f Fragment) RecordID(fn link.FileName) link.RecordID {
-	return link.NewRecordID(f.FileBlockID(fn), f.NextSlotID())
+func (f Fragment) FileRecordID(fn link.FileName) link.FileRecordID {
+	return link.NewFileRecordID(f.FileBlockID(fn), f.NextSlotID())
 }
 
 func (f Fragment) valid() bool {
@@ -113,7 +113,7 @@ func (f *Fragment) cloneBuffer() []byte {
 }
 
 func (f *Fragment) logAppend(ctx context.Context, l Log) error {
-	lsn, err := l.Append(ctx, f.recordLocator(), f.cloneBuffer())
+	lsn, err := l.Append(ctx, f.fileRecordID(), f.cloneBuffer())
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (f *Fragment) logAppend(ctx context.Context, l Log) error {
 }
 
 func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
-	lsn, err := l.Update(ctx, f.recordLocator(), f.cloneBuffer(), f.base)
+	lsn, err := l.Update(ctx, f.fileRecordID(), f.cloneBuffer(), f.base)
 	if err != nil {
 		return err
 	}
@@ -132,6 +132,6 @@ func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
 	return nil
 }
 
-func (f Fragment) recordLocator() link.RecordID {
-	return f.p.FileBlockID().RecordID(f.slotID)
+func (f Fragment) fileRecordID() link.FileRecordID {
+	return f.p.FileBlockID().FileRecordID(f.slotID)
 }

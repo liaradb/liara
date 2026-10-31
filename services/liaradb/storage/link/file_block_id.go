@@ -35,8 +35,8 @@ func (b *FileBlockID) SetBlockID(p BlockID) {
 	b.blockID = p
 }
 
-func (b FileBlockID) RecordID(slotID SlotID) RecordID {
-	return RecordID{
+func (b FileBlockID) FileRecordID(slotID SlotID) FileRecordID {
+	return FileRecordID{
 		fileBlockID: b,
 		slotID:      slotID,
 	}

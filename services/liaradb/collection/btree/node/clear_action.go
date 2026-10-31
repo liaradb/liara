@@ -9,22 +9,22 @@ import (
 )
 
 type clearAction struct {
-	rid  link.RecordID
+	frid link.FileRecordID
 	prev []byte
 }
 
 var _ action = (*clearAction)(nil)
 
 func newClearAction(
-	rl link.RecordID,
+	frid link.FileRecordID,
 	prev []byte,
 ) *clearAction {
 	return &clearAction{
-		rid:  rl,
+		frid: frid,
 		prev: prev,
 	}
 }
 
 func (a *clearAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
-	return l.Clear(ctx, a.rid, a.prev)
+	return l.Clear(ctx, a.frid, a.prev)
 }

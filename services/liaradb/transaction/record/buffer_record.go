@@ -13,7 +13,7 @@ type BufferRecord struct {
 	logSequenceNumber logpage.LogSequenceNumber
 	tenantID          value.TenantID
 	transactionID     TransactionID
-	recordID          link.RecordID
+	fileRecordID      link.FileRecordID
 	action            Action
 	data              LogData
 	reverse           LogData
@@ -22,7 +22,7 @@ type BufferRecord struct {
 func NewBufferRecord(
 	tid value.TenantID,
 	txid TransactionID,
-	recordID link.RecordID,
+	fileRecordID link.FileRecordID,
 	action Action,
 	data []byte,
 	reverse []byte,
@@ -30,7 +30,7 @@ func NewBufferRecord(
 	return &BufferRecord{
 		tenantID:      tid,
 		transactionID: txid,
-		recordID:      recordID,
+		fileRecordID:  fileRecordID,
 		action:        action,
 		data:          LogData{data},
 		reverse:       LogData{reverse},
@@ -50,7 +50,7 @@ func (br *BufferRecord) Size() int {
 		br.logSequenceNumber,
 		br.tenantID,
 		br.transactionID,
-		br.recordID,
+		br.fileRecordID,
 		br.action,
 		&br.data,
 		&br.reverse)
@@ -61,7 +61,7 @@ func (br *BufferRecord) Write(w io.Writer) error {
 		br.logSequenceNumber,
 		br.tenantID,
 		br.transactionID,
-		br.recordID,
+		br.fileRecordID,
 		br.action,
 		&br.data,
 		&br.reverse)
@@ -72,7 +72,7 @@ func (br *BufferRecord) Read(r io.Reader) error {
 		&br.logSequenceNumber,
 		&br.tenantID,
 		&br.transactionID,
-		&br.recordID,
+		&br.fileRecordID,
 		&br.action,
 		&br.data,
 		&br.reverse)

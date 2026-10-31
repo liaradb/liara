@@ -26,33 +26,33 @@ func (t *MockLog) XLock(context.Context, tablename.TableName, string) error {
 	return nil
 }
 
-func (t *MockLog) Append(ctx context.Context, rid link.RecordID, data []byte) (logpage.LogSequenceNumber, error) {
+func (t *MockLog) Append(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
 	t.increment()
-	t.addRecord(record.New(t.txid, rid, record.ActionAppend, data, nil))
+	t.addRecord(record.New(t.txid, frid, record.ActionAppend, data, nil))
 	return t.lsn, nil
 }
 
-func (t *MockLog) Insert(ctx context.Context, rid link.RecordID, data []byte) (logpage.LogSequenceNumber, error) {
+func (t *MockLog) Insert(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
 	t.increment()
-	t.addRecord(record.New(t.txid, rid, record.ActionInsert, data, nil))
+	t.addRecord(record.New(t.txid, frid, record.ActionInsert, data, nil))
 	return t.lsn, nil
 }
 
-func (t *MockLog) Update(ctx context.Context, rid link.RecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *MockLog) Update(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
 	t.increment()
-	t.addRecord(record.New(t.txid, rid, record.ActionUpdate, data, prev))
+	t.addRecord(record.New(t.txid, frid, record.ActionUpdate, data, prev))
 	return t.lsn, nil
 }
 
-func (t *MockLog) Clear(ctx context.Context, rid link.RecordID, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *MockLog) Clear(ctx context.Context, frid link.FileRecordID, prev []byte) (logpage.LogSequenceNumber, error) {
 	t.increment()
-	t.addRecord(record.New(t.txid, rid, record.ActionClear, nil, prev))
+	t.addRecord(record.New(t.txid, frid, record.ActionClear, nil, prev))
 	return t.lsn, nil
 }
 
-func (t *MockLog) UpdateHeader(ctx context.Context, rid link.RecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *MockLog) UpdateHeader(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
 	t.increment()
-	t.addRecord(record.New(t.txid, rid, record.ActionUpdateHeader, data, prev))
+	t.addRecord(record.New(t.txid, frid, record.ActionUpdateHeader, data, prev))
 	return t.lsn, nil
 }
 

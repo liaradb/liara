@@ -136,59 +136,59 @@ func (t *Transaction) rollback(ctx context.Context) error {
 
 func (l *Transaction) Append(
 	ctx context.Context,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Append(ctx,
 		l.id,
-		rid,
+		frid,
 		data)
 }
 
 func (l *Transaction) Insert(
 	ctx context.Context,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Insert(ctx,
 		l.id,
-		rid,
+		frid,
 		data)
 }
 
 func (l *Transaction) Update(
 	ctx context.Context,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Update(ctx,
 		l.id,
-		rid,
+		frid,
 		data,
 		prev)
 }
 
 func (l *Transaction) Clear(
 	ctx context.Context,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.Clear(ctx,
 		l.id,
-		rid,
+		frid,
 		prev)
 }
 
 func (l *Transaction) UpdateHeader(
 	ctx context.Context,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.log.UpdateHeader(ctx,
 		l.id,
-		rid,
+		frid,
 		data,
 		prev)
 }

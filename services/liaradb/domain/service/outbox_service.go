@@ -114,7 +114,7 @@ func (os *OutboxService) UpdateOutbox(
 		data := make([]byte, entity.OutboxSize)
 		_ = o.WriteData(data)
 
-		_, err = tx.Update(ctx, link.RecordID{}, data, prev)
+		_, err = tx.Update(ctx, link.FileRecordID{}, data, prev)
 		if err != nil {
 			return err
 		}

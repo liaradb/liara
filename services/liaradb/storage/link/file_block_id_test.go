@@ -21,14 +21,14 @@ func TestFileBlockID(t *testing.T) {
 	}
 }
 
-func TestFileBlockID_RecordID(t *testing.T) {
+func TestFileBlockID_FileRecordID(t *testing.T) {
 	fn := NewFileName("testfile")
 	fPos := BlockID(1)
 	rSID := SlotID(2)
 	fbid := NewFileBlockID(fn, fPos)
-	rid := NewRecordID(fbid, rSID)
+	frid := NewFileRecordID(fbid, rSID)
 
-	if r := fbid.RecordID(rSID); r != rid {
-		t.Errorf("incorrect record id: %v, expected: %v", r, rid)
+	if r := fbid.FileRecordID(rSID); r != frid {
+		t.Errorf("incorrect record id: %v, expected: %v", r, frid)
 	}
 }

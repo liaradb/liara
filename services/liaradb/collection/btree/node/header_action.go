@@ -9,7 +9,7 @@ import (
 )
 
 type headerAction struct {
-	rid  link.RecordID
+	frid link.FileRecordID
 	data []byte
 	prev []byte
 }
@@ -17,17 +17,17 @@ type headerAction struct {
 var _ action = (*headerAction)(nil)
 
 func newHeaderAction(
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) *headerAction {
 	return &headerAction{
-		rid:  rid,
+		frid: frid,
 		data: data,
 		prev: prev,
 	}
 }
 
 func (a *headerAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
-	return l.UpdateHeader(ctx, a.rid, a.data, a.prev)
+	return l.UpdateHeader(ctx, a.frid, a.data, a.prev)
 }

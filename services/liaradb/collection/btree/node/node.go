@@ -40,7 +40,7 @@ func New(buffer *storage.Buffer) Node {
 
 func (n *Node) Clear() {
 	// n.buffer.Clear()
-	n.addAction(newClearAction(n.buffer.FileBlockID().RecordID(0), n.page.Data()))
+	n.addAction(newClearAction(n.buffer.FileBlockID().FileRecordID(0), n.page.Data()))
 	n.page.Clear()
 }
 
@@ -94,25 +94,25 @@ func (n *Node) CommitAppend(size int16) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.CommitAppend(int(size))
-	rid := n.buffer.FileBlockID().RecordID(sid)
+	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
-	n.addAction(newAppendAction(rid, b))
-	n.addHeaderAction(rid)
+	n.addAction(newAppendAction(frid, b))
+	n.addHeaderAction(frid)
 }
 
 func (n *Node) CommitInsert(size int16, index link.SlotID) {
 	// TODO: Fix this cast
 	_, b, _ := n.page.NextMustFit(int(size))
 	sid := n.page.Insert(int(size), index)
-	rid := n.buffer.FileBlockID().RecordID(sid)
+	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
-	n.addAction(newInsertAction(rid, b))
-	n.addHeaderAction(rid)
+	n.addAction(newInsertAction(frid, b))
+	n.addHeaderAction(frid)
 }
 
-func (n *Node) addHeaderAction(rid link.RecordID) {
+func (n *Node) addHeaderAction(frid link.FileRecordID) {
 	if n.header.dirty {
-		n.addAction(newHeaderAction(rid,
+		n.addAction(newHeaderAction(frid,
 			slices.Clone(n.header.data),
 			slices.Clone(n.header.base)))
 		n.header.commit()

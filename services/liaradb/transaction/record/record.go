@@ -11,7 +11,7 @@ import (
 type Record struct {
 	logSequenceNumber logpage.LogSequenceNumber
 	transactionID     TransactionID
-	recordID          link.RecordID
+	fileRecordID      link.FileRecordID
 	action            Action
 	data              LogData
 	reverse           LogData
@@ -19,14 +19,14 @@ type Record struct {
 
 func New(
 	txid TransactionID,
-	recordID link.RecordID,
+	fileRecordID link.FileRecordID,
 	action Action,
 	data []byte,
 	reverse []byte,
 ) *Record {
 	return &Record{
 		transactionID: txid,
-		recordID:      recordID,
+		fileRecordID:  fileRecordID,
 		action:        action,
 		data:          LogData{data},
 		reverse:       LogData{reverse},
@@ -35,7 +35,7 @@ func New(
 
 func (rc *Record) LogSequenceNumber() logpage.LogSequenceNumber { return rc.logSequenceNumber }
 func (rc *Record) TransactionID() TransactionID                 { return rc.transactionID }
-func (rc *Record) RecordID() link.RecordID                      { return rc.recordID }
+func (rc *Record) FileRecordID() link.FileRecordID              { return rc.fileRecordID }
 func (rc *Record) Action() Action                               { return rc.action }
 func (rc *Record) Data() []byte                                 { return rc.data.Bytes() }
 func (rc *Record) Reverse() []byte                              { return rc.reverse.Bytes() }
@@ -49,7 +49,7 @@ func (rc *Record) Size() int {
 	return serializer.Size(
 		rc.logSequenceNumber,
 		rc.transactionID,
-		rc.recordID,
+		rc.fileRecordID,
 		rc.action,
 		&rc.data,
 		&rc.reverse)
@@ -59,7 +59,7 @@ func (rc *Record) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		rc.logSequenceNumber,
 		rc.transactionID,
-		rc.recordID,
+		rc.fileRecordID,
 		rc.action,
 		&rc.data,
 		&rc.reverse)
@@ -69,7 +69,7 @@ func (rc *Record) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&rc.logSequenceNumber,
 		&rc.transactionID,
-		&rc.recordID,
+		&rc.fileRecordID,
 		&rc.action,
 		&rc.data,
 		&rc.reverse)
@@ -82,7 +82,7 @@ func (rc *Record) Compare(b *Record) bool {
 
 	return rc.logSequenceNumber == b.logSequenceNumber &&
 		rc.transactionID == b.transactionID &&
-		rc.recordID == b.recordID &&
+		rc.fileRecordID == b.fileRecordID &&
 		rc.action == b.action &&
 		rc.data.Compare(&b.data) &&
 		rc.reverse.Compare(&b.reverse)

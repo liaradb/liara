@@ -103,7 +103,7 @@ func (l *Log) Start(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		link.RecordID{},
+		link.FileRecordID{},
 		record.ActionStart,
 		nil,
 		nil))
@@ -115,7 +115,7 @@ func (l *Log) Commit(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
 		txid,
-		link.RecordID{},
+		link.FileRecordID{},
 		record.ActionCommit,
 		nil,
 		nil))
@@ -127,7 +127,7 @@ func (l *Log) Rollback(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.AppendAndWait(ctx, record.New(
 		txid,
-		link.RecordID{},
+		link.FileRecordID{},
 		record.ActionRollback,
 		nil,
 		nil))
@@ -136,12 +136,12 @@ func (l *Log) Rollback(
 func (l *Log) Append(
 	ctx context.Context,
 	txid record.TransactionID,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rid,
+		frid,
 		record.ActionAppend,
 		data,
 		nil))
@@ -150,12 +150,12 @@ func (l *Log) Append(
 func (l *Log) Insert(
 	ctx context.Context,
 	txid record.TransactionID,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rid,
+		frid,
 		record.ActionInsert,
 		data,
 		nil))
@@ -164,12 +164,12 @@ func (l *Log) Insert(
 func (l *Log) Clear(
 	ctx context.Context,
 	txid record.TransactionID,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rid,
+		frid,
 		record.ActionClear,
 		data,
 		nil))
@@ -178,13 +178,13 @@ func (l *Log) Clear(
 func (l *Log) Update(
 	ctx context.Context,
 	txid record.TransactionID,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rid,
+		frid,
 		record.ActionUpdate,
 		data,
 		prev))
@@ -193,13 +193,13 @@ func (l *Log) Update(
 func (l *Log) UpdateHeader(
 	ctx context.Context,
 	txid record.TransactionID,
-	rid link.RecordID,
+	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		txid,
-		rid,
+		frid,
 		record.ActionUpdateHeader,
 		data,
 		prev))
@@ -212,7 +212,7 @@ func (l *Log) Checkpoint(
 ) (logpage.LogSequenceNumber, error) {
 	return l.rq.Append(ctx, record.New(
 		record.TransactionID{},
-		link.RecordID{},
+		link.FileRecordID{},
 		record.ActionCheckpoint,
 		l.txIDsToData(txids),
 		nil))

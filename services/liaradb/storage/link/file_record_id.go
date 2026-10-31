@@ -6,41 +6,41 @@ import (
 	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
-type RecordID struct {
+type FileRecordID struct {
 	fileBlockID FileBlockID
 	slotID      SlotID
 }
 
-func NewRecordID(
+func NewFileRecordID(
 	fileBlockID FileBlockID,
 	slotID SlotID,
-) RecordID {
-	return RecordID{
+) FileRecordID {
+	return FileRecordID{
 		fileBlockID: fileBlockID,
 		slotID:      slotID,
 	}
 }
 
-func (i RecordID) FileBlockID() FileBlockID { return i.fileBlockID }
-func (i RecordID) SlotID() SlotID           { return i.slotID }
+func (i FileRecordID) FileBlockID() FileBlockID { return i.fileBlockID }
+func (i FileRecordID) SlotID() SlotID           { return i.slotID }
 
-func (i RecordID) Size() int {
+func (i FileRecordID) Size() int {
 	return serializer.Size(
 		i.fileBlockID,
 		i.slotID)
 }
 
-func (i RecordID) Offset(bufferSize int64) Offset {
+func (i FileRecordID) Offset(bufferSize int64) Offset {
 	return i.fileBlockID.Offset(bufferSize) * Offset(i.slotID)
 }
 
-func (i *RecordID) Read(r io.Reader) error {
+func (i *FileRecordID) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&i.fileBlockID,
 		&i.slotID)
 }
 
-func (i RecordID) Write(w io.Writer) error {
+func (i FileRecordID) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		i.fileBlockID,
 		i.slotID)

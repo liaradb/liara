@@ -105,7 +105,7 @@ func (re *Replay) recoverCommit() error {
 }
 
 func (re *Replay) recoverAppend(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (re *Replay) recoverAppend(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -134,12 +134,12 @@ func (re *Replay) recoverInsert(ctx context.Context, r *record.Record) error {
 		return nil
 	}
 
-	p.RecoverInsert(r.RecordID().SlotID(), r.Data())
+	p.RecoverInsert(r.FileRecordID().SlotID(), r.Data())
 	return nil
 }
 
 func (re *Replay) recoverUpdateHeader(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (re *Replay) recoverUpdateHeader(ctx context.Context, r *record.Record) err
 }
 
 func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (re *Replay) recoverRemove(ctx context.Context, r *record.Record) error {
 }
 
 func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -185,12 +185,12 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 		return nil
 	}
 
-	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
+	p.RecoverUpdate(r.FileRecordID().SlotID(), r.Data())
 	return nil
 }
 
 func (re *Replay) recordClear(ctx context.Context, r *record.Record) error {
-	b, err := re.s.Request(ctx, r.RecordID().FileBlockID())
+	b, err := re.s.Request(ctx, r.FileRecordID().FileBlockID())
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func (re *Replay) recoverRollback() error {
 }
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
-	if tablename.IsIndex(r.RecordID().FileBlockID().FileName().String()) {
+	if tablename.IsIndex(r.FileRecordID().FileBlockID().FileName().String()) {
 		return page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
 	}
 

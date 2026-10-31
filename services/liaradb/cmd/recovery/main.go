@@ -57,7 +57,7 @@ func run() error {
 			rc.LogSequenceNumber(),
 			rc.TransactionID(),
 			fmt.Sprintf("<%v>", rc.Action()),
-			rc.RecordID())
+			rc.FileRecordID())
 	}
 
 	return nil

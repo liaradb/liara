@@ -45,7 +45,7 @@ func TestReplay(t *testing.T) {
 
 		if lsn, err := l.Insert(t.Context(),
 			txid,
-			link.RecordID{},
+			link.FileRecordID{},
 			[]byte{1, 2, 3, 4, 5},
 		); err != nil {
 			t.Error(err)
