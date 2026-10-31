@@ -245,6 +245,10 @@ func (p *Page) RecoverHeader(data []byte) {
 	}
 }
 
+func (p *Page) RecoverClear() {
+	p.Clear()
+}
+
 func (p *Page) Clear() {
 	clear(p.data)
 	p.list.Clear()

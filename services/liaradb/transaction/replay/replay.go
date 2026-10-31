@@ -61,6 +61,8 @@ func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 		return re.recoverUpdateHeader(ctx, r)
 	case record.ActionRemove:
 		return re.recoverRemove(ctx, r)
+	case record.ActionClear:
+		return re.recordClear(ctx, r)
 	case record.ActionRollback:
 		return re.recoverRollback()
 	case record.ActionUpdate:
@@ -184,6 +186,23 @@ func (re *Replay) recoverUpdate(ctx context.Context, r *record.Record) error {
 	}
 
 	p.RecoverUpdate(r.RecordID().SlotID(), r.Data())
+	return nil
+}
+
+func (re *Replay) recordClear(ctx context.Context, r *record.Record) error {
+	b, err := re.s.Request(ctx, r.RecordID().BlockID())
+	if err != nil {
+		return err
+	}
+
+	defer b.Release()
+
+	p := re.getPage(r, b)
+	if re.skipLSN(r, p) {
+		return nil
+	}
+
+	p.RecoverClear()
 	return nil
 }
 
