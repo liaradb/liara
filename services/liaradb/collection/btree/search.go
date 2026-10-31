@@ -55,7 +55,7 @@ func (c *search) searchRoot(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (byte, link.FilePosition, link.RecordLocator, error) {
+) (byte, link.BlockID, link.RecordLocator, error) {
 	p, err := c.ns.getPage(ctx, fn.FileBlockID(0))
 	if err != nil {
 		return 0, 0, link.RecordLocator{}, err
@@ -89,7 +89,7 @@ func (c *search) searchKey(
 	ctx context.Context,
 	fbid link.FileBlockID,
 	k key.Key,
-) (byte, link.FilePosition, error) {
+) (byte, link.BlockID, error) {
 	kn, err := c.ns.getKeyNode(ctx, fbid)
 	if err != nil {
 		return 0, 0, err
@@ -186,7 +186,7 @@ func (s *search) searchRangeFirst(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+) (link.BlockID, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
@@ -209,8 +209,8 @@ func (s *search) searchRangeFirst(
 func (s *search) searchRangeNext(
 	ctx context.Context,
 	fn link.FileName,
-	block link.FilePosition,
-) (link.FilePosition, iter.Seq[link.RecordLocator], error) {
+	block link.BlockID,
+) (link.BlockID, iter.Seq[link.RecordLocator], error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.FileBlockID(block))
 	if err != nil {
 		return 0, nil, err
@@ -258,7 +258,7 @@ func (c *search) searchRangeRoot(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (byte, link.FilePosition, *leafnode.LeafNode, error) {
+) (byte, link.BlockID, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, fn.FileBlockID(0))
 	if err != nil {
 		return 0, 0, nil, err
@@ -281,7 +281,7 @@ func (c *search) searchRangeKey(
 	ctx context.Context,
 	fbid link.FileBlockID,
 	k key.Key,
-) (byte, link.FilePosition, error) {
+) (byte, link.BlockID, error) {
 	kn, err := c.ns.getKeyNode(ctx, fbid)
 	if err != nil {
 		return 0, 0, err
@@ -346,7 +346,7 @@ func (s *search) All(
 func (s *search) allFirst(
 	ctx context.Context,
 	fn link.FileName,
-) (link.FilePosition, leafnode.Iterator, error) {
+) (link.BlockID, leafnode.Iterator, error) {
 	ln, err := s.all(ctx, fn)
 	if err != nil {
 		return 0, nil, err
@@ -369,8 +369,8 @@ func (s *search) allFirst(
 func (s *search) allNext(
 	ctx context.Context,
 	fn link.FileName,
-	block link.FilePosition,
-) (link.FilePosition, leafnode.Iterator, error) {
+	block link.BlockID,
+) (link.BlockID, leafnode.Iterator, error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.FileBlockID(block))
 	if err != nil {
 		return 0, nil, err
@@ -417,7 +417,7 @@ func (c *search) all(
 func (c *search) allRoot(
 	ctx context.Context,
 	fn link.FileName,
-) (byte, link.FilePosition, *leafnode.LeafNode, error) {
+) (byte, link.BlockID, *leafnode.LeafNode, error) {
 	p, err := c.ns.getPage(ctx, fn.FileBlockID(0))
 	if err != nil {
 		return 0, 0, nil, err
@@ -440,7 +440,7 @@ func (c *search) allRoot(
 func (c *search) allKey(
 	ctx context.Context,
 	fbid link.FileBlockID,
-) (byte, link.FilePosition, error) {
+) (byte, link.BlockID, error) {
 	kn, err := c.ns.getKeyNode(ctx, fbid)
 	if err != nil {
 		return 0, 0, err

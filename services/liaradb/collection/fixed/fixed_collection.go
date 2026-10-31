@@ -138,8 +138,8 @@ func (fc *FixedCollection) GetByRecordLocator(
 	s := span.New()
 	f := s.AppendSlot(b, rl.SlotID())
 
-	for f.NextPosition() != 0 {
-		fbid.SetPosition(f.NextPosition())
+	for f.NextBlockID() != 0 {
+		fbid.SetBlockID(f.NextBlockID())
 		b, err := fc.s.Request(ctx, fbid)
 		if err != nil {
 			s.Release()

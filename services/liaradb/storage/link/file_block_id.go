@@ -8,31 +8,31 @@ import (
 
 type FileBlockID struct {
 	fileName FileName
-	position FilePosition
+	blockID  BlockID
 }
 
-func (b FileBlockID) FileName() FileName     { return b.fileName }
-func (b FileBlockID) Position() FilePosition { return b.position }
+func (b FileBlockID) FileName() FileName { return b.fileName }
+func (b FileBlockID) BlockID() BlockID   { return b.blockID }
 
-func NewFileBlockID(fn FileName, position FilePosition) FileBlockID {
+func NewFileBlockID(fn FileName, blockID BlockID) FileBlockID {
 	return FileBlockID{
 		fileName: fn,
-		position: position,
+		blockID:  blockID,
 	}
 }
 
 func (b FileBlockID) Size() int {
 	return serializer.Size(
 		b.fileName,
-		b.position)
+		b.blockID)
 }
 
 func (b FileBlockID) Offset(bufferSize int64) Offset {
-	return b.position.Offset(bufferSize)
+	return b.blockID.Offset(bufferSize)
 }
 
-func (b *FileBlockID) SetPosition(p FilePosition) {
-	b.position = p
+func (b *FileBlockID) SetBlockID(p BlockID) {
+	b.blockID = p
 }
 
 func (b FileBlockID) RecordID(slotID SlotID) RecordID {
@@ -43,24 +43,24 @@ func (b FileBlockID) RecordID(slotID SlotID) RecordID {
 }
 
 func (b FileBlockID) RecordLocator(slotID SlotID) RecordLocator {
-	return NewRecordLocator(b.position, slotID)
+	return NewRecordLocator(b.blockID, slotID)
 }
 
 func (b FileBlockID) Next() FileBlockID {
 	return FileBlockID{
 		fileName: b.fileName,
-		position: b.position + 1,
+		blockID:  b.blockID + 1,
 	}
 }
 
 func (i *FileBlockID) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&i.fileName,
-		&i.position)
+		&i.blockID)
 }
 
 func (i FileBlockID) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		i.fileName,
-		i.position)
+		i.blockID)
 }

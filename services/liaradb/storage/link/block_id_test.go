@@ -7,12 +7,12 @@ import (
 	"testing"
 )
 
-func TestFilePosition(t *testing.T) {
+func TestBlockID(t *testing.T) {
 	t.Parallel()
 
 	r, w := newReaderWriter()
 
-	var p FilePosition = 123456
+	var p BlockID = 123456
 	if err := p.Write(w); err != nil {
 		t.Fatal(err)
 	}
@@ -22,7 +22,7 @@ func TestFilePosition(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
-	var p2 FilePosition
+	var p2 BlockID
 	if err := p2.Read(r); err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
@@ -36,10 +36,10 @@ func TestFilePosition(t *testing.T) {
 	}
 }
 
-func TestFilePosition_ReadDataWriteData(t *testing.T) {
+func TestBlockID_ReadDataWriteData(t *testing.T) {
 	t.Parallel()
 
-	fp := FilePosition(1)
+	fp := BlockID(1)
 
 	data := make([]byte, 12)
 	data0 := fp.WriteData(data)
@@ -48,7 +48,7 @@ func TestFilePosition_ReadDataWriteData(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	fp0 := FilePosition(0)
+	fp0 := BlockID(0)
 	data1 := fp0.ReadData(data)
 
 	if l := len(data1); l != 4 {
@@ -60,10 +60,10 @@ func TestFilePosition_ReadDataWriteData(t *testing.T) {
 	}
 }
 
-func TestFilePosition_Offset(t *testing.T) {
+func TestBlockID_Offset(t *testing.T) {
 	t.Parallel()
 
-	var p FilePosition = 123
+	var p BlockID = 123
 	want := Offset(2 * 123)
 	if o := p.Offset(2); o != want {
 		t.Errorf("incorrect offset: %v, expected: %v", o, want)

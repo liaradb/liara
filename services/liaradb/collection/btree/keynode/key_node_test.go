@@ -42,9 +42,9 @@ func TestKeyNode(t *testing.T) {
 			kn := New(bp)
 
 			data := []keyEntry{
-				{key.NewKey([]byte("key1")), link.FilePosition(1)},
-				{key.NewKey([]byte("key2")), link.FilePosition(2)},
-				{key.NewKey([]byte("key3")), link.FilePosition(3)},
+				{key.NewKey([]byte("key1")), link.BlockID(1)},
+				{key.NewKey([]byte("key2")), link.BlockID(2)},
+				{key.NewKey([]byte("key3")), link.BlockID(3)},
 			}
 
 			for _, item := range data {
@@ -56,8 +56,8 @@ func TestKeyNode(t *testing.T) {
 			testKeyNodeChildren(t, kn, data)
 
 			want := []keyEntry{
-				{key.NewKey([]byte("key1")), link.FilePosition(10)},
-				{key.NewKey([]byte("key11")), link.FilePosition(11)},
+				{key.NewKey([]byte("key1")), link.BlockID(10)},
+				{key.NewKey([]byte("key11")), link.BlockID(11)},
 			}
 
 			if ok := kn.ReplaceRoot(1, want[0].block, want[1].key, want[1].block); !ok {
@@ -206,7 +206,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Fill(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Fill(1, func(yield func(k key.Key, fp link.BlockID) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return
@@ -238,7 +238,7 @@ func TestKeyNode(t *testing.T) {
 				{key.NewKey([]byte("d")), 3},
 			}
 
-			kn.Replace(1, func(yield func(k key.Key, fp link.FilePosition) bool) {
+			kn.Replace(1, func(yield func(k key.Key, fp link.BlockID) bool) {
 				for _, ke := range data {
 					if !yield(ke.Key(), ke.Block()) {
 						return

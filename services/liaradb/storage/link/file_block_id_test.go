@@ -4,26 +4,26 @@ import "testing"
 
 func TestFileBlockID(t *testing.T) {
 	fn := NewFileName("testfile")
-	pos := FilePosition(1)
+	pos := BlockID(1)
 	fbid := NewFileBlockID(fn, pos)
 
 	if n := fbid.FileName(); n != fn {
 		t.Errorf("incorrect file name: %v, expected: %v", n, fn)
 	}
 
-	if p := fbid.Position(); p != pos {
-		t.Errorf("incorrect position: %v, expected: %v", p, pos)
+	if p := fbid.BlockID(); p != pos {
+		t.Errorf("incorrect block id: %v, expected: %v", p, pos)
 	}
 
-	fbid.SetPosition(2)
-	if p := fbid.Position(); p != 2 {
-		t.Errorf("incorrect position: %v, expected: %v", p, 2)
+	fbid.SetBlockID(2)
+	if p := fbid.BlockID(); p != 2 {
+		t.Errorf("incorrect block id: %v, expected: %v", p, 2)
 	}
 }
 
 func TestFileBlockID_RecordID(t *testing.T) {
 	fn := NewFileName("testfile")
-	fPos := FilePosition(1)
+	fPos := BlockID(1)
 	rSID := SlotID(2)
 	fbid := NewFileBlockID(fn, fPos)
 	rid := NewRecordID(fbid, rSID)

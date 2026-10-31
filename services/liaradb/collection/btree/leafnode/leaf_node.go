@@ -26,30 +26,30 @@ func (n *LeafNode) LogActions(ctx context.Context, l span.Log) error {
 	return n.node.LogActions(ctx, l)
 }
 
-func (ln *LeafNode) LeftID() link.FilePosition {
+func (ln *LeafNode) LeftID() link.BlockID {
 	return ln.node.LowID()
 }
 
-func (ln *LeafNode) RightID() link.FilePosition {
+func (ln *LeafNode) RightID() link.BlockID {
 	return ln.node.HighID()
 }
 
-func (ln *LeafNode) SetLeftID(block link.FilePosition) {
+func (ln *LeafNode) SetLeftID(block link.BlockID) {
 	ln.setLeftID(block)
 	ln.node.SetDirty()
 }
 
-func (ln *LeafNode) setLeftID(block link.FilePosition) {
+func (ln *LeafNode) setLeftID(block link.BlockID) {
 	ln.node.SetLowID(block)
 }
 
 // // TODO: This is only used internally
-func (ln *LeafNode) SetRightID(block link.FilePosition) {
+func (ln *LeafNode) SetRightID(block link.BlockID) {
 	ln.setRightID(block)
 	ln.node.SetDirty()
 }
 
-func (ln *LeafNode) setRightID(block link.FilePosition) {
+func (ln *LeafNode) setRightID(block link.BlockID) {
 	ln.node.SetHighID(block)
 }
 
@@ -88,8 +88,8 @@ func (ln *LeafNode) Insert(key key.Key, recordID link.RecordLocator) (Iterator, 
 }
 
 func (ln *LeafNode) Fill(
-	leftID link.FilePosition,
-	rightID link.FilePosition,
+	leftID link.BlockID,
+	rightID link.BlockID,
 	entries Iterator,
 ) key.Key {
 	var k key.Key
@@ -111,7 +111,7 @@ func (ln *LeafNode) Fill(
 }
 
 // TODO: Find a faster way
-func (ln *LeafNode) Replace(rightID link.FilePosition, entries Iterator) {
+func (ln *LeafNode) Replace(rightID link.BlockID, entries Iterator) {
 	cache := make([]leafEntry, 0, ln.mid())
 	for key, rid := range entries {
 		cache = append(cache, newLeafEntry(key, rid))

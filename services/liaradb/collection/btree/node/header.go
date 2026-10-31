@@ -45,12 +45,12 @@ func (h *header) Level() byte {
 	return h.level.GetUnsigned()
 }
 
-func (h *header) HighID() link.FilePosition {
-	return link.FilePosition(h.highID.Get())
+func (h *header) HighID() link.BlockID {
+	return link.BlockID(h.highID.Get())
 }
 
-func (h *header) LowID() link.FilePosition {
-	return link.FilePosition(h.lowID.Get())
+func (h *header) LowID() link.BlockID {
+	return link.BlockID(h.lowID.Get())
 }
 
 func (h *header) setLevel(l byte) {
@@ -58,12 +58,12 @@ func (h *header) setLevel(l byte) {
 	h.dirty = true
 }
 
-func (h *header) SetHighID(o link.FilePosition) {
+func (h *header) SetHighID(o link.BlockID) {
 	h.highID.Set(o.Value())
 	h.dirty = true
 }
 
-func (h *header) SetLowID(o link.FilePosition) {
+func (h *header) SetLowID(o link.BlockID) {
 	h.lowID.Set(o.Value())
 	h.dirty = true
 }

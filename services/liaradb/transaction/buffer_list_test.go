@@ -31,7 +31,7 @@ func testBufferList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p := b0.FileBlockID().Position(); p != 1 {
+	if p := b0.FileBlockID().BlockID(); p != 1 {
 		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
 	}
 	if p := b0.Pins(); p != 1 {
@@ -46,7 +46,7 @@ func testBufferList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p := b1.FileBlockID().Position(); p != 2 {
+	if p := b1.FileBlockID().BlockID(); p != 2 {
 		t.Fatalf("incorrect result: expected %v, recieved %v", 2, p)
 	}
 	if p := b1.Pins(); p != 1 {

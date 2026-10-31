@@ -25,7 +25,7 @@ func (m *maximum) Maximum(ctx context.Context, fn link.FileName) (key.Key, error
 	return m.getKey(ctx, fn, 0)
 }
 
-func (m *maximum) getKey(ctx context.Context, fn link.FileName, fp link.FilePosition) (key.Key, error) {
+func (m *maximum) getKey(ctx context.Context, fn link.FileName, fp link.BlockID) (key.Key, error) {
 	p, err := m.ns.getPage(ctx, fn.FileBlockID(fp))
 	if err != nil {
 		return key.Key{}, err

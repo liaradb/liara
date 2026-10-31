@@ -20,14 +20,14 @@ const (
 )
 
 type Fragment struct {
-	p            BufferPage
-	slotID       link.SlotID
-	nextPosition wrap.Int64
-	nextSlotID   wrap.Int16
-	crc          wrap.Int32
-	buffer       *buffer.Buffer
-	size         int
-	base         []byte
+	p           BufferPage
+	slotID      link.SlotID
+	nextBlockID wrap.Int64
+	nextSlotID  wrap.Int16
+	crc         wrap.Int32
+	buffer      *buffer.Buffer
+	size        int
+	base        []byte
 }
 
 type BufferPage interface {
@@ -43,29 +43,29 @@ func newFragment(
 	header []byte,
 	data []byte,
 ) *Fragment {
-	nextPosition, header0 := wrap.NewInt64(header)
+	nextBlockID, header0 := wrap.NewInt64(header)
 	nextSlotID, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
 	return &Fragment{
-		p:            p,
-		slotID:       sid,
-		nextPosition: nextPosition,
-		nextSlotID:   nextSlotID,
-		crc:          crc,
-		buffer:       buffer.NewFromSlice(data),
-		size:         len(data),
+		p:           p,
+		slotID:      sid,
+		nextBlockID: nextBlockID,
+		nextSlotID:  nextSlotID,
+		crc:         crc,
+		buffer:      buffer.NewFromSlice(data),
+		size:        len(data),
 	}
 }
 
 // TODO: Fix this cast
-func (f Fragment) length() int                     { return int(f.buffer.Length()) }
-func (f Fragment) SlotID() link.SlotID             { return f.slotID } // TODO: This is unused
-func (f Fragment) NextPosition() link.FilePosition { return link.FilePosition(f.nextPosition.Get()) }
-func (f Fragment) NextSlotID() link.SlotID         { return link.SlotID(f.nextSlotID.Get()) }
+func (f Fragment) length() int               { return int(f.buffer.Length()) }
+func (f Fragment) SlotID() link.SlotID       { return f.slotID } // TODO: This is unused
+func (f Fragment) NextBlockID() link.BlockID { return link.BlockID(f.nextBlockID.Get()) }
+func (f Fragment) NextSlotID() link.SlotID   { return link.SlotID(f.nextSlotID.Get()) }
 
 // TODO: This is unused
 func (f Fragment) FileBlockID(fn link.FileName) link.FileBlockID {
-	return link.NewFileBlockID(fn, f.NextPosition())
+	return link.NewFileBlockID(fn, f.NextBlockID())
 }
 
 // TODO: This is unused
@@ -88,8 +88,8 @@ func (f Fragment) commitCRC() {
 	f.crc.SetUnsigned(crc.Value())
 }
 
-func (f Fragment) setNextPosition(p link.FilePosition) {
-	f.nextPosition.Set(p.Value())
+func (f Fragment) setNextBlockID(bid link.BlockID) {
+	f.nextBlockID.Set(bid.Value())
 }
 
 func (f Fragment) setNextSlotID(i link.SlotID) {

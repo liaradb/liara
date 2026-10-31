@@ -24,7 +24,7 @@ type Storage struct {
 	flushReqs  async.CommandHandler[struct{}]
 	returns    chan *Buffer
 	max        int
-	highWater  map[link.FileName]link.FilePosition
+	highWater  map[link.FileName]link.BlockID
 	hwMux      sync.RWMutex
 }
 
@@ -40,7 +40,7 @@ func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int64, dir stri
 		pinned:     make(map[link.FileBlockID]*Buffer, max),
 		unpinned:   unpinned,
 		max:        max,
-		highWater:  make(map[link.FileName]link.FilePosition),
+		highWater:  make(map[link.FileName]link.BlockID),
 	}
 }
 
@@ -344,7 +344,7 @@ func (s *Storage) initHighwater(fn link.FileName, f filecache.File) error {
 	}
 
 	size := stat.Size()
-	s.highWater[fn] = link.FilePosition(size / s.bufferSize)
+	s.highWater[fn] = link.BlockID(size / s.bufferSize)
 
 	return nil
 }

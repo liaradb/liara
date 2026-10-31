@@ -6,23 +6,23 @@ import (
 	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
-const RecordLocatorSize = FilePositionSize + SlotIDSize
+const RecordLocatorSize = BlockIDSize + SlotIDSize
 
 type RecordLocator struct {
-	block  FilePosition
+	block  BlockID
 	slotID SlotID
 }
 
-func NewRecordLocator(block FilePosition, slotID SlotID) RecordLocator {
+func NewRecordLocator(block BlockID, slotID SlotID) RecordLocator {
 	return RecordLocator{
 		block:  block,
 		slotID: slotID,
 	}
 }
 
-func (rl RecordLocator) Block() FilePosition { return rl.block }
-func (rl RecordLocator) SlotID() SlotID      { return rl.slotID }
-func (rl RecordLocator) Size() int           { return RecordLocatorSize }
+func (rl RecordLocator) Block() BlockID { return rl.block }
+func (rl RecordLocator) SlotID() SlotID { return rl.slotID }
+func (rl RecordLocator) Size() int      { return RecordLocatorSize }
 
 func (rl RecordLocator) Write(w io.Writer) error {
 	return serializer.WriteAll(w,

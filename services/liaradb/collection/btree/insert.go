@@ -68,7 +68,7 @@ func (c *insert) Insert(
 				return
 			}
 
-			fbid, key, split, err = c.insertChainKey(ctx, fn, kn, key, fbid.Position())
+			fbid, key, split, err = c.insertChainKey(ctx, fn, kn, key, fbid.BlockID())
 			level++
 		}
 		if err != nil {
@@ -147,7 +147,7 @@ func (c *insert) insertChainLeaf(
 	defer middle.Unlatch()
 
 	rightID := fn.FileBlockID(ln.RightID())
-	if rightID.Position() != 0 {
+	if rightID.BlockID() != 0 {
 		// Only update right node if not root
 		right, err := c.ns.getLeafNode(ctx, rightID)
 		if err != nil {
@@ -160,11 +160,11 @@ func (c *insert) insertChainLeaf(
 		// ln3.Latch()
 		// defer ln3.Unlatch()
 
-		right.SetLeftID(fbid2.Position())
+		right.SetLeftID(fbid2.BlockID())
 	}
 
-	key := middle.Fill(fbid.Position(), ln.RightID(), second)
-	ln.Replace(fbid2.Position(), first)
+	key := middle.Fill(fbid.BlockID(), ln.RightID(), second)
+	ln.Replace(fbid2.BlockID(), first)
 
 	return fbid2, key, true, nil
 }
@@ -176,7 +176,7 @@ func (c *insert) insertChainKey(
 	fn link.FileName,
 	kn *keynode.KeyNode,
 	k key.Key,
-	block link.FilePosition,
+	block link.BlockID,
 ) (link.FileBlockID, key.Key, bool, error) {
 	first, second, ok := kn.Insert(k, block)
 	if ok {
@@ -235,9 +235,9 @@ func (c *insert) insertRoot(
 	// This should always return true
 	_ = keynode.New(node.New(b0)).ReplaceRoot(
 		level+1,
-		b2.FileBlockID().Position(),
+		b2.FileBlockID().BlockID(),
 		key,
-		fbid.Position())
+		fbid.BlockID())
 
 	return nil
 }

@@ -14,7 +14,7 @@ type KeyNode struct {
 	node node.Node
 }
 
-type Iterator = iter.Seq2[key.Key, link.FilePosition]
+type Iterator = iter.Seq2[key.Key, link.BlockID]
 
 func New(page node.Node) *KeyNode {
 	return &KeyNode{
@@ -26,7 +26,7 @@ func (n *KeyNode) LogActions(ctx context.Context, l span.Log) error {
 	return n.node.LogActions(ctx, l)
 }
 
-func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
+func (kn *KeyNode) append(key key.Key, block link.BlockID) bool {
 	ke := newKeyEntry(key, block)
 	size := int16(ke.Size())
 	b, ok := kn.node.Append(size)
@@ -41,7 +41,7 @@ func (kn *KeyNode) append(key key.Key, block link.FilePosition) bool {
 	return true
 }
 
-func (kn *KeyNode) Insert(key key.Key, block link.FilePosition) (Iterator, Iterator, bool) {
+func (kn *KeyNode) Insert(key key.Key, block link.BlockID) (Iterator, Iterator, bool) {
 	ke := newKeyEntry(key, block)
 	i := kn.searchIndex(ke.key)
 	size := int16(ke.Size())
@@ -75,7 +75,7 @@ func (kn *KeyNode) first(i, mid link.SlotID, ke keyEntry) Iterator {
 		return kn.childrenRange(0, mid)
 	}
 
-	return func(yield func(key.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.BlockID) bool) {
 		if i == 0 {
 			if !yield(ke.Key(), ke.Block()) {
 				return
@@ -104,7 +104,7 @@ func (kn *KeyNode) second(i, mid link.SlotID, ke keyEntry) Iterator {
 		return kn.childrenRange(mid, -1)
 	}
 
-	return func(yield func(key.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.BlockID) bool) {
 		k := i - mid
 		if k == 0 {
 			if !yield(ke.Key(), ke.Block()) {
@@ -165,7 +165,7 @@ func (kn *KeyNode) Replace(lv byte, entries Iterator) {
 	kn.node.SetDirty()
 }
 
-func (kn *KeyNode) ReplaceRoot(lv byte, block0 link.FilePosition, key1 key.Key, block1 link.FilePosition) bool {
+func (kn *KeyNode) ReplaceRoot(lv byte, block0 link.BlockID, key1 key.Key, block1 link.BlockID) bool {
 	// TODO: Will this always be the lower key?
 	key0, _ := kn.Child(0)
 
@@ -185,7 +185,7 @@ func (kn *KeyNode) ReplaceRoot(lv byte, block0 link.FilePosition, key1 key.Key, 
 }
 
 func (kn *KeyNode) Children() Iterator {
-	return func(yield func(key.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.BlockID) bool) {
 		for b := range kn.node.Children() {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -196,7 +196,7 @@ func (kn *KeyNode) Children() Iterator {
 	}
 }
 
-func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition) {
+func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.BlockID) {
 	b := kn.node.Child(i)
 
 	ke := keyEntry{}
@@ -206,7 +206,7 @@ func (kn *KeyNode) Child(i link.SlotID) (key.Key, link.FilePosition) {
 }
 
 func (kn *KeyNode) childrenRange(start, end link.SlotID) Iterator {
-	return func(yield func(key.Key, link.FilePosition) bool) {
+	return func(yield func(key.Key, link.BlockID) bool) {
 		for b := range kn.node.ChildrenRange(start, end) {
 			ke := keyEntry{}
 			ke.Read(b)
@@ -217,8 +217,8 @@ func (kn *KeyNode) childrenRange(start, end link.SlotID) Iterator {
 	}
 }
 
-func (kn *KeyNode) Search(k key.Key) link.FilePosition {
-	var p link.FilePosition
+func (kn *KeyNode) Search(k key.Key) link.BlockID {
+	var p link.BlockID
 	first := true
 	for key, block := range kn.Children() {
 		if first {

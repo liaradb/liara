@@ -59,7 +59,7 @@ func (s *Span) InitIndexes() {
 
 	for i, f := range s.fragments[:len(s.fragments)-1] {
 		next := s.fragments[i+1]
-		f.setNextPosition(next.p.FileBlockID().Position())
+		f.setNextBlockID(next.p.FileBlockID().BlockID())
 		f.setNextSlotID(0) // TODO: Is this necessary?
 	}
 }
@@ -67,7 +67,7 @@ func (s *Span) InitIndexes() {
 // Sort to ensure writes are sequential, and prevent deadlocks
 func (s *Span) sortFragments() {
 	slices.SortFunc(s.fragments, func(a, b *Fragment) int {
-		return int(a.p.FileBlockID().Position() - b.p.FileBlockID().Position())
+		return int(a.p.FileBlockID().BlockID() - b.p.FileBlockID().BlockID())
 	})
 }
 

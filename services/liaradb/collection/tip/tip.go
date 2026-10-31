@@ -82,5 +82,5 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 }
 
 func (t *Tip) RecordLocator() link.RecordLocator {
-	return link.NewRecordLocator(t.fileBlockID.Position(), t.slotID)
+	return link.NewRecordLocator(t.fileBlockID.BlockID(), t.slotID)
 }

@@ -18,6 +18,6 @@ func (fn FileName) Size() int               { return raw.StringSize(fn) }
 func (fn FileName) Write(w io.Writer) error { return raw.WriteString(w, fn) }
 func (fn *FileName) Read(r io.Reader) error { return raw.ReadString(r, fn) }
 
-func (fn FileName) FileBlockID(position FilePosition) FileBlockID {
-	return NewFileBlockID(fn, position)
+func (fn FileName) FileBlockID(bid BlockID) FileBlockID {
+	return NewFileBlockID(fn, bid)
 }

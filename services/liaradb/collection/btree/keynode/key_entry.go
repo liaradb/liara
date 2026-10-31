@@ -8,20 +8,20 @@ import (
 
 type keyEntry struct {
 	key   key.Key
-	block link.FilePosition
+	block link.BlockID
 }
 
-func (ke keyEntry) Key() key.Key             { return ke.key }
-func (ke keyEntry) Block() link.FilePosition { return ke.block }
+func (ke keyEntry) Key() key.Key        { return ke.key }
+func (ke keyEntry) Block() link.BlockID { return ke.block }
 
-func newKeyEntry(key key.Key, block link.FilePosition) keyEntry {
+func newKeyEntry(key key.Key, block link.BlockID) keyEntry {
 	return keyEntry{
 		key:   key,
 		block: block,
 	}
 }
 
-func (ke keyEntry) Size() int { return ke.key.Size() + link.FilePositionSize }
+func (ke keyEntry) Size() int { return ke.key.Size() + link.BlockIDSize }
 
 func (ke keyEntry) Write(data []byte) {
 	data0 := scan.SetInt64(data, ke.block.Value())
@@ -30,6 +30,6 @@ func (ke keyEntry) Write(data []byte) {
 
 func (ke *keyEntry) Read(data []byte) {
 	block, data0 := scan.Int64(data)
-	ke.block = link.FilePosition(block)
+	ke.block = link.BlockID(block)
 	ke.key.Read(data0)
 }

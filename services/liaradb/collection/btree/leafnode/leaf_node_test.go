@@ -357,7 +357,7 @@ func testLeafNode_SetLeftID(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	ln.SetLeftID(link.FilePosition(1))
+	ln.SetLeftID(link.BlockID(1))
 	if fp := ln.LeftID(); fp != 1 {
 		t.Errorf("incorrect left id: %v, expected: %v", fp, 1)
 	}
@@ -388,7 +388,7 @@ func testLeafNode_SetRightID(t *testing.T) {
 		t.Error("should not be dirty")
 	}
 
-	ln.SetRightID(link.FilePosition(1))
+	ln.SetRightID(link.BlockID(1))
 	if fp := ln.RightID(); fp != 1 {
 		t.Errorf("incorrect right id: %v, expected: %v", fp, 1)
 	}
