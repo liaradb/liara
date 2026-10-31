@@ -25,6 +25,7 @@ type Log interface {
 	Append(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
 	Insert(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
 	Update(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
+	Clear(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error)
 	// Insert(link.RecordID, []byte) (logpage.LogSequenceNumber, error) // TODO: Support shifting
 	UpdateHeader(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
 }

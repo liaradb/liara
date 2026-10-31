@@ -17,21 +17,24 @@ const (
 	ActionRollback     Action = 4
 	ActionAppend       Action = 5
 	ActionInsert       Action = 6
-	ActionUpdate       Action = 7
-	ActionUpdateHeader Action = 8
-	ActionRemove       Action = 9
+	ActionRemove       Action = 7
+	ActionUpdate       Action = 8
+	ActionClear        Action = 9
+	ActionUpdateHeader Action = 10
 )
 
 const (
-	actionNameCheckpoint = "Checkpoint"
-	actionNameStart      = "Start"
-	actionNameCommit     = "Commit"
-	actionNameRollback   = "Rollback"
-	actionNameAppend     = "Append"
-	actionNameInsert     = "Insert"
-	actionNameRemove     = "Remove"
-	actionNameUpdate     = "Update"
-	actionNameUnknown    = ""
+	actionNameCheckpoint   = "Checkpoint"
+	actionNameStart        = "Start"
+	actionNameCommit       = "Commit"
+	actionNameRollback     = "Rollback"
+	actionNameAppend       = "Append"
+	actionNameInsert       = "Insert"
+	actionNameRemove       = "Remove"
+	actionNameUpdate       = "Update"
+	actionNameClear        = "Clear"
+	actionNameUpdateHeader = "UpdateHeader"
+	actionNameUnknown      = ""
 )
 
 func (Action) Size() int { return ActionSize }
@@ -62,6 +65,10 @@ func (a Action) String() string {
 		return actionNameRemove
 	case ActionUpdate:
 		return actionNameUpdate
+	case ActionClear:
+		return actionNameClear
+	case ActionUpdateHeader:
+		return actionNameUpdateHeader
 	default:
 		return actionNameUnknown
 	}

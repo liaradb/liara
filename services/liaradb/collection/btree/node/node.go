@@ -40,6 +40,7 @@ func New(buffer *storage.Buffer) Node {
 
 func (n *Node) Clear() {
 	// n.buffer.Clear()
+	n.addAction(newClearAction(n.buffer.BlockID().RecordID(0), n.page.Data()))
 	n.page.Clear()
 }
 

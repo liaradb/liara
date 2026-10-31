@@ -169,6 +169,17 @@ func (l *Transaction) Update(
 		prev)
 }
 
+func (l *Transaction) Clear(
+	ctx context.Context,
+	rid link.RecordID,
+	prev []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.log.Clear(ctx,
+		l.id,
+		rid,
+		prev)
+}
+
 func (l *Transaction) UpdateHeader(
 	ctx context.Context,
 	rid link.RecordID,

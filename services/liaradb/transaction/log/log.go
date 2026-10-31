@@ -161,6 +161,20 @@ func (l *Log) Insert(
 		nil))
 }
 
+func (l *Log) Clear(
+	ctx context.Context,
+	txid record.TransactionID,
+	rid link.RecordID,
+	data []byte,
+) (logpage.LogSequenceNumber, error) {
+	return l.rq.Append(ctx, record.New(
+		txid,
+		rid,
+		record.ActionClear,
+		data,
+		nil))
+}
+
 func (l *Log) Update(
 	ctx context.Context,
 	txid record.TransactionID,

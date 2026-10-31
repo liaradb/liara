@@ -31,6 +31,10 @@ func (t *MockLog) Update(context.Context, link.RecordID, []byte, []byte) (logpag
 	return logpage.LogSequenceNumber{}, nil
 }
 
+func (t *MockLog) Clear(context.Context, link.RecordID, []byte) (logpage.LogSequenceNumber, error) {
+	return logpage.LogSequenceNumber{}, nil
+}
+
 func (t *MockLog) UpdateHeader(context.Context, link.RecordID, []byte, []byte) (logpage.LogSequenceNumber, error) {
 	return logpage.LogSequenceNumber{}, nil
 }
