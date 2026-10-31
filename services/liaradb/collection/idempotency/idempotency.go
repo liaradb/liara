@@ -28,11 +28,10 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 func (i *Idempotency) Get(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	s, err := i.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, value.PartitionID{}), k)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +42,9 @@ func (i *Idempotency) Get(
 func (i *Idempotency) List(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
+		for s, err := range i.fc.List(ctx, tn.RequestLog(), tn.Index(0, value.PartitionID{}), value.PartitionID{}) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -66,24 +64,22 @@ func (*Idempotency) readRequestLog(s *span.Span) (*entity.RequestLog, error) {
 	return &rl, rl.Read(s)
 }
 
-func (i *Idempotency) Set(
+func (i *Idempotency) Insert(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	rqid value.RequestID,
 	e *entity.RequestLog,
 ) error {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, e)
+	return i.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, value.PartitionID{}), k, e)
 }
 
 func (i *Idempotency) Test(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, tn.Index(0, pid), k)
+	return i.fc.Test(ctx, tn.Index(0, value.PartitionID{}), k)
 }

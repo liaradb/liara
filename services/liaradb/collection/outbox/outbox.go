@@ -28,11 +28,10 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Outbox {
 func (o *Outbox) Get(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, pid), k)
+	s, err := o.fc.GetByKey(ctx, tn.RequestLog(), tn.Index(0, value.PartitionID{}), k)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +42,9 @@ func (o *Outbox) Get(
 func (o *Outbox) List(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.fc.List(ctx, tn.RequestLog(), tn.Index(0, pid), pid) {
+		for s, err := range o.fc.List(ctx, tn.RequestLog(), tn.Index(0, value.PartitionID{}), value.PartitionID{}) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -66,31 +64,29 @@ func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
 	return &o, o.Read(s)
 }
 
-func (o *Outbox) Set(
+func (o *Outbox) Insert(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, pid), k, e)
+	return o.fc.Insert(ctx, l, tn.RequestLog(), tn.Index(0, value.PartitionID{}), k, e)
 }
 
 func (o *Outbox) Replace(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	return o.fc.Replace(ctx,
 		l,
-		tn.Outbox(pid),
-		tn.Index(0, value.NewPartitionID(0)),
-		pid,
+		tn.Outbox(value.PartitionID{}),
+		tn.Index(0, value.PartitionID{}),
+		value.PartitionID{},
 		key.NewKey(oid.Bytes()),
 		e)
 }

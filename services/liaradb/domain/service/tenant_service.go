@@ -37,7 +37,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	}
 
 	return tx.RunResult(ctx, func() (value.TenantID, error) {
-		if err := ts.tc.Set(ctx, tx, tablename.Tenant, value.NewPartitionID(0), tid, tnt); err != nil {
+		if err := ts.tc.Insert(ctx, tx, tablename.Tenant, tid, tnt); err != nil {
 			return value.TenantID{}, err
 		}
 
@@ -50,7 +50,7 @@ func (ts *TenantService) Delete(ctx context.Context, cmd command.DeleteTenant) e
 }
 
 func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
-	tnt, err := ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID)
+	tnt, err := ts.tc.Get(ctx, tablename.Tenant, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	}
 
 	return tx.Run(ctx, func() error {
-		return ts.tc.Replace(ctx, tx, tablename.Tenant, value.NewPartitionID(0), cmd.TenantID, tnt)
+		return ts.tc.Replace(ctx, tx, tablename.Tenant, cmd.TenantID, tnt)
 	})
 }
 
@@ -81,10 +81,10 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 		return nil, err
 	}
 
-	return ts.tc.Get(ctx, tablename.Tenant, value.NewPartitionID(0), tenantID)
+	return ts.tc.Get(ctx, tablename.Tenant, tenantID)
 }
 
 // TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	return ts.tc.List(ctx, tablename.Tenant, value.NewPartitionID(0))
+	return ts.tc.List(ctx, tablename.Tenant)
 }

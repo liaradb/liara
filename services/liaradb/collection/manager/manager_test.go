@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -29,27 +28,26 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 	}
 
 	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage), l))
-	pid := value.NewPartitionID(0)
 
 	data := createData()
 	want := createValues(data)
 
 	for _, d := range data {
-		if err := m.Insert(t.Context(), &logtesting.MockLog{}, pid, key.NewKey([]byte(d.key)), d.value); err != nil {
+		if err := m.Insert(t.Context(), &logtesting.MockLog{}, key.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	testGet(t, data, want, m, pid)
-	testList(t, want, m, pid)
+	testGet(t, data, want, m)
+	testList(t, want, m)
 
 	synctest.Wait()
 }
 
-func testGet(t *testing.T, data []tuple, want []int64, m *Manager, pid value.PartitionID) {
+func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), pid, key.NewKey([]byte(d.key)))
+		v, err := m.Get(t.Context(), key.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,8 +60,8 @@ func testGet(t *testing.T, data []tuple, want []int64, m *Manager, pid value.Par
 	}
 }
 
-func testList(t *testing.T, want []int64, m *Manager, pid value.PartitionID) {
-	i, err := m.List(t.Context(), pid)
+func testList(t *testing.T, want []int64, m *Manager) {
+	i, err := m.List(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}

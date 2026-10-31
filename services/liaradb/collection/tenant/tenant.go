@@ -28,11 +28,10 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Tenant {
 func (t *Tenant) Get(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.GetByKey(ctx, tn.Tenant(), tn.Index(0, pid), k)
+	s, err := t.fc.GetByKey(ctx, tn.Tenant(), tn.Index(0, value.PartitionID{}), k)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +42,9 @@ func (t *Tenant) Get(
 func (t *Tenant) List(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.fc.List(ctx, tn.Tenant(), tn.Index(0, pid), pid) {
+		for s, err := range t.fc.List(ctx, tn.Tenant(), tn.Index(0, value.PartitionID{}), value.PartitionID{}) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -66,31 +64,29 @@ func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
 	return &t, t.Read(s)
 }
 
-func (t *Tenant) Set(
+func (t *Tenant) Insert(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
 	k := key.NewKey(tid.Bytes())
-	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, pid), k, e)
+	return t.fc.Insert(ctx, l, tn.Tenant(), tn.Index(0, value.PartitionID{}), k, e)
 }
 
 func (t *Tenant) Replace(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
 	return t.fc.Replace(ctx,
 		l,
 		tn.Tenant(),
-		tn.Index(0, pid),
-		pid,
+		tn.Index(0, value.PartitionID{}),
+		value.PartitionID{},
 		key.NewKey(tid.Bytes()),
 		e)
 }

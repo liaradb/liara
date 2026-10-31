@@ -33,7 +33,7 @@ func (s *baseService) insertRequestID(
 	rqid value.RequestID,
 	now value.Time,
 ) error {
-	return s.idempotency.Set(ctx, l, tn, value.NewPartitionID(0), rqid, entity.NewRequestLog(rqid, now))
+	return s.idempotency.Insert(ctx, l, tn, rqid, entity.NewRequestLog(rqid, now))
 }
 
 func (s *baseService) testRequestID(
@@ -41,5 +41,5 @@ func (s *baseService) testRequestID(
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	return s.idempotency.Test(ctx, tn, value.NewPartitionID(0), rqid)
+	return s.idempotency.Test(ctx, tn, rqid)
 }

@@ -27,8 +27,8 @@ func New(kv *keyvalue.KeyValue) *Manager {
 	}
 }
 
-func (m *Manager) Get(ctx context.Context, pid value.PartitionID, k key.Key) (int64, error) {
-	d, err := m.kv.Get(ctx, m.tn, pid, k)
+func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
+	d, err := m.kv.Get(ctx, m.tn, value.PartitionID{}, k)
 	if err != nil {
 		return 0, err
 	}
@@ -38,13 +38,13 @@ func (m *Manager) Get(ctx context.Context, pid value.PartitionID, k key.Key) (in
 	return i, raw.ReadInt64(b, &i)
 }
 
-func (m *Manager) Insert(ctx context.Context, l span.Log, pid value.PartitionID, k key.Key, i int64) error {
-	return m.kv.Set(ctx, l, m.tn, pid, k, base.NewInt64(i))
+func (m *Manager) Insert(ctx context.Context, l span.Log, k key.Key, i int64) error {
+	return m.kv.Set(ctx, l, m.tn, value.PartitionID{}, k, base.NewInt64(i))
 }
 
-func (m *Manager) List(ctx context.Context, pid value.PartitionID) ([]int64, error) {
+func (m *Manager) List(ctx context.Context) ([]int64, error) {
 	result := make([]int64, 0)
-	for d, err := range m.kv.List(ctx, m.tn, pid) {
+	for d, err := range m.kv.List(ctx, m.tn, value.PartitionID{}) {
 		if err != nil {
 			return nil, err
 		}

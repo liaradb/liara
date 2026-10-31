@@ -298,8 +298,7 @@ func (es *EventService) getOutbox(
 		return nil, err
 	}
 
-	// TODO: What should PartitionID be?
-	return es.outbox.Get(ctx, tn, value.NewPartitionID(0), oid)
+	return es.outbox.Get(ctx, tn, oid)
 }
 
 func (es *EventService) GetByOutbox(

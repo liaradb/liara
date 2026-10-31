@@ -54,7 +54,7 @@ func (os *OutboxService) CreateOutbox(
 		data := make([]byte, entity.OutboxSize)
 		_ = outbox.WriteData(data)
 
-		if err := os.outbox.Set(ctx, tx, tn, partitionRange.Low(), oid, outbox); err != nil {
+		if err := os.outbox.Insert(ctx, tx, tn, oid, outbox); err != nil {
 			return value.OutboxID{}, err
 		}
 
@@ -79,15 +79,13 @@ func (os *OutboxService) GetOutbox(
 		return nil, err
 	}
 
-	// TODO: What should PartitionID be?
-	return os.outbox.Get(ctx, tn, value.NewPartitionID(0), oid)
+	return os.outbox.Get(ctx, tn, oid)
 }
 
 func (os *OutboxService) UpdateOutbox(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	oid value.OutboxID,
 	v value.GlobalVersion,
 ) error {
@@ -101,7 +99,7 @@ func (os *OutboxService) UpdateOutbox(
 			return err
 		}
 
-		o, err := os.outbox.Get(ctx, tn, pid, oid)
+		o, err := os.outbox.Get(ctx, tn, oid)
 		if err != nil {
 			return err
 		}
@@ -119,7 +117,7 @@ func (os *OutboxService) UpdateOutbox(
 			return err
 		}
 
-		return os.outbox.Replace(ctx, l, tn, pid, oid, o)
+		return os.outbox.Replace(ctx, l, tn, oid, o)
 	})
 }
 
@@ -138,8 +136,7 @@ func (os *OutboxService) ListOutboxes(
 	// }
 
 	tn := tablename.New(tid)
-	// TODO: What should PartitionID be?
-	return os.outbox.List(ctx, tn, value.NewPartitionID(0))
+	return os.outbox.List(ctx, tn)
 }
 
 func (os *OutboxService) UpdateOutboxPosition(
@@ -155,6 +152,6 @@ func (os *OutboxService) UpdateOutboxPosition(
 
 	return tx.Run(ctx, func() error {
 		tn := tablename.New(tid)
-		return os.UpdateOutbox(ctx, tx, tn, value.NewPartitionID(0), outboxID, globalVersion)
+		return os.UpdateOutbox(ctx, tx, tn, outboxID, globalVersion)
 	})
 }

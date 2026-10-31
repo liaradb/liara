@@ -36,17 +36,16 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
-	pid := value.NewPartitionID(0)
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, pid, data)
-	testList(ctx, t, data, o, n, pid)
+	testGet(ctx, t, o, n, data)
+	testList(ctx, t, data, o, n)
 
 	synctest.Wait()
 }
@@ -68,16 +67,15 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
 	n := tablename.NewFromString("testfile")
-	pid := value.NewPartitionID(0)
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, pid, data)
-	testList(ctx, t, data, o, n, pid)
+	testGet(ctx, t, o, n, data)
+	testList(ctx, t, data, o, n)
 
 	synctest.Wait()
 }
@@ -101,9 +99,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, l span.Log, o *Tenant, tn tablename.TableName, pid value.PartitionID, data []item) error {
+func insertData(ctx context.Context, l span.Log, o *Tenant, tn tablename.TableName, data []item) error {
 	for _, i := range data {
-		if err := o.Set(ctx, l, tn, pid, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, l, tn, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -115,11 +113,10 @@ func testGet(
 	t *testing.T,
 	kv *Tenant,
 	n tablename.TableName,
-	pid value.PartitionID,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, pid, i.value.ID())
+		value, err := kv.Get(ctx, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -136,9 +133,8 @@ func testList(
 	data []item,
 	o *Tenant,
 	n tablename.TableName,
-	pid value.PartitionID,
 ) {
-	result, err := getListValues(ctx, data, o, n, pid)
+	result, err := getListValues(ctx, data, o, n)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,11 +150,10 @@ func getListValues(
 	data []item,
 	o *Tenant,
 	n tablename.TableName,
-	pid value.PartitionID,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n, pid) {
+	for value, err := range o.List(ctx, n) {
 		if err != nil {
 			return nil, err
 		}
