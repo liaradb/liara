@@ -11,8 +11,8 @@ type FileBlockID struct {
 	blockID  BlockID
 }
 
-func (b FileBlockID) FileName() FileName { return b.fileName }
-func (b FileBlockID) BlockID() BlockID   { return b.blockID }
+func (i FileBlockID) FileName() FileName { return i.fileName }
+func (i FileBlockID) BlockID() BlockID   { return i.blockID }
 
 func NewFileBlockID(fn FileName, blockID BlockID) FileBlockID {
 	return FileBlockID{
@@ -21,35 +21,35 @@ func NewFileBlockID(fn FileName, blockID BlockID) FileBlockID {
 	}
 }
 
-func (b FileBlockID) Size() int {
+func (i FileBlockID) Size() int {
 	return serializer.Size(
-		b.fileName,
-		b.blockID)
+		i.fileName,
+		i.blockID)
 }
 
-func (b FileBlockID) Offset(bufferSize int64) Offset {
-	return b.blockID.Offset(bufferSize)
+func (i FileBlockID) Offset(bufferSize int64) Offset {
+	return i.blockID.Offset(bufferSize)
 }
 
-func (b *FileBlockID) SetBlockID(p BlockID) {
-	b.blockID = p
+func (i *FileBlockID) SetBlockID(p BlockID) {
+	i.blockID = p
 }
 
-func (b FileBlockID) FileRecordID(slotID SlotID) FileRecordID {
+func (i FileBlockID) FileRecordID(slotID SlotID) FileRecordID {
 	return FileRecordID{
-		fileBlockID: b,
+		fileBlockID: i,
 		slotID:      slotID,
 	}
 }
 
-func (b FileBlockID) RecordID(slotID SlotID) RecordID {
-	return NewRecordID(b.blockID, slotID)
+func (i FileBlockID) RecordID(slotID SlotID) RecordID {
+	return NewRecordID(i.blockID, slotID)
 }
 
-func (b FileBlockID) Next() FileBlockID {
+func (i FileBlockID) Next() FileBlockID {
 	return FileBlockID{
-		fileName: b.fileName,
-		blockID:  b.blockID + 1,
+		fileName: i.fileName,
+		blockID:  i.blockID + 1,
 	}
 }
 
