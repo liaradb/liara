@@ -20,5 +20,5 @@ func NewTenantFolderFromString(s string) (TenantFolder, error) {
 }
 
 func (tf TenantFolder) TenantID() value.TenantID { return tf.tenantID }
-
-func (tf TenantFolder) String() string { return tf.tenantID.String() }
+func (tf TenantFolder) String() string           { return tf.tenantID.String() }
+func (tf TenantFolder) Table(name string) Table  { return newTable(tf, name) }

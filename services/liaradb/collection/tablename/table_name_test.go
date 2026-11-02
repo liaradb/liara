@@ -1,6 +1,7 @@
 package tablename
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/liaradb/liaradb/domain/value"
@@ -69,6 +70,52 @@ func TestTableName(t *testing.T) {
 	}
 
 	wantTn := link.NewFileName("00000000-0000-0000-0000-000000000000--testfile.tn")
+	if tn := tn.Tenant(); tn != wantTn {
+		t.Errorf("incorrect tenant file: %v, expected: %v", tn, wantTn)
+	}
+}
+
+func TestTableName_New(t *testing.T) {
+	t.Parallel()
+
+	tid := value.NewTenantID()
+	tn := New(tid)
+
+	if i := tn.TenantID(); i != tid {
+		t.Errorf("incorrect tenant id: %v, expected: %v", i, tid)
+	}
+
+	wantKV := link.NewFileName(fmt.Sprintf("%v--00000001.kv", tid))
+	if kv := tn.KeyValue(value.NewPartitionID(1)); kv != wantKV {
+		t.Errorf("incorrect key value file: %v, expected: %v", kv, wantKV)
+	}
+
+	wantEL := link.NewFileName(fmt.Sprintf("%v--00000001.el", tid))
+	if el := tn.EventLog(value.NewPartitionID(1)); el != wantEL {
+		t.Errorf("incorrect event log file: %v, expected: %v", el, wantEL)
+	}
+
+	wantIdx0 := link.NewFileName(fmt.Sprintf("%v--00000000--00000002.idx", tid))
+	if idx := tn.Index(0, value.NewPartitionID(2)); idx != wantIdx0 {
+		t.Errorf("incorrect index file: %v, expected: %v", idx, wantIdx0)
+	}
+
+	wantIdx1 := link.NewFileName(fmt.Sprintf("%v--00000001--00000002.idx", tid))
+	if idx := tn.Index(1, value.NewPartitionID(2)); idx != wantIdx1 {
+		t.Errorf("incorrect index file: %v, expected: %v", idx, wantIdx1)
+	}
+
+	wantOut := link.NewFileName(fmt.Sprintf("%v--00000001.out", tid))
+	if out := tn.Outbox(value.NewPartitionID(1)); out != wantOut {
+		t.Errorf("incorrect outbox file: %v, expected: %v", out, wantEL)
+	}
+
+	wantRl := link.NewFileName(fmt.Sprintf("%v.rl", tid))
+	if rl := tn.RequestLog(); rl != wantRl {
+		t.Errorf("incorrect request log file: %v, expected: %v", rl, wantRl)
+	}
+
+	wantTn := link.NewFileName(fmt.Sprintf("%v.tn", tid))
 	if tn := tn.Tenant(); tn != wantTn {
 		t.Errorf("incorrect tenant file: %v, expected: %v", tn, wantTn)
 	}
