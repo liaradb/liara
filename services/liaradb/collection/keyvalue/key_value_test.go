@@ -132,7 +132,7 @@ func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.Tabl
 
 func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, data []item) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, tn, key.NewKey([]byte(i.key)))
+		value, err := kv.Get(ctx, &logtesting.MockLog{}, tn, key.NewKey([]byte(i.key)))
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -160,7 +160,7 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
-	for value, err := range kv.List(ctx, tn) {
+	for value, err := range kv.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}

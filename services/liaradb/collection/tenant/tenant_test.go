@@ -112,7 +112,7 @@ func testGet(
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, i.value.ID())
+		value, err := kv.Get(ctx, &logtesting.MockLog{}, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -147,7 +147,7 @@ func getListValues(
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx) {
+	for value, err := range o.List(ctx, &logtesting.MockLog{}) {
 		if err != nil {
 			return nil, err
 		}

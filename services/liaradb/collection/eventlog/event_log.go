@@ -129,9 +129,9 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 	return &t, t.Read(s)
 }
 
-func (l *EventLog) Events(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) Events(ctx context.Context, lg span.Log, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for s, err := range l.fc.List(ctx, tn) {
+		for s, err := range l.fc.List(ctx, lg, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -176,9 +176,9 @@ func (l *EventLog) EventsAfterGlobalVersion(
 }
 
 // TODO: Iterate until highwater
-func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
+func (l *EventLog) Iterate(ctx context.Context, lg span.Log, tn tablename.TableName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range l.fc.List(ctx, tn) {
+		for s, err := range l.fc.List(ctx, lg, tn) {
 			if err != nil {
 				yield(nil, err)
 				return

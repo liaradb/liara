@@ -80,12 +80,8 @@ func (es *EventService) Append(
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
-			if err := tx.XLock(ctx, tn, rqid.String()); err != nil {
-				return err
-			}
-
 			// TODO: What should this return if requestID is present?
-			if ok, err := es.testRequestID(ctx, tn, rqid); err != nil || !ok {
+			if ok, err := es.testRequestID(ctx, tx, tn, rqid); err != nil || !ok {
 				return err
 			}
 		}
@@ -128,11 +124,7 @@ func (es *EventService) TestIdempotency(
 	defer tx.Release()
 
 	tn := tablename.NewTenantFolder(qry.TenantID).RequestLog()
-	if err := tx.SLock(ctx, tn, qry.RequestID.String()); err != nil {
-		return false, err
-	}
-
-	return es.testRequestID(ctx, tn, qry.RequestID)
+	return es.testRequestID(ctx, tx, tn, qry.RequestID)
 }
 
 func (es *EventService) Get(
@@ -242,16 +234,16 @@ func (es *EventService) Events(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		// Should we lock?
-		// if err := t.SLock(ctx, tn, id.String()); err != nil {
-		// 	yield(nil, err)
-		// 	return
-		// }
+		tx, err := es.txManager.Next(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
 
-		// defer t.release()
+		defer tx.Release()
 
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.Events(ctx, tn) {
+		for e, err := range es.eventLog.Events(ctx, tx, tn) {
 			if !yield(e, err) {
 				return
 			}
@@ -266,14 +258,7 @@ func (es *EventService) EventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		// Should we lock?
-		// if err := t.SLock(ctx, tn, id.String()); err != nil {
-		// 	yield(nil, err)
-		// 	return
-		// }
-
-		// defer t.release()
-
+		// TODO: Figure out locking
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tn, version) {
 			if !yield(e, err) {
@@ -296,11 +281,7 @@ func (es *EventService) getOutbox(
 	defer tx.Release()
 
 	tn := tablename.NewTenantFolder(tid).Outbox()
-	if err := tx.SLock(ctx, tn, oid.String()); err != nil {
-		return nil, err
-	}
-
-	return es.outbox.Get(ctx, tn, oid)
+	return es.outbox.Get(ctx, tx, tn, oid)
 }
 
 func (es *EventService) GetByOutbox(

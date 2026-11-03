@@ -63,7 +63,7 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.Events(ctx, tn) {
+	for e, err := range el.Events(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			t.Fatal(err)
 		}

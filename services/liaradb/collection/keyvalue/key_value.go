@@ -26,10 +26,11 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 
 func (kv *KeyValue) Get(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.GetByKey(ctx, tn, k)
+	s, err := kv.fc.GetByKey(ctx, l, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -39,10 +40,11 @@ func (kv *KeyValue) Get(
 
 func (kv *KeyValue) List(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.fc.List(ctx, tn) {
+		for s, err := range kv.fc.List(ctx, l, tn) {
 			if err != nil {
 				yield(nil, err)
 				return

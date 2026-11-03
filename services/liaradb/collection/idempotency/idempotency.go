@@ -27,11 +27,12 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 
 func (i *Idempotency) Get(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.GetByKey(ctx, tn, k)
+	s, err := i.fc.GetByKey(ctx, l, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -41,10 +42,11 @@ func (i *Idempotency) Get(
 
 func (i *Idempotency) List(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.fc.List(ctx, tn) {
+		for s, err := range i.fc.List(ctx, l, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -77,9 +79,10 @@ func (i *Idempotency) Insert(
 
 func (i *Idempotency) Test(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, tn, k)
+	return i.fc.Test(ctx, l, tn, k)
 }

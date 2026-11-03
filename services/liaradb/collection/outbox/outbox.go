@@ -27,11 +27,12 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Outbox {
 
 func (o *Outbox) Get(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.GetByKey(ctx, tn, k)
+	s, err := o.fc.GetByKey(ctx, l, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -41,10 +42,11 @@ func (o *Outbox) Get(
 
 func (o *Outbox) List(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.fc.List(ctx, tn) {
+		for s, err := range o.fc.List(ctx, l, tn) {
 			if err != nil {
 				yield(nil, err)
 				return

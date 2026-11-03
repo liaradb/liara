@@ -38,6 +38,10 @@ func (fc *FixedCollection) Insert(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
+	if err := l.XLock(ctx, tn, k.String()); err != nil {
+		return err
+	}
+
 	t := tip.NewTip(fc.s, tn.Collection())
 
 	s, err := t.Span(ctx, w.Size())
@@ -60,9 +64,14 @@ func (fc *FixedCollection) Insert(
 
 func (fc *FixedCollection) GetByKey(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
+	if err := l.SLock(ctx, tn, k.String()); err != nil {
+		return nil, err
+	}
+
 	rid, err := fc.c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return nil, err
@@ -73,6 +82,7 @@ func (fc *FixedCollection) GetByKey(
 
 func (fc *FixedCollection) List(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
@@ -82,7 +92,10 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			// TODO: Lock record
+			if err := l.SLock(ctx, tn, r.Key.String()); err != nil {
+				yield(nil, err)
+				return
+			}
 
 			s, err := fc.GetByRecordID(ctx, tn, r.RecordID)
 			if !yield(s, err) {
@@ -99,7 +112,7 @@ func (fc *FixedCollection) Replace(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := fc.GetByKey(ctx, tn, k)
+	s, err := fc.getForWritingByKey(ctx, l, tn, k)
 	if err != nil {
 		return err
 	}
@@ -116,6 +129,24 @@ func (fc *FixedCollection) Replace(
 	}
 
 	return s.CommitUpdate(ctx, l)
+}
+
+func (fc *FixedCollection) getForWritingByKey(
+	ctx context.Context,
+	l span.Log,
+	tn tablename.TableName,
+	k key.Key,
+) (*span.Span, error) {
+	if err := l.XLock(ctx, tn, k.String()); err != nil {
+		return nil, err
+	}
+
+	rid, err := fc.c.Search(ctx, tn.Index(0), k)
+	if err != nil {
+		return nil, err
+	}
+
+	return fc.GetByRecordID(ctx, tn, rid)
 }
 
 func (fc *FixedCollection) GetByRecordID(
@@ -148,9 +179,14 @@ func (fc *FixedCollection) GetByRecordID(
 
 func (fc *FixedCollection) Test(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	k key.Key,
 ) (bool, error) {
+	if err := l.SLock(ctx, tn, k.String()); err != nil {
+		return false, err
+	}
+
 	_, err := fc.c.Search(ctx, tn.Index(0), k)
 	if errors.Is(err, btree.ErrNotFound) {
 		return true, nil

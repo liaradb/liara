@@ -27,10 +27,11 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Tenant {
 
 func (t *Tenant) Get(
 	ctx context.Context,
+	l span.Log,
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.GetByKey(ctx, tablename.Tenant, k)
+	s, err := t.fc.GetByKey(ctx, l, tablename.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +41,10 @@ func (t *Tenant) Get(
 
 func (t *Tenant) List(
 	ctx context.Context,
+	l span.Log,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.fc.List(ctx, tablename.Tenant) {
+		for s, err := range t.fc.List(ctx, l, tablename.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return

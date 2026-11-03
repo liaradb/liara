@@ -44,7 +44,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sp, err := fc.GetByKey(t.Context(), tn, k)
+		sp, err := fc.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -159,7 +159,7 @@ func testGet(
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := fc.GetByKey(ctx, tn, k)
+		value, err := fc.GetByKey(ctx, &logtesting.MockLog{}, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -201,7 +201,7 @@ func getListValues(
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for s, err := range fc.List(ctx, tn) {
+	for s, err := range fc.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}

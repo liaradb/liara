@@ -116,7 +116,7 @@ func testGet(
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, i.value.ID())
+		value, err := kv.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -153,7 +153,7 @@ func getListValues(
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n) {
+	for value, err := range o.List(ctx, &logtesting.MockLog{}, n) {
 		if err != nil {
 			return nil, err
 		}

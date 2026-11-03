@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type OutboxService struct {
@@ -75,11 +76,7 @@ func (os *OutboxService) GetOutbox(
 	defer tx.Release()
 
 	tn := tablename.NewTenantFolder(tid).Outbox()
-	if err := tx.SLock(ctx, tn, oid.String()); err != nil {
-		return nil, err
-	}
-
-	return os.outbox.Get(ctx, tn, oid)
+	return os.outbox.Get(ctx, tx, tn, oid)
 }
 
 func (os *OutboxService) UpdateOutbox(
@@ -96,11 +93,7 @@ func (os *OutboxService) UpdateOutbox(
 
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	return tx.Run(ctx, func() error {
-		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-			return err
-		}
-
-		o, err := os.outbox.Get(ctx, tn, oid)
+		o, err := os.outbox.Get(ctx, tx, tn, oid)
 		if err != nil {
 			return err
 		}
@@ -126,10 +119,10 @@ func (os *OutboxService) ListOutboxes(
 	ctx context.Context,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
-	// tx, err := es.txManager.Next(ctx, tid)
-	// if err != nil {
-	// 	return iterator.Error[*entity.Outbox](err)
-	// }
+	tx, err := os.txManager.Next(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Outbox](err)
+	}
 
 	// TODO: How do we lock this query?
 	// if err := t.concurrencyMgr.SLock(ctx, ItemID(oid.String())); err != nil {
@@ -137,7 +130,7 @@ func (os *OutboxService) ListOutboxes(
 	// }
 
 	tn := tablename.NewTenantFolder(tid).Outbox()
-	return os.outbox.List(ctx, tn)
+	return os.outbox.List(ctx, tx, tn)
 }
 
 func (os *OutboxService) UpdateOutboxPosition(

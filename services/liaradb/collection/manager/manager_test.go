@@ -47,7 +47,7 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), key.NewKey([]byte(d.key)))
+		v, err := m.Get(t.Context(), &logtesting.MockLog{}, key.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +61,7 @@ func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 }
 
 func testList(t *testing.T, want []int64, m *Manager) {
-	i, err := m.List(t.Context())
+	i, err := m.List(t.Context(), &logtesting.MockLog{})
 	if err != nil {
 		t.Fatal(err)
 	}

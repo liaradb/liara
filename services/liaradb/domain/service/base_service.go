@@ -38,8 +38,9 @@ func (s *baseService) insertRequestID(
 
 func (s *baseService) testRequestID(
 	ctx context.Context,
+	l span.Log,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	return s.idempotency.Test(ctx, tn, rqid)
+	return s.idempotency.Test(ctx, l, tn, rqid)
 }

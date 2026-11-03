@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
+	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type TenantService struct {
@@ -59,12 +60,8 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 		return err
 	}
 
-	tnt, err := ts.tc.Get(ctx, cmd.TenantID)
+	tnt, err := ts.tc.Get(ctx, tx, cmd.TenantID)
 	if err != nil {
-		return err
-	}
-
-	if err := tx.XLock(ctx, tablename.Tenant, cmd.TenantID.String()); err != nil {
 		return err
 	}
 
@@ -85,14 +82,16 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 
 	defer tx.Release()
 
-	if err := tx.SLock(ctx, tablename.Tenant, tenantID.String()); err != nil {
-		return nil, err
-	}
-
-	return ts.tc.Get(ctx, tenantID)
+	return ts.tc.Get(ctx, tx, tenantID)
 }
 
-// TODO: Create transaction
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	return ts.tc.List(ctx)
+	tx, err := ts.txManager.Next(ctx, value.DefaultTenantID)
+	if err != nil {
+		return iterator.Error[*entity.Tenant](err)
+	}
+
+	defer tx.Release()
+
+	return ts.tc.List(ctx, tx)
 }
