@@ -33,17 +33,21 @@ func (fc *FixedCollection) Insert(
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
-) error {
+) (link.RecordID, error) {
 	if err := tx.XLock(ctx, tn, k.String()); err != nil {
-		return err
+		return link.RecordID{}, err
 	}
 
 	rid, err := fc.rc.Insert(ctx, tx, tn, w)
 	if err != nil {
-		return err
+		return link.RecordID{}, err
 	}
 
-	return fc.c.Insert(ctx, tx, tn.Index(0), k, rid)
+	if err := fc.c.Insert(ctx, tx, tn.Index(0), k, rid); err != nil {
+		return link.RecordID{}, err
+	}
+
+	return rid, nil
 }
 
 func (fc *FixedCollection) GetByKey(

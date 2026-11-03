@@ -40,7 +40,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		if err := fc.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
+		if _, err := fc.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
@@ -141,7 +141,7 @@ func createData() []item {
 func insertData(ctx context.Context, tx span.Transaction, fc *FixedCollection, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		if err := fc.Insert(ctx, tx, tn, k, i.value); err != nil {
+		if _, err := fc.Insert(ctx, tx, tn, k, i.value); err != nil {
 			return err
 		}
 	}

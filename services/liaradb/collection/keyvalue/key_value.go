@@ -64,5 +64,6 @@ func (kv *KeyValue) Set(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	return kv.fc.Insert(ctx, tx, tn, k, w)
+	_, err := kv.fc.Insert(ctx, tx, tn, k, w)
+	return err
 }

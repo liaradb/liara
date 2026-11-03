@@ -74,7 +74,8 @@ func (o *Outbox) Insert(
 	e *entity.Outbox,
 ) error {
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, tx, tn, k, e)
+	_, err := o.fc.Insert(ctx, tx, tn, k, e)
+	return err
 }
 
 func (o *Outbox) Replace(

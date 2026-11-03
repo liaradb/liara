@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/scan"
@@ -20,58 +19,38 @@ import (
 
 // TODO: Create latching
 type EventLog struct {
-	fc      *fixed.FixedCollection
-	storage *storage.Storage
-	cursor  *btree.Cursor
-	l       *log.Log
+	fc *fixed.FixedCollection
+	c  *btree.Cursor
 }
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 	return &EventLog{
-		fc:      fixed.New(fixed.NewRecordCollection(s, l), c),
-		storage: s,
-		cursor:  c,
-		l:       l,
+		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
+		c:  c,
 	}
 }
 
 func (l *EventLog) Append(
 	ctx context.Context,
-	sl span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	e *entity.Event,
 ) error {
-	t := tip.NewTip(l.storage, tn.Collection())
-	s, err := t.Span(ctx, e.Size())
+	rid, err := l.fc.Insert(ctx, tx, tn, key.NewKey2(e.AggregateID.Bytes(), e.Version.Value()), e)
 	if err != nil {
 		return err
 	}
 
-	defer s.Release()
-
-	if err := e.Write(s.Writer()); err != nil {
+	if err := l.c.Insert(ctx, tx, tn.Index(1), key.NewKey(e.ID.Bytes()), rid); err != nil {
 		return err
 	}
 
-	if err := s.CommitAppend(ctx, sl); err != nil {
-		return err
-	}
-
-	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	if err := l.cursor.Insert(ctx, sl, tn.Index(0), k, t.RecordID()); err != nil {
-		return err
-	}
-
-	if err := l.cursor.Insert(ctx, sl, tn.Index(1), key.NewKey(e.ID.Bytes()), t.RecordID()); err != nil {
-		return err
-	}
-
-	return l.cursor.Insert(ctx, sl, tn.Index(2), key.NewKey(e.GlobalVersion.Bytes()), t.RecordID())
+	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey(e.GlobalVersion.Bytes()), rid)
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.Key) error {
 	fn := tn.Index(0)
-	_, err := l.cursor.Search(ctx, fn, k)
+	_, err := l.c.Search(ctx, fn, k)
 	if err == nil {
 		return btree.ErrExists
 	}
@@ -84,7 +63,7 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.
 }
 
 func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.EventID) (*entity.Event, error) {
-	rid, err := l.cursor.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
+	rid, err := l.c.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +75,7 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
+		for rid, err := range l.c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -150,7 +129,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
+		for rid, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -192,7 +171,7 @@ func (l *EventLog) Iterate(ctx context.Context, tx span.Transaction, tn tablenam
 }
 
 func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {
-	k, err := l.cursor.Maximum(ctx, tn.Index(2))
+	k, err := l.c.Maximum(ctx, tn.Index(2))
 	if err != nil {
 		if errors.Is(err, btree.ErrNotFound) {
 			return value.NewGlobalVersion(0), nil

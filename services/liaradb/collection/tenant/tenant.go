@@ -71,11 +71,12 @@ func (t *Tenant) Insert(
 	e *entity.Tenant,
 ) error {
 	k := key.NewKey(tid.Bytes())
-	return t.fc.Insert(ctx,
+	_, err := t.fc.Insert(ctx,
 		tx,
 		tablename.Tenant,
 		k,
 		e)
+	return err
 }
 
 func (t *Tenant) Replace(

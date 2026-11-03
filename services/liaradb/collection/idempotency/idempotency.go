@@ -74,7 +74,8 @@ func (i *Idempotency) Insert(
 	e *entity.RequestLog,
 ) error {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, tx, tn, k, e)
+	_, err := i.fc.Insert(ctx, tx, tn, k, e)
+	return err
 }
 
 func (i *Idempotency) Test(
