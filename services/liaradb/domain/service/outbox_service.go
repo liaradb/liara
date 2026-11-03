@@ -6,7 +6,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/outbox"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -79,9 +78,8 @@ func (os *OutboxService) GetOutbox(
 	return os.outbox.Get(ctx, tx, tn, oid)
 }
 
-func (os *OutboxService) UpdateOutbox(
+func (os *OutboxService) UpdateOutboxPosition(
 	ctx context.Context,
-	l span.Log,
 	tid value.TenantID,
 	oid value.OutboxID,
 	v value.GlobalVersion,
@@ -111,7 +109,7 @@ func (os *OutboxService) UpdateOutbox(
 			return err
 		}
 
-		return os.outbox.Replace(ctx, l, tn, oid, o)
+		return os.outbox.Replace(ctx, tx, tn, oid, o)
 	})
 }
 
@@ -131,20 +129,4 @@ func (os *OutboxService) ListOutboxes(
 
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	return os.outbox.List(ctx, tx, tn)
-}
-
-func (os *OutboxService) UpdateOutboxPosition(
-	ctx context.Context,
-	tid value.TenantID,
-	outboxID value.OutboxID,
-	globalVersion value.GlobalVersion,
-) error {
-	tx, err := os.txManager.Next(ctx, tid)
-	if err != nil {
-		return err
-	}
-
-	return tx.Run(ctx, func() error {
-		return os.UpdateOutbox(ctx, tx, tid, outboxID, globalVersion)
-	})
 }

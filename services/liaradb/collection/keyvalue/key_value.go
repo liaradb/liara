@@ -26,11 +26,11 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 
 func (kv *KeyValue) Get(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.GetByKey(ctx, l, tn, k)
+	s, err := kv.fc.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +40,11 @@ func (kv *KeyValue) Get(
 
 func (kv *KeyValue) List(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.fc.List(ctx, l, tn) {
+		for s, err := range kv.fc.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -59,10 +59,10 @@ func (kv *KeyValue) List(
 
 func (kv *KeyValue) Set(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	return kv.fc.Insert(ctx, l, tn, k, w)
+	return kv.fc.Insert(ctx, tx, tn, k, w)
 }

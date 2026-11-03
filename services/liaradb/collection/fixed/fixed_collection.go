@@ -33,12 +33,12 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 
 func (fc *FixedCollection) Insert(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	if err := l.XLock(ctx, tn, k.String()); err != nil {
+	if err := tx.XLock(ctx, tn, k.String()); err != nil {
 		return err
 	}
 
@@ -55,20 +55,20 @@ func (fc *FixedCollection) Insert(
 		return err
 	}
 
-	if err := s.CommitAppend(ctx, l); err != nil {
+	if err := s.CommitAppend(ctx, tx); err != nil {
 		return err
 	}
 
-	return fc.c.Insert(ctx, l, tn.Index(0), k, t.RecordID())
+	return fc.c.Insert(ctx, tx, tn.Index(0), k, t.RecordID())
 }
 
 func (fc *FixedCollection) GetByKey(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
-	if err := l.SLock(ctx, tn, k.String()); err != nil {
+	if err := tx.SLock(ctx, tn, k.String()); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +82,7 @@ func (fc *FixedCollection) GetByKey(
 
 func (fc *FixedCollection) List(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
@@ -92,7 +92,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			if err := l.SLock(ctx, tn, r.Key.String()); err != nil {
+			if err := tx.SLock(ctx, tn, r.Key.String()); err != nil {
 				yield(nil, err)
 				return
 			}
@@ -107,12 +107,12 @@ func (fc *FixedCollection) List(
 
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := fc.getForWritingByKey(ctx, l, tn, k)
+	s, err := fc.getForWritingByKey(ctx, tx, tn, k)
 	if err != nil {
 		return err
 	}
@@ -128,16 +128,16 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	return s.CommitUpdate(ctx, l)
+	return s.CommitUpdate(ctx, tx)
 }
 
 func (fc *FixedCollection) getForWritingByKey(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
-	if err := l.XLock(ctx, tn, k.String()); err != nil {
+	if err := tx.XLock(ctx, tn, k.String()); err != nil {
 		return nil, err
 	}
 
@@ -179,11 +179,11 @@ func (fc *FixedCollection) GetByRecordID(
 
 func (fc *FixedCollection) Test(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (bool, error) {
-	if err := l.SLock(ctx, tn, k.String()); err != nil {
+	if err := tx.SLock(ctx, tn, k.String()); err != nil {
 		return false, err
 	}
 

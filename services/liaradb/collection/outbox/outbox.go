@@ -27,12 +27,12 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Outbox {
 
 func (o *Outbox) Get(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.GetByKey(ctx, l, tn, k)
+	s, err := o.fc.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -42,11 +42,11 @@ func (o *Outbox) Get(
 
 func (o *Outbox) List(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.fc.List(ctx, l, tn) {
+		for s, err := range o.fc.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -68,24 +68,24 @@ func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
 
 func (o *Outbox) Insert(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, l, tn, k, e)
+	return o.fc.Insert(ctx, tx, tn, k, e)
 }
 
 func (o *Outbox) Replace(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	return o.fc.Replace(ctx,
-		l,
+		tx,
 		tn,
 		key.NewKey(oid.Bytes()),
 		e)

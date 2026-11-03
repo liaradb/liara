@@ -27,12 +27,12 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 
 func (i *Idempotency) Get(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.GetByKey(ctx, l, tn, k)
+	s, err := i.fc.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -42,11 +42,11 @@ func (i *Idempotency) Get(
 
 func (i *Idempotency) List(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.fc.List(ctx, l, tn) {
+		for s, err := range i.fc.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -68,21 +68,21 @@ func (*Idempotency) readRequestLog(s *span.Span) (*entity.RequestLog, error) {
 
 func (i *Idempotency) Insert(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	e *entity.RequestLog,
 ) error {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, l, tn, k, e)
+	return i.fc.Insert(ctx, tx, tn, k, e)
 }
 
 func (i *Idempotency) Test(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, l, tn, k)
+	return i.fc.Test(ctx, tx, tn, k)
 }

@@ -96,9 +96,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, l span.Log, o *Tenant, data []item) error {
+func insertData(ctx context.Context, tx span.Transaction, o *Tenant, data []item) error {
 	for _, i := range data {
-		if err := o.Insert(ctx, l, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, tx, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}

@@ -28,19 +28,19 @@ func newBaseService(
 
 func (s *baseService) insertRequestID(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	now value.Time,
 ) error {
-	return s.idempotency.Insert(ctx, l, tn, rqid, entity.NewRequestLog(rqid, now))
+	return s.idempotency.Insert(ctx, tx, tn, rqid, entity.NewRequestLog(rqid, now))
 }
 
 func (s *baseService) testRequestID(
 	ctx context.Context,
-	l span.Log,
+	tx span.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {
-	return s.idempotency.Test(ctx, l, tn, rqid)
+	return s.idempotency.Test(ctx, tx, tn, rqid)
 }

@@ -120,9 +120,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx span.Transaction, kv *KeyValue, tn tablename.TableName, data []item) error {
 	for _, i := range data {
-		if err := kv.Set(ctx, l, tn, key.NewKey([]byte(i.key)), base.NewFixedBytes(i.value)); err != nil {
+		if err := kv.Set(ctx, tx, tn, key.NewKey([]byte(i.key)), base.NewFixedBytes(i.value)); err != nil {
 			return err
 		}
 		synctest.Wait()

@@ -98,9 +98,9 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, l span.Log, o *Outbox, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx span.Transaction, o *Outbox, tn tablename.TableName, data []item) error {
 	for _, i := range data {
-		if err := o.Insert(ctx, l, tn, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, tx, tn, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
