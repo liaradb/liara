@@ -80,7 +80,6 @@ func TestFixedCollection(t *testing.T) {
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
-		pid := value.NewPartitionID(0)
 
 		data := createData()
 		slices.Reverse(data)
@@ -90,7 +89,7 @@ func TestFixedCollection(t *testing.T) {
 		}
 
 		testGet(ctx, t, fc, fn, fnIdx, data)
-		testList(ctx, t, data, fc, fn, fnIdx, pid)
+		testList(ctx, t, data, fc, fn, fnIdx)
 
 		synctest.Wait()
 	})
@@ -112,7 +111,6 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
 		fn := link.NewFileName("testfile")
 		fnIdx := link.NewFileName("testindex")
-		pid := value.NewPartitionID(0)
 
 		data := createData()
 
@@ -121,7 +119,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 		}
 
 		testGet(ctx, t, fc, fn, fnIdx, data)
-		testList(ctx, t, data, fc, fn, fnIdx, pid)
+		testList(ctx, t, data, fc, fn, fnIdx)
 
 		synctest.Wait()
 	})
@@ -189,9 +187,8 @@ func testList(
 	fc *FixedCollection,
 	fn link.FileName,
 	fnIdx link.FileName,
-	pid value.PartitionID,
 ) {
-	result, err := getListValues(ctx, data, fc, fn, fnIdx, pid)
+	result, err := getListValues(ctx, data, fc, fn, fnIdx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,11 +205,10 @@ func getListValues(
 	fc *FixedCollection,
 	fn link.FileName,
 	fnIdx link.FileName,
-	pid value.PartitionID,
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for s, err := range fc.List(ctx, fn, fnIdx, pid) {
+	for s, err := range fc.List(ctx, fn, fnIdx) {
 		if err != nil {
 			return nil, err
 		}

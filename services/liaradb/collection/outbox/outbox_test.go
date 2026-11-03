@@ -36,7 +36,7 @@ func testOutbox(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
+	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
 
 	data := createData()
 	slices.Reverse(data)
@@ -67,7 +67,7 @@ func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
+	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
 
 	data := createData()
 

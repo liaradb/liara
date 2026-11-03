@@ -13,9 +13,9 @@ func TestItemID(t *testing.T) {
 
 	id := "id"
 	tid := value.NewTenantID()
-	i := newItemID(tablename.New(tid), id)
+	i := newItemID(tablename.NewTenantFolder(tid).GlobalTable("table"), id)
 
-	want := fmt.Sprintf("%v|%v", tid.String(), id)
+	want := fmt.Sprintf("%v/table|%v", tid.String(), id)
 
 	if s := i.String(); s != want {
 		t.Errorf("incorrect string: %v, expected: %v", i, want)

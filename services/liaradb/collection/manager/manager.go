@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -28,7 +27,7 @@ func New(kv *keyvalue.KeyValue) *Manager {
 }
 
 func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
-	d, err := m.kv.Get(ctx, m.tn, value.PartitionID{}, k)
+	d, err := m.kv.Get(ctx, m.tn, k)
 	if err != nil {
 		return 0, err
 	}
@@ -39,12 +38,12 @@ func (m *Manager) Get(ctx context.Context, k key.Key) (int64, error) {
 }
 
 func (m *Manager) Insert(ctx context.Context, l span.Log, k key.Key, i int64) error {
-	return m.kv.Set(ctx, l, m.tn, value.PartitionID{}, k, base.NewInt64(i))
+	return m.kv.Set(ctx, l, m.tn, k, base.NewInt64(i))
 }
 
 func (m *Manager) List(ctx context.Context) ([]int64, error) {
 	result := make([]int64, 0)
-	for d, err := range m.kv.List(ctx, m.tn, value.PartitionID{}) {
+	for d, err := range m.kv.List(ctx, m.tn) {
 		if err != nil {
 			return nil, err
 		}

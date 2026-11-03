@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -28,10 +27,9 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 func (kv *KeyValue) Get(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.GetByKey(ctx, tn.KeyValue(pid), tn.Index(0, pid), k)
+	s, err := kv.fc.GetByKey(ctx, tn.Collection(), tn.Index(0), k)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +40,9 @@ func (kv *KeyValue) Get(
 func (kv *KeyValue) List(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.fc.List(ctx, tn.KeyValue(pid), tn.Index(0, value.NewPartitionID(0)), pid) {
+		for s, err := range kv.fc.List(ctx, tn.Collection(), tn.Index(0)) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -62,9 +59,8 @@ func (kv *KeyValue) Set(
 	ctx context.Context,
 	l span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	return kv.fc.Insert(ctx, l, tn.KeyValue(pid), tn.Index(0, pid), k, w)
+	return kv.fc.Insert(ctx, l, tn.Collection(), tn.Index(0), k, w)
 }

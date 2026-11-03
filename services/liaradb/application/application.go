@@ -44,7 +44,7 @@ const (
 func New(conf configuration) *Application {
 	fsys := filecache.New()
 
-	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "table"))
+	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "tenants"))
 	log := log.New(
 		int64(conf.BlockSize),
 		segment.PageID(segmentSize),

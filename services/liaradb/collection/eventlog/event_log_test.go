@@ -1,7 +1,6 @@
 package eventlog
 
 import (
-	"path"
 	"reflect"
 	"slices"
 	"testing"
@@ -25,8 +24,9 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	l := log.New(256, 2, 256, 100, s.FSys, "dir")
 	el := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
+	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
+	tn := tf.EventLog(pid)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -56,14 +56,14 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.Events(ctx, tn, pid) {
+	for e, err := range el.Events(ctx, tn) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,8 +87,9 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 	ctx := t.Context()
 	l := log.New(256, 2, 256, 100, s.FSys, "dir")
 	el := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
+	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
+	tn := tf.EventLog(pid)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -118,14 +119,14 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	partialResults := make([]*entity.Event, 0)
 
-	for n, err := range el.EventsAfterGlobalVersion(ctx, tn, pid, value.NewGlobalVersion(3)) {
+	for n, err := range el.EventsAfterGlobalVersion(ctx, tn, value.NewGlobalVersion(3)) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -148,8 +149,9 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	l := log.New(256, 2, 256, 100, s.FSys, "dir")
 	el := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
+	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
+	tn := tf.EventLog(pid)
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -179,12 +181,12 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	}}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	e, err := el.Find(ctx, tn, pid, records[2].ID)
+	e, err := el.Find(ctx, tn, records[2].ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +206,9 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	l := log.New(256, 2, 256, 100, s.FSys, "dir")
 	el := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString(path.Join(t.TempDir(), "testfile"))
+	tf := tablename.NewTenantFolder(value.NewTenantID())
+	pid := value.NewPartitionID(0)
+	tn := tf.EventLog(pid)
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 
@@ -237,9 +241,8 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 		Data:          value.NewData([]byte{}),
 	}}
 
-	pid := value.NewPartitionID(0)
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -247,7 +250,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	want := []entity.Event{*records[1], *records[3]}
 
 	result := make([]entity.Event, 0)
-	for e, err := range el.GetAggregate(ctx, tn, pid, aggregateID) {
+	for e, err := range el.GetAggregate(ctx, tn, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}

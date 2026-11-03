@@ -50,15 +50,14 @@ func TestKeyValue(t *testing.T) {
 				}
 
 				kv := New(s.Storage, btree.NewCursor(s.Storage), l)
-				tn := tablename.NewFromString("testfile")
-				pid := value.NewPartitionID(0)
+				tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
-				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, pid, c.data); err != nil {
+				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, c.data); err != nil {
 					t.Fatal(err)
 				}
 
-				testGet(ctx, t, kv, tn, pid, c.data)
-				testList(ctx, t, c.data, kv, tn, pid)
+				testGet(ctx, t, kv, tn, c.data)
+				testList(ctx, t, c.data, kv, tn)
 
 				synctest.Wait()
 			})
@@ -82,17 +81,16 @@ func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	}
 
 	kv := New(s.Storage, btree.NewCursor(s.Storage), l)
-	tn := tablename.NewFromString("testfile")
-	pid := value.NewPartitionID(0)
+	tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, pid, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, kv, tn, pid, data)
-	testList(ctx, t, data, kv, tn, pid)
+	testGet(ctx, t, kv, tn, data)
+	testList(ctx, t, data, kv, tn)
 
 	synctest.Wait()
 }
@@ -122,9 +120,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) error {
+func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.TableName, data []item) error {
 	for _, i := range data {
-		if err := kv.Set(ctx, l, tn, pid, key.NewKey([]byte(i.key)), base.NewFixedBytes(i.value)); err != nil {
+		if err := kv.Set(ctx, l, tn, key.NewKey([]byte(i.key)), base.NewFixedBytes(i.value)); err != nil {
 			return err
 		}
 		synctest.Wait()
@@ -132,9 +130,9 @@ func insertData(ctx context.Context, l span.Log, kv *KeyValue, tn tablename.Tabl
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, pid value.PartitionID, data []item) {
+func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, data []item) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, tn, pid, key.NewKey([]byte(i.key)))
+		value, err := kv.Get(ctx, tn, key.NewKey([]byte(i.key)))
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -147,8 +145,8 @@ func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.Table
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn tablename.TableName, pid value.PartitionID) {
-	result, err := getListValues(ctx, data, kv, tn, pid)
+func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn tablename.TableName) {
+	result, err := getListValues(ctx, data, kv, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,10 +157,10 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 	}
 }
 
-func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName, pid value.PartitionID) ([]string, error) {
+func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
-	for value, err := range kv.List(ctx, tn, pid) {
+	for value, err := range kv.List(ctx, tn) {
 		if err != nil {
 			return nil, err
 		}

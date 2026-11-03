@@ -37,7 +37,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
+	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 	slices.Reverse(data)
@@ -68,7 +68,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
+	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 

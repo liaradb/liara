@@ -77,7 +77,6 @@ func (fc *FixedCollection) List(
 	ctx context.Context,
 	fn link.FileName,
 	fnIdx link.FileName,
-	pid value.PartitionID,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
 		for r, err := range fc.c.All(ctx, fnIdx, 0, 0) {

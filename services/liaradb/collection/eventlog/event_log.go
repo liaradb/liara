@@ -39,10 +39,9 @@ func (l *EventLog) Append(
 	ctx context.Context,
 	sl span.Log,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	e *entity.Event,
 ) error {
-	t := tip.NewTip(l.storage, tn.EventLog(pid))
+	t := tip.NewTip(l.storage, tn.Collection())
 	s, err := t.Span(ctx, e.Size())
 	if err != nil {
 		return err
@@ -59,19 +58,19 @@ func (l *EventLog) Append(
 	}
 
 	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
-	if err := l.cursor.Insert(ctx, sl, tn.Index(0, pid), k, t.RecordID()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(0), k, t.RecordID()); err != nil {
 		return err
 	}
 
-	if err := l.cursor.Insert(ctx, sl, tn.Index(1, pid), key.NewKey(e.ID.Bytes()), t.RecordID()); err != nil {
+	if err := l.cursor.Insert(ctx, sl, tn.Index(1), key.NewKey(e.ID.Bytes()), t.RecordID()); err != nil {
 		return err
 	}
 
-	return l.cursor.Insert(ctx, sl, tn.Index(2, pid), key.NewKey(e.GlobalVersion.Bytes()), t.RecordID())
+	return l.cursor.Insert(ctx, sl, tn.Index(2), key.NewKey(e.GlobalVersion.Bytes()), t.RecordID())
 }
 
-func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid value.PartitionID, k key.Key) error {
-	fn := tn.Index(0, pid)
+func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.Key) error {
+	fn := tn.Index(0)
 	_, err := l.cursor.Search(ctx, fn, k)
 	if err == nil {
 		return btree.ErrExists
@@ -84,21 +83,21 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, pid va
 	return err
 }
 
-func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.EventID) (*entity.Event, error) {
-	rid, err := l.cursor.Search(ctx, tn.Index(1, pid), key.NewKey(id.Bytes()))
+func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.EventID) (*entity.Event, error) {
+	rid, err := l.cursor.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
 	if err != nil {
 		return nil, err
 	}
 
-	s, err := l.fc.GetByRecordID(ctx, tn.EventLog(pid), rid)
+	s, err := l.fc.GetByRecordID(ctx, tn.Collection(), rid)
 
 	return l.readEvent(s)
 }
 
-func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, pid value.PartitionID, id value.AggregateID) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		fn := tn.EventLog(pid)
-		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(0, pid), key.NewKey(id.Bytes()), 0, 0) {
+		fn := tn.Collection()
+		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -131,9 +130,9 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 	return &t, t.Read(s)
 }
 
-func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) Events(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for s, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
+		for s, err := range l.fc.List(ctx, tn.Collection(), tn.Index(0)) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -149,12 +148,11 @@ func (l *EventLog) Events(ctx context.Context, tn tablename.TableName, pid value
 func (l *EventLog) EventsAfterGlobalVersion(
 	ctx context.Context,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		fn := tn.EventLog(pid)
-		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(2, pid), key.NewKey(version.Bytes()), 0, 0) {
+		fn := tn.Collection()
+		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -180,9 +178,9 @@ func (l *EventLog) EventsAfterGlobalVersion(
 }
 
 // TODO: Iterate until highwater
-func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid value.PartitionID) iter.Seq2[[]byte, error] {
+func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range l.fc.List(ctx, tn.EventLog(pid), tn.Index(0, pid), pid) {
+		for s, err := range l.fc.List(ctx, tn.Collection(), tn.Index(0)) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -195,8 +193,8 @@ func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName, pid valu
 	}
 }
 
-func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName, pid value.PartitionID) (value.GlobalVersion, error) {
-	k, err := l.cursor.Maximum(ctx, tn.Index(2, pid))
+func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {
+	k, err := l.cursor.Maximum(ctx, tn.Index(2))
 	if err != nil {
 		if errors.Is(err, btree.ErrNotFound) {
 			return value.NewGlobalVersion(0), nil

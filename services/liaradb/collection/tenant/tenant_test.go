@@ -10,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -35,17 +34,16 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, data)
+	testList(ctx, t, data, o)
 
 	synctest.Wait()
 }
@@ -66,16 +64,15 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	}
 
 	o := New(s.Storage, btree.NewCursor(s.Storage), l)
-	n := tablename.NewFromString("testfile")
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, o, data)
+	testList(ctx, t, data, o)
 
 	synctest.Wait()
 }
@@ -99,9 +96,9 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, l span.Log, o *Tenant, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, l span.Log, o *Tenant, data []item) error {
 	for _, i := range data {
-		if err := o.Insert(ctx, l, tn, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, l, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -112,11 +109,10 @@ func testGet(
 	ctx context.Context,
 	t *testing.T,
 	kv *Tenant,
-	n tablename.TableName,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, n, i.value.ID())
+		value, err := kv.Get(ctx, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -132,9 +128,8 @@ func testList(
 	t *testing.T,
 	data []item,
 	o *Tenant,
-	n tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, o, n)
+	result, err := getListValues(ctx, data, o)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,11 +144,10 @@ func getListValues(
 	ctx context.Context,
 	data []item,
 	o *Tenant,
-	n tablename.TableName,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, n) {
+	for value, err := range o.List(ctx) {
 		if err != nil {
 			return nil, err
 		}

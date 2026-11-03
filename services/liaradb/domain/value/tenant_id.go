@@ -6,6 +6,8 @@ import (
 	"github.com/liaradb/liaradb/encoder/base"
 )
 
+var DefaultTenantID = NewTenantIDFromUUID(uuid.Nil())
+
 type TenantID struct {
 	baseID
 }

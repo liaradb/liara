@@ -3,6 +3,7 @@ package filecache
 import (
 	"errors"
 	"io/fs"
+	"path"
 	"sync"
 )
 
@@ -37,6 +38,10 @@ func (c *Cache) OpenFile(name string) (File, error) {
 	df, ok := c.files[name]
 	if ok {
 		return df, nil
+	}
+
+	if err := c.fsys.MkDirAll(path.Dir(name)); err != nil {
+		return nil, err
 	}
 
 	f, err := c.fsys.OpenFile(name)

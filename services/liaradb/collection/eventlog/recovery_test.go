@@ -2,7 +2,6 @@ package eventlog
 
 import (
 	"context"
-	"path"
 	"reflect"
 	"slices"
 	"testing"
@@ -30,8 +29,9 @@ func testRecovery(t *testing.T) {
 
 	fsys := filetesting.New(nil)
 	dir := t.TempDir()
-	tn := tablename.NewFromString(path.Join(dir, "testfile"))
+	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
+	tn := tf.EventLog(pid)
 
 	var max int = 2
 	var bs int64 = 1024
@@ -63,8 +63,8 @@ func testRecovery(t *testing.T) {
 		Data:          value.NewData([]byte{}),
 	}}
 
-	write(t, ctx, fsys, max, bs, dir, tn, pid, records)
-	recover(t, ctx, fsys, max, bs, dir, tn, pid, records)
+	write(t, ctx, fsys, max, bs, dir, tn, records)
+	recover(t, ctx, fsys, max, bs, dir, tn, records)
 }
 
 func write(
@@ -75,7 +75,6 @@ func write(
 	bs int64,
 	dir string,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	events []*entity.Event,
 ) {
 	l := log.New(256, 2, 256, 100, fsys, "dir")
@@ -92,7 +91,7 @@ func write(
 	}
 
 	for _, r := range events {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, pid, r); err != nil {
+		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -110,7 +109,6 @@ func recover(
 	bs int64,
 	dir string,
 	tn tablename.TableName,
-	pid value.PartitionID,
 	events []*entity.Event,
 ) {
 	l := log.New(256, 2, 256, 100, fsys, "dir")
@@ -128,7 +126,7 @@ func recover(
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.Events(ctx, tn, pid) {
+	for e, err := range el.Events(ctx, tn) {
 		if err != nil {
 			t.Fatal(err)
 		}

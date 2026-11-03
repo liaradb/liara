@@ -48,7 +48,8 @@ func NewEventService(
 func (es *EventService) InitGlobalVersions(ctx context.Context, tIDs []value.TenantID) error {
 	for _, tid := range tIDs {
 		// TODO: Restore all partitions from disk
-		gv, err := es.eventLog.GetMaxGlobalVersion(ctx, tablename.New(tid), value.NewPartitionID(0))
+		tf := tablename.NewTenantFolder(tid)
+		gv, err := es.eventLog.GetMaxGlobalVersion(ctx, tf.EventLog(value.NewPartitionID(0)))
 		if err != nil {
 			return err
 		}
@@ -75,7 +76,7 @@ func (es *EventService) Append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, func() error {
-		tn := tablename.New(cmd.TenantID)
+		tn := tablename.NewTenantFolder(cmd.TenantID).EventLog(cmd.PartitionID)
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
@@ -126,7 +127,7 @@ func (es *EventService) TestIdempotency(
 
 	defer tx.Release()
 
-	tn := tablename.New(qry.TenantID)
+	tn := tablename.NewTenantFolder(qry.TenantID).RequestLog()
 	if err := tx.SLock(ctx, tn, qry.RequestID.String()); err != nil {
 		return false, err
 	}
@@ -140,7 +141,7 @@ func (es *EventService) Get(
 	pid value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	tx, err := es.txManager.Next(ctx, tid)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
@@ -153,7 +154,7 @@ func (es *EventService) Get(
 	}
 
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range es.eventLog.GetAggregate(ctx, tn, pid, id) {
+		for e, err := range es.eventLog.GetAggregate(ctx, tn, id) {
 			if !yield(e, err) {
 				return
 			}
@@ -168,7 +169,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	tx, err := es.txManager.Next(ctx, tid)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
@@ -181,7 +182,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	}
 
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range es.eventLog.GetAggregate(ctx, tn, pid, id) {
+		for e, err := range es.eventLog.GetAggregate(ctx, tn, id) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -216,8 +217,7 @@ func (es *EventService) GetAfterGlobalVersion(
 		// TODO: How do we handle a range?
 		count := 0
 		if err := tx.Run(ctx, func() error {
-			tn := tablename.New(tid)
-			for e, err := range es.EventsAfterGlobalVersion(ctx, tn, partitionRange.Low(), version) {
+			for e, err := range es.EventsAfterGlobalVersion(ctx, tid, partitionRange.Low(), version) {
 				if err != nil {
 					yield(nil, err)
 					return err
@@ -238,7 +238,7 @@ func (es *EventService) GetAfterGlobalVersion(
 
 func (es *EventService) Events(
 	ctx context.Context,
-	tn tablename.TableName,
+	tid value.TenantID,
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
@@ -250,7 +250,8 @@ func (es *EventService) Events(
 
 		// defer t.release()
 
-		for e, err := range es.eventLog.Events(ctx, tn, pid) {
+		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		for e, err := range es.eventLog.Events(ctx, tn) {
 			if !yield(e, err) {
 				return
 			}
@@ -260,7 +261,7 @@ func (es *EventService) Events(
 
 func (es *EventService) EventsAfterGlobalVersion(
 	ctx context.Context,
-	tn tablename.TableName,
+	tid value.TenantID,
 	pid value.PartitionID,
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
@@ -273,7 +274,8 @@ func (es *EventService) EventsAfterGlobalVersion(
 
 		// defer t.release()
 
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tn, pid, version) {
+		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tn, version) {
 			if !yield(e, err) {
 				return
 			}
@@ -293,7 +295,7 @@ func (es *EventService) getOutbox(
 
 	defer tx.Release()
 
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	if err := tx.SLock(ctx, tn, oid.String()); err != nil {
 		return nil, err
 	}
@@ -322,15 +324,16 @@ func (es *EventService) GetByOutbox(
 
 func (es *EventService) SetValue(
 	ctx context.Context,
-	tn tablename.TableName,
+	tid value.TenantID,
 	r *entity.Row,
 	data []byte,
 ) error {
-	tx, err := es.txManager.Next(ctx, tn.TenantID())
+	tx, err := es.txManager.Next(ctx, tid)
 	if err != nil {
 		return err
 	}
 
+	tn := tablename.NewTenantFolder(tid).GlobalTable("value")
 	if err := tx.XLock(ctx, tn, r.ID().String()); err != nil {
 		return err
 	}

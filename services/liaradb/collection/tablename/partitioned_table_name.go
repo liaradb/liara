@@ -30,3 +30,7 @@ func (t PartitionedTableName) Collection() link.FileName {
 func (t PartitionedTableName) Index(i base.Uint32) link.FileName {
 	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v--%v.bt", t.name, i, t.pid)))
 }
+
+func (t PartitionedTableName) String() string {
+	return path.Join(t.tf.String(), fmt.Sprintf("%v--%v", t.name, t.pid))
+}

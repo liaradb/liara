@@ -42,7 +42,7 @@ func (os *OutboxService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	oid := value.NewOutboxID()
 	if err := tx.XLock(ctx, tn, oid.String()); err != nil {
 		return value.OutboxID{}, err
@@ -74,7 +74,7 @@ func (os *OutboxService) GetOutbox(
 
 	defer tx.Release()
 
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	if err := tx.SLock(ctx, tn, oid.String()); err != nil {
 		return nil, err
 	}
@@ -85,15 +85,16 @@ func (os *OutboxService) GetOutbox(
 func (os *OutboxService) UpdateOutbox(
 	ctx context.Context,
 	l span.Log,
-	tn tablename.TableName,
+	tid value.TenantID,
 	oid value.OutboxID,
 	v value.GlobalVersion,
 ) error {
-	tx, err := os.txManager.Next(ctx, tn.TenantID())
+	tx, err := os.txManager.Next(ctx, tid)
 	if err != nil {
 		return err
 	}
 
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	return tx.Run(ctx, func() error {
 		if err := tx.XLock(ctx, tn, oid.String()); err != nil {
 			return err
@@ -135,7 +136,7 @@ func (os *OutboxService) ListOutboxes(
 	// 	return nil, err
 	// }
 
-	tn := tablename.New(tid)
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	return os.outbox.List(ctx, tn)
 }
 
@@ -151,7 +152,6 @@ func (os *OutboxService) UpdateOutboxPosition(
 	}
 
 	return tx.Run(ctx, func() error {
-		tn := tablename.New(tid)
-		return os.UpdateOutbox(ctx, tx, tn, outboxID, globalVersion)
+		return os.UpdateOutbox(ctx, tx, tid, outboxID, globalVersion)
 	})
 }

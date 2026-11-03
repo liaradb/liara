@@ -27,3 +27,7 @@ func (t GlobalTableName) Collection() link.FileName {
 func (t GlobalTableName) Index(i base.Uint32) link.FileName {
 	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v.bt", t.name, i)))
 }
+
+func (t GlobalTableName) String() string {
+	return path.Join(t.tf.String(), t.name)
+}
