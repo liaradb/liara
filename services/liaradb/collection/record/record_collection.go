@@ -1,11 +1,11 @@
-package fixed
+package record
 
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"

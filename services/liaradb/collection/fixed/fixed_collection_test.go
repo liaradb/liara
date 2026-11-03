@@ -12,6 +12,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -33,7 +34,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
@@ -75,7 +76,7 @@ func TestFixedCollection(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
@@ -105,7 +106,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()

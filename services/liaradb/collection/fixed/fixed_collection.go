@@ -7,6 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
@@ -16,11 +17,11 @@ import (
 // TODO: Create a shared goroutine for each file to manage storage
 // TODO: Separate out Record collection from key value collection
 type FixedCollection struct {
-	rc *RecordCollection
+	rc *record.RecordCollection
 	c  *btree.Cursor
 }
 
-func New(rc *RecordCollection, c *btree.Cursor) *FixedCollection {
+func New(rc *record.RecordCollection, c *btree.Cursor) *FixedCollection {
 	return &FixedCollection{
 		rc: rc,
 		c:  c,

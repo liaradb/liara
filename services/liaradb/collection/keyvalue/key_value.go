@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
@@ -20,7 +21,7 @@ type KeyValue struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 	return &KeyValue{
-		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
+		fc: fixed.New(record.NewRecordCollection(s, l), c),
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -21,7 +22,7 @@ type Idempotency struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 	return &Idempotency{
-		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
+		fc: fixed.New(record.NewRecordCollection(s, l), c),
 	}
 }
 
