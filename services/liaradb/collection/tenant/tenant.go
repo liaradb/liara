@@ -21,7 +21,7 @@ type Tenant struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Tenant {
 	return &Tenant{
-		fc: fixed.New(s, c, l),
+		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
 	}
 }
 

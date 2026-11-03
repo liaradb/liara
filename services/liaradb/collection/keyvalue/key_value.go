@@ -20,7 +20,7 @@ type KeyValue struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 	return &KeyValue{
-		fc: fixed.New(s, c, l),
+		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
 	}
 }
 

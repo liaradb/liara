@@ -33,7 +33,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
@@ -75,7 +75,7 @@ func TestFixedCollection(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
@@ -105,7 +105,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		fc := New(NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()

@@ -21,7 +21,7 @@ type Outbox struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Outbox {
 	return &Outbox{
-		fc: fixed.New(s, c, l),
+		fc: fixed.New(fixed.NewRecordCollection(s, l), c),
 	}
 }
 

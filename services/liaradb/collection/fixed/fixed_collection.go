@@ -9,25 +9,21 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tip"
 	"github.com/liaradb/liaradb/encoder/serializer"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/transaction/log"
 )
 
 // TODO: Create a shared goroutine for each file to manage storage
+// TODO: Separate out Record collection from key value collection
 type FixedCollection struct {
-	s *storage.Storage
-	c *btree.Cursor
-	l *log.Log
+	rc *RecordCollection
+	c  *btree.Cursor
 }
 
-func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
+func New(rc *RecordCollection, c *btree.Cursor) *FixedCollection {
 	return &FixedCollection{
-		s: s,
-		c: c,
-		l: l,
+		rc: rc,
+		c:  c,
 	}
 }
 
@@ -42,24 +38,12 @@ func (fc *FixedCollection) Insert(
 		return err
 	}
 
-	t := tip.NewTip(fc.s, tn.Collection())
-
-	s, err := t.Span(ctx, w.Size())
+	rid, err := fc.rc.Insert(ctx, tx, tn, w)
 	if err != nil {
 		return err
 	}
 
-	defer s.Release()
-
-	if err := w.Write(s.Writer()); err != nil {
-		return err
-	}
-
-	if err := s.CommitAppend(ctx, tx); err != nil {
-		return err
-	}
-
-	return fc.c.Insert(ctx, tx, tn.Index(0), k, t.RecordID())
+	return fc.c.Insert(ctx, tx, tn.Index(0), k, rid)
 }
 
 func (fc *FixedCollection) GetByKey(
@@ -77,7 +61,7 @@ func (fc *FixedCollection) GetByKey(
 		return nil, err
 	}
 
-	return fc.GetByRecordID(ctx, tn, rid)
+	return fc.rc.Get(ctx, tn, rid)
 }
 
 func (fc *FixedCollection) List(
@@ -97,7 +81,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			s, err := fc.GetByRecordID(ctx, tn, r.RecordID)
+			s, err := fc.rc.Get(ctx, tn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -146,7 +130,7 @@ func (fc *FixedCollection) getForWritingByKey(
 		return nil, err
 	}
 
-	return fc.GetByRecordID(ctx, tn, rid)
+	return fc.rc.Get(ctx, tn, rid)
 }
 
 func (fc *FixedCollection) GetByRecordID(
@@ -154,27 +138,7 @@ func (fc *FixedCollection) GetByRecordID(
 	tn tablename.TableName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	fbid := tn.Collection().FileBlockID(rid.Block())
-	b, err := fc.s.Request(ctx, fbid)
-	if err != nil {
-		return nil, err
-	}
-
-	s := span.New()
-	f := s.AppendSlot(b, rid.SlotID())
-
-	for f.NextBlockID() != 0 {
-		fbid.SetBlockID(f.NextBlockID())
-		b, err := fc.s.Request(ctx, fbid)
-		if err != nil {
-			s.Release()
-			return nil, err
-		}
-
-		f = s.AppendSlot(b, link.SlotID(0))
-	}
-
-	return s, nil
+	return fc.rc.Get(ctx, tn, rid)
 }
 
 func (fc *FixedCollection) Test(

@@ -28,7 +28,7 @@ type EventLog struct {
 
 func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 	return &EventLog{
-		fc:      fixed.New(s, c, l),
+		fc:      fixed.New(fixed.NewRecordCollection(s, l), c),
 		storage: s,
 		cursor:  c,
 		l:       l,
