@@ -30,7 +30,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.GetByKey(ctx, tablename.Tenant.Collection(), tablename.Manager.Index(0), k)
+	s, err := t.fc.GetByKey(ctx, tablename.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (t *Tenant) List(
 	ctx context.Context,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.fc.List(ctx, tablename.Tenant.Collection(), tablename.Manager.Index(0)) {
+		for s, err := range t.fc.List(ctx, tablename.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -71,8 +71,7 @@ func (t *Tenant) Insert(
 	k := key.NewKey(tid.Bytes())
 	return t.fc.Insert(ctx,
 		l,
-		tablename.Tenant.Collection(),
-		tablename.Manager.Index(0),
+		tablename.Tenant,
 		k,
 		e)
 }
@@ -85,9 +84,7 @@ func (t *Tenant) Replace(
 ) error {
 	return t.fc.Replace(ctx,
 		l,
-		tablename.Tenant.Collection(),
-		tablename.Manager.Index(0),
-		value.PartitionID{},
+		tablename.Tenant,
 		key.NewKey(tid.Bytes()),
 		e)
 }

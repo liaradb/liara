@@ -31,7 +31,7 @@ func (o *Outbox) Get(
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.GetByKey(ctx, tn.Collection(), tn.Index(0), k)
+	s, err := o.fc.GetByKey(ctx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (o *Outbox) List(
 	tn tablename.TableName,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.fc.List(ctx, tn.Collection(), tn.Index(0)) {
+		for s, err := range o.fc.List(ctx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -72,7 +72,7 @@ func (o *Outbox) Insert(
 	e *entity.Outbox,
 ) error {
 	k := key.NewKey(oid.Bytes())
-	return o.fc.Insert(ctx, l, tn.Collection(), tn.Index(0), k, e)
+	return o.fc.Insert(ctx, l, tn, k, e)
 }
 
 func (o *Outbox) Replace(
@@ -84,9 +84,7 @@ func (o *Outbox) Replace(
 ) error {
 	return o.fc.Replace(ctx,
 		l,
-		tn.Collection(),
-		tn.Index(0),
-		value.PartitionID{},
+		tn,
 		key.NewKey(oid.Bytes()),
 		e)
 }

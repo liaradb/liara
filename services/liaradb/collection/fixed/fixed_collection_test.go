@@ -13,10 +13,10 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -34,19 +34,17 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 		}
 
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
+		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
-		fn := link.NewFileName("testfile")
-		fnIdx := link.NewFileName("testindex")
-		// pid := value.NewPartitionID(0)
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		if err := fc.Insert(t.Context(), &logtesting.MockLog{}, fn, fnIdx, k, b); err != nil {
+		if err := fc.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
-		sp, err := fc.GetByKey(t.Context(), fn, fnIdx, k)
+		sp, err := fc.GetByKey(t.Context(), tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -78,18 +76,17 @@ func TestFixedCollection(t *testing.T) {
 		}
 
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
-		fn := link.NewFileName("testfile")
-		fnIdx := link.NewFileName("testindex")
+		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
 		slices.Reverse(data)
 
-		if err := insertData(ctx, &logtesting.MockLog{}, fc, fn, fnIdx, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, fc, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, fc, fn, fnIdx, data)
-		testList(ctx, t, data, fc, fn, fnIdx)
+		testGet(ctx, t, fc, tn, data)
+		testList(ctx, t, data, fc, tn)
 
 		synctest.Wait()
 	})
@@ -109,17 +106,16 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 		}
 
 		fc := New(s.Storage, btree.NewCursor(s.Storage), l)
-		fn := link.NewFileName("testfile")
-		fnIdx := link.NewFileName("testindex")
+		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
 
-		if err := insertData(ctx, &logtesting.MockLog{}, fc, fn, fnIdx, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, fc, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, fc, fn, fnIdx, data)
-		testList(ctx, t, data, fc, fn, fnIdx)
+		testGet(ctx, t, fc, tn, data)
+		testList(ctx, t, data, fc, tn)
 
 		synctest.Wait()
 	})
@@ -142,10 +138,10 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, l span.Log, fc *FixedCollection, fn link.FileName, fnIdx link.FileName, data []item) error {
+func insertData(ctx context.Context, l span.Log, fc *FixedCollection, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		if err := fc.Insert(ctx, l, fn, fnIdx, k, i.value); err != nil {
+		if err := fc.Insert(ctx, l, tn, k, i.value); err != nil {
 			return err
 		}
 	}
@@ -156,15 +152,14 @@ func testGet(
 	ctx context.Context,
 	t *testing.T,
 	fc *FixedCollection,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 	data []item,
 ) {
 	t.Helper()
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := fc.GetByKey(ctx, fn, fnIdx, k)
+		value, err := fc.GetByKey(ctx, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -185,10 +180,9 @@ func testList(
 	t *testing.T,
 	data []item,
 	fc *FixedCollection,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, fc, fn, fnIdx)
+	result, err := getListValues(ctx, data, fc, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,12 +197,11 @@ func getListValues(
 	ctx context.Context,
 	data []item,
 	fc *FixedCollection,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for s, err := range fc.List(ctx, fn, fnIdx) {
+	for s, err := range fc.List(ctx, tn) {
 		if err != nil {
 			return nil, err
 		}

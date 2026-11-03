@@ -29,7 +29,7 @@ func (kv *KeyValue) Get(
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.GetByKey(ctx, tn.Collection(), tn.Index(0), k)
+	s, err := kv.fc.GetByKey(ctx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (kv *KeyValue) List(
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.fc.List(ctx, tn.Collection(), tn.Index(0)) {
+		for s, err := range kv.fc.List(ctx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -62,5 +62,5 @@ func (kv *KeyValue) Set(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	return kv.fc.Insert(ctx, l, tn.Collection(), tn.Index(0), k, w)
+	return kv.fc.Insert(ctx, l, tn, k, w)
 }

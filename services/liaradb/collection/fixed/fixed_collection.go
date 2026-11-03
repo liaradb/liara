@@ -8,8 +8,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/collection/tip"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -34,12 +34,11 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *FixedCollection {
 func (fc *FixedCollection) Insert(
 	ctx context.Context,
 	l span.Log,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	t := tip.NewTip(fc.s, fn)
+	t := tip.NewTip(fc.s, tn.Collection())
 
 	s, err := t.Span(ctx, w.Size())
 	if err != nil {
@@ -56,30 +55,28 @@ func (fc *FixedCollection) Insert(
 		return err
 	}
 
-	return fc.c.Insert(ctx, l, fnIdx, k, t.RecordID())
+	return fc.c.Insert(ctx, l, tn.Index(0), k, t.RecordID())
 }
 
 func (fc *FixedCollection) GetByKey(
 	ctx context.Context,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
-	rid, err := fc.c.Search(ctx, fnIdx, k)
+	rid, err := fc.c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return nil, err
 	}
 
-	return fc.GetByRecordID(ctx, fn, rid)
+	return fc.GetByRecordID(ctx, tn, rid)
 }
 
 func (fc *FixedCollection) List(
 	ctx context.Context,
-	fn link.FileName,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
-		for r, err := range fc.c.All(ctx, fnIdx, 0, 0) {
+		for r, err := range fc.c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -87,7 +84,7 @@ func (fc *FixedCollection) List(
 
 			// TODO: Lock record
 
-			s, err := fc.GetByRecordID(ctx, fn, r.RecordID)
+			s, err := fc.GetByRecordID(ctx, tn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -98,13 +95,11 @@ func (fc *FixedCollection) List(
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
 	l span.Log,
-	fn link.FileName,
-	fnIdx link.FileName,
-	pid value.PartitionID,
+	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := fc.GetByKey(ctx, fn, fnIdx, k)
+	s, err := fc.GetByKey(ctx, tn, k)
 	if err != nil {
 		return err
 	}
@@ -125,10 +120,10 @@ func (fc *FixedCollection) Replace(
 
 func (fc *FixedCollection) GetByRecordID(
 	ctx context.Context,
-	fn link.FileName,
+	tn tablename.TableName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	fbid := fn.FileBlockID(rid.Block())
+	fbid := tn.Collection().FileBlockID(rid.Block())
 	b, err := fc.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
@@ -153,10 +148,10 @@ func (fc *FixedCollection) GetByRecordID(
 
 func (fc *FixedCollection) Test(
 	ctx context.Context,
-	fnIdx link.FileName,
+	tn tablename.TableName,
 	k key.Key,
 ) (bool, error) {
-	_, err := fc.c.Search(ctx, fnIdx, k)
+	_, err := fc.c.Search(ctx, tn.Index(0), k)
 	if errors.Is(err, btree.ErrNotFound) {
 		return true, nil
 	}

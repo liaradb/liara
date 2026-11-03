@@ -31,7 +31,7 @@ func (i *Idempotency) Get(
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.GetByKey(ctx, tn.Collection(), tn.Index(0), k)
+	s, err := i.fc.GetByKey(ctx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (i *Idempotency) List(
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.fc.List(ctx, tn.Collection(), tn.Index(0)) {
+		for s, err := range i.fc.List(ctx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -72,7 +72,7 @@ func (i *Idempotency) Insert(
 	e *entity.RequestLog,
 ) error {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Insert(ctx, l, tn.Collection(), tn.Index(0), k, e)
+	return i.fc.Insert(ctx, l, tn, k, e)
 }
 
 func (i *Idempotency) Test(
@@ -81,5 +81,5 @@ func (i *Idempotency) Test(
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, tn.Index(0), k)
+	return i.fc.Test(ctx, tn, k)
 }

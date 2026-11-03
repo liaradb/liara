@@ -89,21 +89,20 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 		return nil, err
 	}
 
-	s, err := l.fc.GetByRecordID(ctx, tn.Collection(), rid)
+	s, err := l.fc.GetByRecordID(ctx, tn, rid)
 
 	return l.readEvent(s)
 }
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		fn := tn.Collection()
 		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, fn, rid)
+			s, err := l.fc.GetByRecordID(ctx, tn, rid)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -132,7 +131,7 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 
 func (l *EventLog) Events(ctx context.Context, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for s, err := range l.fc.List(ctx, tn.Collection(), tn.Index(0)) {
+		for s, err := range l.fc.List(ctx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -151,14 +150,13 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		fn := tn.Collection()
 		for rid, err := range l.cursor.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, fn, rid)
+			s, err := l.fc.GetByRecordID(ctx, tn, rid)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -180,7 +178,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 // TODO: Iterate until highwater
 func (l *EventLog) Iterate(ctx context.Context, tn tablename.TableName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range l.fc.List(ctx, tn.Collection(), tn.Index(0)) {
+		for s, err := range l.fc.List(ctx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
