@@ -5,7 +5,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/collection/span"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -27,10 +26,10 @@ func NewRecordCollection(s *storage.Storage, l *log.Log) *RecordCollection {
 func (rc *RecordCollection) Insert(
 	ctx context.Context,
 	tx span.Transaction,
-	tn tablename.TableName,
+	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {
-	t := tip.NewTip(rc.s, tn.Collection())
+	t := tip.NewTip(rc.s, fn)
 
 	s, err := t.Span(ctx, w.Size())
 	if err != nil {
@@ -52,10 +51,10 @@ func (rc *RecordCollection) Insert(
 
 func (rc *RecordCollection) Get(
 	ctx context.Context,
-	tn tablename.TableName,
+	fn link.FileName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	fbid := tn.Collection().FileBlockID(rid.Block())
+	fbid := fn.FileBlockID(rid.Block())
 	b, err := rc.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err

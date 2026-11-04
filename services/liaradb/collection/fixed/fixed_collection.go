@@ -39,7 +39,7 @@ func (fc *FixedCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	rid, err := fc.rc.Insert(ctx, tx, tn, w)
+	rid, err := fc.rc.Insert(ctx, tx, tn.Collection(), w)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -66,7 +66,7 @@ func (fc *FixedCollection) GetByKey(
 		return nil, err
 	}
 
-	return fc.rc.Get(ctx, tn, rid)
+	return fc.rc.Get(ctx, tn.Collection(), rid)
 }
 
 func (fc *FixedCollection) List(
@@ -75,6 +75,7 @@ func (fc *FixedCollection) List(
 	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
+		fn := tn.Collection()
 		for r, err := range fc.c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
 				yield(nil, err)
@@ -86,7 +87,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			s, err := fc.rc.Get(ctx, tn, r.RecordID)
+			s, err := fc.rc.Get(ctx, fn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -135,7 +136,7 @@ func (fc *FixedCollection) getForWritingByKey(
 		return nil, err
 	}
 
-	return fc.rc.Get(ctx, tn, rid)
+	return fc.rc.Get(ctx, tn.Collection(), rid)
 }
 
 func (fc *FixedCollection) GetByRecordID(
@@ -143,7 +144,7 @@ func (fc *FixedCollection) GetByRecordID(
 	tn tablename.TableName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	return fc.rc.Get(ctx, tn, rid)
+	return fc.rc.Get(ctx, tn.Collection(), rid)
 }
 
 func (fc *FixedCollection) Test(
