@@ -37,12 +37,13 @@ type Manager struct {
 func NewManager(
 	log *log.Log,
 	storage *storage.Storage,
+	c *collection.Collections,
 	ltInSize int,
 ) *Manager {
 	return &Manager{
 		log:         log,
 		storage:     storage,
-		collections: collection.NewCollections(storage, log),
+		collections: c,
 		lockTable:   locktable.New[ItemID](ltInSize),
 		txReqs:      make(async.Handler[value.TenantID, *Transaction]),
 		returns:     make(chan record.TransactionID, returnSize),

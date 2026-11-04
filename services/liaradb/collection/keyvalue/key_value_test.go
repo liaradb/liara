@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -39,17 +38,7 @@ func TestKeyValue(t *testing.T) {
 
 			storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
 				ctx := t.Context()
-
-				l := log.New(256, 2, 256, 100, s.FSys, "dir")
-				if err := l.Run(t.Context()); err != nil {
-					t.Fatal(err)
-				}
-
-				if err := l.StartWriter(); err != nil {
-					t.Fatal(err)
-				}
-
-				kv := New(s.Storage, btree.NewCursor(s.Storage), l)
+				kv := New(s.Storage, btree.NewCursor(s.Storage))
 				tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, c.data); err != nil {
@@ -71,16 +60,7 @@ func TestKeyValue__LargeBuffer(t *testing.T) {
 
 func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	if err := l.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
-
-	kv := New(s.Storage, btree.NewCursor(s.Storage), l)
+	kv := New(s.Storage, btree.NewCursor(s.Storage))
 	tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 	data := createData()

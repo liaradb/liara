@@ -9,24 +9,21 @@ import (
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/transaction/log"
 )
 
 type RecordCollection struct {
 	s *storage.Storage
-	l *log.Log
 }
 
-func NewRecordCollection(s *storage.Storage, l *log.Log) *RecordCollection {
+func NewRecordCollection(s *storage.Storage) *RecordCollection {
 	return &RecordCollection{
 		s: s,
-		l: l,
 	}
 }
 
 func (rc *RecordCollection) Insert(
 	ctx context.Context,
-	tx span.Log,
+	l span.Log,
 	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {
@@ -43,7 +40,7 @@ func (rc *RecordCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	if err := s.CommitAppend(ctx, tx); err != nil {
+	if err := s.CommitAppend(ctx, l); err != nil {
 		return link.RecordID{}, err
 	}
 
@@ -78,4 +75,30 @@ func (rc *RecordCollection) Get(
 	}
 
 	return s, nil
+}
+
+func (rc *RecordCollection) Replace(
+	ctx context.Context,
+	l span.Log,
+	fn link.FileName,
+	rid link.RecordID,
+	w serializer.SizedSerializer,
+) error {
+	s, err := rc.Get(ctx, fn, rid)
+	if err != nil {
+		return err
+	}
+
+	defer s.Release()
+
+	if w.Size() > s.Length() {
+		// TODO: Verify data can fit
+		panic("support resizing")
+	}
+
+	if err := w.Write(s.Writer()); err != nil {
+		return err
+	}
+
+	return s.CommitUpdate(ctx, l)
 }

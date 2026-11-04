@@ -11,7 +11,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -22,8 +21,7 @@ func TestEventLog_Append(t *testing.T) {
 
 func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	el := New(s.Storage, btree.NewCursor(s.Storage), l)
+	el := New(s.Storage, btree.NewCursor(s.Storage))
 	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -85,8 +83,7 @@ func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
 
 func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	el := New(s.Storage, btree.NewCursor(s.Storage), l)
+	el := New(s.Storage, btree.NewCursor(s.Storage))
 	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -147,8 +144,7 @@ func TestEventLog_Find(t *testing.T) {
 
 func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	el := New(s.Storage, btree.NewCursor(s.Storage), l)
+	el := New(s.Storage, btree.NewCursor(s.Storage))
 	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -204,8 +200,7 @@ func TestEventLog_GetAggregate(t *testing.T) {
 
 func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	el := New(s.Storage, btree.NewCursor(s.Storage), l)
+	el := New(s.Storage, btree.NewCursor(s.Storage))
 	tf := tablename.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)

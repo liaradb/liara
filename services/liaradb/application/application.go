@@ -53,11 +53,12 @@ func New(conf configuration) *Application {
 		fsys,
 		path.Join(conf.Directory, "log"))
 
+	c := collection.NewCollections(s)
 	return &Application{
 		conf:        conf,
 		storage:     s,
-		collections: collection.NewCollections(s, log),
-		txManager:   transaction.NewManager(log, s, inSize),
+		collections: c,
+		txManager:   transaction.NewManager(log, s, c, inSize),
 		log:         log,
 	}
 }

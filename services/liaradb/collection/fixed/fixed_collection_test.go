@@ -18,23 +18,13 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestFixedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		l := log.New(256, 2, 256, 100, s.FSys, "dir")
-		if err := l.Run(t.Context()); err != nil {
-			t.Fatal(err)
-		}
-
-		if err := l.StartWriter(); err != nil {
-			t.Fatal(err)
-		}
-
-		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
@@ -67,16 +57,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 func TestFixedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		l := log.New(256, 2, 256, 100, s.FSys, "dir")
-		if err := l.Run(t.Context()); err != nil {
-			t.Fatal(err)
-		}
-
-		if err := l.StartWriter(); err != nil {
-			t.Fatal(err)
-		}
-
-		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
@@ -97,16 +78,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		l := log.New(256, 2, 256, 100, s.FSys, "dir")
-		if err := l.Run(t.Context()); err != nil {
-			t.Fatal(err)
-		}
-
-		if err := l.StartWriter(); err != nil {
-			t.Fatal(err)
-		}
-
-		fc := New(record.NewRecordCollection(s.Storage, l), btree.NewCursor(s.Storage))
+		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()

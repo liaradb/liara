@@ -7,6 +7,7 @@ import (
 	"time"
 	"uuid"
 
+	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/idempotency"
@@ -28,13 +29,13 @@ func TestEventService_Append(t *testing.T) {
 }
 
 func testEventService_Append(t *testing.T) {
-	m, s, l := createManager(t, 1024)
+	m, s := createManager(t, 1024)
 	c := btree.NewCursor(s)
 	es := NewEventService(m,
-		idempotency.New(s, c, l),
-		eventlog.New(s, c, l),
-		keyvalue.New(s, c, l),
-		outbox.New(s, c, l))
+		idempotency.New(s, c),
+		eventlog.New(s, c),
+		keyvalue.New(s, c),
+		outbox.New(s, c))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -88,13 +89,13 @@ func TestEventService_Append__Large(t *testing.T) {
 }
 
 func testEventService_Append__Large(t *testing.T) {
-	m, s, l := createManager(t, 1024)
+	m, s := createManager(t, 1024)
 	c := btree.NewCursor(s)
 	es := NewEventService(m,
-		idempotency.New(s, c, l),
-		eventlog.New(s, c, l),
-		keyvalue.New(s, c, l),
-		outbox.New(s, c, l))
+		idempotency.New(s, c),
+		eventlog.New(s, c),
+		keyvalue.New(s, c),
+		outbox.New(s, c))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -170,21 +171,21 @@ func testEventService_Append__Invalid(t *testing.T) {
 	synctest.Wait()
 }
 
-func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *storage.Storage, *log.Log) {
+func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *storage.Storage) {
 	t.Helper()
 
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir, pageSize)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 
-	m := transaction.NewManager(l, s, 1)
+	m := transaction.NewManager(l, s, collection.NewCollections(s), 1)
 	m.Run(t.Context())
 
 	t.Cleanup(func() {
 		m.Shutdown(t.Context(), time.Now())
 	})
 
-	return m, s, l
+	return m, s
 }
 
 func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int64) *log.Log {

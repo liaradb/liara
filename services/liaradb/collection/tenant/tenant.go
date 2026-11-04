@@ -13,16 +13,15 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/storage"
-	"github.com/liaradb/liaradb/transaction/log"
 )
 
 type Tenant struct {
 	fc *fixed.FixedCollection
 }
 
-func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Tenant {
+func New(s *storage.Storage, c *btree.Cursor) *Tenant {
 	return &Tenant{
-		fc: fixed.New(record.NewRecordCollection(s, l), c),
+		fc: fixed.New(record.NewRecordCollection(s), c),
 	}
 }
 

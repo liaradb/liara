@@ -14,7 +14,6 @@ import (
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 )
@@ -77,11 +76,8 @@ func write(
 	tn tablename.TableName,
 	events []*entity.Event,
 ) {
-	l := log.New(256, 2, 256, 100, fsys, "dir")
-	defer l.Close()
-
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
-	el := New(s, btree.NewCursor(s), l)
+	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(baseCtx)
 	defer cancel()
@@ -111,11 +107,8 @@ func recover(
 	tn tablename.TableName,
 	events []*entity.Event,
 ) {
-	l := log.New(256, 2, 256, 100, fsys, "dir")
-	defer l.Close()
-
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
-	el := New(s, btree.NewCursor(s), l)
+	el := New(s, btree.NewCursor(s))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

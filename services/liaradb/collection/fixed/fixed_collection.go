@@ -102,41 +102,16 @@ func (fc *FixedCollection) Replace(
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := fc.getForWritingByKey(ctx, tx, tn, k)
-	if err != nil {
-		return err
-	}
-
-	defer s.Release()
-
-	if w.Size() > s.Length() {
-		// TODO: Verify data can fit
-		panic("support resizing")
-	}
-
-	if err := w.Write(s.Writer()); err != nil {
-		return err
-	}
-
-	return s.CommitUpdate(ctx, tx)
-}
-
-func (fc *FixedCollection) getForWritingByKey(
-	ctx context.Context,
-	tx Transaction,
-	tn tablename.TableName,
-	k key.Key,
-) (*span.Span, error) {
 	if err := tx.XLock(ctx, tn, k.String()); err != nil {
-		return nil, err
+		return err
 	}
 
 	rid, err := fc.c.Search(ctx, tn.Index(0), k)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return fc.rc.Get(ctx, tn.Collection(), rid)
+	return fc.rc.Replace(ctx, tx, tn.Collection(), rid, w)
 }
 
 func (fc *FixedCollection) GetByRecordID(

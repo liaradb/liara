@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -19,15 +18,7 @@ func TestManager(t *testing.T) {
 }
 
 func testManager(t *testing.T, s storagetesting.Storage) {
-	l := log.New(256, 2, 256, 100, s.FSys, "dir")
-	if err := l.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
-
-	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage), l))
+	m := New(keyvalue.New(s.Storage, btree.NewCursor(s.Storage)))
 
 	data := createData()
 	want := createValues(data)

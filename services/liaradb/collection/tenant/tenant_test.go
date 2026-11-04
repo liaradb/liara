@@ -12,7 +12,6 @@ import (
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -24,16 +23,7 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(4096, 100, 4096, 100, s.FSys, "dir")
-	if err := l.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
-
-	o := New(s.Storage, btree.NewCursor(s.Storage), l)
+	o := New(s.Storage, btree.NewCursor(s.Storage))
 
 	data := createData()
 	slices.Reverse(data)
@@ -54,16 +44,7 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	l := log.New(4096, 100, 4096, 100, s.FSys, "dir")
-	if err := l.Run(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := l.StartWriter(); err != nil {
-		t.Fatal(err)
-	}
-
-	o := New(s.Storage, btree.NewCursor(s.Storage), l)
+	o := New(s.Storage, btree.NewCursor(s.Storage))
 
 	data := createData()
 
