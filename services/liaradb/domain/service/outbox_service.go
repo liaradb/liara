@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
 )
@@ -54,7 +53,7 @@ func (os *OutboxService) CreateOutbox(
 		data := make([]byte, entity.OutboxSize)
 		_ = outbox.WriteData(data)
 
-		if err := os.outbox.Insert(ctx, tx, tn, oid, outbox); err != nil {
+		if err := os.outbox.Insert(ctx, tx, tid, oid, outbox); err != nil {
 			return value.OutboxID{}, err
 		}
 
@@ -74,8 +73,7 @@ func (os *OutboxService) GetOutbox(
 
 	defer tx.Release()
 
-	tn := tablename.NewTenantFolder(tid).Outbox()
-	return os.outbox.Get(ctx, tx, tn, oid)
+	return os.outbox.Get(ctx, tx, tid, oid)
 }
 
 func (os *OutboxService) UpdateOutboxPosition(
@@ -89,27 +87,15 @@ func (os *OutboxService) UpdateOutboxPosition(
 		return err
 	}
 
-	tn := tablename.NewTenantFolder(tid).Outbox()
 	return tx.Run(ctx, func() error {
-		o, err := os.outbox.Get(ctx, tx, tn, oid)
+		o, err := os.outbox.Get(ctx, tx, tid, oid)
 		if err != nil {
 			return err
 		}
-
-		prev := make([]byte, entity.OutboxSize)
-		_ = o.WriteData(prev)
 
 		o.UpdateGlobalVersion(v)
 
-		data := make([]byte, entity.OutboxSize)
-		_ = o.WriteData(data)
-
-		_, err = tx.Update(ctx, link.FileRecordID{}, data, prev)
-		if err != nil {
-			return err
-		}
-
-		return os.outbox.Replace(ctx, tx, tn, oid, o)
+		return os.outbox.Replace(ctx, tx, tid, oid, o)
 	})
 }
 
@@ -122,11 +108,5 @@ func (os *OutboxService) ListOutboxes(
 		return iterator.Error[*entity.Outbox](err)
 	}
 
-	// TODO: How do we lock this query?
-	// if err := t.concurrencyMgr.SLock(ctx, ItemID(oid.String())); err != nil {
-	// 	return nil, err
-	// }
-
-	tn := tablename.NewTenantFolder(tid).Outbox()
-	return os.outbox.List(ctx, tx, tn)
+	return os.outbox.List(ctx, tx, tid)
 }

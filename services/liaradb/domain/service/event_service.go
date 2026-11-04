@@ -280,8 +280,7 @@ func (es *EventService) getOutbox(
 
 	defer tx.Release()
 
-	tn := tablename.NewTenantFolder(tid).Outbox()
-	return es.outbox.Get(ctx, tx, tn, oid)
+	return es.outbox.Get(ctx, tx, tid, oid)
 }
 
 func (es *EventService) GetByOutbox(

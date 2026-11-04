@@ -13,7 +13,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -27,17 +26,17 @@ func TestOutbox(t *testing.T) {
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
-	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
+	tid := value.NewTenantID()
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, tid, o, data)
+	testList(ctx, t, tid, data, o)
 
 	synctest.Wait()
 }
@@ -49,16 +48,16 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
-	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
+	tid := value.NewTenantID()
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, tid, o, data)
+	testList(ctx, t, tid, data, o)
 
 	synctest.Wait()
 }
@@ -80,9 +79,9 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx fixed.Transaction, o *Outbox, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx fixed.Transaction, tid value.TenantID, o *Outbox, data []item) error {
 	for _, i := range data {
-		if err := o.Insert(ctx, tx, tn, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, tx, tid, i.value.ID(), i.value); err != nil {
 			return err
 		}
 	}
@@ -92,12 +91,12 @@ func insertData(ctx context.Context, tx fixed.Transaction, o *Outbox, tn tablena
 func testGet(
 	ctx context.Context,
 	t *testing.T,
+	tid value.TenantID,
 	o *Outbox,
-	n tablename.TableName,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := o.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
+		value, err := o.Get(ctx, &logtesting.MockLog{}, tid, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -111,11 +110,11 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
+	tid value.TenantID,
 	data []item,
 	o *Outbox,
-	n tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, o, n)
+	result, err := getListValues(ctx, tid, data, o)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,13 +127,13 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
+	tid value.TenantID,
 	data []item,
 	o *Outbox,
-	n tablename.TableName,
 ) ([]entity.Outbox, error) {
 	result := make([]entity.Outbox, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &logtesting.MockLog{}, n) {
+	for value, err := range o.List(ctx, &logtesting.MockLog{}, tid) {
 		if err != nil {
 			return nil, err
 		}

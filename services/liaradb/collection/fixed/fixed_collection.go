@@ -15,7 +15,6 @@ import (
 )
 
 // TODO: Create a shared goroutine for each file to manage storage
-// TODO: Separate out Record collection from key value collection
 type FixedCollection struct {
 	rc *record.RecordCollection
 	c  *btree.Cursor

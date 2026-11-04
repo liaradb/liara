@@ -23,9 +23,10 @@ func New(fc *fixed.FixedCollection) *Outbox {
 func (o *Outbox) Get(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tn tablename.TableName,
+	tid value.TenantID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	k := key.NewKey(oid.Bytes())
 	s, err := o.fc.GetByKey(ctx, tx, tn, k)
 	if err != nil {
@@ -38,8 +39,9 @@ func (o *Outbox) Get(
 func (o *Outbox) List(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tn tablename.TableName,
+	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	return func(yield func(*entity.Outbox, error) bool) {
 		for s, err := range o.fc.List(ctx, tx, tn) {
 			if err != nil {
@@ -64,10 +66,11 @@ func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
 func (o *Outbox) Insert(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tn tablename.TableName,
+	tid value.TenantID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	k := key.NewKey(oid.Bytes())
 	_, err := o.fc.Insert(ctx, tx, tn, k, e)
 	return err
@@ -76,10 +79,11 @@ func (o *Outbox) Insert(
 func (o *Outbox) Replace(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tn tablename.TableName,
+	tid value.TenantID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
+	tn := tablename.NewTenantFolder(tid).Outbox()
 	return o.fc.Replace(ctx,
 		tx,
 		tn,
