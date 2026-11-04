@@ -62,10 +62,9 @@ func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
 func (t *Tenant) Insert(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
-	k := key.NewKey(tid.Bytes())
+	k := key.NewKey(e.ID().Bytes())
 	_, err := t.fc.Insert(ctx,
 		tx,
 		tablename.Tenant,
@@ -77,12 +76,11 @@ func (t *Tenant) Insert(
 func (t *Tenant) Replace(
 	ctx context.Context,
 	tx fixed.Transaction,
-	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
 	return t.fc.Replace(ctx,
 		tx,
 		tablename.Tenant,
-		key.NewKey(tid.Bytes()),
+		key.NewKey(e.ID().Bytes()),
 		e)
 }

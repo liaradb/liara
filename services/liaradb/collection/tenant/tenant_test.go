@@ -80,7 +80,7 @@ func createData() []item {
 
 func insertData(ctx context.Context, tx fixed.Transaction, o *Tenant, data []item) error {
 	for _, i := range data {
-		if err := o.Insert(ctx, tx, i.value.ID(), i.value); err != nil {
+		if err := o.Insert(ctx, tx, i.value); err != nil {
 			return err
 		}
 	}

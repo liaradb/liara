@@ -38,7 +38,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	}
 
 	return tx.RunResult(ctx, func() (value.TenantID, error) {
-		if err := ts.tc.Insert(ctx, tx, tid, tnt); err != nil {
+		if err := ts.tc.Insert(ctx, tx, tnt); err != nil {
 			return value.TenantID{}, err
 		}
 
@@ -70,7 +70,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 	}
 
 	return tx.Run(ctx, func() error {
-		return ts.tc.Replace(ctx, tx, cmd.TenantID, tnt)
+		return ts.tc.Replace(ctx, tx, tnt)
 	})
 }
 
