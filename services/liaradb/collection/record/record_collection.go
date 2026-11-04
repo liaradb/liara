@@ -26,7 +26,7 @@ func NewRecordCollection(s *storage.Storage, l *log.Log) *RecordCollection {
 
 func (rc *RecordCollection) Insert(
 	ctx context.Context,
-	tx span.Transaction,
+	tx span.Log,
 	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {

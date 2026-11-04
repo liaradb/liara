@@ -3,15 +3,9 @@ package span
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 )
-
-type Transaction interface {
-	Log
-	Lock
-}
 
 type Log interface {
 	Append(context.Context, link.FileRecordID, []byte) (logpage.LogSequenceNumber, error)
@@ -21,11 +15,4 @@ type Log interface {
 	UpdateHeader(context.Context, link.FileRecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
 	// TODO: Use Truncate for splitting B+Tree nodes
 	// Truncate(context.Context, link.FileRecordID, []byte) (logpage.LogSequenceNumber, error)
-}
-
-type Lock interface {
-	// TODO: Don't use TableName
-	// TODO: Maybe use an interface for string
-	XLock(context.Context, tablename.TableName, string) error
-	SLock(context.Context, tablename.TableName, string) error
 }

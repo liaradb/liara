@@ -28,7 +28,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Idempotency {
 
 func (i *Idempotency) Get(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
@@ -43,7 +43,7 @@ func (i *Idempotency) Get(
 
 func (i *Idempotency) List(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
@@ -69,7 +69,7 @@ func (*Idempotency) readRequestLog(s *span.Span) (*entity.RequestLog, error) {
 
 func (i *Idempotency) Insert(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	e *entity.RequestLog,
@@ -81,7 +81,7 @@ func (i *Idempotency) Insert(
 
 func (i *Idempotency) Test(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {

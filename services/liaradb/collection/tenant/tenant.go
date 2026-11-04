@@ -28,7 +28,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Tenant {
 
 func (t *Tenant) Get(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
@@ -42,7 +42,7 @@ func (t *Tenant) Get(
 
 func (t *Tenant) List(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
 		for s, err := range t.fc.List(ctx, tx, tablename.Tenant) {
@@ -67,7 +67,7 @@ func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
 
 func (t *Tenant) Insert(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tid value.TenantID,
 	e *entity.Tenant,
 ) error {
@@ -82,7 +82,7 @@ func (t *Tenant) Insert(
 
 func (t *Tenant) Replace(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tid value.TenantID,
 	e *entity.Tenant,
 ) error {

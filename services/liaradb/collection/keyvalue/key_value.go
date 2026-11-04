@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
@@ -27,7 +26,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *KeyValue {
 
 func (kv *KeyValue) Get(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
@@ -41,7 +40,7 @@ func (kv *KeyValue) Get(
 
 func (kv *KeyValue) List(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
@@ -60,7 +59,7 @@ func (kv *KeyValue) List(
 
 func (kv *KeyValue) Set(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,

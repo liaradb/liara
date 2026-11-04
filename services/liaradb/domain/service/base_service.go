@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/idempotency"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -28,7 +28,7 @@ func newBaseService(
 
 func (s *baseService) insertRequestID(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	now value.Time,
@@ -38,7 +38,7 @@ func (s *baseService) insertRequestID(
 
 func (s *baseService) testRequestID(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {

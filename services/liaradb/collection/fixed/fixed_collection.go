@@ -30,7 +30,7 @@ func New(rc *record.RecordCollection, c *btree.Cursor) *FixedCollection {
 
 func (fc *FixedCollection) Insert(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
@@ -53,7 +53,7 @@ func (fc *FixedCollection) Insert(
 
 func (fc *FixedCollection) GetByKey(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
@@ -71,7 +71,7 @@ func (fc *FixedCollection) GetByKey(
 
 func (fc *FixedCollection) List(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
@@ -97,7 +97,7 @@ func (fc *FixedCollection) List(
 
 func (fc *FixedCollection) Replace(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
@@ -123,7 +123,7 @@ func (fc *FixedCollection) Replace(
 
 func (fc *FixedCollection) getForWritingByKey(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (*span.Span, error) {
@@ -149,7 +149,7 @@ func (fc *FixedCollection) GetByRecordID(
 
 func (fc *FixedCollection) Test(
 	ctx context.Context,
-	tx span.Transaction,
+	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) (bool, error) {

@@ -12,7 +12,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -99,7 +99,7 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx span.Transaction, o *Idempotency, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx fixed.Transaction, o *Idempotency, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		if err := o.Insert(ctx, tx, tn, i.value.ID(), i.value); err != nil {
 			return err

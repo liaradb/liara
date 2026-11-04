@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/keyvalue"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/buffer"
@@ -26,7 +26,7 @@ func New(kv *keyvalue.KeyValue) *Manager {
 	}
 }
 
-func (m *Manager) Get(ctx context.Context, tx span.Transaction, k key.Key) (int64, error) {
+func (m *Manager) Get(ctx context.Context, tx fixed.Transaction, k key.Key) (int64, error) {
 	d, err := m.kv.Get(ctx, tx, m.tn, k)
 	if err != nil {
 		return 0, err
@@ -37,11 +37,11 @@ func (m *Manager) Get(ctx context.Context, tx span.Transaction, k key.Key) (int6
 	return i, raw.ReadInt64(b, &i)
 }
 
-func (m *Manager) Insert(ctx context.Context, tx span.Transaction, k key.Key, i int64) error {
+func (m *Manager) Insert(ctx context.Context, tx fixed.Transaction, k key.Key, i int64) error {
 	return m.kv.Set(ctx, tx, m.tn, k, base.NewInt64(i))
 }
 
-func (m *Manager) List(ctx context.Context, tx span.Transaction) ([]int64, error) {
+func (m *Manager) List(ctx context.Context, tx fixed.Transaction) ([]int64, error) {
 	result := make([]int64, 0)
 	for d, err := range m.kv.List(ctx, tx, m.tn) {
 		if err != nil {

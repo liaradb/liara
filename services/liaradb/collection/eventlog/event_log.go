@@ -33,7 +33,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *EventLog {
 
 func (l *EventLog) Append(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	e *entity.Event,
 ) error {
@@ -109,7 +109,7 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 	return &t, t.Read(s)
 }
 
-func (l *EventLog) Events(ctx context.Context, tx span.Transaction, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) Events(ctx context.Context, tx fixed.Transaction, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for s, err := range l.fc.List(ctx, tx, tn) {
 			if err != nil {
@@ -156,7 +156,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 }
 
 // TODO: Iterate until highwater
-func (l *EventLog) Iterate(ctx context.Context, tx span.Transaction, tn tablename.TableName) iter.Seq2[[]byte, error] {
+func (l *EventLog) Iterate(ctx context.Context, tx fixed.Transaction, tn tablename.TableName) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for s, err := range l.fc.List(ctx, tx, tn) {
 			if err != nil {

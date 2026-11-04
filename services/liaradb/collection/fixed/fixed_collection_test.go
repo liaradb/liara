@@ -139,7 +139,7 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx span.Transaction, fc *FixedCollection, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx Transaction, fc *FixedCollection, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
 		if _, err := fc.Insert(ctx, tx, tn, k, i.value); err != nil {

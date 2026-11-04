@@ -28,7 +28,7 @@ func New(s *storage.Storage, c *btree.Cursor, l *log.Log) *Outbox {
 
 func (o *Outbox) Get(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
@@ -43,7 +43,7 @@ func (o *Outbox) Get(
 
 func (o *Outbox) List(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.Outbox, error] {
 	return func(yield func(*entity.Outbox, error) bool) {
@@ -69,7 +69,7 @@ func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
 
 func (o *Outbox) Insert(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 	e *entity.Outbox,
@@ -81,7 +81,7 @@ func (o *Outbox) Insert(
 
 func (o *Outbox) Replace(
 	ctx context.Context,
-	tx span.Transaction,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	oid value.OutboxID,
 	e *entity.Outbox,
