@@ -24,7 +24,7 @@ import (
 
 func TestFixedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
+		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
@@ -57,7 +57,7 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 func TestFixedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
+		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
@@ -78,7 +78,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		fc := New(record.NewRecordCollection(s.Storage), btree.NewCursor(s.Storage))
+		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()

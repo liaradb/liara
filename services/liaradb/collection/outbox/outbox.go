@@ -4,25 +4,20 @@ import (
 	"context"
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/storage"
 )
 
 type Outbox struct {
 	fc *fixed.FixedCollection
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *Outbox {
-	return &Outbox{
-		fc: fixed.New(record.NewRecordCollection(s), c),
-	}
+func New(fc *fixed.FixedCollection) *Outbox {
+	return &Outbox{fc: fc}
 }
 
 func (o *Outbox) Get(

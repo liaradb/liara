@@ -10,9 +10,11 @@ import (
 	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
@@ -31,11 +33,12 @@ func TestEventService_Append(t *testing.T) {
 func testEventService_Append(t *testing.T) {
 	m, s := createManager(t, 1024)
 	c := btree.NewCursor(s)
+	fc := fixed.New(record.New(s), c)
 	es := NewEventService(m,
-		idempotency.New(s, c),
-		eventlog.New(s, c),
-		keyvalue.New(s, c),
-		outbox.New(s, c))
+		idempotency.New(fc),
+		eventlog.New(fc, c),
+		keyvalue.New(fc),
+		outbox.New(fc))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
@@ -91,11 +94,12 @@ func TestEventService_Append__Large(t *testing.T) {
 func testEventService_Append__Large(t *testing.T) {
 	m, s := createManager(t, 1024)
 	c := btree.NewCursor(s)
+	fc := fixed.New(record.New(s), c)
 	es := NewEventService(m,
-		idempotency.New(s, c),
-		eventlog.New(s, c),
-		keyvalue.New(s, c),
-		outbox.New(s, c))
+		idempotency.New(fc),
+		eventlog.New(fc, c),
+		keyvalue.New(fc),
+		outbox.New(fc))
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{

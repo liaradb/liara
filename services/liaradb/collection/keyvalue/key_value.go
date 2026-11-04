@@ -4,23 +4,18 @@ import (
 	"context"
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
-	"github.com/liaradb/liaradb/storage"
 )
 
 type KeyValue struct {
 	fc *fixed.FixedCollection
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *KeyValue {
-	return &KeyValue{
-		fc: fixed.New(record.NewRecordCollection(s), c),
-	}
+func New(fc *fixed.FixedCollection) *KeyValue {
+	return &KeyValue{fc: fc}
 }
 
 func (kv *KeyValue) Get(

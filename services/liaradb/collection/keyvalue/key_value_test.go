@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
@@ -38,7 +39,7 @@ func TestKeyValue(t *testing.T) {
 
 			storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
 				ctx := t.Context()
-				kv := New(s.Storage, btree.NewCursor(s.Storage))
+				kv := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 				tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, c.data); err != nil {
@@ -60,7 +61,7 @@ func TestKeyValue__LargeBuffer(t *testing.T) {
 
 func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	kv := New(s.Storage, btree.NewCursor(s.Storage))
+	kv := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	tn := tablename.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 	data := createData()

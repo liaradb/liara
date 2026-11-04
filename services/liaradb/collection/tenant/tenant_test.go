@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -23,17 +24,17 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	tn := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, data)
-	testList(ctx, t, data, o)
+	testGet(ctx, t, tn, data)
+	testList(ctx, t, data, tn)
 
 	synctest.Wait()
 }
@@ -44,16 +45,16 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	tn := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, data)
-	testList(ctx, t, data, o)
+	testGet(ctx, t, tn, data)
+	testList(ctx, t, data, tn)
 
 	synctest.Wait()
 }
@@ -89,11 +90,11 @@ func insertData(ctx context.Context, tx fixed.Transaction, o *Tenant, data []ite
 func testGet(
 	ctx context.Context,
 	t *testing.T,
-	kv *Tenant,
+	tn *Tenant,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, &logtesting.MockLog{}, i.value.ID())
+		value, err := tn.Get(ctx, &logtesting.MockLog{}, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -108,9 +109,9 @@ func testList(
 	ctx context.Context,
 	t *testing.T,
 	data []item,
-	o *Tenant,
+	tn *Tenant,
 ) {
-	result, err := getListValues(ctx, data, o)
+	result, err := getListValues(ctx, data, tn)
 	if err != nil {
 		t.Fatal(err)
 	}

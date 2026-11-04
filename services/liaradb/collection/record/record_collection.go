@@ -15,10 +15,8 @@ type RecordCollection struct {
 	s *storage.Storage
 }
 
-func NewRecordCollection(s *storage.Storage) *RecordCollection {
-	return &RecordCollection{
-		s: s,
-	}
+func New(s *storage.Storage) *RecordCollection {
+	return &RecordCollection{s: s}
 }
 
 func (rc *RecordCollection) Insert(

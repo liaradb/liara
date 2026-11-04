@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -25,7 +26,7 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
 
 	data := createData()
@@ -47,7 +48,7 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	n := tablename.NewTenantFolder(value.NewTenantID()).Outbox()
 
 	data := createData()
@@ -91,12 +92,12 @@ func insertData(ctx context.Context, tx fixed.Transaction, o *Outbox, tn tablena
 func testGet(
 	ctx context.Context,
 	t *testing.T,
-	kv *Outbox,
+	o *Outbox,
 	n tablename.TableName,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
+		value, err := o.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}

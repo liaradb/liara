@@ -8,13 +8,11 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/scan"
-	"github.com/liaradb/liaradb/storage"
 )
 
 // TODO: Create latching
@@ -23,9 +21,9 @@ type EventLog struct {
 	c  *btree.Cursor
 }
 
-func New(s *storage.Storage, c *btree.Cursor) *EventLog {
+func New(fc *fixed.FixedCollection, c *btree.Cursor) *EventLog {
 	return &EventLog{
-		fc: fixed.New(record.NewRecordCollection(s), c),
+		fc: fc,
 		c:  c,
 	}
 }

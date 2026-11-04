@@ -13,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -26,18 +27,18 @@ func TestIdempotency(t *testing.T) {
 
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	idp := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, idp, n, data)
+	testList(ctx, t, data, idp, n)
 
 	synctest.Wait()
 }
@@ -48,17 +49,17 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(s.Storage, btree.NewCursor(s.Storage))
+	idp := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, o, n, data); err != nil {
+	if err := insertData(ctx, &logtesting.MockLog{}, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, o, n, data)
-	testList(ctx, t, data, o, n)
+	testGet(ctx, t, idp, n, data)
+	testList(ctx, t, data, idp, n)
 
 	synctest.Wait()
 }
@@ -92,12 +93,12 @@ func insertData(ctx context.Context, tx fixed.Transaction, o *Idempotency, tn ta
 func testGet(
 	ctx context.Context,
 	t *testing.T,
-	kv *Idempotency,
+	idp *Idempotency,
 	n tablename.TableName,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
+		value, err := idp.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -112,10 +113,10 @@ func testList(
 	ctx context.Context,
 	t *testing.T,
 	data []item,
-	o *Idempotency,
+	idp *Idempotency,
 	n tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, o, n)
+	result, err := getListValues(ctx, data, idp, n)
 	if err != nil {
 		t.Fatal(err)
 	}
