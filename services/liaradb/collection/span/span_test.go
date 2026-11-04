@@ -159,3 +159,7 @@ func (t *testBufferPage) CommitAppend(size int) {
 
 func (t *testBufferPage) Release() {
 }
+
+func (t *testBufferPage) Slot(link.SlotID) ([]byte, []byte) {
+	return nil, nil
+}

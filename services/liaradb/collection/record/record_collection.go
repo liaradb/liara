@@ -3,6 +3,7 @@ package record
 import (
 	"context"
 
+	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/serializer"
@@ -61,7 +62,8 @@ func (rc *RecordCollection) Get(
 	}
 
 	s := span.New()
-	f := s.AppendSlot(b, rid.SlotID())
+	p := bufferpage.New(b, span.FragmentHeaderSize)
+	f := s.AppendSlot(p, rid.SlotID())
 
 	for f.NextBlockID() != 0 {
 		fbid.SetBlockID(f.NextBlockID())
@@ -71,7 +73,8 @@ func (rc *RecordCollection) Get(
 			return nil, err
 		}
 
-		f = s.AppendSlot(b, link.SlotID(0))
+		p := bufferpage.New(b, span.FragmentHeaderSize)
+		f = s.AppendSlot(p, link.SlotID(0))
 	}
 
 	return s, nil

@@ -35,6 +35,7 @@ type BufferPage interface {
 	FileBlockID() link.FileBlockID
 	CommitAppend(size int)
 	Release()
+	Slot(link.SlotID) ([]byte, []byte)
 }
 
 func newFragment(

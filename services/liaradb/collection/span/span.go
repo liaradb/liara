@@ -5,10 +5,8 @@ import (
 	"io"
 	"slices"
 
-	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -37,10 +35,9 @@ func (s Span) valid() bool {
 	return true
 }
 
-func (s *Span) AppendSlot(b *storage.Buffer, sid link.SlotID) *Fragment {
-	p := bufferpage.New(b, FragmentHeaderSize)
-	h, d := p.Slot(sid)
-	return s.Append(p, sid, h, d)
+func (s *Span) AppendSlot(b BufferPage, sid link.SlotID) *Fragment {
+	h, d := b.Slot(sid)
+	return s.Append(b, sid, h, d)
 }
 
 func (s *Span) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
