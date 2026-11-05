@@ -17,19 +17,15 @@ import (
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/transaction/log"
-	"github.com/liaradb/liaradb/transaction/replay"
 	"google.golang.org/grpc"
 )
 
 type Application struct {
-	conf        configuration
-	s           *grpc.Server
-	storage     *storage.Storage
-	log         *log.Log
-	txManager   *transaction.Manager
-	collections *collections
-	services    *services
-	ot          openTelemetry
+	conf      configuration
+	s         *grpc.Server
+	txManager *transaction.Manager
+	services  *services
+	ot        openTelemetry
 }
 
 const (
@@ -49,16 +45,11 @@ func New(conf configuration) *Application {
 		fsys,
 		path.Join(conf.Directory, "log"))
 	txManager := transaction.NewManager(log, s, inSize)
-	c := newCollections(s)
-	se := newServices(txManager, c)
 
 	return &Application{
-		conf:        conf,
-		storage:     s,
-		log:         log,
-		txManager:   txManager,
-		collections: c,
-		services:    se,
+		conf:      conf,
+		txManager: txManager,
+		services:  newServices(txManager, newCollections(s)),
 	}
 }
 
@@ -118,37 +109,17 @@ func (a *Application) run(ctx context.Context) error {
 	a.txManager.Run(ctx)
 
 	slog.Info("transaction manager running")
-
-	if err := a.storage.Run(ctx); err != nil {
-		return err
-	}
-
 	slog.Info("storage running")
-
-	if err := a.log.Run(ctx); err != nil {
-		return err
-	}
-
 	slog.Info("recovering...")
 
-	if err := a.recover(ctx); err != nil {
+	if err := a.txManager.Recover(ctx); err != nil {
 		return err
 	}
 
 	slog.Info("recovered")
-
-	if err := a.log.StartWriter(); err != nil {
-		return err
-	}
-
 	slog.Info("log running")
 
 	return nil
-}
-
-func (a *Application) recover(ctx context.Context) error {
-	r := replay.NewReplay(a.storage, a.log)
-	return r.Recover(ctx)
 }
 
 func (a *Application) listen() error {

@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/transaction/replay"
 	"github.com/liaradb/liaradb/util/async"
 	"github.com/liaradb/liaradb/util/set"
 )
@@ -47,9 +48,23 @@ func NewManager(
 	}
 }
 
-func (m *Manager) Run(ctx context.Context) {
+func (m *Manager) Run(ctx context.Context) error {
 	go m.lockTable.Run(ctx)
 	go m.run(ctx)
+	return m.storage.Run(ctx)
+}
+
+func (m *Manager) Recover(ctx context.Context) error {
+	if err := m.log.Run(ctx); err != nil {
+		return err
+	}
+
+	r := replay.NewReplay(m.storage, m.log)
+	if err := r.Recover(ctx); err != nil {
+		return err
+	}
+
+	return m.log.StartWriter()
 }
 
 func (m *Manager) run(ctx context.Context) {
