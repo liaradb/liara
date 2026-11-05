@@ -10,7 +10,6 @@ import (
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
 	"github.com/liaradb/liaradb/controller"
-	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/segment"
@@ -26,13 +25,11 @@ type Application struct {
 	conf        configuration
 	s           *grpc.Server
 	storage     *storage.Storage
-	collections *collections
-	txManager   *transaction.Manager
 	log         *log.Log
+	txManager   *transaction.Manager
+	collections *collections
+	services    *services
 	ot          openTelemetry
-	es          *service.EventService
-	os          *service.OutboxService
-	ts          *service.TenantService
 }
 
 const (
@@ -51,34 +48,22 @@ func New(conf configuration) *Application {
 		conf.WriteQueueSize,
 		fsys,
 		path.Join(conf.Directory, "log"))
+	txManager := transaction.NewManager(log, s, inSize)
+	c := newCollections(s)
+	se := newServices(txManager, c)
 
 	return &Application{
 		conf:        conf,
 		storage:     s,
-		collections: newCollections(s),
-		txManager:   transaction.NewManager(log, s, inSize),
 		log:         log,
+		txManager:   txManager,
+		collections: c,
+		services:    se,
 	}
 }
 
 // TODO: Ensure all goroutines are stopped before calling close
 func (a *Application) Run(ctx context.Context) error {
-	a.es = service.NewEventService(
-		a.txManager,
-		a.collections.Idempotency,
-		a.collections.EventLog,
-		a.collections.KeyValue,
-		a.collections.Outbox)
-
-	a.os = service.NewOutboxService(
-		a.txManager,
-		a.collections.Idempotency,
-		a.collections.Outbox)
-
-	a.ts = service.NewTenantService(
-		a.txManager,
-		a.collections.Tenant)
-
 	ctxMain, cancelMain := context.WithCancel(ctx)
 
 	a.ot.init(ctxMain)
@@ -116,7 +101,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 func (a *Application) initEventLog(ctx context.Context) error {
 	var tIDs []value.TenantID
-	for t, err := range a.ts.List(ctx, 0, 0) {
+	for t, err := range a.services.ts.List(ctx, 0, 0) {
 		if err != nil {
 			return err
 		}
@@ -124,7 +109,7 @@ func (a *Application) initEventLog(ctx context.Context) error {
 		tIDs = append(tIDs, t.ID())
 	}
 
-	return a.es.InitGlobalVersions(ctx, tIDs)
+	return a.services.es.InitGlobalVersions(ctx, tIDs)
 }
 
 func (a *Application) run(ctx context.Context) error {
@@ -221,9 +206,9 @@ func (a *Application) initService() {
 	}
 
 	pb.RegisterEventSourceServiceServer(s, controller.NewEventSourceController(
-		a.es,
-		a.os,
-		a.ts,
+		a.services.es,
+		a.services.os,
+		a.services.ts,
 	))
 
 	a.s = s
