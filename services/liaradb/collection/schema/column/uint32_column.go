@@ -1,4 +1,4 @@
-package schema
+package column
 
 type UInt32Column struct {
 	name string

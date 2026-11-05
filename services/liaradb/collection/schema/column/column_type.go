@@ -1,4 +1,4 @@
-package schema
+package column
 
 type ColumnType int
 

@@ -1,6 +1,10 @@
 package schema
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/liaradb/liaradb/collection/schema/column"
+)
 
 func TestSchema(t *testing.T) {
 	id := NewID()
@@ -15,7 +19,7 @@ func TestSchema_GetByte(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewByteColumn(name))
+	s.AddColumn(column.NewByteColumn(name))
 
 	_, ok := s.GetByte(name)
 	if !ok {
@@ -32,7 +36,7 @@ func TestSchema_GetInt8(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewInt8Column(name))
+	s.AddColumn(column.NewInt8Column(name))
 
 	_, ok := s.GetInt8(name)
 	if !ok {
@@ -49,7 +53,7 @@ func TestSchema_GetInt16(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewInt16Column(name))
+	s.AddColumn(column.NewInt16Column(name))
 
 	_, ok := s.GetInt16(name)
 	if !ok {
@@ -66,7 +70,7 @@ func TestSchema_GetInt32(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewInt32Column(name))
+	s.AddColumn(column.NewInt32Column(name))
 
 	_, ok := s.GetInt32(name)
 	if !ok {
@@ -83,7 +87,7 @@ func TestSchema_GetInt64(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewInt64Column(name))
+	s.AddColumn(column.NewInt64Column(name))
 
 	_, ok := s.GetInt64(name)
 	if !ok {
@@ -100,7 +104,7 @@ func TestSchema_GetUInt16(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewUInt16Column(name))
+	s.AddColumn(column.NewUInt16Column(name))
 
 	_, ok := s.GetUInt16(name)
 	if !ok {
@@ -117,7 +121,7 @@ func TestSchema_GetUInt32(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewUInt32Column(name))
+	s.AddColumn(column.NewUInt32Column(name))
 
 	_, ok := s.GetUInt32(name)
 	if !ok {
@@ -134,7 +138,7 @@ func TestSchema_GetUInt64(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewUInt64Column(name))
+	s.AddColumn(column.NewUInt64Column(name))
 
 	_, ok := s.GetUInt64(name)
 	if !ok {
@@ -151,7 +155,7 @@ func TestSchema_GetString(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(NewStringColumn(name, 10))
+	s.AddColumn(column.NewStringColumn(name, 10))
 
 	_, ok := s.GetString(name)
 	if !ok {

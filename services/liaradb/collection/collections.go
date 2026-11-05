@@ -15,7 +15,6 @@ import (
 )
 
 type Collections struct {
-	storage     *storage.Storage
 	manager     *manager.Manager
 	schemaMgr   *schema.Manager
 	Tenant      *tenant.Tenant
@@ -30,8 +29,8 @@ func NewCollections(s *storage.Storage) *Collections {
 	fc := fixed.New(record.New(s), c)
 	kv := keyvalue.New(fc)
 	return &Collections{
-		storage:     s,
 		manager:     manager.New(kv),
+		schemaMgr:   schema.NewManager(s),
 		Tenant:      tenant.New(fc),
 		EventLog:    eventlog.New(fc, c),
 		KeyValue:    kv,

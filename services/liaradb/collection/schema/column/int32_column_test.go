@@ -1,10 +1,10 @@
-package schema
+package column
 
 import "testing"
 
-func TestUInt32Column(t *testing.T) {
+func TestInt32Column(t *testing.T) {
 	name := "name"
-	bc := NewUInt32Column(name)
+	bc := NewInt32Column(name)
 
 	if n := bc.Name(); n != name {
 		t.Errorf("incorrect name: %v, expected: %v", n, name)
@@ -14,7 +14,7 @@ func TestUInt32Column(t *testing.T) {
 		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 
-	if tp := bc.Type(); tp != ColumnTypeUInt32 {
-		t.Errorf("incorrect type: %v, expected: %v", tp, ColumnTypeUInt32)
+	if tp := bc.Type(); tp != ColumnTypeInt32 {
+		t.Errorf("incorrect type: %v, expected: %v", tp, ColumnTypeInt32)
 	}
 }

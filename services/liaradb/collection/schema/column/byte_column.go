@@ -1,4 +1,4 @@
-package schema
+package column
 
 type ByteColumn struct {
 	name string

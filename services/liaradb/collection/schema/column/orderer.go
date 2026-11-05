@@ -1,4 +1,4 @@
-package schema
+package column
 
 type Orderer[T Orderer[T]] interface {
 	Equaler[T]

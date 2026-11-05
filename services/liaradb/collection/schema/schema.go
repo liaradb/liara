@@ -1,5 +1,7 @@
 package schema
 
+import "github.com/liaradb/liaradb/collection/schema/column"
+
 type Schema struct {
 	id      ID
 	columns []Column
@@ -9,7 +11,7 @@ type Schema struct {
 type Column interface {
 	Name() string
 	Size() int
-	Type() ColumnType
+	Type() column.ColumnType
 }
 
 func NewSchema(id ID) *Schema {
@@ -40,7 +42,7 @@ func (s *Schema) GetInt8(name string) (int8, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(Int8Column)
+	ic, ok := c.(column.Int8Column)
 	if !ok {
 		return 0, false
 	}
@@ -54,7 +56,7 @@ func (s *Schema) GetInt16(name string) (int16, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(Int16Column)
+	ic, ok := c.(column.Int16Column)
 	if !ok {
 		return 0, false
 	}
@@ -68,7 +70,7 @@ func (s *Schema) GetInt32(name string) (int32, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(Int32Column)
+	ic, ok := c.(column.Int32Column)
 	if !ok {
 		return 0, false
 	}
@@ -82,7 +84,7 @@ func (s *Schema) GetInt64(name string) (int64, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(Int64Column)
+	ic, ok := c.(column.Int64Column)
 	if !ok {
 		return 0, false
 	}
@@ -96,7 +98,7 @@ func (s *Schema) GetByte(name string) (byte, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(ByteColumn)
+	ic, ok := c.(column.ByteColumn)
 	if !ok {
 		return 0, false
 	}
@@ -110,7 +112,7 @@ func (s *Schema) GetUInt16(name string) (uint16, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(UInt16Column)
+	ic, ok := c.(column.UInt16Column)
 	if !ok {
 		return 0, false
 	}
@@ -124,7 +126,7 @@ func (s *Schema) GetUInt32(name string) (uint32, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(UInt32Column)
+	ic, ok := c.(column.UInt32Column)
 	if !ok {
 		return 0, false
 	}
@@ -138,7 +140,7 @@ func (s *Schema) GetUInt64(name string) (uint64, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(UInt64Column)
+	ic, ok := c.(column.UInt64Column)
 	if !ok {
 		return 0, false
 	}
@@ -152,7 +154,7 @@ func (s *Schema) GetString(name string) (string, bool) {
 		return "", false
 	}
 
-	sc, ok := c.(StringColumn)
+	sc, ok := c.(column.StringColumn)
 	if !ok {
 		return "", false
 	}
