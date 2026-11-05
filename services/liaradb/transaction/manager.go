@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
@@ -25,7 +24,6 @@ const (
 type Manager struct {
 	log           *log.Log
 	storage       *storage.Storage
-	collections   *collection.Collections
 	lockTable     *locktable.LockTable[ItemID]
 	transactionID record.TransactionID
 	txReqs        async.Handler[value.TenantID, *Transaction]
@@ -37,17 +35,15 @@ type Manager struct {
 func NewManager(
 	log *log.Log,
 	storage *storage.Storage,
-	c *collection.Collections,
 	ltInSize int,
 ) *Manager {
 	return &Manager{
-		log:         log,
-		storage:     storage,
-		collections: c,
-		lockTable:   locktable.New[ItemID](ltInSize),
-		txReqs:      make(async.Handler[value.TenantID, *Transaction]),
-		returns:     make(chan record.TransactionID, returnSize),
-		active:      make(set.Set[record.TransactionID]),
+		log:       log,
+		storage:   storage,
+		lockTable: locktable.New[ItemID](ltInSize),
+		txReqs:    make(async.Handler[value.TenantID, *Transaction]),
+		returns:   make(chan record.TransactionID, returnSize),
+		active:    make(set.Set[record.TransactionID]),
 	}
 }
 

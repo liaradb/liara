@@ -5,7 +5,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -52,7 +51,7 @@ func createManager(t *testing.T) (*Manager, *log.Log) {
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
-	m := NewManager(l, s, collection.NewCollections(s), 1)
+	m := NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	return m, l

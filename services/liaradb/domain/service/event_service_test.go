@@ -7,7 +7,6 @@ import (
 	"time"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/fixed"
@@ -182,7 +181,7 @@ func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *storage
 	l := createLog(t, fsys, dir, pageSize)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 
-	m := transaction.NewManager(l, s, collection.NewCollections(s), 1)
+	m := transaction.NewManager(l, s, 1)
 	m.Run(t.Context())
 
 	t.Cleanup(func() {
