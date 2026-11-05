@@ -19,7 +19,7 @@ func TestSchema_GetByte(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewByteColumn(name))
+	s.AddColumn(column.NewByte(name))
 
 	_, ok := s.GetByte(name)
 	if !ok {
@@ -36,7 +36,7 @@ func TestSchema_GetInt8(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewInt8Column(name))
+	s.AddColumn(column.NewInt8(name))
 
 	_, ok := s.GetInt8(name)
 	if !ok {
@@ -53,7 +53,7 @@ func TestSchema_GetInt16(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewInt16Column(name))
+	s.AddColumn(column.NewInt16(name))
 
 	_, ok := s.GetInt16(name)
 	if !ok {
@@ -70,7 +70,7 @@ func TestSchema_GetInt32(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewInt32Column(name))
+	s.AddColumn(column.NewInt32(name))
 
 	_, ok := s.GetInt32(name)
 	if !ok {
@@ -87,7 +87,7 @@ func TestSchema_GetInt64(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewInt64Column(name))
+	s.AddColumn(column.NewInt64(name))
 
 	_, ok := s.GetInt64(name)
 	if !ok {
@@ -104,7 +104,7 @@ func TestSchema_GetUInt16(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewUInt16Column(name))
+	s.AddColumn(column.NewUInt16(name))
 
 	_, ok := s.GetUInt16(name)
 	if !ok {
@@ -121,7 +121,7 @@ func TestSchema_GetUInt32(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewUInt32Column(name))
+	s.AddColumn(column.NewUInt32(name))
 
 	_, ok := s.GetUInt32(name)
 	if !ok {
@@ -138,7 +138,7 @@ func TestSchema_GetUInt64(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewUInt64Column(name))
+	s.AddColumn(column.NewUInt64(name))
 
 	_, ok := s.GetUInt64(name)
 	if !ok {
@@ -155,7 +155,7 @@ func TestSchema_GetString(t *testing.T) {
 	s := NewSchema(NewID())
 
 	name := "name"
-	s.AddColumn(column.NewStringColumn(name, 10))
+	s.AddColumn(column.NewString(name, 10))
 
 	_, ok := s.GetString(name)
 	if !ok {

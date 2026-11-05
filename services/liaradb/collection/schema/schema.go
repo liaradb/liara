@@ -11,7 +11,7 @@ type Schema struct {
 type Column interface {
 	Name() string
 	Size() int
-	Type() column.ColumnType
+	Type() column.Type
 }
 
 func NewSchema(id ID) *Schema {
@@ -42,7 +42,7 @@ func (s *Schema) GetInt8(name string) (int8, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.Int8Column)
+	ic, ok := c.(column.Int8)
 	if !ok {
 		return 0, false
 	}
@@ -56,7 +56,7 @@ func (s *Schema) GetInt16(name string) (int16, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.Int16Column)
+	ic, ok := c.(column.Int16)
 	if !ok {
 		return 0, false
 	}
@@ -70,7 +70,7 @@ func (s *Schema) GetInt32(name string) (int32, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.Int32Column)
+	ic, ok := c.(column.Int32)
 	if !ok {
 		return 0, false
 	}
@@ -84,7 +84,7 @@ func (s *Schema) GetInt64(name string) (int64, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.Int64Column)
+	ic, ok := c.(column.Int64)
 	if !ok {
 		return 0, false
 	}
@@ -98,7 +98,7 @@ func (s *Schema) GetByte(name string) (byte, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.ByteColumn)
+	ic, ok := c.(column.Byte)
 	if !ok {
 		return 0, false
 	}
@@ -112,7 +112,7 @@ func (s *Schema) GetUInt16(name string) (uint16, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.UInt16Column)
+	ic, ok := c.(column.UInt16)
 	if !ok {
 		return 0, false
 	}
@@ -126,7 +126,7 @@ func (s *Schema) GetUInt32(name string) (uint32, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.UInt32Column)
+	ic, ok := c.(column.UInt32)
 	if !ok {
 		return 0, false
 	}
@@ -140,7 +140,7 @@ func (s *Schema) GetUInt64(name string) (uint64, bool) {
 		return 0, false
 	}
 
-	ic, ok := c.(column.UInt64Column)
+	ic, ok := c.(column.UInt64)
 	if !ok {
 		return 0, false
 	}
@@ -154,7 +154,7 @@ func (s *Schema) GetString(name string) (string, bool) {
 		return "", false
 	}
 
-	sc, ok := c.(column.StringColumn)
+	sc, ok := c.(column.String)
 	if !ok {
 		return "", false
 	}
