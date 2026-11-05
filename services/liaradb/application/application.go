@@ -49,7 +49,7 @@ func New(conf configuration) *Application {
 	return &Application{
 		conf:      conf,
 		txManager: txManager,
-		services:  newServices(txManager, newCollections(s)),
+		services:  newServices(txManager, s),
 	}
 }
 
