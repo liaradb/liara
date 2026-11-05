@@ -1,4 +1,4 @@
-package collection
+package application
 
 import (
 	"github.com/liaradb/liaradb/collection/btree"
@@ -14,7 +14,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 )
 
-type Collections struct {
+type collections struct {
 	manager     *manager.Manager
 	schemaMgr   *schema.Manager
 	Tenant      *tenant.Tenant
@@ -24,11 +24,11 @@ type Collections struct {
 	Idempotency *idempotency.Idempotency
 }
 
-func NewCollections(s *storage.Storage) *Collections {
+func newCollections(s *storage.Storage) *collections {
 	c := btree.NewCursor(s)
 	fc := fixed.New(record.New(s), c)
 	kv := keyvalue.New(fc)
-	return &Collections{
+	return &collections{
 		manager:     manager.New(kv),
 		schemaMgr:   schema.NewManager(s),
 		Tenant:      tenant.New(fc),

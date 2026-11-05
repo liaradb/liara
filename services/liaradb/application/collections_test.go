@@ -1,4 +1,4 @@
-package collection
+package application
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ import (
 
 func TestCollections(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-		c := NewCollections(s.Storage)
+		c := newCollections(s.Storage)
 		if c == nil {
 			t.Error("should have value")
 		}

@@ -9,7 +9,6 @@ import (
 	"github.com/cardboardrobots/errormap"
 	pb "github.com/liaradb/eventsource_go/generated"
 	"github.com/liaradb/liaradb/application/listener"
-	"github.com/liaradb/liaradb/collection"
 	"github.com/liaradb/liaradb/controller"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/domain/value"
@@ -27,7 +26,7 @@ type Application struct {
 	conf        configuration
 	s           *grpc.Server
 	storage     *storage.Storage
-	collections *collection.Collections
+	collections *collections
 	txManager   *transaction.Manager
 	log         *log.Log
 	ot          openTelemetry
@@ -56,7 +55,7 @@ func New(conf configuration) *Application {
 	return &Application{
 		conf:        conf,
 		storage:     s,
-		collections: collection.NewCollections(s),
+		collections: newCollections(s),
 		txManager:   transaction.NewManager(log, s, inSize),
 		log:         log,
 	}
