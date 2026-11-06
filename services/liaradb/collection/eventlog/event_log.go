@@ -15,7 +15,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/scan"
 )
 
-// TODO: Create latching
 type EventLog struct {
 	fc *fixed.FixedCollection
 	c  *btree.Cursor
@@ -86,13 +85,7 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id 
 			}
 
 			e, err := l.readEvent(s)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			// TODO: Do we need to check this?
-			if e.AggregateID != id || !yield(e, nil) {
+			if !yield(e, err) || err != nil {
 				return
 			}
 		}
@@ -114,7 +107,8 @@ func (l *EventLog) Events(ctx context.Context, tx fixed.Transaction, tn tablenam
 				return
 			}
 
-			if !yield(l.readEvent(s)) {
+			e, err := l.readEvent(s)
+			if !yield(e, err) || err != nil {
 				return
 			}
 		}
@@ -140,12 +134,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			}
 
 			e, err := l.readEvent(s)
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(e, nil) {
+			if !yield(e, err) || err != nil {
 				return
 			}
 		}
