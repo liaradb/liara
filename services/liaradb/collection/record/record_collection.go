@@ -57,7 +57,7 @@ func (rc *RecordCollection) Get(
 	}
 
 	s := span.New()
-	p := bufferpage.New(b, span.FragmentHeaderSize)
+	p := bufferpage.New(b)
 	f := s.AppendSlot(p, rid.SlotID())
 
 	for f.NextBlockID() != 0 {
@@ -68,7 +68,7 @@ func (rc *RecordCollection) Get(
 			return nil, err
 		}
 
-		p := bufferpage.New(b, span.FragmentHeaderSize)
+		p := bufferpage.New(b)
 		f = s.AppendSlot(p, link.SlotID(0))
 	}
 

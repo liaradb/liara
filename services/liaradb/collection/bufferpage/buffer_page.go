@@ -1,26 +1,20 @@
 package bufferpage
 
 import (
-	"github.com/liaradb/liaradb/encoder/page"
+	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-const (
-	headerSize = 0
-)
-
 type BufferPage struct {
-	page   *page.Page
+	page   span.Page
 	buffer *storage.Buffer
 }
 
-// TODO: Remove this parameter once the import cycle with span is fixed.
-func New(b *storage.Buffer, slotHeaderSize int) *BufferPage {
-	page := page.NewFromSlice(b.Raw(), headerSize, slotHeaderSize)
+func New(b *storage.Buffer) *BufferPage {
 	return &BufferPage{
-		page:   page,
+		page:   span.NewPage(b.Raw()),
 		buffer: b,
 	}
 }

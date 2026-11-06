@@ -212,7 +212,7 @@ func (re *Replay) recoverRollback() error {
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
 	if tablename.IsIndex(r.FileRecordID().FileBlockID().FileName().String()) {
-		return page.NewFromSlice(b.Raw(), 0, span.FragmentHeaderSize)
+		return span.NewPage(b.Raw()).Page
 	}
 
 	return page.NewFromSlice(b.Raw(), node.HeaderSize, 0)
