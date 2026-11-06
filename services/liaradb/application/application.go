@@ -36,7 +36,13 @@ const (
 func New(conf configuration) *Application {
 	fsys := filecache.New()
 
-	s := storage.New(fsys, lrupool.New(), conf.Buffers, int64(conf.BlockSize), path.Join(conf.Directory, "tenants"))
+	s := storage.New(
+		fsys,
+		lrupool.New(),
+		conf.Buffers,
+		int64(conf.BlockSize),
+		path.Join(conf.Directory, "tenants"))
+
 	log := log.New(
 		int64(conf.BlockSize),
 		segment.PageID(segmentSize),
@@ -44,6 +50,7 @@ func New(conf configuration) *Application {
 		conf.WriteQueueSize,
 		fsys,
 		path.Join(conf.Directory, "log"))
+
 	txManager := transaction.NewManager(log, s, inSize)
 
 	return &Application{
@@ -59,7 +66,7 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.ot.init(ctxMain)
 
-	if err := a.run(ctxMain); err != nil {
+	if err := a.txManager.Run(ctxMain); err != nil {
 		cancelMain()
 		return err
 	}
@@ -101,25 +108,6 @@ func (a *Application) initEventLog(ctx context.Context) error {
 	}
 
 	return a.services.es.InitGlobalVersions(ctx, tIDs)
-}
-
-func (a *Application) run(ctx context.Context) error {
-	slog.Info("starting...")
-
-	a.txManager.Run(ctx)
-
-	slog.Info("transaction manager running")
-	slog.Info("storage running")
-	slog.Info("recovering...")
-
-	if err := a.txManager.Recover(ctx); err != nil {
-		return err
-	}
-
-	slog.Info("recovered")
-	slog.Info("log running")
-
-	return nil
 }
 
 func (a *Application) listen() error {

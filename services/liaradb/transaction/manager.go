@@ -49,22 +49,43 @@ func NewManager(
 }
 
 func (m *Manager) Run(ctx context.Context) error {
+	slog.Info("starting...")
+
 	go m.lockTable.Run(ctx)
 	go m.run(ctx)
-	return m.storage.Run(ctx)
+
+	slog.Info("transaction manager running")
+
+	return m.runAndRecover(ctx)
 }
 
-func (m *Manager) Recover(ctx context.Context) error {
+func (m *Manager) runAndRecover(ctx context.Context) error {
+	if err := m.storage.Run(ctx); err != nil {
+		return err
+	}
+
+	slog.Info("storage running")
+
 	if err := m.log.Run(ctx); err != nil {
 		return err
 	}
+
+	slog.Info("recovering...")
 
 	r := replay.NewReplay(m.storage, m.log)
 	if err := r.Recover(ctx); err != nil {
 		return err
 	}
 
-	return m.log.StartWriter()
+	slog.Info("recovered")
+
+	if err := m.log.StartWriter(); err != nil {
+		return err
+	}
+
+	slog.Info("log running")
+
+	return nil
 }
 
 func (m *Manager) run(ctx context.Context) {
