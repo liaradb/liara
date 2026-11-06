@@ -39,8 +39,7 @@ func New(data []byte) SlotList {
 }
 
 func (*SlotList) position(i link.SlotID) int16 {
-	// TODO: Fix this cast
-	return int16(i*tupleSize + headerSize)
+	return i.Value()*tupleSize + headerSize
 }
 
 func (sl *SlotList) Last() Slot {
