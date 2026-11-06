@@ -12,12 +12,13 @@ type PageID uint64
 const PageIDSize = 8
 
 // TODO: This is private
-func newActivePageIDFromSize(size int64, pageSize int64) PageID {
+func newActivePageIDFromSize(size int64, pageSize int16) PageID {
 	if pageSize == 0 || size == 0 {
 		return 0
 	}
-	pid := size / pageSize
-	if size%pageSize == 0 {
+	ps := int64(pageSize)
+	pid := size / ps
+	if size%ps == 0 {
 		pid--
 	}
 	return PageID(pid)
@@ -27,8 +28,8 @@ func (pid PageID) Value() uint64 {
 	return uint64(pid)
 }
 
-func (pid PageID) Position(pageSize int64) int64 {
-	return int64(pid) * pageSize
+func (pid PageID) Position(pageSize int16) int64 {
+	return int64(pid) * int64(pageSize)
 }
 
 func (pid PageID) Write(w io.Writer) error {

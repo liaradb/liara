@@ -30,7 +30,7 @@ func (b *Buffer) FileBlockID() link.FileBlockID { return b.fileBlockID }
 func (b *Buffer) Dirty() bool                   { return b.status == BufferStatusDirty }
 func (b *Buffer) Pins() int                     { return b.pins }
 func (b *Buffer) Reads() uint                   { return b.reads }
-func (b *Buffer) Size() int64                   { return b.s.BufferSize() }
+func (b *Buffer) Size() int16                   { return b.s.BufferSize() }
 func (b *Buffer) Raw() []byte                   { return b.data }
 func (b *Buffer) Status() BufferStatus          { return b.status }
 

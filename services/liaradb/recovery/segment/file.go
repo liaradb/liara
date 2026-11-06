@@ -10,7 +10,7 @@ import (
 type File struct {
 	file        filecache.File
 	sn          SegmentName
-	pageSize    int64
+	pageSize    int16
 	segmentSize PageID
 	pageID      PageID
 	size        int64
@@ -19,7 +19,7 @@ type File struct {
 func newFile(
 	file filecache.File,
 	sn SegmentName,
-	pageSize int64,
+	pageSize int16,
 	segmentSize PageID,
 	size int64,
 ) *File {
@@ -92,7 +92,7 @@ func (f *File) WriteAt(data []byte, off int64) (int, error) {
 }
 
 func (f *File) Read(data []byte) (int, error) {
-	wr := io.NewSectionReader(f, f.position(), f.pageSize)
+	wr := io.NewSectionReader(f, f.position(), int64(f.pageSize))
 	return wr.Read(data)
 }
 
@@ -114,7 +114,7 @@ func (f *File) NextPage() bool {
 	}
 
 	f.pageID++
-	f.size += f.pageSize
+	f.size += int64(f.pageSize)
 	return true
 }
 

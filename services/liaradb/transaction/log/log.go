@@ -33,7 +33,7 @@ type Log struct {
 }
 
 func New(
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	maxRecordSize int64,
 	writeQueueSize int,
@@ -41,8 +41,7 @@ func New(
 	dir string,
 ) *Log {
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
-	// TODO: Fix this cast
-	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
+	pl := pagepool.New(pageSize, span.FragmentHeaderSize)
 	it := pageiterator.New(sl, pl, func() *record.Record { return &record.Record{} })
 	return &Log{
 		rq: *recordqueue.New[*record.Record](

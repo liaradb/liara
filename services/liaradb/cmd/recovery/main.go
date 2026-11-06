@@ -34,7 +34,7 @@ func run() error {
 	fsys := filecache.New()
 
 	log := log.New(
-		int64(conf.BlockSize),
+		int16(conf.BlockSize),
 		segment.PageID(segmentSize),
 		int64(conf.RecordSize),
 		conf.WriteQueueSize,

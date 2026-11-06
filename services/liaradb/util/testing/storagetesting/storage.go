@@ -15,7 +15,7 @@ type Storage struct {
 	FSys    filecache.FileSystem
 }
 
-func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
+func SyncTest(t *testing.T, max int, bs int16, f func(*testing.T, Storage)) {
 	t.Helper()
 	t.Parallel()
 
@@ -38,14 +38,14 @@ func SyncTest(t *testing.T, max int, bs int64, f func(*testing.T, Storage)) {
 	})
 }
 
-func CreateStorage(t *testing.T, max int, bs int64) *storage.Storage {
+func CreateStorage(t *testing.T, max int, bs int16) *storage.Storage {
 	t.Helper()
 
 	fsys := filetesting.New(nil)
 	return CreateStorageWithFileSystem(t, max, bs, fsys, ".")
 }
 
-func CreateStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem, dir string) *storage.Storage {
+func CreateStorageWithFileSystem(t *testing.T, max int, bs int16, fsys filecache.FileSystem, dir string) *storage.Storage {
 	t.Helper()
 
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)

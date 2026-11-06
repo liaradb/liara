@@ -18,7 +18,7 @@ type LogPage struct {
 	handlers []func()
 }
 
-func New(size int, slotHeaderSize int16) *LogPage {
+func New(size int16, slotHeaderSize int16) *LogPage {
 	page := page.New(size, HeaderSize, slotHeaderSize)
 	return &LogPage{
 		page: page,

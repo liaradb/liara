@@ -14,14 +14,14 @@ type List struct {
 	fsys        filecache.FileSystem
 	names       *list.List
 	f           *File
-	pageSize    int64
+	pageSize    int16
 	segmentSize PageID
 }
 
 func NewList(
 	fsys filecache.FileSystem,
 	dir string,
-	pageSize int64,
+	pageSize int16,
 	segmentSize PageID,
 ) *List {
 	return &List{

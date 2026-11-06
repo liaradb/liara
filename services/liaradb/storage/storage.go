@@ -14,7 +14,7 @@ import (
 // TODO: Create dirty list in FreePool. This will make flushes simpler.
 // TODO: Verify pool is filled up to max
 type Storage struct {
-	bufferSize int64
+	bufferSize int16
 	fs         filecache.FileSystem
 	dir        string
 	pinned     map[link.FileBlockID]*Buffer
@@ -28,7 +28,7 @@ type Storage struct {
 	hwMux      sync.RWMutex
 }
 
-func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int64, dir string) *Storage {
+func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int16, dir string) *Storage {
 	return &Storage{
 		bufferSize: bs,
 		fs:         fs,
@@ -44,7 +44,7 @@ func New(fs filecache.FileSystem, unpinned FreePool, max int, bs int64, dir stri
 	}
 }
 
-func (s *Storage) BufferSize() int64 { return s.bufferSize }
+func (s *Storage) BufferSize() int16 { return s.bufferSize }
 func (s *Storage) Dir() string       { return s.dir }
 
 func (s *Storage) CountPinned() int {
@@ -344,7 +344,7 @@ func (s *Storage) initHighwater(fn link.FileName, f filecache.File) error {
 	}
 
 	size := stat.Size()
-	s.highWater[fn] = link.BlockID(size / s.bufferSize)
+	s.highWater[fn] = link.BlockID(size / int64(s.bufferSize))
 
 	return nil
 }

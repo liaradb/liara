@@ -19,7 +19,7 @@ const (
 type Page struct {
 	magic          wrap.Int32
 	trackingID     wrap.Int64
-	headerSize     int
+	headerSize     int16
 	slotHeaderSize int16
 	data           []byte
 	body           []byte // TODO: Just use SlotList
@@ -28,8 +28,8 @@ type Page struct {
 }
 
 func New(
-	size int,
-	headerSize int,
+	size int16,
+	headerSize int16,
 	slotHeaderSize int16,
 ) *Page {
 	return NewFromSlice(
@@ -40,7 +40,7 @@ func New(
 
 func NewFromSlice(
 	data []byte,
-	headerSize int,
+	headerSize int16,
 	slotHeaderSize int16,
 ) *Page {
 	magic, data0 := wrap.NewInt32(data)

@@ -30,7 +30,7 @@ func TestEventService_Append(t *testing.T) {
 }
 
 func testEventService_Append(t *testing.T) {
-	m, s := createManager(t, 1024)
+	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
 	fc := fixed.New(record.New(s), c)
 	es := NewEventService(m,
@@ -91,7 +91,7 @@ func TestEventService_Append__Large(t *testing.T) {
 }
 
 func testEventService_Append__Large(t *testing.T) {
-	m, s := createManager(t, 1024)
+	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
 	fc := fixed.New(record.New(s), c)
 	es := NewEventService(m,
@@ -174,11 +174,11 @@ func testEventService_Append__Invalid(t *testing.T) {
 	synctest.Wait()
 }
 
-func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *storage.Storage) {
+func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transaction.Manager, *storage.Storage) {
 	t.Helper()
 
 	fsys, dir := createFiles()
-	l := createLog(t, fsys, dir, pageSize)
+	l := createLog(t, fsys, dir, pageSize, maxRecordSize)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 
 	m := transaction.NewManager(l, s, 1)
@@ -191,10 +191,10 @@ func createManager(t *testing.T, pageSize int64) (*transaction.Manager, *storage
 	return m, s
 }
 
-func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int64) *log.Log {
+func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int16, maxRecordSize int64) *log.Log {
 	t.Helper()
 
-	l := log.New(pageSize, 10, pageSize, 100, fsys, dir)
+	l := log.New(pageSize, 10, maxRecordSize, 100, fsys, dir)
 	if err := l.Run(t.Context()); err != nil {
 		t.Fatal(err)
 	}

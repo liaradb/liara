@@ -28,7 +28,7 @@ const (
 // What happens if we flush previous page or segment?
 // Do we flush current page when closing segment?
 type RecordQueue[R pagequeue.Record] struct {
-	pageSize      int64
+	pageSize      int16
 	sl            *segment.List
 	pq            *pagequeue.PageQueue[R]
 	ps            *pagestorage.PageStorage
@@ -40,7 +40,7 @@ type RecordQueue[R pagequeue.Record] struct {
 }
 
 func New[R pagequeue.Record](
-	pageSize int64,
+	pageSize int16,
 	maxRecordSize int64,
 	writeQueueSize int,
 	sl *segment.List,

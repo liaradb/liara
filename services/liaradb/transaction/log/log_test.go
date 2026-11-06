@@ -999,7 +999,7 @@ func testLog_Update(t *testing.T) {
 }
 
 func createLogStart(t *testing.T,
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	recordSize int64,
 ) *Log {
@@ -1015,7 +1015,7 @@ func createLogStart(t *testing.T,
 }
 
 func createLogAllStart(t *testing.T,
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,
@@ -1032,7 +1032,7 @@ func createLogAllStart(t *testing.T,
 }
 
 func createLog(t *testing.T,
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,

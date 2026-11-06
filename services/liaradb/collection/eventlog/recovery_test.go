@@ -35,7 +35,7 @@ func testRecovery(t *testing.T) {
 	tn := tf.EventLog(pid)
 
 	var max int = 2
-	var bs int64 = 1024
+	var bs int16 = 1024
 
 	records := []*entity.Event{{
 		GlobalVersion: value.NewGlobalVersion(0),
@@ -73,7 +73,7 @@ func write(
 	baseCtx context.Context,
 	fsys filecache.FileSystem,
 	max int,
-	bs int64,
+	bs int16,
 	dir string,
 	tn tablename.TableName,
 	events []*entity.Event,
@@ -105,7 +105,7 @@ func recover(
 	ctx context.Context,
 	fsys filecache.FileSystem,
 	max int,
-	bs int64,
+	bs int16,
 	dir string,
 	tn tablename.TableName,
 	events []*entity.Event,

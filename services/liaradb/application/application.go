@@ -40,11 +40,11 @@ func New(conf configuration) *Application {
 		fsys,
 		lrupool.New(),
 		conf.Buffers,
-		int64(conf.BlockSize),
+		int16(conf.BlockSize),
 		path.Join(conf.Directory, "tenants"))
 
 	log := log.New(
-		int64(conf.BlockSize),
+		int16(conf.BlockSize),
 		segment.PageID(segmentSize),
 		int64(conf.RecordSize),
 		conf.WriteQueueSize,

@@ -13,7 +13,7 @@ func TestPageID_NewActivePageIDFromSize(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip     bool
 		size     int64
-		pageSize int64
+		pageSize int16
 		id       PageID
 	}{
 		"should handle zero pageSize": {
@@ -57,7 +57,7 @@ func TestPageID_Size(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip     bool
 		id       PageID
-		pageSize int64
+		pageSize int16
 		size     int64
 	}{
 		"should handle zero pageSize": {

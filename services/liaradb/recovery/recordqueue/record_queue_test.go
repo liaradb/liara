@@ -178,7 +178,7 @@ func TestRecordQueue_Flush(t *testing.T) {
 }
 
 func createRecordQueueStart(t *testing.T,
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	recordSize int64,
 ) *RecordQueue[*testRecord] {
@@ -194,7 +194,7 @@ func createRecordQueueStart(t *testing.T,
 }
 
 func createRecordQueue(t *testing.T,
-	pageSize int64,
+	pageSize int16,
 	segmentSize segment.PageID,
 	recordSize int64,
 	fsys filecache.FileSystem,
@@ -203,8 +203,7 @@ func createRecordQueue(t *testing.T,
 	t.Helper()
 
 	sl := segment.NewList(fsys, dir, pageSize, segmentSize)
-	// TODO: Fix this cast
-	pl := pagepool.New(int(pageSize), span.FragmentHeaderSize)
+	pl := pagepool.New(pageSize, span.FragmentHeaderSize)
 
 	rq := New[*testRecord](pageSize, recordSize, 100, sl, pl)
 	if err := rq.Run(t.Context()); err != nil {

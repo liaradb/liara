@@ -503,28 +503,28 @@ func testStorage_Load__Error(t *testing.T) {
 	synctest.Wait()
 }
 
-func createStorage(t *testing.T, max int, bs int64) *Storage {
+func createStorage(t *testing.T, max int, bs int16) *Storage {
 	t.Helper()
 
 	fsys := filetesting.New(nil)
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageDelay(t *testing.T, max int, bs int64, delay time.Duration) *Storage {
+func createStorageDelay(t *testing.T, max int, bs int16, delay time.Duration) *Storage {
 	t.Helper()
 
 	fsys := filetesting.NewCacheDelay(nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys)
 }
 
-func createStorageAndFileSystem(t *testing.T, max int, bs int64, delay time.Duration) (*Storage, *filecache.Cache) {
+func createStorageAndFileSystem(t *testing.T, max int, bs int16, delay time.Duration) (*Storage, *filecache.Cache) {
 	t.Helper()
 
 	fsys := filetesting.NewCacheDelay(nil, delay)
 	return createStorageWithFileSystem(t, max, bs, fsys), fsys
 }
 
-func createStorageWithFileSystem(t *testing.T, max int, bs int64, fsys filecache.FileSystem) *Storage {
+func createStorageWithFileSystem(t *testing.T, max int, bs int16, fsys filecache.FileSystem) *Storage {
 	t.Helper()
 
 	dir := t.TempDir()
