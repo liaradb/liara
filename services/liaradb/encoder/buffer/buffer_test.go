@@ -61,7 +61,7 @@ func TestBuffer_Bytes(t *testing.T) {
 func TestBuffer_Length(t *testing.T) {
 	t.Parallel()
 
-	var size int64 = 10
+	var size = 10
 	b := New(size)
 
 	if s := b.Length(); s != size {

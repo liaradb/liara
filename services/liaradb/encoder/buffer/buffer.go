@@ -8,7 +8,7 @@ type Buffer struct {
 	cursor int64
 }
 
-func New(size int64) *Buffer {
+func New(size int) *Buffer {
 	return &Buffer{
 		data: make([]byte, size),
 	}
@@ -45,7 +45,7 @@ func (b *Buffer) Reset(data []byte) {
 }
 
 func (b *Buffer) Bytes() []byte { return b.data }
-func (b *Buffer) Length() int64 { return int64(len(b.data)) }
+func (b *Buffer) Length() int   { return len(b.data) }
 func (b *Buffer) Cursor() int64 { return b.cursor }
 
 func (b *Buffer) Read(p []byte) (n int, err error) {

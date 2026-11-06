@@ -15,7 +15,7 @@ func TestFixedBytesBytes(t *testing.T) {
 	size := len(want)
 	n := NewFixedBytes(want)
 
-	data := buffer.New(int64(size))
+	data := buffer.New(size)
 
 	if err := n.Write(data); err != nil {
 		t.Fatal(err)

@@ -58,8 +58,7 @@ func newFragment(
 	}
 }
 
-// TODO: Fix this cast
-func (f Fragment) length() int               { return int(f.buffer.Length()) }
+func (f Fragment) length() int               { return f.buffer.Length() }
 func (f Fragment) SlotID() link.SlotID       { return f.slotID } // TODO: This is unused
 func (f Fragment) NextBlockID() link.BlockID { return link.BlockID(f.nextBlockID.Get()) }
 func (f Fragment) NextSlotID() link.SlotID   { return link.SlotID(f.nextSlotID.Get()) }

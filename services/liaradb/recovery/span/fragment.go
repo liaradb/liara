@@ -32,8 +32,7 @@ func newFragment(header []byte, data []byte) *Fragment {
 	}
 }
 
-// TODO: Fix this cast
-func (f Fragment) length() int  { return int(f.buffer.Length()) }
+func (f Fragment) length() int  { return f.buffer.Length() }
 func (f Fragment) Count() int16 { return f.count.Get() }
 func (f Fragment) Index() int16 { return f.index.Get() }
 
