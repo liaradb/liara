@@ -38,7 +38,7 @@ func (bp *BufferPage) Release() {
 	bp.buffer.Release()
 }
 
-func (bp *BufferPage) CommitAppend(size int) {
+func (bp *BufferPage) CommitAppend(size int16) {
 	_ = bp.page.CommitAppend(size)
 	// TODO: Verify this the correct time to do this
 	bp.buffer.SetDirty()
@@ -48,7 +48,7 @@ func (bp *BufferPage) Count() link.SlotID {
 	return bp.page.Count()
 }
 
-func (bp *BufferPage) Next(size int) ([]byte, []byte) {
+func (bp *BufferPage) Next(size int16) ([]byte, []byte) {
 	return bp.page.Next(size)
 }
 

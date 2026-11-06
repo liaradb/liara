@@ -20,17 +20,17 @@ type Page struct {
 	magic          wrap.Int32
 	trackingID     wrap.Int64
 	headerSize     int
-	slotHeaderSize int
+	slotHeaderSize int16
 	data           []byte
 	body           []byte // TODO: Just use SlotList
 	list           slotlist.SlotList
-	next           int
+	next           int16
 }
 
 func New(
 	size int,
 	headerSize int,
-	slotHeaderSize int,
+	slotHeaderSize int16,
 ) *Page {
 	return NewFromSlice(
 		make([]byte, size),
@@ -41,7 +41,7 @@ func New(
 func NewFromSlice(
 	data []byte,
 	headerSize int,
-	slotHeaderSize int,
+	slotHeaderSize int16,
 ) *Page {
 	magic, data0 := wrap.NewInt32(data)
 	trackingID, data1 := wrap.NewInt64(data0)
@@ -131,11 +131,10 @@ func (p *Page) slot(s slotlist.Slot) ([]byte, []byte) {
 }
 
 func (p *Page) initNext() {
-	// TODO: Fix this cast
-	p.next = int(p.list.FirstOffset())
+	p.next = p.list.FirstOffset()
 }
 
-func (p *Page) Next(size int) ([]byte, []byte) {
+func (p *Page) Next(size int16) ([]byte, []byte) {
 	data, ok := p.nextSlot(size)
 	if !ok {
 		return nil, nil
@@ -144,7 +143,7 @@ func (p *Page) Next(size int) ([]byte, []byte) {
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:]
 }
 
-func (p *Page) nextSlot(size int) ([]byte, bool) {
+func (p *Page) nextSlot(size int16) ([]byte, bool) {
 	space := p.Space()
 	size = min(size, space)
 	end := p.next
@@ -156,7 +155,7 @@ func (p *Page) nextSlot(size int) ([]byte, bool) {
 	return p.body[start:end], true
 }
 
-func (p *Page) recoverSlot(size int) []byte {
+func (p *Page) recoverSlot(size int16) []byte {
 	space := p.Space()
 	size = min(size, space)
 	end := p.next
@@ -164,7 +163,7 @@ func (p *Page) recoverSlot(size int) []byte {
 	return p.body[start:end]
 }
 
-func (p *Page) NextMustFit(size int) ([]byte, []byte, bool) {
+func (p *Page) NextMustFit(size int16) ([]byte, []byte, bool) {
 	space := p.Space()
 	if size > space {
 		return nil, nil, false
@@ -181,42 +180,39 @@ func (p *Page) NextMustFit(size int) ([]byte, []byte, bool) {
 	return data[:p.slotHeaderSize], data[p.slotHeaderSize:], true
 }
 
-func (p *Page) Space() int {
+func (p *Page) Space() int16 {
 	end := p.next
-	// TODO: Fix this cast
-	size := int(p.list.NextSize())
+	size := p.list.NextSize()
 	space := (end - size) - p.slotHeaderSize
 
 	return max(space, 0)
 }
 
-func (p *Page) CommitAppend(size int) link.SlotID {
+func (p *Page) CommitAppend(size int16) link.SlotID {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
-	// TODO: Fix this cast
-	_, sid := p.list.Push(int16(start), int16(fullSize))
+	_, sid := p.list.Push(start, fullSize)
 	p.next = start
 	return sid
 }
 
-func (p *Page) Insert(size int, i link.SlotID) link.SlotID {
+func (p *Page) Insert(size int16, i link.SlotID) link.SlotID {
 	fullSize := size + p.slotHeaderSize
 	start := p.next - fullSize
 
-	// TODO: Fix this cast
-	_, sid := p.list.Insert(int16(start), int16(fullSize), i)
+	_, sid := p.list.Insert(start, fullSize, i)
 	p.next = start
 	return sid
 }
 
 func (p *Page) RecoverAppend(data []byte) {
-	slot := p.recoverSlot(len(data))
+	slot := p.recoverSlot(int16(len(data)))
 	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
 	}
 
-	p.CommitAppend(len(data) - p.slotHeaderSize)
+	p.CommitAppend(int16(len(data)) - p.slotHeaderSize)
 }
 
 func (p *Page) RevertAppend() {
@@ -231,12 +227,12 @@ func (p *Page) RecoverUpdate(i link.SlotID, data []byte) {
 }
 
 func (p *Page) RecoverInsert(i link.SlotID, data []byte) {
-	slot := p.recoverSlot(len(data))
+	slot := p.recoverSlot(int16(len(data)))
 	if n := copy(slot, data); n < len(data) {
 		panic("incomplete recovery")
 	}
 
-	_ = p.Insert(len(data)-p.slotHeaderSize, i)
+	_ = p.Insert(int16(len(data))-p.slotHeaderSize, i)
 }
 
 func (p *Page) RecoverHeader(data []byte) {

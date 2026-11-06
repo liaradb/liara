@@ -26,14 +26,14 @@ type Fragment struct {
 	nextSlotID  wrap.Int16
 	crc         wrap.Int32
 	buffer      *buffer.Buffer
-	size        int
+	size        int16
 	base        []byte
 }
 
 type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	FileBlockID() link.FileBlockID
-	CommitAppend(size int)
+	CommitAppend(size int16)
 	Release()
 	Slot(link.SlotID) ([]byte, []byte)
 }
@@ -54,7 +54,7 @@ func newFragment(
 		nextSlotID:  nextSlotID,
 		crc:         crc,
 		buffer:      buffer.NewFromSlice(data),
-		size:        len(data),
+		size:        int16(len(data)),
 	}
 }
 

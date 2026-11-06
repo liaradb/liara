@@ -1,6 +1,8 @@
 package pagequeue
 
 import (
+	"math"
+
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/span"
@@ -10,7 +12,7 @@ type Tip struct {
 	pool    *pagepool.PagePool
 	current *logpage.LogPage
 	pages   []*logpage.LogPage
-	sizes   []int
+	sizes   []int16
 }
 
 func NewTip(pool *pagepool.PagePool, current *logpage.LogPage) Tip {
@@ -32,7 +34,7 @@ func (t *Tip) Span(size int) *span.Span {
 
 	p := t.current
 
-	l := t.appendToSpan(&s, p, remaining)
+	l := t.appendToSpan(&s, p, t.capRemaining(remaining))
 
 	available = l
 	remaining -= l
@@ -40,7 +42,7 @@ func (t *Tip) Span(size int) *span.Span {
 	for available < size {
 		p = t.next()
 
-		l := t.appendToSpan(&s, p, remaining)
+		l := t.appendToSpan(&s, p, t.capRemaining(remaining))
 
 		available += l
 		remaining -= l
@@ -50,10 +52,14 @@ func (t *Tip) Span(size int) *span.Span {
 	return &s
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *logpage.LogPage, remaining int) int {
+func (*Tip) capRemaining(remaining int) int16 {
+	return int16(min(remaining, math.MaxInt16))
+}
+
+func (t *Tip) appendToSpan(s *span.Span, p *logpage.LogPage, remaining int16) int {
 	header, data := p.Next(remaining)
 	l := len(data)
-	t.sizes = append(t.sizes, l)
+	t.sizes = append(t.sizes, int16(l))
 	if l == 0 {
 		return l
 	}

@@ -85,15 +85,13 @@ func (n *Node) LogActions(ctx context.Context, l span.Log) error {
 }
 
 func (n *Node) Append(size int16) ([]byte, bool) {
-	// TODO: Fix this cast
-	_, b, ok := n.page.NextMustFit(int(size))
+	_, b, ok := n.page.NextMustFit(size)
 	return b, ok
 }
 
 func (n *Node) CommitAppend(size int16) {
-	// TODO: Fix this cast
-	_, b, _ := n.page.NextMustFit(int(size))
-	sid := n.page.CommitAppend(int(size))
+	_, b, _ := n.page.NextMustFit(size)
+	sid := n.page.CommitAppend(size)
 	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
 	n.addAction(newAppendAction(frid, b))
@@ -101,9 +99,8 @@ func (n *Node) CommitAppend(size int16) {
 }
 
 func (n *Node) CommitInsert(size int16, index link.SlotID) {
-	// TODO: Fix this cast
-	_, b, _ := n.page.NextMustFit(int(size))
-	sid := n.page.Insert(int(size), index)
+	_, b, _ := n.page.NextMustFit(size)
+	sid := n.page.Insert(size, index)
 	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
 	n.addAction(newInsertAction(frid, b))

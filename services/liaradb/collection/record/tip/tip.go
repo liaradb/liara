@@ -2,6 +2,7 @@ package tip
 
 import (
 	"context"
+	"math"
 
 	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/span"
@@ -39,7 +40,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	available := 0
 	remaining := size
 
-	l := t.appendToSpan(s, t.current, remaining)
+	l := t.appendToSpan(s, t.current, t.capRemaining(remaining))
 
 	available = l
 	remaining -= l
@@ -50,7 +51,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 			return nil, err
 		}
 
-		l := t.appendToSpan(s, p, remaining)
+		l := t.appendToSpan(s, p, t.capRemaining(remaining))
 
 		available += l
 		remaining -= l
@@ -60,7 +61,11 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	return s, nil
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int) int {
+func (*Tip) capRemaining(remaining int) int16 {
+	return int16(min(remaining, math.MaxInt16))
+}
+
+func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int16) int {
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {

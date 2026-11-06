@@ -18,7 +18,7 @@ type LogPage struct {
 	handlers []func()
 }
 
-func New(size int, slotHeaderSize int) *LogPage {
+func New(size int, slotHeaderSize int16) *LogPage {
 	page := page.New(size, HeaderSize, slotHeaderSize)
 	return &LogPage{
 		page: page,
@@ -54,11 +54,11 @@ func (lp *LogPage) Replace(r io.Reader) error {
 	return lp.page.Replace(r)
 }
 
-func (lp *LogPage) Next(size int) ([]byte, []byte) {
+func (lp *LogPage) Next(size int16) ([]byte, []byte) {
 	return lp.page.Next(size)
 }
 
-func (lp *LogPage) Commit(size int) {
+func (lp *LogPage) Commit(size int16) {
 	_ = lp.page.CommitAppend(size)
 }
 
