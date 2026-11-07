@@ -211,7 +211,7 @@ func (re *Replay) recoverRollback() error {
 }
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
-	if tablename.IsIndex(r.FileRecordID().FileBlockID().FileName().String()) {
+	if tablename.IsBTree(r.FileRecordID().FileBlockID().FileName().String()) {
 		return span.NewPage(b.Raw()).Page
 	}
 

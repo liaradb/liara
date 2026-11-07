@@ -1,6 +1,16 @@
 package tablename
 
-import "github.com/liaradb/liaradb/domain/value"
+import (
+	"errors"
+	"io/fs"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+
+	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/filecache"
+)
 
 type TenantFolder struct {
 	tenantID value.TenantID
@@ -44,4 +54,49 @@ func (tf TenantFolder) Outbox() GlobalTableName {
 
 func (tf TenantFolder) Tenant() GlobalTableName {
 	return tf.GlobalTable("tenant")
+}
+
+func (tf TenantFolder) Partitions(fsys filecache.FileSystem, dir string) ([]value.PartitionID, error) {
+	dirs, err := fsys.ReadDir(path.Join(dir, tf.String()))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			err = nil
+		}
+		return nil, err
+	}
+
+	pids := make([]value.PartitionID, 0, len(dirs))
+	for _, dir := range dirs {
+		num, ok := tf.partitionString(dir)
+		if !ok {
+			continue
+		}
+
+		i, err := strconv.Atoi(num)
+		if err != nil {
+			return nil, err
+		}
+
+		pids = append(pids, value.NewPartitionID(int32(i)))
+	}
+
+	return pids, nil
+}
+
+func (tf TenantFolder) partitionString(dir fs.DirEntry) (string, bool) {
+	if !dir.IsDir() {
+		return "", false
+	}
+
+	n := dir.Name()
+	if !IsCollection(n) {
+		return "", false
+	}
+
+	_, fileName := path.Split(n)
+	if !strings.HasPrefix(fileName, "event_log") {
+		return "", false
+	}
+
+	return strings.TrimPrefix(fileName, "event_log--"), true
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
 )
@@ -45,13 +46,35 @@ func NewEventService(
 	}
 }
 
-func (es *EventService) InitGlobalVersions(ctx context.Context, tIDs []value.TenantID) error {
+func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.FileSystem, tIDs []value.TenantID) error {
+	tIDMap := make(map[value.TenantID][]value.PartitionID)
 	for _, tid := range tIDs {
-		// TODO: Restore all partitions from disk
 		tf := tablename.NewTenantFolder(tid)
-		gv, err := es.eventLog.GetMaxGlobalVersion(ctx, tf.EventLog(value.NewPartitionID(0)))
+		pids, err := tf.Partitions(fsys, "tenants")
 		if err != nil {
 			return err
+		}
+
+		tIDMap[tid] = pids
+	}
+
+	return es.initGlobalVersions(ctx, tIDMap)
+}
+
+func (es *EventService) initGlobalVersions(ctx context.Context, tIDs map[value.TenantID][]value.PartitionID) error {
+	for tid, pids := range tIDs {
+		tf := tablename.NewTenantFolder(tid)
+
+		var gv value.GlobalVersion
+		for _, pid := range pids {
+			gv1, err := es.eventLog.GetMaxGlobalVersion(ctx, tf.EventLog(pid))
+			if err != nil {
+				return err
+			}
+
+			if gv1.Value() > gv.Value() {
+				gv = gv1
+			}
 		}
 
 		es.gvg.Init(tid, gv)

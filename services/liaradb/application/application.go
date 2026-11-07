@@ -22,6 +22,7 @@ import (
 
 type Application struct {
 	conf      configuration
+	fsys      *filecache.Cache
 	s         *grpc.Server
 	txManager *transaction.Manager
 	services  *services
@@ -55,6 +56,7 @@ func New(conf configuration) *Application {
 
 	return &Application{
 		conf:      conf,
+		fsys:      fsys,
 		txManager: txManager,
 		services:  newServices(txManager, s),
 	}
@@ -107,7 +109,7 @@ func (a *Application) initEventLog(ctx context.Context) error {
 		tIDs = append(tIDs, t.ID())
 	}
 
-	return a.services.es.InitGlobalVersions(ctx, tIDs)
+	return a.services.es.InitGlobalVersions(ctx, a.fsys, tIDs)
 }
 
 func (a *Application) listen() error {
