@@ -212,9 +212,6 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 		m.Shutdown(t.Context(), time.Now())
 	})
 
-	// TODO: There seems to be a race condition on startup with unpinned not be initialized
-	synctest.Wait()
-
 	return m, s
 }
 

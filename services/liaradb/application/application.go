@@ -68,7 +68,8 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.ot.init(ctxMain)
 
-	if err := a.txManager.Run(ctxMain); err != nil {
+	a.txManager.Run(ctxMain)
+	if err := a.txManager.Recover(ctxMain); err != nil {
 		cancelMain()
 		return err
 	}

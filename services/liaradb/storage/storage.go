@@ -138,7 +138,6 @@ func (s *Storage) getUnloaded(ctx context.Context, fbid link.FileBlockID, next b
 
 	b.load(fbid, next)
 	b.pin()
-	// TODO: Concurrent map write?
 	s.pinned[b.FileBlockID()] = b
 
 	return b, nil

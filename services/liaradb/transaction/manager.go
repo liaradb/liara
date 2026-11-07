@@ -48,18 +48,16 @@ func NewManager(
 	}
 }
 
-func (m *Manager) Run(ctx context.Context) error {
+func (m *Manager) Run(ctx context.Context) {
 	slog.Info("starting...")
 
 	go m.lockTable.Run(ctx)
 	go m.run(ctx)
 
 	slog.Info("transaction manager running")
-
-	return m.runAndRecover(ctx)
 }
 
-func (m *Manager) runAndRecover(ctx context.Context) error {
+func (m *Manager) Recover(ctx context.Context) error {
 	if err := m.storage.Run(ctx); err != nil {
 		return err
 	}
