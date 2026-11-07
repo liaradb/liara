@@ -14,7 +14,9 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/record"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/command"
+	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage"
@@ -33,15 +35,18 @@ func testEventService_Append(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
 	fc := fixed.New(record.New(s), c)
+	ts := tenant.New(fc)
 	es := NewEventService(m,
+		ts,
 		idempotency.New(fc),
 		eventlog.New(fc, c),
 		keyvalue.New(fc),
 		outbox.New(fc))
 
+	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -55,7 +60,7 @@ func testEventService_Append(t *testing.T) {
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -69,7 +74,7 @@ func testEventService_Append(t *testing.T) {
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -94,15 +99,19 @@ func testEventService_Append__Large(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
 	fc := fixed.New(record.New(s), c)
+	ts := tenant.New(fc)
+
 	es := NewEventService(m,
+		ts,
 		idempotency.New(fc),
 		eventlog.New(fc, c),
 		keyvalue.New(fc),
 		outbox.New(fc))
 
+	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -116,7 +125,7 @@ func testEventService_Append__Large(t *testing.T) {
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -130,7 +139,7 @@ func testEventService_Append__Large(t *testing.T) {
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
+		TenantID:    tid,
 		Options:     command.AppendOptions{},
 		PartitionID: value.NewPartitionID(0),
 		Events: []command.EventOptions{{
@@ -152,7 +161,7 @@ func TestEventService_Append__Invalid(t *testing.T) {
 }
 
 func testEventService_Append__Invalid(t *testing.T) {
-	es := NewEventService(nil, nil, nil, nil, nil)
+	es := NewEventService(nil, nil, nil, nil, nil, nil)
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	want := command.EventOptions{
@@ -174,6 +183,21 @@ func testEventService_Append__Invalid(t *testing.T) {
 	synctest.Wait()
 }
 
+func initTenant(t *testing.T, m *transaction.Manager, ts *tenant.Tenant) value.TenantID {
+	tid := value.NewTenantID()
+	tx, err := m.Next(t.Context(), tid)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := tx.Run(t.Context(), func() error {
+		return ts.Insert(t.Context(), tx, entity.NewTenant(tid, value.NewTenantName("")))
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return tid
+}
+
 func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transaction.Manager, *storage.Storage) {
 	t.Helper()
 
@@ -187,6 +211,9 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 	t.Cleanup(func() {
 		m.Shutdown(t.Context(), time.Now())
 	})
+
+	// TODO: There seems to be a race condition on startup with unpinned not be initialized
+	synctest.Wait()
 
 	return m, s
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/query"
@@ -31,13 +32,14 @@ type EventService struct {
 
 func NewEventService(
 	txManager *transaction.Manager,
+	tenant *tenant.Tenant,
 	idempotency *idempotency.Idempotency,
 	eventLog *eventlog.EventLog,
 	keyValue *keyvalue.KeyValue,
 	outbox *outbox.Outbox,
 ) *EventService {
 	return &EventService{
-		baseService: newBaseService(txManager, idempotency),
+		baseService: newBaseService(txManager, tenant, idempotency),
 		txManager:   txManager,
 		idempotency: idempotency,
 		eventLog:    eventLog,
@@ -99,6 +101,10 @@ func (es *EventService) Append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, func() error {
+		if err := es.testTenantID(ctx, tx, cmd.TenantID); err != nil {
+			return err
+		}
+
 		tn := tablename.NewTenantFolder(cmd.TenantID).EventLog(cmd.PartitionID)
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
@@ -146,6 +152,10 @@ func (es *EventService) TestIdempotency(
 
 	defer tx.Release()
 
+	if err := es.testTenantID(ctx, tx, qry.TenantID); err != nil {
+		return false, err
+	}
+
 	tn := tablename.NewTenantFolder(qry.TenantID).RequestLog()
 	return es.testRequestID(ctx, tx, tn, qry.RequestID)
 }
@@ -163,6 +173,10 @@ func (es *EventService) Get(
 	}
 
 	defer tx.Release()
+
+	if err := es.testTenantID(ctx, tx, tid); err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
 
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
 		return iterator.Error[*entity.Event](err)
@@ -191,6 +205,10 @@ func (es *EventService) GetByAggregateIDAndName(
 	}
 
 	defer tx.Release()
+
+	if err := es.testTenantID(ctx, tx, tid); err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
 
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
 		return iterator.Error[*entity.Event](err)
@@ -228,11 +246,16 @@ func (es *EventService) GetAfterGlobalVersion(
 			return
 		}
 
+		if err := es.testTenantID(ctx, tx, tid); err != nil {
+			yield(nil, err)
+			return
+		}
+
 		// TODO: Should this log?
 		// TODO: How do we handle a range?
 		count := 0
 		if err := tx.Run(ctx, func() error {
-			for e, err := range es.EventsAfterGlobalVersion(ctx, tid, partitionRange.Low(), version) {
+			for e, err := range es.eventsAfterGlobalVersion(ctx, tid, partitionRange.Low(), version) {
 				if err != nil {
 					yield(nil, err)
 					return err
@@ -265,6 +288,11 @@ func (es *EventService) Events(
 
 		defer tx.Release()
 
+		if err := es.testTenantID(ctx, tx, tid); err != nil {
+			yield(nil, err)
+			return
+		}
+
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.Events(ctx, tx, tn) {
 			if !yield(e, err) {
@@ -274,7 +302,7 @@ func (es *EventService) Events(
 	}
 }
 
-func (es *EventService) EventsAfterGlobalVersion(
+func (es *EventService) eventsAfterGlobalVersion(
 	ctx context.Context,
 	tid value.TenantID,
 	pid value.PartitionID,
@@ -302,6 +330,10 @@ func (es *EventService) getOutbox(
 	}
 
 	defer tx.Release()
+
+	if err := es.testTenantID(ctx, tx, tid); err != nil {
+		return nil, err
+	}
 
 	return es.outbox.Get(ctx, tx, tid, oid)
 }
@@ -333,6 +365,10 @@ func (es *EventService) SetValue(
 ) error {
 	tx, err := es.txManager.Next(ctx, tid)
 	if err != nil {
+		return err
+	}
+
+	if err := es.testTenantID(ctx, tx, tid); err != nil {
 		return err
 	}
 

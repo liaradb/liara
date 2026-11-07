@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
@@ -21,11 +22,12 @@ type OutboxService struct {
 
 func NewOutboxService(
 	txManager *transaction.Manager,
+	tenant *tenant.Tenant,
 	idempotency *idempotency.Idempotency,
 	outbox *outbox.Outbox,
 ) *OutboxService {
 	return &OutboxService{
-		baseService: newBaseService(txManager, idempotency),
+		baseService: newBaseService(txManager, tenant, idempotency),
 		txManager:   txManager,
 		outbox:      outbox,
 	}
@@ -38,6 +40,10 @@ func (os *OutboxService) CreateOutbox(
 ) (value.OutboxID, error) {
 	tx, err := os.txManager.Next(ctx, tid)
 	if err != nil {
+		return value.OutboxID{}, err
+	}
+
+	if err := os.testTenantID(ctx, tx, tid); err != nil {
 		return value.OutboxID{}, err
 	}
 
@@ -73,6 +79,10 @@ func (os *OutboxService) GetOutbox(
 
 	defer tx.Release()
 
+	if err := os.testTenantID(ctx, tx, tid); err != nil {
+		return nil, err
+	}
+
 	return os.outbox.Get(ctx, tx, tid, oid)
 }
 
@@ -84,6 +94,10 @@ func (os *OutboxService) UpdateOutboxPosition(
 ) error {
 	tx, err := os.txManager.Next(ctx, tid)
 	if err != nil {
+		return err
+	}
+
+	if err := os.testTenantID(ctx, tx, tid); err != nil {
 		return err
 	}
 
@@ -105,6 +119,10 @@ func (os *OutboxService) ListOutboxes(
 ) iter.Seq2[*entity.Outbox, error] {
 	tx, err := os.txManager.Next(ctx, tid)
 	if err != nil {
+		return iterator.Error[*entity.Outbox](err)
+	}
+
+	if err := os.testTenantID(ctx, tx, tid); err != nil {
 		return iterator.Error[*entity.Outbox](err)
 	}
 

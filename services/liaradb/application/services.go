@@ -37,12 +37,14 @@ func newServices(txManager *transaction.Manager, s *storage.Storage) *services {
 	return &services{
 		es: service.NewEventService(
 			txManager,
+			c.Tenant,
 			c.Idempotency,
 			c.EventLog,
 			c.KeyValue,
 			c.Outbox),
 		os: service.NewOutboxService(
 			txManager,
+			c.Tenant,
 			c.Idempotency,
 			c.Outbox),
 		ts: service.NewTenantService(
