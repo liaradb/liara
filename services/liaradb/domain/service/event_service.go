@@ -48,11 +48,11 @@ func NewEventService(
 	}
 }
 
-func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.FileSystem, tIDs []value.TenantID) error {
+func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.FileSystem, dir string, tIDs []value.TenantID) error {
 	tIDMap := make(map[value.TenantID][]value.PartitionID)
 	for _, tid := range tIDs {
 		tf := tablename.NewTenantFolder(tid)
-		pids, err := tf.Partitions(fsys, "tenants")
+		pids, err := tf.Partitions(fsys, dir)
 		if err != nil {
 			return err
 		}

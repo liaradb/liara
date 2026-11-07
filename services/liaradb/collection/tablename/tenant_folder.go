@@ -5,12 +5,15 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 )
+
+var eventLogRegexp = regexp.MustCompile("event_log--([0-9a-f]*).col")
 
 type TenantFolder struct {
 	tenantID value.TenantID
@@ -84,7 +87,7 @@ func (tf TenantFolder) Partitions(fsys filecache.FileSystem, dir string) ([]valu
 }
 
 func (tf TenantFolder) partitionString(dir fs.DirEntry) (string, bool) {
-	if !dir.IsDir() {
+	if dir.IsDir() {
 		return "", false
 	}
 
@@ -98,5 +101,10 @@ func (tf TenantFolder) partitionString(dir fs.DirEntry) (string, bool) {
 		return "", false
 	}
 
-	return strings.TrimPrefix(fileName, "event_log--"), true
+	matches := eventLogRegexp.FindStringSubmatch(fileName)
+	if len(matches) < 2 {
+		return "", false
+	}
+
+	return matches[1], true
 }

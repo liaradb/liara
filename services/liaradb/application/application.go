@@ -110,7 +110,10 @@ func (a *Application) initEventLog(ctx context.Context) error {
 		tIDs = append(tIDs, t.ID())
 	}
 
-	return a.services.es.InitGlobalVersions(ctx, a.fsys, tIDs)
+	return a.services.es.InitGlobalVersions(ctx,
+		a.fsys,
+		path.Join(a.conf.Directory, "tenants"),
+		tIDs)
 }
 
 func (a *Application) listen() error {
