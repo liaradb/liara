@@ -42,7 +42,7 @@ func (es *testEventService) Append(
 		es.version = value.NewGlobalVersion(es.version.Value() + 1)
 		es.events = append(es.events, &entity.Event{
 			GlobalVersion: es.version,
-			PartitionID:   cmd.PartitionID,
+			PartitionID:   event.PartitionID,
 			AggregateID:   event.AggregateID,
 			AggregateName: event.AggregateName,
 			Name:          event.Name,

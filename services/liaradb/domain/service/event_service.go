@@ -99,13 +99,13 @@ func (es *EventService) Append(
 	}
 
 	now := time.Now()
-	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, func() error {
-		tn := tablename.NewTenantFolder(cmd.TenantID).EventLog(cmd.PartitionID)
-		elt := newEventLogTransaction(es.eventLog, tn)
+		tf := tablename.NewTenantFolder(cmd.TenantID)
+		elt := newEventLogTransaction(es.eventLog, tf)
+		tnRl := tf.RequestLog()
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
-			if ok, err := es.testRequestID(ctx, tx, tn, rqid); err != nil {
+			if ok, err := es.testRequestID(ctx, tx, tnRl, rqid); err != nil {
 				return err
 			} else if !ok {
 				return value.ErrRequestIDExists
@@ -113,13 +113,13 @@ func (es *EventService) Append(
 		}
 
 		for _, em := range cmd.Events {
-			e, err := em.ToEvent(cmd.PartitionID, cmd.Options, es.gvg.Next(cmd.TenantID))
+			e, err := em.ToEvent(cmd.Options, es.gvg.Next(cmd.TenantID))
 			if err != nil {
 				return err
 			}
 
 			// TODO: What do we lock?
-			if err := tx.XLock(ctx, tn, e.AggregateID.String()); err != nil {
+			if err := tx.XLock(ctx, tf.EventLog(e.PartitionID), e.AggregateID.String()); err != nil {
 				return err
 			}
 
@@ -129,7 +129,7 @@ func (es *EventService) Append(
 		}
 
 		if rqid, ok := cmd.Options.RequestID(); ok {
-			if err := es.insertRequestID(ctx, tx, tn, rqid, value.NewTime(now)); err != nil {
+			if err := es.insertRequestID(ctx, tx, tnRl, rqid, value.NewTime(now)); err != nil {
 				return err
 			}
 		}

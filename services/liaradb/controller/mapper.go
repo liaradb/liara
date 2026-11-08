@@ -29,6 +29,7 @@ func dtoToAppendEvent(dto *pb.AppendEvent) command.EventOptions {
 		AggregateName: value.NewAggregateName(dto.AggregateName),
 		AggregateID:   value.NewAggregateID(dto.AggregateId),
 		Version:       value.NewVersion(dto.Version),
+		PartitionID:   value.NewPartitionID(dto.PartitionId),
 		Name:          value.NewEventName(dto.Name),
 		Schema:        value.NewSchema(dto.Schema),
 		Data:          dto.Data,

@@ -105,25 +105,25 @@ message AppendEvent {
   // The Version of the Aggregate
   int64 version = 4;
 
+  // The Partition ID of the Aggregate
+  int32 partition_id = 5;
+
   // The Name of the Event
-  string name = 5;
+  string name = 6;
 
   // The Schema for the internal data
-  string schema = 6;
+  string schema = 7;
 
   // The internal data of the Event
-  bytes data = 7;
+  bytes data = 8;
 }
 
 message AppendRequest {
   string tenant_id = 1;
 
-  // The ID to partition Events
-  int32 partition_id = 2;
+  AppendOptions options = 2;
 
-  AppendOptions options = 3;
-
-  repeated AppendEvent events = 4;
+  repeated AppendEvent events = 3;
 }
 
 message AppendResponse {}

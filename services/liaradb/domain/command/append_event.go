@@ -7,10 +7,9 @@ import (
 )
 
 type AppendEvent struct {
-	TenantID    value.TenantID
-	Options     AppendOptions
-	PartitionID value.PartitionID
-	Events      []EventOptions
+	TenantID value.TenantID
+	Options  AppendOptions
+	Events   []EventOptions
 }
 
 func (ae *AppendEvent) Valid() error {

@@ -46,42 +46,39 @@ func testEventService_Append(t *testing.T) {
 	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(1),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(1),
 		}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(2),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(2),
 		}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(3),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(3),
 		}},
 	}); err != nil {
 		t.Fatal(err)
@@ -111,42 +108,39 @@ func testEventService_Append__Large(t *testing.T) {
 	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(1),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(1),
 		}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(2),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(2),
 		}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    tid,
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
+		TenantID: tid,
+		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
+			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
-			// ID:            value.NewEventID(),
-			AggregateID: aggregateID,
-			Version:     value.NewVersion(3),
+			AggregateID:   aggregateID,
+			Version:       value.NewVersion(3),
 		}},
 	}); err != nil {
 		t.Fatal(err)
@@ -165,17 +159,16 @@ func testEventService_Append__Invalid(t *testing.T) {
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	want := command.EventOptions{
+		// ID:         value.NewEventID(),
 		AggregateName: value.NewAggregateName("example"),
-		// ID:            value.NewEventID(),
-		AggregateID: aggregateID,
-		Version:     value.NewVersion(0),
+		AggregateID:   aggregateID,
+		Version:       value.NewVersion(0),
 	}
 
 	if err := es.Append(t.Context(), command.AppendEvent{
-		TenantID:    value.NewTenantID(),
-		Options:     command.AppendOptions{},
-		PartitionID: value.NewPartitionID(0),
-		Events:      []command.EventOptions{want}},
+		TenantID: value.NewTenantID(),
+		Options:  command.AppendOptions{},
+		Events:   []command.EventOptions{want}},
 	); !errors.Is(err, value.ErrAggregateVersionInvalid) {
 		t.Error("should return error")
 	}

@@ -86,25 +86,25 @@ func TestEventSourceController__Event(t *testing.T) {
 	name := "name"
 
 	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
-		TenantId:    tid,
-		PartitionId: pid,
+		TenantId: tid,
 		Events: []*liara.AppendEvent{{
 			AggregateId: id,
 			Id:          uuid.NewV7().String(),
 			Version:     1,
+			PartitionId: pid,
 		}},
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
-		TenantId:    tid,
-		PartitionId: pid,
+		TenantId: tid,
 		Events: []*liara.AppendEvent{{
 			AggregateId:   id,
 			AggregateName: name,
 			Id:            uuid.NewV7().String(),
 			Version:       2,
+			PartitionId:   pid,
 		}},
 		Options: &liara.AppendOptions{},
 	}); err != nil {
@@ -157,12 +157,12 @@ func TestEventSourceController__Idempotency(t *testing.T) {
 	rid0 := uuid.NewV7().String()
 
 	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
-		TenantId:    tid,
-		PartitionId: pid,
+		TenantId: tid,
 		Events: []*liara.AppendEvent{{
 			AggregateId: id,
 			Id:          uuid.NewV7().String(),
 			Version:     1,
+			PartitionId: pid,
 		}},
 		Options: &liara.AppendOptions{
 			RequestId: rid0,
@@ -172,12 +172,12 @@ func TestEventSourceController__Idempotency(t *testing.T) {
 	}
 
 	if _, err := esc.Append(t.Context(), &liara.AppendRequest{
-		TenantId:    tid,
-		PartitionId: pid,
+		TenantId: tid,
 		Events: []*liara.AppendEvent{{
 			AggregateId: id,
 			Id:          uuid.NewV7().String(),
 			Version:     2,
+			PartitionId: pid,
 		}},
 		Options: &liara.AppendOptions{
 			RequestId: rid0,

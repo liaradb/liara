@@ -10,6 +10,7 @@ type EventOptions struct {
 	AggregateName value.AggregateName // The Name of the Aggregate
 	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
 	Version       value.Version       // The Version of the Aggregate
+	PartitionID   value.PartitionID   // The Partition ID of the Aggregate
 	Name          value.EventName     // The Name of the Event
 	Schema        value.Schema        // The Schema for the internal data
 	Data          []byte              // The internal data of the Event
@@ -23,7 +24,7 @@ func (eo *EventOptions) Valid() error {
 	return nil
 }
 
-func (eo *EventOptions) ToEvent(pid value.PartitionID, options AppendOptions, gv value.GlobalVersion) (entity.Event, error) {
+func (eo *EventOptions) ToEvent(options AppendOptions, gv value.GlobalVersion) (entity.Event, error) {
 	var id value.EventID
 	if eo.ID == "" {
 		id = value.NewEventID()
@@ -41,7 +42,7 @@ func (eo *EventOptions) ToEvent(pid value.PartitionID, options AppendOptions, gv
 		AggregateName: eo.AggregateName,
 		AggregateID:   eo.AggregateID,
 		Version:       eo.Version,
-		PartitionID:   pid,
+		PartitionID:   eo.PartitionID,
 		Name:          eo.Name,
 		Schema:        eo.Schema,
 		Metadata:      options.toMetadata(),
