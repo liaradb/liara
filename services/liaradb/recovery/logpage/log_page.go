@@ -75,12 +75,9 @@ func (lp *LogPage) Complete() {
 }
 
 func (lp *LogPage) AddHandler(handler func()) {
-	if handler != nil {
-		lp.handlers = append(lp.handlers, handler)
-	}
+	lp.handlers = append(lp.handlers, handler)
 }
 
-// TODO: Swap receiver and parameter
 func (lp *LogPage) Shadow(base *LogPage) {
 	lp.page.Fill(base.page.Data())
 	lp.handlers = base.handlers

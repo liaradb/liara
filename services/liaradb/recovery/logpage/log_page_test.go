@@ -41,8 +41,6 @@ func TestLogPage_AddHandler__Multiple(t *testing.T) {
 		b++
 	})
 
-	p.AddHandler(nil)
-
 	p.Complete()
 	if a != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", a, 1)

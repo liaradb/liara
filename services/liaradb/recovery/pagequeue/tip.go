@@ -83,8 +83,9 @@ func (t *Tip) Commit(h func()) []*logpage.LogPage {
 	}()
 
 	t.commitPages()
-	// TODO: Should we check for nil h here?
-	t.pages[len(t.pages)-1].AddHandler(h)
+	if h != nil {
+		t.pages[len(t.pages)-1].AddHandler(h)
+	}
 	return t.pages
 }
 

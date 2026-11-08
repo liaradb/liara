@@ -23,7 +23,7 @@ func TestPageIterator(t *testing.T) {
 			dir := "dir"
 
 			const (
-				size           = 128 // TODO: This does not work if the page is too small
+				size           = 128
 				writeQueueSize = 100
 			)
 
