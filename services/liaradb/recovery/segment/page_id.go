@@ -6,13 +6,11 @@ import (
 	"github.com/liaradb/liaradb/encoder/raw"
 )
 
-// TODO: Should this be moved to link?
 type PageID uint64
 
 const PageIDSize = 8
 
-// TODO: This is private
-func newActivePageIDFromSize(size int64, pageSize int16) PageID {
+func NewActivePageIDFromSize(size int64, pageSize int16) PageID {
 	if pageSize == 0 || size == 0 {
 		return 0
 	}

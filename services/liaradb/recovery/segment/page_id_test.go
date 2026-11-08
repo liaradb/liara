@@ -43,7 +43,7 @@ func TestPageID_NewActivePageIDFromSize(t *testing.T) {
 				t.Skip()
 			}
 
-			id := newActivePageIDFromSize(c.size, c.pageSize)
+			id := NewActivePageIDFromSize(c.size, c.pageSize)
 			if id != c.id {
 				t.Errorf("%v: incorrect id: %v, expected: %v", message, id, c.id)
 			}

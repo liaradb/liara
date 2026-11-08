@@ -79,7 +79,7 @@ func (f *File) SeekTail() (int64, error) {
 		return 0, err
 	}
 
-	f.pageID = newActivePageIDFromSize(size, f.pageSize)
+	f.pageID = NewActivePageIDFromSize(size, f.pageSize)
 	return size, nil
 }
 
@@ -119,7 +119,7 @@ func (f *File) NextPage() bool {
 }
 
 func (f *File) NextPageUntilSize(size int64) bool {
-	segmentSize := newActivePageIDFromSize(size, f.pageSize)
+	segmentSize := NewActivePageIDFromSize(size, f.pageSize)
 	if f.pageID >= segmentSize {
 		return false
 	}
