@@ -42,7 +42,7 @@ func (rc *RecordCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	return t.RecordID(), nil
+	return s.RecordID(), nil
 }
 
 func (rc *RecordCollection) Get(

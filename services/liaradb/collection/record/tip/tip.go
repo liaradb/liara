@@ -11,11 +11,9 @@ import (
 )
 
 type Tip struct {
-	s           *storage.Storage
-	fn          link.FileName
-	current     *bufferpage.BufferPage
-	fileBlockID link.FileBlockID
-	slotID      link.SlotID
+	s       *storage.Storage
+	fn      link.FileName
+	current *bufferpage.BufferPage
 }
 
 func NewTip(s *storage.Storage, fn link.FileName) Tip {
@@ -34,8 +32,6 @@ func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
 	}
 
 	t.current = bufferpage.New(b)
-	t.fileBlockID = b.FileBlockID()
-	t.slotID = link.SlotID(t.current.Count())
 
 	available := 0
 	remaining := size
@@ -73,7 +69,7 @@ func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int
 		return l
 	}
 
-	_ = s.Append(p, 0, header, data)
+	_ = s.Append(p, link.SlotID(p.Count()), header, data)
 	return l
 }
 
@@ -84,8 +80,4 @@ func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
 	}
 
 	return bufferpage.New(b), nil
-}
-
-func (t *Tip) RecordID() link.RecordID {
-	return link.NewRecordID(t.fileBlockID.BlockID(), t.slotID)
 }

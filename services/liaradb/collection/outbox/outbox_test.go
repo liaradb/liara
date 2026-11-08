@@ -20,8 +20,7 @@ import (
 )
 
 func TestOutbox(t *testing.T) {
-	// TODO: If this is 256, it causes some issue in SlotList.
-	storagetesting.SyncTest(t, 9, 264, testOutbox)
+	storagetesting.SyncTest(t, 9, 256, testOutbox)
 }
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
@@ -43,7 +42,7 @@ func testOutbox(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestOutbox__LargeBuffer(t *testing.T) {
-	storagetesting.SyncTest(t, 4, 264, testOutbox__LargeBuffer)
+	storagetesting.SyncTest(t, 4, 256, testOutbox__LargeBuffer)
 }
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {

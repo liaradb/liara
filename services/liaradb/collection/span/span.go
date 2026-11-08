@@ -19,14 +19,18 @@ func New() *Span {
 	return &Span{}
 }
 
-func (s Span) Length() (l int) {
+func (s *Span) RecordID() link.RecordID {
+	return s.fragments[0].RecordID()
+}
+
+func (s *Span) Length() (l int) {
 	for _, f := range s.fragments {
 		l += f.length()
 	}
 	return
 }
 
-func (s Span) valid() bool {
+func (s *Span) valid() bool {
 	for _, f := range s.fragments {
 		if !f.valid() {
 			return false

@@ -59,19 +59,9 @@ func newFragment(
 }
 
 func (f Fragment) length() int               { return f.buffer.Length() }
-func (f Fragment) SlotID() link.SlotID       { return f.slotID } // TODO: This is unused
 func (f Fragment) NextBlockID() link.BlockID { return link.BlockID(f.nextBlockID.Get()) }
 func (f Fragment) NextSlotID() link.SlotID   { return link.SlotID(f.nextSlotID.Get()) }
-
-// TODO: This is unused
-func (f Fragment) FileBlockID(fn link.FileName) link.FileBlockID {
-	return link.NewFileBlockID(fn, f.NextBlockID())
-}
-
-// TODO: This is unused
-func (f Fragment) FileRecordID(fn link.FileName) link.FileRecordID {
-	return link.NewFileRecordID(f.FileBlockID(fn), f.NextSlotID())
-}
+func (f Fragment) RecordID() link.RecordID   { return f.p.FileBlockID().RecordID(f.slotID) }
 
 func (f Fragment) valid() bool {
 	return page.RestoreCRC(f.crc.GetUnsigned()).
