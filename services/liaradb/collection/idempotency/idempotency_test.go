@@ -27,7 +27,8 @@ func TestIdempotency(t *testing.T) {
 
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	idp := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	c := btree.NewCursor(s.Storage)
+	idp := New(fixed.New(record.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -49,7 +50,8 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	idp := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	c := btree.NewCursor(s.Storage)
+	idp := New(fixed.New(record.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()

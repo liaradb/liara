@@ -2,8 +2,10 @@ package idempotency
 
 import (
 	"context"
+	"errors"
 	"iter"
 
+	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/span"
@@ -14,10 +16,11 @@ import (
 
 type Idempotency struct {
 	fc *fixed.FixedCollection
+	c  *btree.Cursor
 }
 
-func New(fc *fixed.FixedCollection) *Idempotency {
-	return &Idempotency{fc: fc}
+func New(fc *fixed.FixedCollection, c *btree.Cursor) *Idempotency {
+	return &Idempotency{fc: fc, c: c}
 }
 
 func (i *Idempotency) Get(
@@ -80,5 +83,18 @@ func (i *Idempotency) Test(
 	rqid value.RequestID,
 ) (bool, error) {
 	k := key.NewKey(rqid.Bytes())
-	return i.fc.Test(ctx, tx, tn, k)
+	if err := tx.SLock(ctx, tn, k.String()); err != nil {
+		return false, err
+	}
+
+	_, err := i.c.Search(ctx, tn.Index(0), k)
+	if errors.Is(err, btree.ErrNotFound) {
+		return true, nil
+	}
+
+	if err == nil {
+		return false, btree.ErrExists
+	}
+
+	return false, err
 }

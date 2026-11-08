@@ -64,6 +64,6 @@ func newCollections(s *storage.Storage) *collections {
 		EventLog:    eventlog.New(fc, c),
 		KeyValue:    kv,
 		Outbox:      outbox.New(fc),
-		Idempotency: idempotency.New(fc),
+		Idempotency: idempotency.New(fc, c),
 	}
 }

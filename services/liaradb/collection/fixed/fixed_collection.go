@@ -2,7 +2,6 @@ package fixed
 
 import (
 	"context"
-	"errors"
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -119,26 +118,4 @@ func (fc *FixedCollection) GetByRecordID(
 	rid link.RecordID,
 ) (*span.Span, error) {
 	return fc.rc.Get(ctx, tn.Collection(), rid)
-}
-
-func (fc *FixedCollection) Test(
-	ctx context.Context,
-	tx Transaction,
-	tn tablename.TableName,
-	k key.Key,
-) (bool, error) {
-	if err := tx.SLock(ctx, tn, k.String()); err != nil {
-		return false, err
-	}
-
-	_, err := fc.c.Search(ctx, tn.Index(0), k)
-	if errors.Is(err, btree.ErrNotFound) {
-		return true, nil
-	}
-
-	if err == nil {
-		return false, btree.ErrExists
-	}
-
-	return false, err
 }

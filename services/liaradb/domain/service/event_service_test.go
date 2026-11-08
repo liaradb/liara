@@ -38,7 +38,7 @@ func testEventService_Append(t *testing.T) {
 	ts := tenant.New(fc)
 	es := NewEventService(m,
 		ts,
-		idempotency.New(fc),
+		idempotency.New(fc, c),
 		eventlog.New(fc, c),
 		keyvalue.New(fc),
 		outbox.New(fc))
@@ -103,7 +103,7 @@ func testEventService_Append__Large(t *testing.T) {
 
 	es := NewEventService(m,
 		ts,
-		idempotency.New(fc),
+		idempotency.New(fc, c),
 		eventlog.New(fc, c),
 		keyvalue.New(fc),
 		outbox.New(fc))
