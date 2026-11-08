@@ -165,13 +165,9 @@ func (es *EventService) Get(
 
 	defer tx.Release()
 
-	tn := tablename.NewTenantFolder(tid).EventLog(pid)
-	if err := tx.SLock(ctx, tn, id.String()); err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
-
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range es.eventLog.GetAggregate(ctx, tn, id) {
+		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if !yield(e, err) {
 				return
 			}
@@ -193,13 +189,9 @@ func (es *EventService) GetByAggregateIDAndName(
 
 	defer tx.Release()
 
-	tn := tablename.NewTenantFolder(tid).EventLog(pid)
-	if err := tx.SLock(ctx, tn, id.String()); err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
-
 	return func(yield func(*entity.Event, error) bool) {
-		for e, err := range es.eventLog.GetAggregate(ctx, tn, id) {
+		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if err != nil {
 				yield(nil, err)
 				return

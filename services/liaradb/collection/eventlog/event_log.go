@@ -70,10 +70,25 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 	return l.readEvent(s)
 }
 
-func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
+func (l *EventLog) GetAggregate(
+	ctx context.Context,
+	tx fixed.Transaction,
+	tn tablename.TableName,
+	id value.AggregateID,
+) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
+		if err := tx.SLock(ctx, tn, id.String()); err != nil {
+			yield(nil, err)
+			return
+		}
+
 		for sr, err := range l.c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if err := tx.SLock(ctx, tn, sr.Key.String()); err != nil {
 				yield(nil, err)
 				return
 			}
@@ -90,13 +105,6 @@ func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id 
 			}
 		}
 	}
-}
-
-func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
-	defer s.Release()
-
-	t := entity.Event{}
-	return &t, t.Read(s)
 }
 
 func (l *EventLog) EventsAfterGlobalVersion(
@@ -129,6 +137,13 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			}
 		}
 	}
+}
+
+func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
+	defer s.Release()
+
+	t := entity.Event{}
+	return &t, t.Read(s)
 }
 
 // TODO: Iterate until highwater

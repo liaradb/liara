@@ -251,7 +251,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	want := []entity.Event{*records[1], *records[3]}
 
 	result := make([]entity.Event, 0)
-	for e, err := range el.GetAggregate(ctx, tn, aggregateID) {
+	for e, err := range el.GetAggregate(ctx, &logtesting.MockLog{}, tn, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}
