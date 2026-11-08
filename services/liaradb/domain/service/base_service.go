@@ -40,15 +40,6 @@ func (s *baseService) insertRequestID(
 	return s.idempotency.Insert(ctx, tx, tn, rqid, entity.NewRequestLog(rqid, now))
 }
 
-func (s *baseService) testTenantID(
-	ctx context.Context,
-	tx fixed.Transaction,
-	tid value.TenantID,
-) error {
-	_, err := s.tenant.Get(ctx, tx, tid)
-	return err
-}
-
 func (s *baseService) testRequestID(
 	ctx context.Context,
 	tx fixed.Transaction,
@@ -56,4 +47,22 @@ func (s *baseService) testRequestID(
 	rqid value.RequestID,
 ) (bool, error) {
 	return s.idempotency.Test(ctx, tx, tn, rqid)
+}
+
+func (s *baseService) initTransaction(ctx context.Context, tid value.TenantID) (*transaction.Transaction, error) {
+	tx, err := s.txManager.Next(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if tid == value.DefaultTenantID {
+		return tx, nil
+	}
+
+	if _, err := s.tenant.Get(ctx, tx, tid); err != nil {
+		tx.Release()
+		return nil, err
+	}
+
+	return tx, nil
 }

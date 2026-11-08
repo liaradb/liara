@@ -93,7 +93,7 @@ func (es *EventService) Append(
 		return err
 	}
 
-	tx, err := es.txManager.Next(ctx)
+	tx, err := es.initTransaction(ctx, cmd.TenantID)
 	if err != nil {
 		return err
 	}
@@ -101,10 +101,6 @@ func (es *EventService) Append(
 	now := time.Now()
 	// TODO: PartitionID should be on the transaction, not just the Event
 	return tx.Run(ctx, func() error {
-		if err := es.testTenantID(ctx, tx, cmd.TenantID); err != nil {
-			return err
-		}
-
 		tn := tablename.NewTenantFolder(cmd.TenantID).EventLog(cmd.PartitionID)
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
@@ -145,16 +141,12 @@ func (es *EventService) TestIdempotency(
 	ctx context.Context,
 	qry query.TestIdempotency,
 ) (result bool, err error) {
-	tx, err := es.txManager.Next(ctx)
+	tx, err := es.initTransaction(ctx, qry.TenantID)
 	if err != nil {
 		return false, err
 	}
 
 	defer tx.Release()
-
-	if err := es.testTenantID(ctx, tx, qry.TenantID); err != nil {
-		return false, err
-	}
 
 	tn := tablename.NewTenantFolder(qry.TenantID).RequestLog()
 	return es.testRequestID(ctx, tx, tn, qry.RequestID)
@@ -166,16 +158,12 @@ func (es *EventService) Get(
 	pid value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
-	tx, err := es.txManager.Next(ctx)
+	tx, err := es.initTransaction(ctx, tid)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
 
 	defer tx.Release()
-
-	if err := es.testTenantID(ctx, tx, tid); err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
 
 	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
@@ -198,16 +186,12 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
-	tx, err := es.txManager.Next(ctx)
+	tx, err := es.initTransaction(ctx, tid)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
 
 	defer tx.Release()
-
-	if err := es.testTenantID(ctx, tx, tid); err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
 
 	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
@@ -240,13 +224,8 @@ func (es *EventService) GetAfterGlobalVersion(
 	}
 
 	return func(yield func(*entity.Event, error) bool) {
-		tx, err := es.txManager.Next(ctx)
+		tx, err := es.initTransaction(ctx, tid)
 		if err != nil {
-			yield(nil, err)
-			return
-		}
-
-		if err := es.testTenantID(ctx, tx, tid); err != nil {
 			yield(nil, err)
 			return
 		}
@@ -280,18 +259,13 @@ func (es *EventService) Events(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		tx, err := es.txManager.Next(ctx)
+		tx, err := es.initTransaction(ctx, tid)
 		if err != nil {
 			yield(nil, err)
 			return
 		}
 
 		defer tx.Release()
-
-		if err := es.testTenantID(ctx, tx, tid); err != nil {
-			yield(nil, err)
-			return
-		}
 
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.Events(ctx, tx, tn) {
@@ -319,37 +293,18 @@ func (es *EventService) eventsAfterGlobalVersion(
 	}
 }
 
-func (es *EventService) getOutbox(
-	ctx context.Context,
-	tid value.TenantID,
-	oid value.OutboxID,
-) (*entity.Outbox, error) {
-	tx, err := es.txManager.Next(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer tx.Release()
-
-	if err := es.testTenantID(ctx, tx, tid); err != nil {
-		return nil, err
-	}
-
-	return es.outbox.Get(ctx, tx, tid, oid)
-}
-
 func (es *EventService) GetByOutbox(
 	ctx context.Context,
 	tid value.TenantID,
-	outboxID value.OutboxID,
+	oid value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
-	// tx, err := es.txManager.Next(ctx, tid)
-	// if err != nil {
-	// 	return iterator.Error[*entity.Event](err)
-	// }
+	tx, err := es.initTransaction(ctx, tid)
+	if err != nil {
+		return iterator.Error[*entity.Event](err)
+	}
 
-	o, err := es.getOutbox(ctx, tid, outboxID)
+	o, err := es.outbox.Get(ctx, tx, tid, oid)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -363,12 +318,8 @@ func (es *EventService) SetValue(
 	r *entity.Row,
 	data []byte,
 ) error {
-	tx, err := es.txManager.Next(ctx)
+	tx, err := es.initTransaction(ctx, tid)
 	if err != nil {
-		return err
-	}
-
-	if err := es.testTenantID(ctx, tx, tid); err != nil {
 		return err
 	}
 
