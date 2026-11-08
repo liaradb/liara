@@ -18,8 +18,7 @@ import (
 )
 
 func TestTenant(t *testing.T) {
-	// TODO: Why can't this page size be smaller?
-	storagetesting.SyncTest(t, 5, 302, testTenant)
+	storagetesting.SyncTest(t, 5, 256, testTenant)
 }
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
