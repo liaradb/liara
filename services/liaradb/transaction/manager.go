@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/locktable"
@@ -27,7 +26,7 @@ type Manager struct {
 	storage       *storage.Storage
 	lockTable     *locktable.LockTable[ItemID]
 	transactionID record.TransactionID
-	txReqs        async.Handler[value.TenantID, *Transaction]
+	txReqs        async.Handler[struct{}, *Transaction]
 	returns       chan record.TransactionID
 	active        set.Set[record.TransactionID]
 	checkpoint    logpage.LogSequenceNumber
@@ -42,7 +41,7 @@ func NewManager(
 		log:       log,
 		storage:   storage,
 		lockTable: locktable.New[ItemID](ltInSize),
-		txReqs:    make(async.Handler[value.TenantID, *Transaction]),
+		txReqs:    make(async.Handler[struct{}, *Transaction]),
 		returns:   make(chan record.TransactionID, returnSize),
 		active:    make(set.Set[record.TransactionID]),
 	}
@@ -119,16 +118,15 @@ func (m *Manager) setCheckpoint(cp logpage.LogSequenceNumber) {
 	m.checkpoint = cp
 }
 
-func (m *Manager) Next(ctx context.Context, tid value.TenantID) (*Transaction, error) {
-	return m.txReqs.Send(ctx, tid)
+func (m *Manager) Next(ctx context.Context) (*Transaction, error) {
+	return m.txReqs.Send(ctx, struct{}{})
 }
 
-func (m *Manager) next(r *async.Request[value.TenantID, *Transaction]) {
+func (m *Manager) next(r *async.Request[struct{}, *Transaction]) {
 	m.transactionID = record.NewTransactionID(m.transactionID.Value() + 1)
 	m.active.Add(m.transactionID)
 	r.Reply(newTransaction(
 		m.transactionID,
-		r.Value(),
 		m.log,
 		NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -22,9 +21,7 @@ func testManager(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tid := value.NewTenantID()
-
-	tx0, err := m.Next(ctx, tid)
+	tx0, err := m.Next(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +31,7 @@ func testManager(t *testing.T) {
 		t.Errorf("id does not match: %v, expected: %v", i, tid0)
 	}
 
-	tx1, err := m.Next(ctx, tid)
+	tx1, err := m.Next(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,9 +89,7 @@ func testManager_ActiveTestManager_Active(t *testing.T) {
 	m, _ := createManager(t)
 	ctx := t.Context()
 
-	tid := value.NewTenantID()
-
-	tx0, err := m.Next(ctx, tid)
+	tx0, err := m.Next(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

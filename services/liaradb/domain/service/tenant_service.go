@@ -32,7 +32,7 @@ func (ts *TenantService) Create(ctx context.Context, cmd command.CreateTenant) (
 	tid := value.NewTenantID()
 	tnt := entity.NewTenant(tid, cmd.TenantName)
 
-	tx, err := ts.txManager.Next(ctx, tid)
+	tx, err := ts.txManager.Next(ctx)
 	if err != nil {
 		return value.TenantID{}, err
 	}
@@ -51,7 +51,7 @@ func (ts *TenantService) Delete(ctx context.Context, cmd command.DeleteTenant) e
 }
 
 func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) error {
-	tx, err := ts.txManager.Next(ctx, cmd.TenantID)
+	tx, err := ts.txManager.Next(ctx)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 }
 
 func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*entity.Tenant, error) {
-	tx, err := ts.txManager.Next(ctx, tenantID)
+	tx, err := ts.txManager.Next(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 }
 
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	tx, err := ts.txManager.Next(ctx, value.DefaultTenantID)
+	tx, err := ts.txManager.Next(ctx)
 	if err != nil {
 		return iterator.Error[*entity.Tenant](err)
 	}

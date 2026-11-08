@@ -93,7 +93,7 @@ func (es *EventService) Append(
 		return err
 	}
 
-	tx, err := es.txManager.Next(ctx, cmd.TenantID)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (es *EventService) TestIdempotency(
 	ctx context.Context,
 	qry query.TestIdempotency,
 ) (result bool, err error) {
-	tx, err := es.txManager.Next(ctx, qry.TenantID)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -166,8 +166,7 @@ func (es *EventService) Get(
 	pid value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
-	tn := tablename.NewTenantFolder(tid).EventLog(pid)
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -178,6 +177,7 @@ func (es *EventService) Get(
 		return iterator.Error[*entity.Event](err)
 	}
 
+	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -198,8 +198,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
-	tn := tablename.NewTenantFolder(tid).EventLog(pid)
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -210,6 +209,7 @@ func (es *EventService) GetByAggregateIDAndName(
 		return iterator.Error[*entity.Event](err)
 	}
 
+	tn := tablename.NewTenantFolder(tid).EventLog(pid)
 	if err := tx.SLock(ctx, tn, id.String()); err != nil {
 		return iterator.Error[*entity.Event](err)
 	}
@@ -240,7 +240,7 @@ func (es *EventService) GetAfterGlobalVersion(
 	}
 
 	return func(yield func(*entity.Event, error) bool) {
-		tx, err := es.txManager.Next(ctx, tid)
+		tx, err := es.txManager.Next(ctx)
 		if err != nil {
 			yield(nil, err)
 			return
@@ -280,7 +280,7 @@ func (es *EventService) Events(
 	pid value.PartitionID,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		tx, err := es.txManager.Next(ctx, tid)
+		tx, err := es.txManager.Next(ctx)
 		if err != nil {
 			yield(nil, err)
 			return
@@ -324,7 +324,7 @@ func (es *EventService) getOutbox(
 	tid value.TenantID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +363,7 @@ func (es *EventService) SetValue(
 	r *entity.Row,
 	data []byte,
 ) error {
-	tx, err := es.txManager.Next(ctx, tid)
+	tx, err := es.txManager.Next(ctx)
 	if err != nil {
 		return err
 	}

@@ -184,12 +184,12 @@ func testEventService_Append__Invalid(t *testing.T) {
 }
 
 func initTenant(t *testing.T, m *transaction.Manager, ts *tenant.Tenant) value.TenantID {
-	tid := value.NewTenantID()
-	tx, err := m.Next(t.Context(), tid)
+	tx, err := m.Next(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	tid := value.NewTenantID()
 	if err := tx.Run(t.Context(), func() error {
 		return ts.Insert(t.Context(), tx, entity.NewTenant(tid, value.NewTenantName("")))
 	}); err != nil {

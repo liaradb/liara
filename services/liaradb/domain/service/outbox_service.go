@@ -38,7 +38,7 @@ func (os *OutboxService) CreateOutbox(
 	tid value.TenantID,
 	partitionRange value.PartitionRange,
 ) (value.OutboxID, error) {
-	tx, err := os.txManager.Next(ctx, tid)
+	tx, err := os.txManager.Next(ctx)
 	if err != nil {
 		return value.OutboxID{}, err
 	}
@@ -72,7 +72,7 @@ func (os *OutboxService) GetOutbox(
 	tid value.TenantID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
-	tx, err := os.txManager.Next(ctx, tid)
+	tx, err := os.txManager.Next(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (os *OutboxService) UpdateOutboxPosition(
 	oid value.OutboxID,
 	v value.GlobalVersion,
 ) error {
-	tx, err := os.txManager.Next(ctx, tid)
+	tx, err := os.txManager.Next(ctx)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (os *OutboxService) ListOutboxes(
 	ctx context.Context,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
-	tx, err := os.txManager.Next(ctx, tid)
+	tx, err := os.txManager.Next(ctx)
 	if err != nil {
 		return iterator.Error[*entity.Outbox](err)
 	}

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/locktable"
@@ -15,7 +14,6 @@ import (
 
 type Transaction struct {
 	id             record.TransactionID
-	tid            value.TenantID
 	log            *log.Log
 	bufferList     *BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
@@ -25,7 +23,6 @@ type Transaction struct {
 
 func newTransaction(
 	id record.TransactionID,
-	tid value.TenantID,
 	log *log.Log,
 	bufferList *BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID],
@@ -33,7 +30,6 @@ func newTransaction(
 ) *Transaction {
 	return &Transaction{
 		id:             id,
-		tid:            tid,
 		log:            log,
 		bufferList:     bufferList,
 		concurrencyMgr: concurrencyMgr,
