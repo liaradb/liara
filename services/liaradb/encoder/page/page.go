@@ -54,7 +54,7 @@ func NewFromSlice(
 		body:           data1[headerSize:],
 		list:           slotlist.New(data1[headerSize:]),
 	}
-	p.initMagic() // TODO: Should this be called here?
+	p.initMagic()
 	p.initNext()
 	return &p
 }
@@ -79,7 +79,6 @@ func (p *Page) Replace(r io.Reader) error {
 }
 
 func (p *Page) reset(n int) {
-	// TODO: If n < len(p.data) should we panic?
 	clear(p.data[n:])
 	p.list.Reset()
 	p.initNext()
@@ -256,7 +255,6 @@ func (p *Page) Count() link.SlotID {
 	return p.list.Count()
 }
 
-// TODO: Make sure to call this
 func (p *Page) initMagic() {
 	p.magic.Set(int32(MagicPage))
 }
