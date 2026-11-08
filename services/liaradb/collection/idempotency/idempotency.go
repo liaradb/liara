@@ -92,9 +92,5 @@ func (i *Idempotency) Test(
 		return true, nil
 	}
 
-	if err == nil {
-		return false, btree.ErrExists
-	}
-
 	return false, err
 }

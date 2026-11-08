@@ -105,9 +105,10 @@ func (es *EventService) Append(
 		elt := newEventLogTransaction(es.eventLog, tn)
 		if rqid, ok := cmd.Options.RequestID(); ok {
 			// Verify idempotency
-			// TODO: What should this return if requestID is present?
-			if ok, err := es.testRequestID(ctx, tx, tn, rqid); err != nil || !ok {
+			if ok, err := es.testRequestID(ctx, tx, tn, rqid); err != nil {
 				return err
+			} else if !ok {
+				return value.ErrRequestIDExists
 			}
 		}
 
@@ -222,7 +223,6 @@ func (es *EventService) GetAfterGlobalVersion(
 			return
 		}
 
-		// TODO: Should this log?
 		// TODO: How do we handle a range?
 		count := 0
 		if err := tx.Run(ctx, func() error {
@@ -276,7 +276,6 @@ func (es *EventService) eventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		// TODO: Figure out locking
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version) {
 			if !yield(e, err) {
