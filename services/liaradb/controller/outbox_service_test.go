@@ -21,14 +21,14 @@ var _ OutboxService = (*testOutboxService)(nil)
 func (es *testOutboxService) CreateOutbox(
 	ctx context.Context,
 	tid value.TenantID,
-	partitionRange value.PartitionRange,
+	pid value.PartitionID,
 ) (value.OutboxID, error) {
 	if es.outboxes == nil {
 		es.outboxes = make(map[value.OutboxID]*entity.Outbox)
 	}
 
 	id := value.NewOutboxID()
-	es.outboxes[id] = entity.NewOutbox(id, partitionRange)
+	es.outboxes[id] = entity.NewOutbox(id, pid)
 
 	return id, nil
 }

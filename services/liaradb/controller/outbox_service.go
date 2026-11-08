@@ -12,7 +12,7 @@ type OutboxService interface {
 	CreateOutbox(
 		ctx context.Context,
 		tid value.TenantID,
-		partitionRange value.PartitionRange,
+		pid value.PartitionID,
 	) (value.OutboxID, error)
 
 	GetOutbox(

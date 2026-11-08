@@ -67,30 +67,18 @@ func metadataToDto(m entity.Metadata) *pb.EventMetadata {
 		Time:          timestamppb.New(m.Time().Value())}
 }
 
-func dtoToPartitionRange(low int32, high int32) value.PartitionRange {
-	return value.NewPartitionRange(
-		value.NewPartitionID(low),
-		value.NewPartitionID(high))
-}
-
 func outboxToDTO(o *entity.Outbox) *pb.Outbox {
-	low, high := o.PartitionRange().All()
-
 	return &pb.Outbox{
 		OutboxId:      o.ID().String(),
 		GlobalVersion: o.GlobalVersion().Value(),
-		Low:           low.Value(),
-		High:          high.Value(),
+		PartitionId:   o.PartitionID().Value(),
 	}
 }
 
 func outboxToResponse(result *entity.Outbox) *pb.GetOutboxResponse {
-	low, high := result.PartitionRange().All()
-
 	return &pb.GetOutboxResponse{
 		GlobalVersion: result.GlobalVersion().Value(),
-		Low:           low.Value(),
-		High:          high.Value(),
+		PartitionId:   result.PartitionID().Value(),
 	}
 }
 

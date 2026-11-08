@@ -27,14 +27,14 @@ type EventService interface {
 		ctx context.Context,
 		tid value.TenantID,
 		version value.GlobalVersion,
-		partitionRange value.PartitionRange,
+		pid value.PartitionID,
 		limit value.Limit,
 	) iter.Seq2[*entity.Event, error]
 
 	GetByAggregateIDAndName(
 		ctx context.Context,
 		tid value.TenantID,
-		partitionID value.PartitionID,
+		pid value.PartitionID,
 		id value.AggregateID,
 		name value.AggregateName,
 	) iter.Seq2[*entity.Event, error]

@@ -36,7 +36,7 @@ func NewOutboxService(
 func (os *OutboxService) CreateOutbox(
 	ctx context.Context,
 	tid value.TenantID,
-	partitionRange value.PartitionRange,
+	pid value.PartitionID,
 ) (value.OutboxID, error) {
 	tx, err := os.initTransaction(ctx, tid)
 	if err != nil {
@@ -49,9 +49,8 @@ func (os *OutboxService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	// TODO: How do we handle a range?
 	return tx.RunResult(ctx, func() (value.OutboxID, error) {
-		outbox := entity.NewOutbox(oid, partitionRange)
+		outbox := entity.NewOutbox(oid, pid)
 		data := make([]byte, entity.OutboxSize)
 		_ = outbox.WriteData(data)
 

@@ -209,7 +209,7 @@ func (es *EventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	tid value.TenantID,
 	version value.GlobalVersion,
-	partitionRange value.PartitionRange,
+	pid value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
 	if limit == 0 {
@@ -223,10 +223,9 @@ func (es *EventService) GetAfterGlobalVersion(
 			return
 		}
 
-		// TODO: How do we handle a range?
 		count := 0
 		if err := tx.Run(ctx, func() error {
-			for e, err := range es.eventsAfterGlobalVersion(ctx, tx, tid, partitionRange.Low(), version) {
+			for e, err := range es.eventsAfterGlobalVersion(ctx, tx, tid, pid, version) {
 				if err != nil {
 					yield(nil, err)
 					return err
@@ -301,7 +300,7 @@ func (es *EventService) GetByOutbox(
 		return iterator.Error[*entity.Event](err)
 	}
 
-	return es.GetAfterGlobalVersion(ctx, tid, o.GlobalVersion(), o.PartitionRange(), limit)
+	return es.GetAfterGlobalVersion(ctx, tid, o.GlobalVersion(), o.PartitionID(), limit)
 }
 
 func (es *EventService) SetValue(

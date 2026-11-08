@@ -88,7 +88,7 @@ func (es *testEventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	tid value.TenantID,
 	version value.GlobalVersion,
-	partitionRange value.PartitionRange,
+	pid value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
 	panic("unimplemented")
@@ -97,13 +97,13 @@ func (es *testEventService) GetAfterGlobalVersion(
 func (es *testEventService) GetByAggregateIDAndName(
 	ctx context.Context,
 	tid value.TenantID,
-	partitionID value.PartitionID,
+	pid value.PartitionID,
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for _, event := range es.events {
-			if event.PartitionID == partitionID &&
+			if event.PartitionID == pid &&
 				event.AggregateID == id &&
 				event.AggregateName == name {
 				if !yield(event, nil) {

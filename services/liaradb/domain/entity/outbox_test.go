@@ -10,18 +10,16 @@ func TestOutbox(t *testing.T) {
 	t.Parallel()
 
 	oid := value.NewOutboxID()
-	pr := value.NewPartitionRange(
-		value.NewPartitionID(2),
-		value.NewPartitionID(3))
+	pid := value.NewPartitionID(2)
 
-	o := NewOutbox(oid, pr)
+	o := NewOutbox(oid, pid)
 
 	if i := o.ID(); i != oid {
 		t.Errorf("incorrect id: %v, expected: %v", i, oid)
 	}
 
-	if r := o.PartitionRange(); r != pr {
-		t.Errorf("incorrect partition range: %v, expected: %v", r, pr)
+	if p := o.PartitionID(); p != pid {
+		t.Errorf("incorrect partition id: %v, expected: %v", p, pid)
 	}
 
 	if v := o.GlobalVersion().Value(); v != 0 {
@@ -33,11 +31,9 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 	t.Parallel()
 
 	oid := value.NewOutboxID()
-	pr := value.NewPartitionRange(
-		value.NewPartitionID(2),
-		value.NewPartitionID(3))
+	pid := value.NewPartitionID(2)
 
-	o := NewOutbox(oid, pr)
+	o := NewOutbox(oid, pid)
 
 	if v := o.GlobalVersion().Value(); v != 0 {
 		t.Errorf("incorrect global version: %v, expected: %v", v, 0)
@@ -57,9 +53,7 @@ func TestOutbox_ReadWrite(t *testing.T) {
 
 	o := RestoreOutbox(
 		value.NewOutboxID(),
-		value.NewPartitionRange(
-			value.NewPartitionID(2),
-			value.NewPartitionID(3)),
+		value.NewPartitionID(2),
 		value.NewGlobalVersion(12345))
 
 	data := make([]byte, OutboxSize+2)
