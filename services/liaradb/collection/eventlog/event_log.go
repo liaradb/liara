@@ -72,13 +72,13 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 
 func (l *EventLog) GetAggregate(ctx context.Context, tn tablename.TableName, id value.AggregateID) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for rid, err := range l.c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
+		for sr, err := range l.c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, tn, rid)
+			s, err := l.fc.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -121,13 +121,13 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for rid, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
+		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, tn, rid)
+			s, err := l.fc.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return

@@ -292,11 +292,11 @@ func (ln *LeafNode) Unlatch()  { ln.node.Unlatch() }
 func (ln *LeafNode) RLatch()   { ln.node.RLatch() }
 func (ln *LeafNode) RUnlatch() { ln.node.RUnlatch() }
 
-func (ln *LeafNode) SearchRange(k key.Key) iter.Seq[link.RecordID] {
-	return func(yield func(link.RecordID) bool) {
+func (ln *LeafNode) SearchRange(k key.Key) Iterator {
+	return func(yield func(key.Key, link.RecordID) bool) {
 		i := ln.searchIndexRange(k)
-		for _, rid := range ln.childrenRange(i, -1) {
-			if !yield(rid) {
+		for k, rid := range ln.childrenRange(i, -1) {
+			if !yield(k, rid) {
 				return
 			}
 		}

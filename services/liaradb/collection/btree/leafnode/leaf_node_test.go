@@ -269,8 +269,8 @@ func testLeafNode_Insert(t *testing.T) {
 		}
 
 		result := make([]link.RecordID, 0, len(want))
-		for c := range ln.SearchRange(e.Key()) {
-			result = append(result, c)
+		for _, rid := range ln.SearchRange(e.Key()) {
+			result = append(result, rid)
 		}
 
 		if !slices.Equal(result, want) {

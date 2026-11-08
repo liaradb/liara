@@ -228,14 +228,14 @@ func testCursor_SearchRange(t *testing.T) {
 		}
 	}
 
-	wantAll := make([]link.RecordID, 0, len(data))
+	wantAll := make([]SearchResult, 0, len(data))
 	for _, e := range data {
-		wantAll = append(wantAll, e.recordID)
+		wantAll = append(wantAll, SearchResult{e.key, e.recordID})
 	}
 
 	for i, e := range data {
 		c := NewCursor(s)
-		result := make([]link.RecordID, 0, len(data))
+		result := make([]SearchResult, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, fn, e.key, 0, 0) {
 			if err != nil {
 				t.Fatal(err)
@@ -253,13 +253,13 @@ func testCursor_SearchRange(t *testing.T) {
 	// Skip and Limit
 	{
 		c := NewCursor(s)
-		result := make([]link.RecordID, 0, len(data))
-		for rid, err := range c.SearchRange(ctx, fn, key.NewKey([]byte("1")), 1, 3) {
+		result := make([]SearchResult, 0, len(data))
+		for r, err := range c.SearchRange(ctx, fn, key.NewKey([]byte("1")), 1, 3) {
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			result = append(result, rid)
+			result = append(result, r)
 		}
 
 		want := wantAll[2:5]

@@ -132,22 +132,22 @@ func (s *search) SearchRange(
 	k key.Key,
 	skip int,
 	limit int,
-) iter.Seq2[link.RecordID, error] {
+) iter.Seq2[SearchResult, error] {
 	skipped := 0
 	returned := 0
-	return func(yield func(link.RecordID, error) bool) {
-		block, rids, err := s.searchRangeFirst(ctx, fn, k)
+	return func(yield func(SearchResult, error) bool) {
+		block, results, err := s.searchRangeFirst(ctx, fn, k)
 		if err != nil {
-			yield(link.RecordID{}, err)
+			yield(SearchResult{}, err)
 			return
 		}
 
-		for rid := range rids {
+		for sr := range results {
 			if skip > skipped {
 				skipped++
 				continue
 			}
-			if s.isLimit(limit, returned) || !yield(rid, nil) {
+			if s.isLimit(limit, returned) || !yield(sr, nil) {
 				return
 			}
 			returned++
@@ -158,18 +158,18 @@ func (s *search) SearchRange(
 				return
 			}
 
-			block, rids, err = s.searchRangeNext(ctx, fn, block)
+			block, results, err = s.searchRangeNext(ctx, fn, block)
 			if err != nil {
-				yield(link.RecordID{}, err)
+				yield(SearchResult{}, err)
 				return
 			}
 
-			for rid := range rids {
+			for sr := range results {
 				if skip > skipped {
 					skipped++
 					continue
 				}
-				if s.isLimit(limit, returned) || !yield(rid, nil) {
+				if s.isLimit(limit, returned) || !yield(sr, nil) {
 					return
 				}
 				returned++
@@ -186,20 +186,20 @@ func (s *search) searchRangeFirst(
 	ctx context.Context,
 	fn link.FileName,
 	k key.Key,
-) (link.BlockID, iter.Seq[link.RecordID], error) {
+) (link.BlockID, iter.Seq[SearchResult], error) {
 	ln, err := s.searchRange(ctx, fn, k)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordID) bool) {
+	return ln.RightID(), func(yield func(SearchResult) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
 		defer ln.RUnlatch()
 
-		for rid := range ln.SearchRange(k) {
-			if !yield(rid) {
+		for k, rid := range ln.SearchRange(k) {
+			if !yield(SearchResult{k, rid}) {
 				return
 			}
 		}
@@ -210,20 +210,20 @@ func (s *search) searchRangeNext(
 	ctx context.Context,
 	fn link.FileName,
 	block link.BlockID,
-) (link.BlockID, iter.Seq[link.RecordID], error) {
+) (link.BlockID, iter.Seq[SearchResult], error) {
 	ln, err := s.ns.getLeafNode(ctx, fn.FileBlockID(block))
 	if err != nil {
 		return 0, nil, err
 	}
 
-	return ln.RightID(), func(yield func(link.RecordID) bool) {
+	return ln.RightID(), func(yield func(SearchResult) bool) {
 		defer ln.Release()
 
 		ln.RLatch()
 		defer ln.RUnlatch()
 
-		for _, rid := range ln.RecordIDs() {
-			if !yield(rid) {
+		for k, rid := range ln.RecordIDs() {
+			if !yield(SearchResult{k, rid}) {
 				return
 			}
 		}
