@@ -234,7 +234,7 @@ func (es *EventService) GetAfterGlobalVersion(
 		// TODO: How do we handle a range?
 		count := 0
 		if err := tx.Run(ctx, func() error {
-			for e, err := range es.eventsAfterGlobalVersion(ctx, tid, partitionRange.Low(), version) {
+			for e, err := range es.eventsAfterGlobalVersion(ctx, tx, tid, partitionRange.Low(), version) {
 				if err != nil {
 					yield(nil, err)
 					return err
@@ -268,7 +268,7 @@ func (es *EventService) Events(
 		defer tx.Release()
 
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.Events(ctx, tx, tn) {
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, value.NewGlobalVersion(0)) {
 			if !yield(e, err) {
 				return
 			}
@@ -278,6 +278,7 @@ func (es *EventService) Events(
 
 func (es *EventService) eventsAfterGlobalVersion(
 	ctx context.Context,
+	tx *transaction.Transaction,
 	tid value.TenantID,
 	pid value.PartitionID,
 	version value.GlobalVersion,
@@ -285,7 +286,7 @@ func (es *EventService) eventsAfterGlobalVersion(
 	return func(yield func(*entity.Event, error) bool) {
 		// TODO: Figure out locking
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tn, version) {
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version) {
 			if !yield(e, err) {
 				return
 			}

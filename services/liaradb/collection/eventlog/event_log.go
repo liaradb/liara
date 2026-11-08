@@ -99,30 +99,20 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 	return &t, t.Read(s)
 }
 
-func (l *EventLog) Events(ctx context.Context, tx fixed.Transaction, tn tablename.TableName) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		for s, err := range l.fc.List(ctx, tx, tn) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			e, err := l.readEvent(s)
-			if !yield(e, err) || err != nil {
-				return
-			}
-		}
-	}
-}
-
 func (l *EventLog) EventsAfterGlobalVersion(
 	ctx context.Context,
+	tx fixed.Transaction,
 	tn tablename.TableName,
 	version value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
 			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			if err := tx.SLock(ctx, tn, sr.Key.String()); err != nil {
 				yield(nil, err)
 				return
 			}
