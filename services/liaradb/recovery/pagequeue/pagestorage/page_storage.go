@@ -21,27 +21,18 @@ func New(
 	}
 }
 
-func (ps *PageStorage) Init(data []byte) error {
+func (ps *PageStorage) Init() (*segment.File, error) {
 	f, err := ps.sl.OpenLatestSegment()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	size, err := f.SeekTail()
-	if err != nil {
-		return errors.Join(err, f.Close())
-	}
-
-	if size == 0 {
-		clear(data)
-	} else {
-		if _, err := f.Read(data); err != nil {
-			return errors.Join(err, f.Close())
-		}
+	if _, err = f.SeekTail(); err != nil {
+		return nil, errors.Join(err, f.Close())
 	}
 
 	ps.f = f
-	return nil
+	return f, nil
 }
 
 func (ps *PageStorage) Append(lsn logpage.LogSequenceNumber, data []byte) error {

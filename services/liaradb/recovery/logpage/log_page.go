@@ -51,7 +51,12 @@ func (lp *LogPage) Data() []byte {
 }
 
 func (lp *LogPage) Replace(r io.Reader) error {
-	return lp.page.Replace(r)
+	if err := lp.page.Replace(r); err != nil {
+		return err
+	}
+
+	lp.handlers = nil
+	return nil
 }
 
 func (lp *LogPage) Next(size int16) ([]byte, []byte) {
@@ -60,11 +65,6 @@ func (lp *LogPage) Next(size int16) ([]byte, []byte) {
 
 func (lp *LogPage) Commit(size int16) {
 	_ = lp.page.CommitAppend(size)
-}
-
-func (lp *LogPage) Fill(data []byte) {
-	lp.page.Fill(data)
-	lp.handlers = nil
 }
 
 func (lp *LogPage) Complete() {

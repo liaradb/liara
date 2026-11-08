@@ -29,8 +29,7 @@ func TestPageIterator(t *testing.T) {
 
 			sl := segment.NewList(fsys, dir, size, 1)
 			ps := pagestorage.New(sl)
-			pageData := make([]byte, size)
-			if err := ps.Init(pageData); err != nil {
+			if _, err := ps.Init(); err != nil {
 				t.Error(err)
 			}
 
@@ -94,8 +93,7 @@ func TestPageIterator(t *testing.T) {
 
 			sl := segment.NewList(fsys, dir, size, 1)
 			ps := pagestorage.New(sl)
-			pageData := make([]byte, size)
-			if err := ps.Init(pageData); err != nil {
+			if _, err := ps.Init(); err != nil {
 				t.Error(err)
 			}
 

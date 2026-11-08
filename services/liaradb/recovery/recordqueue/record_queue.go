@@ -86,13 +86,12 @@ func (rq *RecordQueue[R]) Close() error {
 func (rq *RecordQueue[R]) Init(lw, hw logpage.LogSequenceNumber) error {
 	rq.fs.init(lw, hw)
 
-	// TODO: Don't create a page, just copy the data
-	data := make([]byte, rq.pageSize)
-	if err := rq.ps.Init(data); err != nil {
+	f, err := rq.ps.Init()
+	if err != nil {
 		return err
 	}
 
-	return rq.pq.Init(data)
+	return rq.pq.Init(f)
 }
 
 func (rq *RecordQueue[R]) run(ctx context.Context) {

@@ -3,6 +3,8 @@ package logpage
 import (
 	"slices"
 	"testing"
+
+	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestLogPage_AddHandler(t *testing.T) {
@@ -98,7 +100,7 @@ func TestLogPage_Reset(t *testing.T) {
 	}
 }
 
-func TestLogPage_Fill(t *testing.T) {
+func TestLogPage_Replace(t *testing.T) {
 	t.Parallel()
 
 	p := New(256, 8)
@@ -117,7 +119,8 @@ func TestLogPage_Fill(t *testing.T) {
 		t.Error("should not equal new data")
 	}
 
-	p.Fill(data)
+	b := buffer.NewFromSlice(data)
+	p.Replace(b)
 	if !slices.Equal(p.Data()[:4], want) {
 		t.Errorf("incorrect data: %v, expected: %v", p.Data()[:4], data)
 	}

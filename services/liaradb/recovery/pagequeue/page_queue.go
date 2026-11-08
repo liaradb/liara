@@ -38,8 +38,8 @@ func New[R Record](
 	}
 }
 
-func (pq *PageQueue[R]) Init(data []byte) error {
-	pq.current.Fill(data)
+func (pq *PageQueue[R]) Init(r io.Reader) error {
+	pq.current.Replace(r)
 	pq.flushed = true
 	return nil
 }
