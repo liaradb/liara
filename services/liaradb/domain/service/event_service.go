@@ -108,7 +108,8 @@ func (es *EventService) Append(
 			if ok, err := es.testRequestID(ctx, tx, tnRl, rqid); err != nil {
 				return err
 			} else if !ok {
-				return value.ErrRequestIDExists
+				// Request completed previously
+				return nil
 			}
 		}
 
