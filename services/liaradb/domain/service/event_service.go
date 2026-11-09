@@ -113,13 +113,12 @@ func (es *EventService) Append(
 		}
 
 		for _, em := range cmd.Events {
-			e, err := em.ToEvent(cmd.Options, es.gvg.Next(cmd.TenantID))
-			if err != nil {
+			if err := tx.XLock(ctx, tf.EventLog(em.PartitionID), em.AggregateID.String()); err != nil {
 				return err
 			}
 
-			// TODO: What do we lock?
-			if err := tx.XLock(ctx, tf.EventLog(e.PartitionID), e.AggregateID.String()); err != nil {
+			e, err := em.ToEvent(cmd.Options, es.gvg.Next(cmd.TenantID))
+			if err != nil {
 				return err
 			}
 
