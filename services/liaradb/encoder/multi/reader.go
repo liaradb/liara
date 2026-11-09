@@ -2,22 +2,22 @@ package multi
 
 import "io"
 
-type Reader struct {
-	readers []io.Reader
+type Reader[R io.Reader] struct {
+	readers []R
 	current int
 }
 
-func NewReader(readers ...io.Reader) *Reader {
-	return &Reader{
+func NewReader[R io.Reader](readers ...R) *Reader[R] {
+	return &Reader[R]{
 		readers: readers,
 	}
 }
 
-func (rd *Reader) Append(r io.Reader) {
+func (rd *Reader[R]) Append(r R) {
 	rd.readers = append(rd.readers, r)
 }
 
-func (rd *Reader) Read(p []byte) (n int, err error) {
+func (rd *Reader[R]) Read(p []byte) (n int, err error) {
 	l := len(p)
 	for rd.current < len(rd.readers) {
 		r := rd.readers[rd.current]

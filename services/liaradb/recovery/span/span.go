@@ -47,29 +47,17 @@ func (s *Span) InitIndexes() {
 	}
 }
 
-// TODO: Can we do this without creating a new reader?
 func (s Span) Read(p []byte) (n int, err error) {
 	if !s.valid() {
 		return 0, page.ErrInvalidCRC
 	}
 
-	readers := make([]io.Reader, 0, len(s.fragments))
-	for _, f := range s.fragments {
-		readers = append(readers, f)
-	}
-
-	reader := multi.NewReader(readers...)
+	reader := multi.NewReader(s.fragments...)
 	return reader.Read(p)
 }
 
-// TODO: Can we do this without creating a new writer?
 func (s Span) Write(p []byte) (n int, err error) {
-	writers := make([]io.Writer, 0, len(s.fragments))
-	for _, f := range s.fragments {
-		writers = append(writers, f)
-	}
-
-	writer := multi.NewWriter(writers...)
+	writer := multi.NewWriter(s.fragments...)
 	return writer.Write(p)
 }
 

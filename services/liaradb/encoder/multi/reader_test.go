@@ -47,12 +47,12 @@ func TestReaderWriter_Append(t *testing.T) {
 
 	a, b, c := buffer.New(8), buffer.New(8), buffer.New(8)
 
-	w := NewWriter()
+	w := NewWriter[io.Writer]()
 	w.Append(a)
 	w.Append(b)
 	w.Append(c)
 
-	r := NewReader()
+	r := NewReader[io.Reader]()
 	r.Append(a)
 	r.Append(b)
 	r.Append(c)

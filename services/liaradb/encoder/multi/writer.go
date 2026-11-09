@@ -2,22 +2,22 @@ package multi
 
 import "io"
 
-type Writer struct {
-	writers []io.Writer
+type Writer[W io.Writer] struct {
+	writers []W
 	current int
 }
 
-func NewWriter(writers ...io.Writer) *Writer {
-	return &Writer{
+func NewWriter[W io.Writer](writers ...W) *Writer[W] {
+	return &Writer[W]{
 		writers: writers,
 	}
 }
 
-func (wr *Writer) Append(r io.Writer) {
+func (wr *Writer[W]) Append(r W) {
 	wr.writers = append(wr.writers, r)
 }
 
-func (wr *Writer) Write(p []byte) (n int, err error) {
+func (wr *Writer[W]) Write(p []byte) (n int, err error) {
 	l := len(p)
 	for wr.current < len(wr.writers) {
 		w := wr.writers[wr.current]
