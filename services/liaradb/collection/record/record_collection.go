@@ -2,6 +2,7 @@ package record
 
 import (
 	"context"
+	"io"
 
 	"github.com/liaradb/liaradb/collection/bufferpage"
 	"github.com/liaradb/liaradb/collection/record/tip"
@@ -90,8 +91,7 @@ func (rc *RecordCollection) Replace(
 	defer s.Release()
 
 	if w.Size() > s.Length() {
-		// TODO: Verify data can fit
-		panic("support resizing")
+		return io.ErrShortWrite
 	}
 
 	if err := w.Write(s.Writer()); err != nil {
