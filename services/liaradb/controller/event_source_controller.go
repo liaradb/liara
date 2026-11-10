@@ -32,27 +32,18 @@ func (esc *EventSourceController) Append(
 	ctx context.Context,
 	request *pb.AppendRequest,
 ) (*pb.AppendResponse, error) {
-	o, err := dtoToAppendOptions(request.Options)
+	cmd, err := dtoToAppendEvent(request)
 	if err != nil {
 		return nil, err
 	}
 
-	aggregateIDs := make([]string, 0, len(request.Events))
+	aggregateIDs := make([]string, 0, len(cmd.Events))
 	for _, e := range request.Events {
 		aggregateIDs = append(aggregateIDs, e.AggregateId)
 	}
-	traceAppend(ctx, request.TenantId, o.CorrelationID().String(), aggregateIDs)
+	traceAppend(ctx, cmd.TenantID.String(), cmd.CorrelationID.String(), aggregateIDs)
 
-	tid, err := value.NewTenantIDFromString(request.TenantId)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := esc.eventService.Append(ctx, command.AppendEvent{
-		TenantID: tid,
-		Options:  o,
-		Events:   mapSlice(request.Events, dtoToAppendEvent),
-	}); err != nil {
+	if err := esc.eventService.Append(ctx, cmd); err != nil {
 		return nil, err
 	}
 

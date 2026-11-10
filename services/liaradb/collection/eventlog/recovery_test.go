@@ -37,32 +37,12 @@ func testRecovery(t *testing.T) {
 	var max int = 2
 	var bs int16 = 1024
 
-	records := []*entity.Event{{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(0),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(1),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(2),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(3),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(3),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(4),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(4),
-		Data:          value.NewData([]byte{}),
-	}}
+	records := []*entity.Event{
+		createEvent(0, 0),
+		createEvent(1, 1),
+		createEvent(2, 2),
+		createEvent(3, 3),
+		createEvent(4, 4)}
 
 	write(t, ctx, fsys, max, bs, dir, tn, records)
 	recover(t, ctx, fsys, max, bs, dir, tn, records)

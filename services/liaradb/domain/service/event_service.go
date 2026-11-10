@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"iter"
 	"time"
 
@@ -89,8 +90,18 @@ func (es *EventService) Append(
 	ctx context.Context,
 	cmd command.AppendEvent,
 ) error {
-	if err := cmd.Valid(); err != nil {
-		return err
+	if len(cmd.Events) == 0 {
+		return value.ErrNoEvents
+	}
+
+	errs := make([]error, 0)
+	for _, em := range cmd.Events {
+		if em.Version.Value() < 1 {
+			errs = append(errs, value.ErrAggregateVersionInvalid)
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	tx, err := es.initTransaction(ctx, cmd.TenantID)
@@ -100,10 +111,10 @@ func (es *EventService) Append(
 
 	return tx.Run(ctx, func() error {
 		tf := tablename.NewTenantFolder(cmd.TenantID)
-		if rqid, ok := cmd.Options.RequestID(); ok {
+		if cmd.RequestID != nil {
 			tnRl := tf.RequestLog()
 			// Verify idempotency
-			if ok, err := es.testRequestID(ctx, tx, tnRl, rqid); err != nil {
+			if ok, err := es.testRequestID(ctx, tx, tnRl, *cmd.RequestID); err != nil {
 				return err
 			} else if !ok {
 				// Request completed previously
@@ -132,22 +143,22 @@ func (es *EventService) append(
 			return err
 		}
 
-		e, err := em.ToEvent(cmd.Options, gv, sub)
+		e, err := entity.NewEvent(em, entity.NewMetadata(cmd), gv, sub)
 		if err != nil {
 			return err
 		}
 
-		if err := elt.append(ctx, &e); err != nil {
+		if err := elt.append(ctx, e); err != nil {
 			return err
 		}
 
 		sub = sub.Increment()
 	}
 
-	if rqid, ok := cmd.Options.RequestID(); ok {
+	if cmd.RequestID != nil {
 		now := time.Now()
 		tnRl := tf.RequestLog()
-		if err := es.insertRequestID(ctx, tx, tnRl, rqid, value.NewTime(now)); err != nil {
+		if err := es.insertRequestID(ctx, tx, tnRl, *cmd.RequestID, value.NewTime(now)); err != nil {
 			return err
 		}
 	}
@@ -219,7 +230,7 @@ func (es *EventService) GetByAggregateIDAndName(
 				return
 			}
 
-			if e.AggregateName == name && !yield(e, nil) {
+			if e.AggregateName() == name && !yield(e, nil) {
 				return
 			}
 		}

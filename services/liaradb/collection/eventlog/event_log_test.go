@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -29,32 +30,12 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
 
-	records := []*entity.Event{{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(0),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(1),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(2),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(3),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(3),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(4),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(4),
-		Data:          value.NewData([]byte{}),
-	}}
+	records := []*entity.Event{
+		createEvent(0, 0),
+		createEvent(1, 1),
+		createEvent(2, 2),
+		createEvent(3, 3),
+		createEvent(4, 4)}
 
 	for _, r := range records {
 		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
@@ -95,32 +76,12 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
 
-	records := []*entity.Event{{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(0),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(1),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(2),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(3),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(3),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(4),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(4),
-		Data:          value.NewData([]byte{}),
-	}}
+	records := []*entity.Event{
+		createEvent(0, 0),
+		createEvent(1, 1),
+		createEvent(2, 2),
+		createEvent(3, 3),
+		createEvent(4, 4)}
 
 	for _, r := range records {
 		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
@@ -160,32 +121,12 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
 
-	records := []*entity.Event{{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(0),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(1),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(2),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(3),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(3),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(4),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(4),
-		Data:          value.NewData([]byte{}),
-	}}
+	records := []*entity.Event{
+		createEvent(0, 0),
+		createEvent(1, 1),
+		createEvent(2, 2),
+		createEvent(3, 3),
+		createEvent(4, 4)}
 
 	for _, r := range records {
 		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
@@ -193,7 +134,7 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 		}
 	}
 
-	e, err := el.Find(ctx, tn, records[2].ID)
+	e, err := el.Find(ctx, tn, records[2].ID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,34 +160,12 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 
-	records := []*entity.Event{{
-		GlobalVersion: value.NewGlobalVersion(0),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(1),
-		ID:            value.NewEventID(),
-		AggregateID:   aggregateID,
-		Version:       value.NewVersion(1),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(2),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(3),
-		ID:            value.NewEventID(),
-		AggregateID:   aggregateID,
-		Version:       value.NewVersion(2),
-		Data:          value.NewData([]byte{}),
-	}, {
-		GlobalVersion: value.NewGlobalVersion(4),
-		ID:            value.NewEventID(),
-		Version:       value.NewVersion(3),
-		Data:          value.NewData([]byte{}),
-	}}
+	records := []*entity.Event{
+		createEvent(0, 1),
+		createEventAggregate(1, 1, aggregateID),
+		createEvent(2, 2),
+		createEventAggregate(3, 2, aggregateID),
+		createEvent(4, 3)}
 
 	for _, r := range records {
 		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
@@ -272,4 +191,25 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	}
 
 	synctest.Wait()
+}
+
+func createEvent(gv uint64, v int64) *entity.Event {
+	e, _ := entity.NewEvent(command.EventOptions{
+		ID:      value.NewEventID().String(),
+		Version: value.NewVersion(v),
+		Data:    []byte{}}, entity.Metadata{},
+		value.NewGlobalVersion(gv),
+		value.NewSubVersion(0))
+	return e
+}
+
+func createEventAggregate(gv uint64, v int64, id value.AggregateID) *entity.Event {
+	e, _ := entity.NewEvent(command.EventOptions{
+		ID:          value.NewEventID().String(),
+		AggregateID: id,
+		Version:     value.NewVersion(v),
+		Data:        []byte{}}, entity.Metadata{},
+		value.NewGlobalVersion(gv),
+		value.NewSubVersion(0))
+	return e
 }

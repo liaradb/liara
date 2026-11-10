@@ -33,16 +33,16 @@ func (l *EventLog) Append(
 	tn tablename.TableName,
 	e *entity.Event,
 ) error {
-	rid, err := l.fc.Insert(ctx, tx, tn, key.NewKey2(e.AggregateID.Bytes(), e.Version.Value()), e)
+	rid, err := l.fc.Insert(ctx, tx, tn, key.NewKey2(e.AggregateID().Bytes(), e.Version().Value()), e)
 	if err != nil {
 		return err
 	}
 
-	if err := l.c.Insert(ctx, tx, tn.Index(1), key.NewKey(e.ID.Bytes()), rid); err != nil {
+	if err := l.c.Insert(ctx, tx, tn.Index(1), key.NewKey(e.ID().Bytes()), rid); err != nil {
 		return err
 	}
 
-	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey2(e.GlobalVersion.Bytes(), int64(e.SubVersion.Value())), rid)
+	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey2(e.GlobalVersion().Bytes(), int64(e.SubVersion().Value())), rid)
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.Key) error {
@@ -134,7 +134,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			}
 
 			e, err := l.readEvent(s)
-			if e.GlobalVersion.Value() > lw.Value() {
+			if e.GlobalVersion().Value() > lw.Value() {
 				return
 			}
 
@@ -142,7 +142,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			if e.GlobalVersion.Value() == lw.Value() {
+			if e.GlobalVersion().Value() == lw.Value() {
 				return
 			}
 		}
@@ -152,8 +152,8 @@ func (l *EventLog) EventsAfterGlobalVersion(
 func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 	defer s.Release()
 
-	t := entity.Event{}
-	return &t, t.Read(s)
+	e := entity.Event{}
+	return &e, e.Read(s)
 }
 
 func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {

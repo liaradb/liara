@@ -28,7 +28,7 @@ func newEventLogTransaction(el *eventlog.EventLog, tf tablename.TenantFolder) ev
 }
 
 func (t *eventLogTransaction) append(ctx context.Context, e *entity.Event) error {
-	k := key.NewKey2(e.AggregateID.Bytes(), e.Version.Value())
+	k := key.NewKey2(e.AggregateID().Bytes(), e.Version().Value())
 
 	// Verify this AggregateID and Version is unique in this transaction
 	if t.keys.Includes(k) {
@@ -38,7 +38,7 @@ func (t *eventLogTransaction) append(ctx context.Context, e *entity.Event) error
 	t.keys.Add(k)
 
 	// Verify this AggregateID and Version is unique in Index
-	if err := t.el.CanAppend(ctx, t.tf.EventLog(e.PartitionID), k); err != nil {
+	if err := t.el.CanAppend(ctx, t.tf.EventLog(e.PartitionID()), k); err != nil {
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (t *eventLogTransaction) append(ctx context.Context, e *entity.Event) error
 
 func (t *eventLogTransaction) commit(ctx context.Context, tx *transaction.Transaction) error {
 	for _, e := range t.events {
-		if err := t.el.Append(ctx, tx, t.tf.EventLog(e.PartitionID), e); err != nil {
+		if err := t.el.Append(ctx, tx, t.tf.EventLog(e.PartitionID()), e); err != nil {
 			return err
 		}
 	}

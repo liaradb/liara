@@ -47,7 +47,6 @@ func testEventService_Append(t *testing.T) {
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -60,7 +59,6 @@ func testEventService_Append(t *testing.T) {
 
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -73,7 +71,6 @@ func testEventService_Append(t *testing.T) {
 
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -109,7 +106,6 @@ func testEventService_Append__Large(t *testing.T) {
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -122,7 +118,6 @@ func testEventService_Append__Large(t *testing.T) {
 
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -135,7 +130,6 @@ func testEventService_Append__Large(t *testing.T) {
 
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: tid,
-		Options:  command.AppendOptions{},
 		Events: []command.EventOptions{{
 			// ID:         value.NewEventID(),
 			AggregateName: value.NewAggregateName("example"),
@@ -167,7 +161,6 @@ func testEventService_Append__Invalid(t *testing.T) {
 
 	if err := es.Append(t.Context(), command.AppendEvent{
 		TenantID: value.NewTenantID(),
-		Options:  command.AppendOptions{},
 		Events:   []command.EventOptions{want}},
 	); !errors.Is(err, value.ErrAggregateVersionInvalid) {
 		t.Error("should return error")

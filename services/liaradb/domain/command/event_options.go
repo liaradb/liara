@@ -1,9 +1,6 @@
 package command
 
-import (
-	"github.com/liaradb/liaradb/domain/entity"
-	"github.com/liaradb/liaradb/domain/value"
-)
+import "github.com/liaradb/liaradb/domain/value"
 
 type EventOptions struct {
 	ID            string              // The ID of the Event, used for de-duplication
@@ -14,39 +11,4 @@ type EventOptions struct {
 	Name          value.EventName     // The Name of the Event
 	Schema        value.Schema        // The Schema for the internal data
 	Data          []byte              // The internal data of the Event
-}
-
-func (eo *EventOptions) Valid() error {
-	if eo.Version.Value() < 1 {
-		return value.ErrAggregateVersionInvalid
-	}
-
-	return nil
-}
-
-func (eo *EventOptions) ToEvent(options AppendOptions, gv value.GlobalVersion, sv value.SubVersion) (entity.Event, error) {
-	var id value.EventID
-	if eo.ID == "" {
-		id = value.NewEventID()
-	} else {
-		var err error
-		id, err = value.NewEventIDFromString(eo.ID)
-		if err != nil {
-			return entity.Event{}, err
-		}
-	}
-
-	return entity.Event{
-		GlobalVersion: gv,
-		SubVersion:    sv,
-		ID:            id,
-		AggregateName: eo.AggregateName,
-		AggregateID:   eo.AggregateID,
-		Version:       eo.Version,
-		PartitionID:   eo.PartitionID,
-		Name:          eo.Name,
-		Schema:        eo.Schema,
-		Metadata:      options.toMetadata(),
-		Data:          value.NewData(eo.Data),
-	}, nil
 }

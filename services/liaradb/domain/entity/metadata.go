@@ -3,6 +3,7 @@ package entity
 import (
 	"io"
 
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/serializer"
 )
@@ -14,17 +15,12 @@ type Metadata struct {
 	time          value.Time          // The Time this Event was created
 }
 
-func NewMetadata(
-	uid value.UserID,
-	cid value.CorrelationID,
-	cv value.ClientVersion,
-	t value.Time,
-) Metadata {
+func NewMetadata(cmd command.AppendEvent) Metadata {
 	return Metadata{
-		userID:        uid,
-		correlationID: cid,
-		clientVersion: cv,
-		time:          t,
+		userID:        cmd.UserID,
+		correlationID: cmd.CorrelationID,
+		clientVersion: cmd.ClientVersion,
+		time:          value.NewTime(cmd.Time),
 	}
 }
 

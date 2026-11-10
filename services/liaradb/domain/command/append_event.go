@@ -1,27 +1,17 @@
 package command
 
 import (
-	"errors"
+	"time"
 
 	"github.com/liaradb/liaradb/domain/value"
 )
 
 type AppendEvent struct {
-	TenantID value.TenantID
-	Options  AppendOptions
-	Events   []EventOptions
-}
-
-func (ae *AppendEvent) Valid() error {
-	if len(ae.Events) == 0 {
-		return value.ErrNoEvents
-	}
-
-	errs := make([]error, 0)
-	for _, em := range ae.Events {
-		if err := em.Valid(); err != nil {
-			errs = append(errs, err)
-		}
-	}
-	return errors.Join(errs...)
+	TenantID      value.TenantID
+	RequestID     *value.RequestID    // The ID of the Request, for idempotency
+	CorrelationID value.CorrelationID // The ID of the entire Command and Event chain
+	ClientVersion value.ClientVersion // The Version of the client
+	UserID        value.UserID        // The ID of the User issuing the Command
+	Time          time.Time           // The Time this Event was created
+	Events        []EventOptions
 }

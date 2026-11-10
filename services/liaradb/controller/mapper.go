@@ -10,21 +10,21 @@ import (
 
 func eventToDTO(e *entity.Event) *pb.Event {
 	return &pb.Event{
-		GlobalVersion: e.GlobalVersion.Value(),
-		SubVersion:    e.SubVersion.Value(),
-		Id:            e.ID.String(),
-		AggregateName: e.AggregateName.String(),
-		AggregateId:   e.AggregateID.String(),
-		Version:       e.Version.Value(),
-		PartitionId:   e.PartitionID.Value(),
-		Name:          e.Name.String(),
-		Schema:        e.Schema.String(),
-		Metadata:      metadataToDto(e.Metadata),
-		Data:          e.Data.Value(),
+		GlobalVersion: e.GlobalVersion().Value(),
+		SubVersion:    e.SubVersion().Value(),
+		Id:            e.ID().String(),
+		AggregateName: e.AggregateName().String(),
+		AggregateId:   e.AggregateID().String(),
+		Version:       e.Version().Value(),
+		PartitionId:   e.PartitionID().Value(),
+		Name:          e.Name().String(),
+		Schema:        e.Schema().String(),
+		Metadata:      metadataToDto(e.Metadata()),
+		Data:          e.Data().Value(),
 	}
 }
 
-func dtoToAppendEvent(dto *pb.AppendEvent) command.EventOptions {
+func dtoToEventOptions(dto *pb.AppendEvent) command.EventOptions {
 	return command.EventOptions{
 		ID:            dto.Id,
 		AggregateName: value.NewAggregateName(dto.AggregateName),
@@ -37,9 +37,18 @@ func dtoToAppendEvent(dto *pb.AppendEvent) command.EventOptions {
 	}
 }
 
-func dtoToAppendOptions(dto *pb.AppendOptions) (command.AppendOptions, error) {
+func dtoToAppendEvent(req *pb.AppendRequest) (command.AppendEvent, error) {
+	tid, err := value.NewTenantIDFromString(req.TenantId)
+	if err != nil {
+		return command.AppendEvent{}, err
+	}
+
+	dto := req.Options
 	if dto == nil {
-		return command.AppendOptions{}, nil
+		return command.AppendEvent{
+			TenantID: tid,
+			Events:   mapSlice(req.Events, dtoToEventOptions),
+		}, nil
 	}
 
 	var rid *value.RequestID
@@ -47,19 +56,21 @@ func dtoToAppendOptions(dto *pb.AppendOptions) (command.AppendOptions, error) {
 	if dto.RequestId != "" {
 		r, err := value.NewRequestIDFromString(dto.RequestId)
 		if err != nil {
-			return command.AppendOptions{}, err
+			return command.AppendEvent{}, err
 		}
 
 		rid = &r
 	}
 
-	return command.NewAppendOptions(
-		rid,
-		value.NewCorrelationID(dto.CorrelationId),
-		value.NewClientVersion(dto.ClientVersion),
-		value.NewUserID(dto.UserId),
-		dto.Time.AsTime(),
-	), nil
+	return command.AppendEvent{
+		TenantID:      tid,
+		RequestID:     rid,
+		CorrelationID: value.NewCorrelationID(dto.CorrelationId),
+		ClientVersion: value.NewClientVersion(dto.ClientVersion),
+		UserID:        value.NewUserID(dto.UserId),
+		Time:          dto.Time.AsTime(),
+		Events:        mapSlice(req.Events, dtoToEventOptions),
+	}, nil
 }
 
 func metadataToDto(m entity.Metadata) *pb.EventMetadata {

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -48,12 +49,11 @@ func TestRow_NewRow(t *testing.T) {
 		value.NewPartitionID(2),
 		value.NewRowName("name"),
 		value.NewSchema("schema"),
-		NewMetadata(
-			value.NewUserID("userId"),
-			value.NewCorrelationID("correlationID"),
-			value.NewClientVersion("clientVersion"),
-			value.NewTime(time.Time{}),
-		),
+		NewMetadata(command.AppendEvent{
+			CorrelationID: value.NewCorrelationID("correlationID"),
+			ClientVersion: value.NewClientVersion("clientVersion"),
+			UserID:        value.NewUserID("userId"),
+		}),
 		value.NewData([]byte{1, 2, 3, 4}),
 	)
 
@@ -75,6 +75,7 @@ func TestRow_NewRow(t *testing.T) {
 func TestRow__Getters(t *testing.T) {
 	t.Parallel()
 
+	rqid := value.NewRequestID()
 	rid := value.NewRowID()
 	version := value.NewVersion(1)
 	pid := value.NewPartitionID(2)
@@ -83,7 +84,7 @@ func TestRow__Getters(t *testing.T) {
 	userID := value.NewUserID("userId")
 	correlationID := value.NewCorrelationID("correlationID")
 	clientVersion := value.NewClientVersion("clientVersion")
-	tm := value.NewTime(time.Time{})
+	tm := time.Time{}
 	data := value.NewData([]byte{1, 2, 3, 4})
 
 	row := NewRow(
@@ -92,12 +93,13 @@ func TestRow__Getters(t *testing.T) {
 		pid,
 		name,
 		schema,
-		NewMetadata(
-			userID,
-			correlationID,
-			clientVersion,
-			tm,
-		),
+		NewMetadata(command.AppendEvent{
+			RequestID:     &rqid,
+			CorrelationID: correlationID,
+			ClientVersion: clientVersion,
+			UserID:        userID,
+			Time:          tm,
+		}),
 		data,
 	)
 
@@ -133,7 +135,7 @@ func TestRow__Getters(t *testing.T) {
 		t.Errorf("incorrect client version: %v, expected: %v", v, clientVersion)
 	}
 
-	if v := row.Metadata().Time(); v != tm {
+	if v := row.Metadata().Time().Value(); v != tm {
 		t.Errorf("incorrect time: %v, expected: %v", v, tm)
 	}
 
@@ -145,6 +147,7 @@ func TestRow__Getters(t *testing.T) {
 func TestRow_Compare(t *testing.T) {
 	t.Parallel()
 
+	rqid := value.NewRequestID()
 	rid := value.NewRowID()
 	v := value.NewVersion(1)
 	pid := value.NewPartitionID(2)
@@ -153,7 +156,7 @@ func TestRow_Compare(t *testing.T) {
 	uid := value.NewUserID("userid")
 	cid := value.NewCorrelationID("correlationid")
 	cver := value.NewClientVersion("clientversion")
-	tm := value.NewTime(time.Now())
+	tm := time.Now()
 
 	pointer := &Row{}
 
@@ -180,12 +183,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{1, 2, 3}),
 			),
 			b: NewRow(
@@ -194,12 +198,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{1, 2, 3}),
 			),
 			equal: true,
@@ -211,12 +216,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{1, 2, 3}),
 			),
 			b: NewRow(
@@ -225,12 +231,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{1, 2, 3}),
 			),
 			equal: false,
@@ -242,12 +249,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{1, 2, 3}),
 			),
 			b: NewRow(
@@ -256,12 +264,13 @@ func TestRow_Compare(t *testing.T) {
 				pid,
 				rn,
 				sch,
-				NewMetadata(
-					uid,
-					cid,
-					cver,
-					tm,
-				),
+				NewMetadata(command.AppendEvent{
+					RequestID:     &rqid,
+					CorrelationID: cid,
+					ClientVersion: cver,
+					UserID:        uid,
+					Time:          tm,
+				}),
 				value.NewData([]byte{3, 2, 1}),
 			),
 			equal: false,

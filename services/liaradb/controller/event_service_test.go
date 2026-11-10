@@ -26,9 +26,8 @@ func (es *testEventService) Append(
 	ctx context.Context,
 	cmd command.AppendEvent,
 ) error {
-	rid, ok := cmd.Options.RequestID()
-	if ok {
-		if _, ok := es.requests[rid]; ok {
+	if cmd.RequestID != nil {
+		if _, ok := es.requests[*cmd.RequestID]; ok {
 			return baseerror.ErrAlreadyExists
 		}
 	}
@@ -36,34 +35,23 @@ func (es *testEventService) Append(
 	es.version = value.NewGlobalVersion(es.version.Value() + 1)
 	var sub value.SubVersion
 	for _, event := range cmd.Events {
-		id, err := value.NewEventIDFromString(event.ID)
+		e, err := entity.NewEvent(event, entity.NewMetadata(cmd), es.version, sub)
 		if err != nil {
 			return err
 		}
 
-		es.events = append(es.events, &entity.Event{
-			GlobalVersion: es.version,
-			SubVersion:    sub,
-			PartitionID:   event.PartitionID,
-			AggregateID:   event.AggregateID,
-			AggregateName: event.AggregateName,
-			Name:          event.Name,
-			Schema:        event.Schema,
-			ID:            id,
-			Version:       event.Version,
-			Data:          value.NewData(event.Data),
-		})
+		es.events = append(es.events, e)
 		sub = sub.Increment()
 	}
 	slices.SortFunc(es.events, func(a, b *entity.Event) int {
-		return int(a.Version.Value() - b.Version.Value())
+		return int(a.Version().Value() - b.Version().Value())
 	})
 
-	if ok {
+	if cmd.RequestID != nil {
 		if es.requests == nil {
 			es.requests = make(map[value.RequestID]*entity.RequestLog)
 		}
-		es.requests[rid] = entity.NewRequestLog(rid, value.NewTime(time.Now()))
+		es.requests[*cmd.RequestID] = entity.NewRequestLog(*cmd.RequestID, value.NewTime(time.Now()))
 	}
 
 	return nil
@@ -77,8 +65,8 @@ func (es *testEventService) Get(
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for _, event := range es.events {
-			if event.PartitionID == partitionID &&
-				event.AggregateID == id {
+			if event.PartitionID() == partitionID &&
+				event.AggregateID() == id {
 				if !yield(event, nil) {
 					return
 				}
@@ -107,9 +95,9 @@ func (es *testEventService) GetByAggregateIDAndName(
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for _, event := range es.events {
-			if event.PartitionID == pid &&
-				event.AggregateID == id &&
-				event.AggregateName == name {
+			if event.PartitionID() == pid &&
+				event.AggregateID() == id &&
+				event.AggregateName() == name {
 				if !yield(event, nil) {
 					return
 				}
