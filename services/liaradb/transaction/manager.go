@@ -47,11 +47,11 @@ func NewManager(
 	}
 }
 
-func (m *Manager) Run(ctx context.Context) {
+func (m *Manager) Run(ctx context.Context, onError func(error)) {
 	slog.Info("starting...")
 
 	go m.lockTable.Run(ctx)
-	go m.run(ctx)
+	go func() { onError(m.run(ctx)) }()
 
 	slog.Info("transaction manager running")
 }
@@ -85,21 +85,22 @@ func (m *Manager) Recover(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) run(ctx context.Context) {
-	// TODO: This may back up over time
+func (m *Manager) run(ctx context.Context) error {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			m.appendCheckpoint(ctx)
+			if err := m.appendCheckpoint(ctx); err != nil {
+				return err
+			}
 		case r := <-m.txReqs:
 			m.next(r)
 		case r := <-m.returns:
 			m.end(r)
 		case <-ctx.Done():
-			return
+			return nil
 		}
 	}
 }
@@ -140,22 +141,23 @@ func (m *Manager) end(txid record.TransactionID) {
 	m.active.Remove(txid)
 }
 
-func (m *Manager) appendCheckpoint(ctx context.Context) {
+func (m *Manager) appendCheckpoint(ctx context.Context) error {
 	m.drainEnd()
 	if !m.isDirty() {
-		return
+		return nil
 	}
 
 	slog.Info("flushing...")
 
-	// TODO: What do we do with this error?
 	if err := m.flush(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		slog.Error("unable to flush",
 			"error", err)
-		panic(err)
+		return err
 	}
 
 	slog.Info("flushing complete")
+
+	return nil
 }
 
 func (m *Manager) drainEnd() {
@@ -165,7 +167,6 @@ func (m *Manager) drainEnd() {
 	}
 }
 
-// TODO: Wait for everything to return
 func (m *Manager) drainAll() {
 	for {
 		select {
@@ -178,7 +179,6 @@ func (m *Manager) drainAll() {
 }
 
 func (m *Manager) flush(ctx context.Context) error {
-	// TODO: How do we checkpoint things that were re-pinned and never flushed?
 	if err := m.storage.FlushUnpinned(ctx); err != nil {
 		return err
 	}

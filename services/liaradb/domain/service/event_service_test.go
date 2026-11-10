@@ -199,7 +199,7 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 
 	m := transaction.NewManager(l, s, 1)
-	m.Run(t.Context())
+	m.Run(t.Context(), func(err error) {})
 
 	t.Cleanup(func() {
 		m.Shutdown(t.Context(), time.Now())

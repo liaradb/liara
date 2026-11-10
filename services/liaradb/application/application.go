@@ -68,7 +68,10 @@ func (a *Application) Run(ctx context.Context) error {
 
 	a.ot.init(ctxMain)
 
-	a.txManager.Run(ctxMain)
+	a.txManager.Run(ctxMain, func(err error) {
+		panic(err)
+	})
+
 	if err := a.txManager.Recover(ctxMain); err != nil {
 		cancelMain()
 		return err

@@ -49,7 +49,7 @@ func createManager(t *testing.T) (*Manager, *log.Log) {
 	l := createLog(t, fsys, dir)
 	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
 	m := NewManager(l, s, 1)
-	m.Run(t.Context())
+	m.Run(t.Context(), func(err error) {})
 
 	return m, l
 }
