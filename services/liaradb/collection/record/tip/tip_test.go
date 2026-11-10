@@ -28,19 +28,24 @@ func TestTip(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		// complete := 0
-		// TODO: Test the number of pages
-		if err := s.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+		l := &logtesting.MockLog{}
+		if err := s.CommitAppend(t.Context(), l); err != nil {
 			t.Fatal(err)
 		}
 
 		s.Release()
 
-		// last := pages[len(pages)-1]
-		// last.Complete()
-		// if complete != 1 {
-		// 	t.Errorf("incorrect complete count: %v, expected: %v", complete, 1)
-		// }
+		size := 0
+		for _, r := range l.Records() {
+			size += len(r.Data())
+		}
+		if size != want {
+			t.Errorf("incorrect length: %v, expected: %v", l, want)
+		}
+		if c := len(l.Records()); c != 3 {
+			t.Errorf("incorrect complete count: %v, expected: %v", c, 3)
+		}
+
 		synctest.Wait()
 	})
 }
