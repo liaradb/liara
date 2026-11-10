@@ -40,6 +40,15 @@ func (mq *MapQueue[K, V]) Pop() (V, bool) {
 	return t.value, ok
 }
 
+func (mq *MapQueue[K, V]) IsFirst(k K) bool {
+	e, ok := mq.hash[k]
+	if !ok {
+		return false
+	}
+
+	return e == mq.list.Front()
+}
+
 func (mq *MapQueue[K, V]) Remove(k K) (V, bool) {
 	e, ok := mq.hash[k]
 	if !ok {

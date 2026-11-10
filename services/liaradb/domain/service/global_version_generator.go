@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/liaradb/liaradb/domain/value"
+	"github.com/liaradb/liaradb/transaction/record"
 )
 
 type GlobalVersionGenerator struct {
@@ -32,12 +33,17 @@ func (g *GlobalVersionGenerator) getTableVersion(tid value.TenantID) *tableVersi
 	return tv
 }
 
-func (g *GlobalVersionGenerator) Next(tid value.TenantID) value.GlobalVersion {
+func (g *GlobalVersionGenerator) Next(tid value.TenantID, txid record.TransactionID) value.GlobalVersion {
 	tv := g.getTableVersion(tid)
-	return tv.increment()
+	return tv.increment(txid)
 }
 
-func (g *GlobalVersionGenerator) Current(tid value.TenantID) value.GlobalVersion {
+func (g *GlobalVersionGenerator) Complete(tid value.TenantID, txid record.TransactionID) {
 	tv := g.getTableVersion(tid)
-	return tv.value()
+	tv.complete(txid)
+}
+
+func (g *GlobalVersionGenerator) LowWater(tid value.TenantID) value.GlobalVersion {
+	tv := g.getTableVersion(tid)
+	return tv.lowWater()
 }

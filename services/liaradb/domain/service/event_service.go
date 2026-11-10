@@ -98,12 +98,10 @@ func (es *EventService) Append(
 		return err
 	}
 
-	now := time.Now()
 	return tx.Run(ctx, func() error {
 		tf := tablename.NewTenantFolder(cmd.TenantID)
-		elt := newEventLogTransaction(es.eventLog, tf)
-		tnRl := tf.RequestLog()
 		if rqid, ok := cmd.Options.RequestID(); ok {
+			tnRl := tf.RequestLog()
 			// Verify idempotency
 			if ok, err := es.testRequestID(ctx, tx, tnRl, rqid); err != nil {
 				return err
@@ -113,29 +111,49 @@ func (es *EventService) Append(
 			}
 		}
 
-		for _, em := range cmd.Events {
-			if err := tx.XLock(ctx, tf.EventLog(em.PartitionID), em.AggregateID.String()); err != nil {
-				return err
-			}
-
-			e, err := em.ToEvent(cmd.Options, es.gvg.Next(cmd.TenantID))
-			if err != nil {
-				return err
-			}
-
-			if err := elt.append(ctx, &e); err != nil {
-				return err
-			}
-		}
-
-		if rqid, ok := cmd.Options.RequestID(); ok {
-			if err := es.insertRequestID(ctx, tx, tnRl, rqid, value.NewTime(now)); err != nil {
-				return err
-			}
-		}
-
-		return elt.commit(ctx, tx)
+		return es.append(ctx, cmd, tx, tf)
 	})
+}
+
+func (es *EventService) append(
+	ctx context.Context,
+	cmd command.AppendEvent,
+	tx *transaction.Transaction,
+	tf tablename.TenantFolder,
+) error {
+	elt := newEventLogTransaction(es.eventLog, tf)
+
+	gv := es.gvg.Next(cmd.TenantID, tx.ID())
+	defer es.gvg.Complete(cmd.TenantID, tx.ID())
+
+	for _, em := range cmd.Events {
+		if err := tx.XLock(ctx, tf.EventLog(em.PartitionID), em.AggregateID.String()); err != nil {
+			return err
+		}
+
+		e, err := em.ToEvent(cmd.Options, gv)
+		if err != nil {
+			return err
+		}
+
+		if err := elt.append(ctx, &e); err != nil {
+			return err
+		}
+	}
+
+	if rqid, ok := cmd.Options.RequestID(); ok {
+		now := time.Now()
+		tnRl := tf.RequestLog()
+		if err := es.insertRequestID(ctx, tx, tnRl, rqid, value.NewTime(now)); err != nil {
+			return err
+		}
+	}
+
+	if err := elt.commit(ctx, tx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (es *EventService) TestIdempotency(
@@ -227,8 +245,7 @@ func (es *EventService) GetAfterGlobalVersion(
 
 		count := 0
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		// TODO: Change to low water
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, es.gvg.Current(tid)) {
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, es.gvg.LowWater(tid)) {
 			count++
 			if !yield(e, err) || count >= limit.Value() {
 				return
