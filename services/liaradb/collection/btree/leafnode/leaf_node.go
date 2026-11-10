@@ -43,7 +43,7 @@ func (ln *LeafNode) setLeftID(block link.BlockID) {
 	ln.node.SetLowID(block)
 }
 
-// // TODO: This is only used internally
+// TODO: This is unused
 func (ln *LeafNode) SetRightID(block link.BlockID) {
 	ln.setRightID(block)
 	ln.node.SetDirty()
