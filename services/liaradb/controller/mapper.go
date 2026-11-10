@@ -11,6 +11,7 @@ import (
 func eventToDTO(e *entity.Event) *pb.Event {
 	return &pb.Event{
 		GlobalVersion: e.GlobalVersion.Value(),
+		SubVersion:    e.SubVersion.Value(),
 		Id:            e.ID.String(),
 		AggregateName: e.AggregateName.String(),
 		AggregateId:   e.AggregateID.String(),

@@ -9,6 +9,7 @@ import (
 
 type Event struct {
 	GlobalVersion value.GlobalVersion // The global version of the Event
+	SubVersion    value.SubVersion    // The sub version of the Event
 	ID            value.EventID       // The ID of the Event, used for de-duplication
 	AggregateName value.AggregateName // The Name of the Aggregate
 	AggregateID   value.AggregateID   // The ID of the Aggregate to which this Event applies
@@ -23,6 +24,7 @@ type Event struct {
 func (e Event) Size() int {
 	return serializer.Size(
 		e.GlobalVersion,
+		e.SubVersion,
 		e.ID,
 		e.AggregateName,
 		e.AggregateID,
@@ -37,6 +39,7 @@ func (e Event) Size() int {
 func (e Event) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		e.GlobalVersion,
+		e.SubVersion,
 		e.ID,
 		e.AggregateName,
 		e.AggregateID,
@@ -51,6 +54,7 @@ func (e Event) Write(w io.Writer) error {
 func (e *Event) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&e.GlobalVersion,
+		&e.SubVersion,
 		&e.ID,
 		&e.AggregateName,
 		&e.AggregateID,

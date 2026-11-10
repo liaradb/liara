@@ -54,7 +54,8 @@ func TestOutbox_ReadWrite(t *testing.T) {
 	o := RestoreOutbox(
 		value.NewOutboxID(),
 		value.NewPartitionID(2),
-		value.NewGlobalVersion(12345))
+		value.NewGlobalVersion(12345),
+		value.NewSubVersion(67890))
 
 	data := make([]byte, OutboxSize+2)
 	data0 := o.WriteData(data)

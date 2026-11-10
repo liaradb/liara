@@ -32,32 +32,35 @@ message Event {
   // The global version of the Event
   uint64 global_version = 1;
 
+  // The sub version of the Event
+  uint32 sub_version = 2;
+
   // The ID of the Event, used for de-duplication
-  string id = 2;
+  string id = 3;
 
   // The name of the Aggregate
-  string aggregate_name = 3;
+  string aggregate_name = 4;
 
   // The ID of the Aggregate to which this Event applies
-  string aggregate_id = 4;
+  string aggregate_id = 5;
 
   // The Version of the Aggregate
-  int64 version = 5;
+  int64 version = 6;
 
   // The ID to partition Events
-  int32 partition_id = 6;
+  int32 partition_id = 7;
 
   // The Name of the Event
-  string name = 7;
+  string name = 8;
 
   // The Schema for the internal data
-  string schema = 8;
+  string schema = 9;
 
   // The Metadata for the Event
-  EventMetadata metadata = 9;
+  EventMetadata metadata = 10;
 
   // The internal data of the Event
-  bytes data = 10;
+  bytes data = 11;
 }
 
 message EventMetadata {
@@ -169,8 +172,9 @@ message GetByAggregateIDAndNameRequest {
 message GetAfterGlobalVersionRequest {
   string tenant_id = 1;
   uint64 global_version = 2;
-  int32 partition_id = 3;
-  int64 limit = 4;
+  uint32 sub_version = 3;
+  int32 partition_id = 4;
+  int64 limit = 5;
 }
 
 // -----------------------------------------------------------------------------
@@ -207,7 +211,8 @@ message GetOutboxRequest {
 
 message GetOutboxResponse {
   uint64 global_version = 1;
-  int32 partition_id = 2;
+  uint32 sub_version = 2;
+  int32 partition_id = 3;
 }
 
 // -----------------------------------------------------------------------------
@@ -218,6 +223,7 @@ message UpdateOutboxPositionRequest {
   string tenant_id = 1;
   string outbox_id = 2;
   uint64 global_version = 3;
+  uint32 sub_version = 4;
 }
 
 message UpdateOutboxPositionResponse {}
@@ -278,7 +284,8 @@ message ListOutboxesRequest {
 message Outbox {
   string outbox_id = 1;
   uint64 global_version = 2;
-  int32 partition_id = 3;
+  uint32 sub_version = 3;
+  int32 partition_id = 4;
 }
 
 // -----------------------------------------------------------------------------

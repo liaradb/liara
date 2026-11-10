@@ -147,6 +147,7 @@ func (esc *EventSourceController) GetAfterGlobalVersion(
 	for row, err := range esc.eventService.GetAfterGlobalVersion(stream.Context(),
 		tid,
 		value.NewGlobalVersion(request.GlobalVersion),
+		value.NewSubVersion(request.SubVersion),
 		value.NewPartitionID(request.PartitionId),
 		value.Limit(request.Limit)) {
 		if err != nil {

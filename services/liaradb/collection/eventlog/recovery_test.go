@@ -125,6 +125,7 @@ func recover(
 
 	for e, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
 		value.NewGlobalVersion(0),
+		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {
 		if err != nil {
 			t.Fatal(err)

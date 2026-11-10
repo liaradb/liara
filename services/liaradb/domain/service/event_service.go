@@ -126,12 +126,13 @@ func (es *EventService) append(
 	gv := es.gvg.Next(cmd.TenantID, tx.ID())
 	defer es.gvg.Complete(cmd.TenantID, tx.ID())
 
+	var sub value.SubVersion
 	for _, em := range cmd.Events {
 		if err := tx.XLock(ctx, tf.EventLog(em.PartitionID), em.AggregateID.String()); err != nil {
 			return err
 		}
 
-		e, err := em.ToEvent(cmd.Options, gv)
+		e, err := em.ToEvent(cmd.Options, gv, sub)
 		if err != nil {
 			return err
 		}
@@ -139,6 +140,8 @@ func (es *EventService) append(
 		if err := elt.append(ctx, &e); err != nil {
 			return err
 		}
+
+		sub = sub.Increment()
 	}
 
 	if rqid, ok := cmd.Options.RequestID(); ok {
@@ -227,6 +230,7 @@ func (es *EventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	tid value.TenantID,
 	version value.GlobalVersion,
+	sub value.SubVersion,
 	pid value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
@@ -245,7 +249,7 @@ func (es *EventService) GetAfterGlobalVersion(
 
 		count := 0
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, es.gvg.LowWater(tid)) {
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, sub, es.gvg.LowWater(tid)) {
 			count++
 			if !yield(e, err) || count >= limit.Value() {
 				return
@@ -271,7 +275,12 @@ func (es *EventService) GetByOutbox(
 		return iterator.Error[*entity.Event](err)
 	}
 
-	return es.GetAfterGlobalVersion(ctx, tid, o.GlobalVersion(), o.PartitionID(), limit)
+	return es.GetAfterGlobalVersion(ctx,
+		tid,
+		o.GlobalVersion(),
+		o.SubVersion(),
+		o.PartitionID(),
+		limit)
 }
 
 func (es *EventService) SetValue(

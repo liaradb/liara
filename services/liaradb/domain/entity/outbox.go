@@ -10,13 +10,15 @@ import (
 const (
 	OutboxSize = value.OutboxIDSize +
 		value.PartitionIDSize +
-		value.GlobalVersionSize
+		value.GlobalVersionSize +
+		value.SubVersionSize
 )
 
 type Outbox struct {
 	id            value.OutboxID
 	partitionID   value.PartitionID
 	globalVersion value.GlobalVersion
+	subVersion    value.SubVersion
 }
 
 func NewOutbox(
@@ -33,17 +35,20 @@ func RestoreOutbox(
 	id value.OutboxID,
 	partitionRange value.PartitionID,
 	globalVersion value.GlobalVersion,
+	subVersion value.SubVersion,
 ) *Outbox {
 	return &Outbox{
 		id:            id,
 		partitionID:   partitionRange,
 		globalVersion: globalVersion,
+		subVersion:    subVersion,
 	}
 }
 
 func (o *Outbox) ID() value.OutboxID                 { return o.id }
 func (o *Outbox) PartitionID() value.PartitionID     { return o.partitionID }
 func (o *Outbox) GlobalVersion() value.GlobalVersion { return o.globalVersion }
+func (o *Outbox) SubVersion() value.SubVersion       { return o.subVersion }
 func (o *Outbox) Size() int                          { return OutboxSize }
 
 func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
@@ -53,25 +58,29 @@ func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 func (o *Outbox) WriteData(data []byte) []byte {
 	data0 := o.id.WriteData(data)
 	data1 := o.partitionID.WriteData(data0)
-	return o.globalVersion.WriteData(data1)
+	data2 := o.globalVersion.WriteData(data1)
+	return o.subVersion.WriteData(data2)
 }
 
 func (o *Outbox) ReadData(data []byte) []byte {
 	data0 := o.id.ReadData(data)
 	data1 := o.partitionID.ReadData(data0)
-	return o.globalVersion.ReadData(data1)
+	data2 := o.globalVersion.ReadData(data1)
+	return o.subVersion.ReadData(data2)
 }
 
 func (o *Outbox) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&o.id,
 		&o.partitionID,
-		&o.globalVersion)
+		&o.globalVersion,
+		&o.subVersion)
 }
 
 func (o *Outbox) Write(r io.Writer) error {
 	return serializer.WriteAll(r,
 		o.id,
 		o.partitionID,
-		o.globalVersion)
+		o.globalVersion,
+		o.subVersion)
 }

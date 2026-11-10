@@ -27,6 +27,7 @@ type EventService interface {
 		ctx context.Context,
 		tid value.TenantID,
 		version value.GlobalVersion,
+		sub value.SubVersion,
 		pid value.PartitionID,
 		limit value.Limit,
 	) iter.Seq2[*entity.Event, error]

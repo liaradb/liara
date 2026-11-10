@@ -42,7 +42,7 @@ func (l *EventLog) Append(
 		return err
 	}
 
-	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey(e.GlobalVersion.Bytes()), rid)
+	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey2(e.GlobalVersion.Bytes(), int64(e.SubVersion.Value())), rid)
 }
 
 func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.Key) error {
@@ -112,10 +112,11 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	tx fixed.Transaction,
 	tn tablename.TableName,
 	version value.GlobalVersion,
+	sub value.SubVersion,
 	lw value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
+		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey2(version.Bytes(), int64(sub.Value())), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return

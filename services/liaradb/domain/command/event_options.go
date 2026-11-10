@@ -24,7 +24,7 @@ func (eo *EventOptions) Valid() error {
 	return nil
 }
 
-func (eo *EventOptions) ToEvent(options AppendOptions, gv value.GlobalVersion) (entity.Event, error) {
+func (eo *EventOptions) ToEvent(options AppendOptions, gv value.GlobalVersion, sv value.SubVersion) (entity.Event, error) {
 	var id value.EventID
 	if eo.ID == "" {
 		id = value.NewEventID()
@@ -38,6 +38,7 @@ func (eo *EventOptions) ToEvent(options AppendOptions, gv value.GlobalVersion) (
 
 	return entity.Event{
 		GlobalVersion: gv,
+		SubVersion:    sv,
 		ID:            id,
 		AggregateName: eo.AggregateName,
 		AggregateID:   eo.AggregateID,

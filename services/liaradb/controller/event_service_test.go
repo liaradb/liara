@@ -33,15 +33,17 @@ func (es *testEventService) Append(
 		}
 	}
 
+	es.version = value.NewGlobalVersion(es.version.Value() + 1)
+	var sub value.SubVersion
 	for _, event := range cmd.Events {
 		id, err := value.NewEventIDFromString(event.ID)
 		if err != nil {
 			return err
 		}
 
-		es.version = value.NewGlobalVersion(es.version.Value() + 1)
 		es.events = append(es.events, &entity.Event{
 			GlobalVersion: es.version,
+			SubVersion:    sub,
 			PartitionID:   event.PartitionID,
 			AggregateID:   event.AggregateID,
 			AggregateName: event.AggregateName,
@@ -51,6 +53,7 @@ func (es *testEventService) Append(
 			Version:       event.Version,
 			Data:          value.NewData(event.Data),
 		})
+		sub = sub.Increment()
 	}
 	slices.SortFunc(es.events, func(a, b *entity.Event) int {
 		return int(a.Version.Value() - b.Version.Value())
@@ -88,6 +91,7 @@ func (es *testEventService) GetAfterGlobalVersion(
 	ctx context.Context,
 	tid value.TenantID,
 	version value.GlobalVersion,
+	sub value.SubVersion,
 	pid value.PartitionID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
