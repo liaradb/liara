@@ -112,6 +112,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	tx fixed.Transaction,
 	tn tablename.TableName,
 	version value.GlobalVersion,
+	lw value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
 		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey(version.Bytes()), 0, 0) {
@@ -132,7 +133,15 @@ func (l *EventLog) EventsAfterGlobalVersion(
 			}
 
 			e, err := l.readEvent(s)
+			if e.GlobalVersion.Value() > lw.Value() {
+				return
+			}
+
 			if !yield(e, err) || err != nil {
+				return
+			}
+
+			if e.GlobalVersion.Value() == lw.Value() {
 				return
 			}
 		}
@@ -144,22 +153,6 @@ func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
 
 	t := entity.Event{}
 	return &t, t.Read(s)
-}
-
-// TODO: Iterate until highwater
-func (l *EventLog) Iterate(ctx context.Context, tx fixed.Transaction, tn tablename.TableName) iter.Seq2[[]byte, error] {
-	return func(yield func([]byte, error) bool) {
-		for s, err := range l.fc.List(ctx, tx, tn) {
-			if err != nil {
-				yield(nil, err)
-				return
-			}
-
-			if !yield(s.BytesAndRelease()) {
-				return
-			}
-		}
-	}
 }
 
 func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {

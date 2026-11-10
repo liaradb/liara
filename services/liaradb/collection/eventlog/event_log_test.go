@@ -64,7 +64,9 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn, value.NewGlobalVersion(0)) {
+	for e, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
+		value.NewGlobalVersion(0),
+		value.NewGlobalVersion(10)) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -127,7 +129,9 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 
 	partialResults := make([]*entity.Event, 0)
 
-	for n, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn, value.NewGlobalVersion(3)) {
+	for n, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
+		value.NewGlobalVersion(3),
+		value.NewGlobalVersion(10)) {
 		if err != nil {
 			t.Fatal(err)
 		}

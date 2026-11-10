@@ -36,3 +36,8 @@ func (g *GlobalVersionGenerator) Next(tid value.TenantID) value.GlobalVersion {
 	tv := g.getTableVersion(tid)
 	return tv.increment()
 }
+
+func (g *GlobalVersionGenerator) Current(tid value.TenantID) value.GlobalVersion {
+	tv := g.getTableVersion(tid)
+	return tv.value()
+}

@@ -7,7 +7,7 @@ import (
 )
 
 type tableVersion struct {
-	mux     sync.Mutex
+	mux     sync.RWMutex
 	version value.GlobalVersion
 }
 
@@ -23,5 +23,12 @@ func (tv *tableVersion) increment() value.GlobalVersion {
 	defer tv.mux.Unlock()
 
 	tv.version = tv.version.Increment()
+	return tv.version
+}
+
+func (tv *tableVersion) value() value.GlobalVersion {
+	tv.mux.RLock()
+	defer tv.mux.RUnlock()
+
 	return tv.version
 }

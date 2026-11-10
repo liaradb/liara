@@ -223,64 +223,18 @@ func (es *EventService) GetAfterGlobalVersion(
 			return
 		}
 
-		count := 0
-		if err := tx.Run(ctx, func() error {
-			for e, err := range es.eventsAfterGlobalVersion(ctx, tx, tid, pid, version) {
-				if err != nil {
-					yield(nil, err)
-					return err
-				}
-
-				count++
-				if !yield(e, nil) || count >= limit.Value() {
-					return nil
-				}
-			}
-
-			return nil
-		}); err != nil {
-			yield(nil, err)
-		}
-	}
-}
-
-func (es *EventService) Events(
-	ctx context.Context,
-	tid value.TenantID,
-	pid value.PartitionID,
-) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		tx, err := es.initTransaction(ctx, tid)
-		if err != nil {
-			yield(nil, err)
-			return
-		}
-
 		defer tx.Release()
 
+		count := 0
 		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, value.NewGlobalVersion(0)) {
-			if !yield(e, err) {
+		// TODO: Change to low water
+		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, es.gvg.Current(tid)) {
+			count++
+			if !yield(e, err) || count >= limit.Value() {
 				return
 			}
 		}
-	}
-}
 
-func (es *EventService) eventsAfterGlobalVersion(
-	ctx context.Context,
-	tx *transaction.Transaction,
-	tid value.TenantID,
-	pid value.PartitionID,
-	version value.GlobalVersion,
-) iter.Seq2[*entity.Event, error] {
-	return func(yield func(*entity.Event, error) bool) {
-		tn := tablename.NewTenantFolder(tid).EventLog(pid)
-		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version) {
-			if !yield(e, err) {
-				return
-			}
-		}
 	}
 }
 
