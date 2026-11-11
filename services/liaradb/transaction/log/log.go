@@ -237,7 +237,7 @@ func (l *Log) Flush(ctx context.Context) error {
 
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
 func (l *Log) Recover() (iter.Seq[*record.Record], error) {
-	// TODO: Should we use a list, or just iterate forwards?
+	// Currently stores in a list, but memory usage is potentially high.
 	rcs := list.New()
 
 	for rc, err := range l.it.Reverse() {
@@ -247,22 +247,6 @@ func (l *Log) Recover() (iter.Seq[*record.Record], error) {
 
 		if rc.IsCheckpoint() {
 			break
-		}
-
-		rcs.PushBack(rc)
-	}
-
-	return iterator.Reverse[*record.Record](rcs), nil
-}
-
-// TODO: Remove this, it's for testing only
-func (l *Log) Iterate() (iter.Seq[*record.Record], error) {
-	// TODO: Should we use a list, or just iterate forwards?
-	rcs := list.New()
-
-	for rc, err := range l.it.Reverse() {
-		if err != nil {
-			return nil, err
 		}
 
 		rcs.PushBack(rc)

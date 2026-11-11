@@ -98,7 +98,7 @@ func (s *Span) Writer() io.Writer {
 	return multi.NewWriter(writers...)
 }
 
-// TODO: This is unused
+// Testing only
 func (s Span) SeekStart() {
 	for _, f := range s.fragments {
 		f.buffer.SeekStart()

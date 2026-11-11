@@ -41,9 +41,7 @@ func run() error {
 		fsys,
 		path.Join(conf.Directory, "log"))
 
-	// TODO: Change back to log.Recover()
-	// it, err := log.Recover()
-	it, err := log.Iterate()
+	it, err := log.Recover()
 	if err != nil {
 		slog.Error("recovery", "error", err)
 	}

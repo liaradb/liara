@@ -6,6 +6,7 @@ type Version struct {
 	baseUint64
 }
 
+// This is signed for better sorting
 func NewVersion(value int64) Version {
 	return Version{baseUint64(value)}
 }
