@@ -2,6 +2,7 @@ package freespace
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 )
 
@@ -111,12 +112,45 @@ func TestNextIndex(t *testing.T) {
 				t.Skip()
 			}
 
-			if left := NextIndex(c.position, false); left != c.left {
+			left := NextLeft(c.position)
+			if left != c.left {
 				t.Errorf("incorrect left: %v, expected: %v", left, c.left)
 			}
-			if right := NextIndex(c.position, true); right != c.right {
+			if right := left + 1; right != c.right {
 				t.Errorf("incorrect right: %v, expected: %v", right, c.right)
 			}
 		})
+	}
+}
+
+func TestGetPage(t *testing.T) {
+	data := []byte{0,
+		4,
+		4, 2,
+		3, 4, 0, 2,
+	}
+	i, ok := GetPage(data, 4, 4)
+	if !ok {
+		t.Error("should find value")
+	}
+	if i != 5 {
+		t.Errorf("incorrect index: %v, expected: %v", i, 5)
+	}
+}
+
+func TestSetPage(t *testing.T) {
+	data := []byte{0,
+		3,
+		3, 2,
+		3, 0, 0, 2,
+	}
+	SetPage(data, 5, 4, 4)
+	want := []byte{0,
+		4,
+		4, 2,
+		3, 4, 0, 2,
+	}
+	if !slices.Equal(data, want) {
+		t.Errorf("incorrect dataa: %v, expected: %v", data, want)
 	}
 }

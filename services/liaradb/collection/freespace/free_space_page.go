@@ -47,11 +47,48 @@ type Page struct {
 	children []byte
 }
 
-func NextIndex(i int16, direction bool) int16 {
-	if direction {
-		return i<<1 + 1
+func GetPage(data []byte, value byte, fanout int16) (int16, bool) {
+	if !RootSpace(data, value) {
+		return 0, false
 	}
+
+	var i int16 = 1
+	for i < fanout {
+		i = GetDirection(data, i, value)
+	}
+	return i, true
+}
+
+func RootSpace(data []byte, value byte) bool {
+	return value >= data[1]
+}
+
+func GetDirection(data []byte, i int16, value byte) int16 {
+	l := NextLeft(i)
+	left := data[l]
+	if value <= left {
+		return l
+	}
+	return l + 1
+}
+
+func NextLeft(i int16) int16 {
 	return i << 1
+}
+
+func nextPrent(i int16) int16 {
+	return i >> 1
+}
+
+func SetPage(data []byte, i int16, value byte, fanout int16) {
+	data[i] = value
+	p := nextPrent(i)
+	for p > 0 {
+		if data[p] < value {
+			data[p] = value
+		}
+		p = nextPrent(p)
+	}
 }
 
 func NewPage(id PageID, data []byte) *Page {
