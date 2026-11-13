@@ -61,14 +61,14 @@ func New[R pagequeue.Record](
 func (rq *RecordQueue[R]) HighWater() logpage.LogSequenceNumber { return rq.fs.HighWater() }
 func (rq *RecordQueue[R]) LowWater() logpage.LogSequenceNumber  { return rq.fs.LowWater() }
 
-func (rq *RecordQueue[R]) Run(ctx context.Context) error {
+func (rq *RecordQueue[R]) Run(ctx context.Context, onClose func(error)) error {
 	if err := rq.sl.Open(); err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	rq.cancel = cancel
-	go rq.run(ctx)
+	go func() { onClose(rq.run(ctx)) }()
 	go func() {
 		_ = rq.pq.Run(ctx)
 	}()
@@ -94,20 +94,22 @@ func (rq *RecordQueue[R]) Init(lw, hw logpage.LogSequenceNumber) error {
 	return rq.pq.Init(f)
 }
 
-func (rq *RecordQueue[R]) run(ctx context.Context) {
+func (rq *RecordQueue[R]) run(ctx context.Context) error {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			return nil
 		case r := <-rq.appendReqs.Reqs():
 			rq.appendRequest(ctx, r)
 		case r := <-rq.flushReqs:
 			rq.flushRequest(ctx, r)
 		case <-ticker.C:
-			rq.flushOrPanic(ctx)
+			if err := rq.flush(ctx); err != nil {
+				return err
+			}
 		}
 	}
 }
@@ -186,7 +188,7 @@ func (rq *RecordQueue[R]) appendNoWait(
 	}
 }
 
-// TODO: This is unused
+// Testing only
 func (rq *RecordQueue[R]) Flush(ctx context.Context) error {
 	return rq.flushReqs.Send(ctx, struct{}{})
 }
@@ -196,12 +198,6 @@ func (rq *RecordQueue[R]) flushRequest(
 	r *async.Command[struct{}],
 ) {
 	r.Reply(rq.flush(ctx))
-}
-
-func (rq *RecordQueue[R]) flushOrPanic(ctx context.Context) {
-	if err := rq.flush(ctx); err != nil {
-		panic(err)
-	}
 }
 
 func (rq *RecordQueue[R]) flush(ctx context.Context) error {

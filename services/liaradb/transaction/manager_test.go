@@ -58,7 +58,7 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *log.Log {
 	t.Helper()
 
 	l := log.New(256, 3, 256, 100, fsys, dir)
-	if err := l.Run(t.Context()); err != nil {
+	if err := l.Run(t.Context(), func(err error) {}); err != nil {
 		t.Fatal(err)
 	}
 

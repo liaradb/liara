@@ -47,23 +47,23 @@ func NewManager(
 	}
 }
 
-func (m *Manager) Run(ctx context.Context, onError func(error)) {
+func (m *Manager) Run(ctx context.Context, onClose func(error)) {
 	slog.Info("starting...")
 
 	go m.lockTable.Run(ctx)
-	go func() { onError(m.run(ctx)) }()
+	go func() { onClose(m.run(ctx)) }()
 
 	slog.Info("transaction manager running")
 }
 
-func (m *Manager) Recover(ctx context.Context) error {
+func (m *Manager) Recover(ctx context.Context, onClose func(error)) error {
 	if err := m.storage.Run(ctx); err != nil {
 		return err
 	}
 
 	slog.Info("storage running")
 
-	if err := m.log.Run(ctx); err != nil {
+	if err := m.log.Run(ctx, onClose); err != nil {
 		return err
 	}
 

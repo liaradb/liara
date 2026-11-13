@@ -57,8 +57,8 @@ func New(
 func (l *Log) HighWater() logpage.LogSequenceNumber { return l.rq.HighWater() }
 func (l *Log) LowWater() logpage.LogSequenceNumber  { return l.rq.LowWater() }
 
-func (l *Log) Run(ctx context.Context) error {
-	return l.rq.Run(ctx)
+func (l *Log) Run(ctx context.Context, onClose func(error)) error {
+	return l.rq.Run(ctx, onClose)
 }
 
 func (l *Log) Close() error {
@@ -230,7 +230,7 @@ func (cv *Log) txIDsToData(
 	return data
 }
 
-// TODO: This is unused
+// Testing only
 func (l *Log) Flush(ctx context.Context) error {
 	return l.rq.Flush(ctx)
 }

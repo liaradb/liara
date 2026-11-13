@@ -72,7 +72,9 @@ func (a *Application) Run(ctx context.Context) error {
 		panic(err)
 	})
 
-	if err := a.txManager.Recover(ctxMain); err != nil {
+	if err := a.txManager.Recover(ctxMain, func(err error) {
+		panic(err)
+	}); err != nil {
 		cancelMain()
 		return err
 	}

@@ -205,7 +205,7 @@ func createLog(t *testing.T, fsys filecache.FileSystem, dir string, pageSize int
 	t.Helper()
 
 	l := log.New(pageSize, 10, maxRecordSize, 100, fsys, dir)
-	if err := l.Run(t.Context()); err != nil {
+	if err := l.Run(t.Context(), func(err error) {}); err != nil {
 		t.Fatal(err)
 	}
 

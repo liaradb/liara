@@ -206,7 +206,7 @@ func createRecordQueue(t *testing.T,
 	pl := pagepool.New(pageSize, span.FragmentHeaderSize)
 
 	rq := New[*testRecord](pageSize, recordSize, 100, sl, pl)
-	if err := rq.Run(t.Context()); err != nil {
+	if err := rq.Run(t.Context(), func(err error) {}); err != nil {
 		t.Fatal(err)
 	}
 

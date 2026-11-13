@@ -17,7 +17,7 @@ func TestReplay(t *testing.T) {
 		l := log.New(256, 2, 256, 100, s.FSys, "dir")
 		r := NewReplay(s.Storage, l)
 
-		if err := l.Run(t.Context()); err != nil {
+		if err := l.Run(t.Context(), func(err error) {}); err != nil {
 			t.Fatal(err)
 		}
 
