@@ -9,7 +9,6 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-// TODO: Cache Collection and Index results
 type PartitionedTableName struct {
 	tf   TenantFolder
 	name string
