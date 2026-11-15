@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -13,22 +13,22 @@ import (
 )
 
 type Outbox struct {
-	fc *fixed.FixedCollection
+	ic *indexed.IndexedCollection
 }
 
-func New(fc *fixed.FixedCollection) *Outbox {
-	return &Outbox{fc: fc}
+func New(ic *indexed.IndexedCollection) *Outbox {
+	return &Outbox{ic: ic}
 }
 
 func (o *Outbox) Get(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	oid value.OutboxID,
 ) (*entity.Outbox, error) {
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	k := key.NewKey(oid.Bytes())
-	s, err := o.fc.GetByKey(ctx, tx, tn, k)
+	s, err := o.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +38,12 @@ func (o *Outbox) Get(
 
 func (o *Outbox) List(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.fc.List(ctx, tx, tn) {
+		for s, err := range o.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -65,26 +65,26 @@ func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
 
 func (o *Outbox) Insert(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	k := key.NewKey(oid.Bytes())
-	_, err := o.fc.Insert(ctx, tx, tn, k, e)
+	_, err := o.ic.Insert(ctx, tx, tn, k, e)
 	return err
 }
 
 func (o *Outbox) Replace(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	oid value.OutboxID,
 	e *entity.Outbox,
 ) error {
 	tn := tablename.NewTenantFolder(tid).Outbox()
-	return o.fc.Replace(ctx,
+	return o.ic.Replace(ctx,
 		tx,
 		tn,
 		key.NewKey(oid.Bytes()),

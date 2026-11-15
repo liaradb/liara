@@ -8,7 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -20,7 +20,7 @@ func TestManager(t *testing.T) {
 }
 
 func testManager(t *testing.T, s storagetesting.Storage) {
-	m := New(keyvalue.New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage))))
+	m := New(keyvalue.New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage))))
 
 	data := createData()
 	want := createValues(data)

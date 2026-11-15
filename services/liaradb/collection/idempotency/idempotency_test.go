@@ -12,7 +12,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -28,7 +28,7 @@ func TestIdempotency(t *testing.T) {
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(fixed.New(record.New(s.Storage), c), c)
+	idp := New(indexed.New(record.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -51,7 +51,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(fixed.New(record.New(s.Storage), c), c)
+	idp := New(indexed.New(record.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -83,7 +83,7 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx fixed.Transaction, o *Idempotency, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx indexed.Transaction, o *Idempotency, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		if err := o.Insert(ctx, tx, tn, i.value.ID(), i.value); err != nil {
 			return err

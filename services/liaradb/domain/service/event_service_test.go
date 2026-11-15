@@ -9,8 +9,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
-	"github.com/liaradb/liaradb/collection/fixed"
 	"github.com/liaradb/liaradb/collection/idempotency"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/record"
@@ -34,14 +34,14 @@ func TestEventService_Append(t *testing.T) {
 func testEventService_Append(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	fc := fixed.New(record.New(s), c)
-	ts := tenant.New(fc)
+	ic := indexed.New(record.New(s), c)
+	ts := tenant.New(ic)
 	es := NewEventService(m,
 		ts,
-		idempotency.New(fc, c),
-		eventlog.New(fc, c),
-		keyvalue.New(fc),
-		outbox.New(fc))
+		idempotency.New(ic, c),
+		eventlog.New(ic, c),
+		keyvalue.New(ic),
+		outbox.New(ic))
 
 	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())
@@ -92,15 +92,15 @@ func TestEventService_Append__Large(t *testing.T) {
 func testEventService_Append__Large(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	fc := fixed.New(record.New(s), c)
-	ts := tenant.New(fc)
+	ic := indexed.New(record.New(s), c)
+	ts := tenant.New(ic)
 
 	es := NewEventService(m,
 		ts,
-		idempotency.New(fc, c),
-		eventlog.New(fc, c),
-		keyvalue.New(fc),
-		outbox.New(fc))
+		idempotency.New(ic, c),
+		eventlog.New(ic, c),
+		keyvalue.New(ic),
+		outbox.New(ic))
 
 	tid := initTenant(t, m, ts)
 	aggregateID := value.NewAggregateID(uuid.NewV7().String())

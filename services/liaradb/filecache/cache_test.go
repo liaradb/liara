@@ -123,24 +123,24 @@ func TestCache_Remove(t *testing.T) {
 
 	n := "file"
 	p := path.Join(dir, n)
-	fc := New()
+	ic := New()
 
-	if c := fc.Count(); c != 0 {
+	if c := ic.Count(); c != 0 {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 0, c)
 	}
 
-	f, err := fc.OpenFile(p)
+	f, err := ic.OpenFile(p)
 	if err != nil {
 		t.Error(err)
 	} else if f == nil {
 		t.Error("file should not be nil")
 	}
 
-	if c := fc.Count(); c != 1 {
+	if c := ic.Count(); c != 1 {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
 	}
 
-	entries, err := fc.ReadDir(dir)
+	entries, err := ic.ReadDir(dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,17 +151,17 @@ func TestCache_Remove(t *testing.T) {
 		t.Error("file should exist")
 	}
 
-	if err := fc.Remove(p); err != nil {
+	if err := ic.Remove(p); err != nil {
 		t.Error(err)
 	} else if f == nil {
 		t.Error("file should not be nil")
 	}
 
-	if c := fc.Count(); c != 0 {
+	if c := ic.Count(); c != 0 {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, 0)
 	}
 
-	entries, err = fc.ReadDir(dir)
+	entries, err = ic.ReadDir(dir)
 	if err != nil {
 		t.Fatal(err)
 	}

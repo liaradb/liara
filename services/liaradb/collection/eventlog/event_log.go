@@ -7,7 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -16,24 +16,24 @@ import (
 )
 
 type EventLog struct {
-	fc *fixed.FixedCollection
+	ic *indexed.IndexedCollection
 	c  *btree.Cursor
 }
 
-func New(fc *fixed.FixedCollection, c *btree.Cursor) *EventLog {
+func New(ic *indexed.IndexedCollection, c *btree.Cursor) *EventLog {
 	return &EventLog{
-		fc: fc,
+		ic: ic,
 		c:  c,
 	}
 }
 
 func (l *EventLog) Append(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	e *entity.Event,
 ) error {
-	rid, err := l.fc.Insert(ctx, tx, tn, key.NewKey2(e.AggregateID().Bytes(), e.Version().Value()), e)
+	rid, err := l.ic.Insert(ctx, tx, tn, key.NewKey2(e.AggregateID().Bytes(), e.Version().Value()), e)
 	if err != nil {
 		return err
 	}
@@ -65,14 +65,14 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 		return nil, err
 	}
 
-	s, err := l.fc.GetByRecordID(ctx, tn, rid)
+	s, err := l.ic.GetByRecordID(ctx, tn, rid)
 
 	return l.readEvent(s)
 }
 
 func (l *EventLog) GetAggregate(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
@@ -93,7 +93,7 @@ func (l *EventLog) GetAggregate(
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, tn, sr.RecordID)
+			s, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -109,7 +109,7 @@ func (l *EventLog) GetAggregate(
 
 func (l *EventLog) EventsAfterGlobalVersion(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	version value.GlobalVersion,
 	sub value.SubVersion,
@@ -127,7 +127,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			s, err := l.fc.GetByRecordID(ctx, tn, sr.RecordID)
+			s, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return

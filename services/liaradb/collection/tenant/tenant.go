@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -13,20 +13,20 @@ import (
 )
 
 type Tenant struct {
-	fc *fixed.FixedCollection
+	ic *indexed.IndexedCollection
 }
 
-func New(fc *fixed.FixedCollection) *Tenant {
-	return &Tenant{fc: fc}
+func New(ic *indexed.IndexedCollection) *Tenant {
+	return &Tenant{ic: ic}
 }
 
 func (t *Tenant) Get(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.fc.GetByKey(ctx, tx, tablename.Tenant, k)
+	s, err := t.ic.GetByKey(ctx, tx, tablename.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +36,10 @@ func (t *Tenant) Get(
 
 func (t *Tenant) List(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.fc.List(ctx, tx, tablename.Tenant) {
+		for s, err := range t.ic.List(ctx, tx, tablename.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -61,11 +61,11 @@ func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
 
 func (t *Tenant) Insert(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	e *entity.Tenant,
 ) error {
 	k := key.NewKey(e.ID().Bytes())
-	_, err := t.fc.Insert(ctx,
+	_, err := t.ic.Insert(ctx,
 		tx,
 		tablename.Tenant,
 		k,
@@ -75,10 +75,10 @@ func (t *Tenant) Insert(
 
 func (t *Tenant) Replace(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	e *entity.Tenant,
 ) error {
-	return t.fc.Replace(ctx,
+	return t.ic.Replace(ctx,
 		tx,
 		tablename.Tenant,
 		key.NewKey(e.ID().Bytes()),

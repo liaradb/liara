@@ -9,12 +9,12 @@ import (
 func TestNewDiskFileCache(t *testing.T) {
 	t.Parallel()
 
-	fc := NewDiskFileCache(t)
-	if fc == nil {
+	ic := NewDiskFileCache(t)
+	if ic == nil {
 		t.Error("should return value")
 	}
 
-	if fsys, ok := fc.FSYS().(*filecache.DiskFileSystem); !ok {
+	if fsys, ok := ic.FSYS().(*filecache.DiskFileSystem); !ok {
 		t.Error("incorrect type")
 	} else if fsys == nil {
 		t.Error("should return value")

@@ -7,7 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -15,22 +15,22 @@ import (
 )
 
 type Idempotency struct {
-	fc *fixed.FixedCollection
+	ic *indexed.IndexedCollection
 	c  *btree.Cursor
 }
 
-func New(fc *fixed.FixedCollection, c *btree.Cursor) *Idempotency {
-	return &Idempotency{fc: fc, c: c}
+func New(ic *indexed.IndexedCollection, c *btree.Cursor) *Idempotency {
+	return &Idempotency{ic: ic, c: c}
 }
 
 func (i *Idempotency) Get(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.fc.GetByKey(ctx, tx, tn, k)
+	s, err := i.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +40,11 @@ func (i *Idempotency) Get(
 
 func (i *Idempotency) List(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.fc.List(ctx, tx, tn) {
+		for s, err := range i.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -66,19 +66,19 @@ func (*Idempotency) readRequestLog(s *span.Span) (*entity.RequestLog, error) {
 
 func (i *Idempotency) Insert(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 	e *entity.RequestLog,
 ) error {
 	k := key.NewKey(rqid.Bytes())
-	_, err := i.fc.Insert(ctx, tx, tn, k, e)
+	_, err := i.ic.Insert(ctx, tx, tn, k, e)
 	return err
 }
 
 func (i *Idempotency) Test(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	rqid value.RequestID,
 ) (bool, error) {

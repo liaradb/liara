@@ -1,4 +1,4 @@
-package fixed
+package indexed
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package fixed
+package indexed
 
 import (
 	"context"
@@ -14,19 +14,19 @@ import (
 )
 
 // TODO: Create a shared goroutine for each file to manage storage
-type FixedCollection struct {
+type IndexedCollection struct {
 	rc *record.RecordCollection
 	c  *btree.Cursor
 }
 
-func New(rc *record.RecordCollection, c *btree.Cursor) *FixedCollection {
-	return &FixedCollection{
+func New(rc *record.RecordCollection, c *btree.Cursor) *IndexedCollection {
+	return &IndexedCollection{
 		rc: rc,
 		c:  c,
 	}
 }
 
-func (fc *FixedCollection) Insert(
+func (ic *IndexedCollection) Insert(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
@@ -37,19 +37,19 @@ func (fc *FixedCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	rid, err := fc.rc.Insert(ctx, tx, tn.Collection(), w)
+	rid, err := ic.rc.Insert(ctx, tx, tn.Collection(), w)
 	if err != nil {
 		return link.RecordID{}, err
 	}
 
-	if err := fc.c.Insert(ctx, tx, tn.Index(0), k, rid); err != nil {
+	if err := ic.c.Insert(ctx, tx, tn.Index(0), k, rid); err != nil {
 		return link.RecordID{}, err
 	}
 
 	return rid, nil
 }
 
-func (fc *FixedCollection) GetByKey(
+func (ic *IndexedCollection) GetByKey(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
@@ -59,22 +59,22 @@ func (fc *FixedCollection) GetByKey(
 		return nil, err
 	}
 
-	rid, err := fc.c.Search(ctx, tn.Index(0), k)
+	rid, err := ic.c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return nil, err
 	}
 
-	return fc.rc.Get(ctx, tn.Collection(), rid)
+	return ic.rc.Get(ctx, tn.Collection(), rid)
 }
 
-func (fc *FixedCollection) List(
+func (ic *IndexedCollection) List(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[*span.Span, error] {
 	return func(yield func(*span.Span, error) bool) {
 		fn := tn.Collection()
-		for r, err := range fc.c.All(ctx, tn.Index(0), 0, 0) {
+		for r, err := range ic.c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -85,7 +85,7 @@ func (fc *FixedCollection) List(
 				return
 			}
 
-			s, err := fc.rc.Get(ctx, fn, r.RecordID)
+			s, err := ic.rc.Get(ctx, fn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -93,7 +93,7 @@ func (fc *FixedCollection) List(
 	}
 }
 
-func (fc *FixedCollection) Replace(
+func (ic *IndexedCollection) Replace(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
@@ -104,18 +104,18 @@ func (fc *FixedCollection) Replace(
 		return err
 	}
 
-	rid, err := fc.c.Search(ctx, tn.Index(0), k)
+	rid, err := ic.c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return err
 	}
 
-	return fc.rc.Replace(ctx, tx, tn.Collection(), rid, w)
+	return ic.rc.Replace(ctx, tx, tn.Collection(), rid, w)
 }
 
-func (fc *FixedCollection) GetByRecordID(
+func (ic *IndexedCollection) GetByRecordID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	return fc.rc.Get(ctx, tn.Collection(), rid)
+	return ic.rc.Get(ctx, tn.Collection(), rid)
 }

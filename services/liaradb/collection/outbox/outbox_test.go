@@ -11,7 +11,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -25,7 +25,7 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()
@@ -47,7 +47,7 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()
@@ -79,7 +79,7 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx fixed.Transaction, tid value.TenantID, o *Outbox, data []item) error {
+func insertData(ctx context.Context, tx indexed.Transaction, tid value.TenantID, o *Outbox, data []item) error {
 	for _, i := range data {
 		if err := o.Insert(ctx, tx, tid, i.value.ID(), i.value); err != nil {
 			return err

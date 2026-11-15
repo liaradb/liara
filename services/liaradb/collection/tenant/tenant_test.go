@@ -9,7 +9,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -23,7 +23,7 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	tn := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	tn := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 
 	data := createData()
 	slices.Reverse(data)
@@ -44,7 +44,7 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	tn := New(fixed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	tn := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
 
 	data := createData()
 
@@ -77,7 +77,7 @@ func createData() []item {
 	}
 }
 
-func insertData(ctx context.Context, tx fixed.Transaction, o *Tenant, data []item) error {
+func insertData(ctx context.Context, tx indexed.Transaction, o *Tenant, data []item) error {
 	for _, i := range data {
 		if err := o.Insert(ctx, tx, i.value); err != nil {
 			return err

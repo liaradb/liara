@@ -5,26 +5,26 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/fixed"
+	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
 type KeyValue struct {
-	fc *fixed.FixedCollection
+	ic *indexed.IndexedCollection
 }
 
-func New(fc *fixed.FixedCollection) *KeyValue {
-	return &KeyValue{fc: fc}
+func New(ic *indexed.IndexedCollection) *KeyValue {
+	return &KeyValue{ic: ic}
 }
 
 func (kv *KeyValue) Get(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.fc.GetByKey(ctx, tx, tn, k)
+	s, err := kv.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
@@ -34,11 +34,11 @@ func (kv *KeyValue) Get(
 
 func (kv *KeyValue) List(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.fc.List(ctx, tx, tn) {
+		for s, err := range kv.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -53,11 +53,11 @@ func (kv *KeyValue) List(
 
 func (kv *KeyValue) Set(
 	ctx context.Context,
-	tx fixed.Transaction,
+	tx indexed.Transaction,
 	tn tablename.TableName,
 	k key.Key,
 	w serializer.SizedSerializer,
 ) error {
-	_, err := kv.fc.Insert(ctx, tx, tn, k, w)
+	_, err := kv.ic.Insert(ctx, tx, tn, k, w)
 	return err
 }

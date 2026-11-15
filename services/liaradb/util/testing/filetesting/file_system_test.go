@@ -9,18 +9,18 @@ import (
 func TestFileSystem(t *testing.T) {
 	t.Parallel()
 
-	fc := New(nil)
-	if fc == nil {
+	ic := New(nil)
+	if ic == nil {
 		t.Fatal("should return value")
 	}
 
-	if fsys, ok := fc.FSYS().(*FileSystem); !ok {
+	if fsys, ok := ic.FSYS().(*FileSystem); !ok {
 		t.Fatal("incorrect type")
 	} else if fsys == nil {
 		t.Fatal("should return value")
 	}
 
-	f, err := fc.OpenFile("file")
+	f, err := ic.OpenFile("file")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestFileSystem(t *testing.T) {
 		t.Error("should return error")
 	}
 
-	f, err = fc.OpenFile("file")
+	f, err = ic.OpenFile("file")
 	if err != nil {
 		t.Fatal(err)
 	}

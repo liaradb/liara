@@ -1,4 +1,4 @@
-package fixed
+package indexed
 
 import (
 	"context"
@@ -22,20 +22,20 @@ import (
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
-func TestFixedCollection_InsertAndGet(t *testing.T) {
+func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		if _, err := fc.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
+		if _, err := ic.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
-		sp, err := fc.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
+		sp, err := ic.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -54,21 +54,21 @@ func TestFixedCollection_InsertAndGet(t *testing.T) {
 	})
 }
 
-func TestFixedCollection(t *testing.T) {
+func TestIndexedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
 		slices.Reverse(data)
 
-		if err := insertData(ctx, &logtesting.MockLog{}, fc, tn, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, fc, tn, data)
-		testList(ctx, t, data, fc, tn)
+		testGet(ctx, t, ic, tn, data)
+		testList(ctx, t, data, ic, tn)
 
 		synctest.Wait()
 	})
@@ -78,17 +78,17 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		fc := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
 
-		if err := insertData(ctx, &logtesting.MockLog{}, fc, tn, data); err != nil {
+		if err := insertData(ctx, &logtesting.MockLog{}, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, fc, tn, data)
-		testList(ctx, t, data, fc, tn)
+		testGet(ctx, t, ic, tn, data)
+		testList(ctx, t, data, ic, tn)
 
 		synctest.Wait()
 	})
@@ -111,10 +111,10 @@ func createData() []item {
 	return items
 }
 
-func insertData(ctx context.Context, tx Transaction, fc *FixedCollection, tn tablename.TableName, data []item) error {
+func insertData(ctx context.Context, tx Transaction, ic *IndexedCollection, tn tablename.TableName, data []item) error {
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		if _, err := fc.Insert(ctx, tx, tn, k, i.value); err != nil {
+		if _, err := ic.Insert(ctx, tx, tn, k, i.value); err != nil {
 			return err
 		}
 	}
@@ -124,7 +124,7 @@ func insertData(ctx context.Context, tx Transaction, fc *FixedCollection, tn tab
 func testGet(
 	ctx context.Context,
 	t *testing.T,
-	fc *FixedCollection,
+	ic *IndexedCollection,
 	tn tablename.TableName,
 	data []item,
 ) {
@@ -132,7 +132,7 @@ func testGet(
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := fc.GetByKey(ctx, &logtesting.MockLog{}, tn, k)
+		value, err := ic.GetByKey(ctx, &logtesting.MockLog{}, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -152,10 +152,10 @@ func testList(
 	ctx context.Context,
 	t *testing.T,
 	data []item,
-	fc *FixedCollection,
+	ic *IndexedCollection,
 	tn tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, fc, tn)
+	result, err := getListValues(ctx, data, ic, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,12 +169,12 @@ func testList(
 func getListValues(
 	ctx context.Context,
 	data []item,
-	fc *FixedCollection,
+	ic *IndexedCollection,
 	tn tablename.TableName,
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for s, err := range fc.List(ctx, &logtesting.MockLog{}, tn) {
+	for s, err := range ic.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}
