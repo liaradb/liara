@@ -8,8 +8,8 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree"
+	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -60,7 +60,7 @@ func write(
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	c := btree.NewCursor(s)
-	el := New(indexed.New(record.New(s), c), c)
+	el := New(indexed.New(heap.New(s), c), c)
 
 	ctx, cancel := context.WithCancel(baseCtx)
 	defer cancel()
@@ -92,7 +92,7 @@ func recover(
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	c := btree.NewCursor(s)
-	el := New(indexed.New(record.New(s), c), c)
+	el := New(indexed.New(heap.New(s), c), c)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

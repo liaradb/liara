@@ -6,8 +6,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/record/span"
+	"github.com/liaradb/liaradb/collection/heap"
+	"github.com/liaradb/liaradb/collection/heap/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage/link"
@@ -15,14 +15,14 @@ import (
 
 // TODO: Create a shared goroutine for each file to manage storage
 type IndexedCollection struct {
-	rc *record.RecordCollection
-	c  *btree.Cursor
+	h *heap.Heap
+	c *btree.Cursor
 }
 
-func New(rc *record.RecordCollection, c *btree.Cursor) *IndexedCollection {
+func New(h *heap.Heap, c *btree.Cursor) *IndexedCollection {
 	return &IndexedCollection{
-		rc: rc,
-		c:  c,
+		h: h,
+		c: c,
 	}
 }
 
@@ -37,7 +37,7 @@ func (ic *IndexedCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	rid, err := ic.rc.Insert(ctx, tx, tn.Collection(), w)
+	rid, err := ic.h.Insert(ctx, tx, tn.Collection(), w)
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -64,7 +64,7 @@ func (ic *IndexedCollection) GetByKey(
 		return nil, err
 	}
 
-	return ic.rc.Get(ctx, tn.Collection(), rid)
+	return ic.h.Get(ctx, tn.Collection(), rid)
 }
 
 func (ic *IndexedCollection) List(
@@ -85,7 +85,7 @@ func (ic *IndexedCollection) List(
 				return
 			}
 
-			s, err := ic.rc.Get(ctx, fn, r.RecordID)
+			s, err := ic.h.Get(ctx, fn, r.RecordID)
 			if !yield(s, err) {
 				return
 			}
@@ -109,7 +109,7 @@ func (ic *IndexedCollection) Replace(
 		return err
 	}
 
-	return ic.rc.Replace(ctx, tx, tn.Collection(), rid, w)
+	return ic.h.Replace(ctx, tx, tn.Collection(), rid, w)
 }
 
 func (ic *IndexedCollection) GetByRecordID(
@@ -117,5 +117,5 @@ func (ic *IndexedCollection) GetByRecordID(
 	tn tablename.TableName,
 	rid link.RecordID,
 ) (*span.Span, error) {
-	return ic.rc.Get(ctx, tn.Collection(), rid)
+	return ic.h.Get(ctx, tn.Collection(), rid)
 }

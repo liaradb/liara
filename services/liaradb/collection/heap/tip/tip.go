@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	"github.com/liaradb/liaradb/collection/record/bufferpage"
-	"github.com/liaradb/liaradb/collection/record/span"
+	"github.com/liaradb/liaradb/collection/heap/bufferpage"
+	"github.com/liaradb/liaradb/collection/heap/span"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )

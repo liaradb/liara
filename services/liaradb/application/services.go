@@ -3,12 +3,12 @@ package application
 import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/table/schema"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/service"
@@ -55,7 +55,7 @@ func newServices(txManager *transaction.Manager, s *storage.Storage) *services {
 
 func newCollections(s *storage.Storage) *collections {
 	c := btree.NewCursor(s)
-	ic := indexed.New(record.New(s), c)
+	ic := indexed.New(heap.New(s), c)
 	kv := keyvalue.New(ic)
 	return &collections{
 		manager:     manager.New(kv),

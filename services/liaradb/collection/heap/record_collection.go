@@ -1,33 +1,33 @@
-package record
+package heap
 
 import (
 	"context"
 	"io"
 
+	"github.com/liaradb/liaradb/collection/heap/bufferpage"
+	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/tip"
 	"github.com/liaradb/liaradb/collection/log"
-	"github.com/liaradb/liaradb/collection/record/bufferpage"
-	"github.com/liaradb/liaradb/collection/record/span"
-	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-type RecordCollection struct {
+type Heap struct {
 	s *storage.Storage
 }
 
-func New(s *storage.Storage) *RecordCollection {
-	return &RecordCollection{s: s}
+func New(s *storage.Storage) *Heap {
+	return &Heap{s: s}
 }
 
-func (rc *RecordCollection) Insert(
+func (h *Heap) Insert(
 	ctx context.Context,
 	l log.Log,
 	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {
-	t := tip.NewTip(rc.s, fn)
+	t := tip.NewTip(h.s, fn)
 
 	s, err := t.Span(ctx, w.Size())
 	if err != nil {
@@ -47,13 +47,13 @@ func (rc *RecordCollection) Insert(
 	return s.RecordID(), nil
 }
 
-func (rc *RecordCollection) Get(
+func (h *Heap) Get(
 	ctx context.Context,
 	fn link.FileName,
 	rid link.RecordID,
 ) (*span.Span, error) {
 	fbid := fn.FileBlockID(rid.Block())
-	b, err := rc.s.Request(ctx, fbid)
+	b, err := h.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (rc *RecordCollection) Get(
 
 	for f.NextBlockID() != 0 {
 		fbid.SetBlockID(f.NextBlockID())
-		b, err := rc.s.Request(ctx, fbid)
+		b, err := h.s.Request(ctx, fbid)
 		if err != nil {
 			s.Release()
 			return nil, err
@@ -77,14 +77,14 @@ func (rc *RecordCollection) Get(
 	return s, nil
 }
 
-func (rc *RecordCollection) Replace(
+func (h *Heap) Replace(
 	ctx context.Context,
 	l log.Log,
 	fn link.FileName,
 	rid link.RecordID,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := rc.Get(ctx, fn, rid)
+	s, err := h.Get(ctx, fn, rid)
 	if err != nil {
 		return err
 	}
@@ -105,13 +105,13 @@ func (rc *RecordCollection) Replace(
 	return s.CommitUpdate(ctx, l)
 }
 
-func (rc *RecordCollection) Delete(
+func (h *Heap) Delete(
 	ctx context.Context,
 	l log.Log,
 	fn link.FileName,
 	rid link.RecordID,
 ) error {
-	s, err := rc.Get(ctx, fn, rid)
+	s, err := h.Get(ctx, fn, rid)
 	if err != nil {
 		return err
 	}

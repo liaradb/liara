@@ -11,8 +11,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -25,7 +25,7 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()
@@ -47,7 +47,7 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(record.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()

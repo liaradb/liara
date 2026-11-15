@@ -12,8 +12,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
+	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -28,7 +28,7 @@ func TestIdempotency(t *testing.T) {
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(record.New(s.Storage), c), c)
+	idp := New(indexed.New(heap.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -51,7 +51,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(record.New(s.Storage), c), c)
+	idp := New(indexed.New(heap.New(s.Storage), c), c)
 	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()

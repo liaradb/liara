@@ -12,8 +12,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/record/span"
+	"github.com/liaradb/liaradb/collection/heap"
+	"github.com/liaradb/liaradb/collection/heap/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -24,7 +24,7 @@ import (
 
 func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		k := key.NewKey([]byte("abcde"))
@@ -57,7 +57,7 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 func TestIndexedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()
@@ -78,7 +78,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(record.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
 
 		data := createData()

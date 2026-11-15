@@ -9,11 +9,11 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/eventlog"
+	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/outbox"
-	"github.com/liaradb/liaradb/collection/record"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -34,7 +34,7 @@ func TestEventService_Append(t *testing.T) {
 func testEventService_Append(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	ic := indexed.New(record.New(s), c)
+	ic := indexed.New(heap.New(s), c)
 	ts := tenant.New(ic)
 	es := NewEventService(m,
 		ts,
@@ -92,7 +92,7 @@ func TestEventService_Append__Large(t *testing.T) {
 func testEventService_Append__Large(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	ic := indexed.New(record.New(s), c)
+	ic := indexed.New(heap.New(s), c)
 	ts := tenant.New(ic)
 
 	es := NewEventService(m,
