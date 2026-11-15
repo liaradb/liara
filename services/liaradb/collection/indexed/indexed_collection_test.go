@@ -13,7 +13,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
@@ -190,7 +190,7 @@ func getListValues(
 	return result, nil
 }
 
-func readRequestLog(s *span.Span) (*entity.RequestLog, error) {
+func readRequestLog(s *record.Span) (*entity.RequestLog, error) {
 	defer s.Release()
 
 	rl := entity.RequestLog{}

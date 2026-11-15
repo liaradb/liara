@@ -7,7 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -149,7 +149,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	}
 }
 
-func (*EventLog) readEvent(s *span.Span) (*entity.Event, error) {
+func (*EventLog) readEvent(s *record.Span) (*entity.Event, error) {
 	defer s.Release()
 
 	e := entity.Event{}

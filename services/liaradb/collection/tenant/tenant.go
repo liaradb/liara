@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -52,7 +52,7 @@ func (t *Tenant) List(
 	}
 }
 
-func (*Tenant) readTenant(s *span.Span) (*entity.Tenant, error) {
+func (*Tenant) readTenant(s *record.Span) (*entity.Tenant, error) {
 	defer s.Release()
 
 	t := entity.Tenant{}

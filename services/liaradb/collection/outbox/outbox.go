@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -56,7 +56,7 @@ func (o *Outbox) List(
 	}
 }
 
-func (*Outbox) readOutbox(s *span.Span) (*entity.Outbox, error) {
+func (*Outbox) readOutbox(s *record.Span) (*entity.Outbox, error) {
 	defer s.Release()
 
 	o := entity.Outbox{}

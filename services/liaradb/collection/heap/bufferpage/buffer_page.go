@@ -1,20 +1,20 @@
 package bufferpage
 
 import (
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type BufferPage struct {
-	page   span.Page
+	page   record.Page
 	buffer *storage.Buffer
 }
 
 func New(b *storage.Buffer) *BufferPage {
 	return &BufferPage{
-		page:   span.NewPage(b.Raw()),
+		page:   record.NewPage(b.Raw()),
 		buffer: b,
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/liaradb/liaradb/collection/heap/bufferpage"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -23,8 +23,8 @@ func NewTip(s *storage.Storage, fn link.FileName) Tip {
 	}
 }
 
-func (t *Tip) Span(ctx context.Context, size int) (*span.Span, error) {
-	s := span.New()
+func (t *Tip) Span(ctx context.Context, size int) (*record.Span, error) {
+	s := record.New()
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {
@@ -61,7 +61,7 @@ func (*Tip) capRemaining(remaining int) int16 {
 	return int16(min(remaining, math.MaxInt16))
 }
 
-func (t *Tip) appendToSpan(s *span.Span, p *bufferpage.BufferPage, remaining int16) int {
+func (t *Tip) appendToSpan(s *record.Span, p *bufferpage.BufferPage, remaining int16) int {
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
@@ -57,7 +57,7 @@ func (i *Idempotency) List(
 	}
 }
 
-func (*Idempotency) readRequestLog(s *span.Span) (*entity.RequestLog, error) {
+func (*Idempotency) readRequestLog(s *record.Span) (*entity.RequestLog, error) {
 	defer s.Release()
 
 	rl := entity.RequestLog{}

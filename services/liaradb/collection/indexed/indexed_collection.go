@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage/link"
@@ -54,7 +54,7 @@ func (ic *IndexedCollection) GetByKey(
 	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
-) (*span.Span, error) {
+) (*record.Span, error) {
 	if err := tx.SLock(ctx, tn, k.String()); err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func (ic *IndexedCollection) List(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
-) iter.Seq2[*span.Span, error] {
-	return func(yield func(*span.Span, error) bool) {
+) iter.Seq2[*record.Span, error] {
+	return func(yield func(*record.Span, error) bool) {
 		fn := tn.Collection()
 		for r, err := range ic.c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
@@ -116,6 +116,6 @@ func (ic *IndexedCollection) GetByRecordID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rid link.RecordID,
-) (*span.Span, error) {
+) (*record.Span, error) {
 	return ic.h.Get(ctx, tn.Collection(), rid)
 }

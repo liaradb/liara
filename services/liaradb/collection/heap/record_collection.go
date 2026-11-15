@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/liaradb/liaradb/collection/heap/bufferpage"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/heap/tip"
 	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/serializer"
@@ -51,14 +51,14 @@ func (h *Heap) Get(
 	ctx context.Context,
 	fn link.FileName,
 	rid link.RecordID,
-) (*span.Span, error) {
+) (*record.Span, error) {
 	fbid := fn.FileBlockID(rid.Block())
 	b, err := h.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
 
-	s := span.New()
+	s := record.New()
 	p := bufferpage.New(b)
 	f := s.AppendSlot(p, rid.SlotID())
 

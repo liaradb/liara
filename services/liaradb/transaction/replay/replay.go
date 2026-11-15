@@ -5,7 +5,7 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/heap/span"
+	record1 "github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
@@ -212,7 +212,7 @@ func (re *Replay) recoverRollback() error {
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
 	if tablename.IsBTree(r.FileRecordID().FileBlockID().FileName().String()) {
-		return span.NewPage(b.Raw()).Page
+		return record1.NewPage(b.Raw()).Page
 	}
 
 	return page.NewFromSlice(b.Raw(), node.HeaderSize, 0)
