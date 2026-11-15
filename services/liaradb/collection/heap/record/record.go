@@ -12,7 +12,7 @@ import (
 )
 
 type Record struct {
-	fragments []*Fragment
+	fragments []*fragment
 	buffers   []BufferPage
 }
 
@@ -40,12 +40,12 @@ func (r *Record) valid() bool {
 	return true
 }
 
-func (r *Record) AppendSlot(b BufferPage, sid link.SlotID) *Fragment {
+func (r *Record) AppendSlot(b BufferPage, sid link.SlotID) *fragment {
 	h, d := b.Slot(sid)
 	return r.Append(b, sid, h, d)
 }
 
-func (r *Record) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
+func (r *Record) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *fragment {
 	r.buffers = append(r.buffers, b)
 	f := newFragment(b, sid, header, data)
 	r.fragments = append(r.fragments, f)
@@ -68,7 +68,7 @@ func (r *Record) InitIndexes() {
 
 // Sort to ensure writes are sequential, and prevent deadlocks
 func (r *Record) sortFragments() {
-	slices.SortFunc(r.fragments, func(a, b *Fragment) int {
+	slices.SortFunc(r.fragments, func(a, b *fragment) int {
 		return int(a.p.FileBlockID().BlockID() - b.p.FileBlockID().BlockID())
 	})
 }

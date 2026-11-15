@@ -20,7 +20,7 @@ const (
 		page.CrcSize
 )
 
-type Fragment struct {
+type fragment struct {
 	p           BufferPage
 	slotID      link.SlotID
 	nextBlockID wrap.Int64
@@ -45,11 +45,11 @@ func newFragment(
 	sid link.SlotID,
 	header []byte,
 	data []byte,
-) *Fragment {
+) *fragment {
 	nextBlockID, header0 := wrap.NewInt64(header)
 	nextSlotID, header1 := wrap.NewInt16(header0)
 	crc, _ := wrap.NewInt32(header1)
-	return &Fragment{
+	return &fragment{
 		p:           p,
 		slotID:      sid,
 		nextBlockID: nextBlockID,
@@ -60,51 +60,51 @@ func newFragment(
 	}
 }
 
-func (f Fragment) length() int               { return f.buffer.Length() }
-func (f Fragment) NextBlockID() link.BlockID { return link.BlockID(f.nextBlockID.Get()) }
-func (f Fragment) NextSlotID() link.SlotID   { return link.SlotID(f.nextSlotID.Get()) }
-func (f Fragment) RecordID() link.RecordID   { return f.p.FileBlockID().RecordID(f.slotID) }
+func (f fragment) length() int               { return f.buffer.Length() }
+func (f fragment) NextBlockID() link.BlockID { return link.BlockID(f.nextBlockID.Get()) }
+func (f fragment) NextSlotID() link.SlotID   { return link.SlotID(f.nextSlotID.Get()) }
+func (f fragment) RecordID() link.RecordID   { return f.p.FileBlockID().RecordID(f.slotID) }
 
-func (f Fragment) valid() bool {
+func (f fragment) valid() bool {
 	return page.RestoreCRC(f.crc.GetUnsigned()).
 		Compare(f.buffer.Bytes())
 }
 
-func (f Fragment) commit() {
+func (f fragment) commit() {
 	f.commitCRC()
 	f.p.CommitAppend(f.size)
 }
 
-func (f Fragment) commitCRC() {
+func (f fragment) commitCRC() {
 	crc := page.NewCRC(f.buffer.Bytes())
 	f.crc.SetUnsigned(crc.Value())
 }
 
-func (f Fragment) setNextBlockID(bid link.BlockID) {
+func (f fragment) setNextBlockID(bid link.BlockID) {
 	f.nextBlockID.Set(bid.Value())
 }
 
-func (f Fragment) setNextSlotID(i link.SlotID) {
+func (f fragment) setNextSlotID(i link.SlotID) {
 	f.nextSlotID.Set(i.Value())
 }
 
-func (f Fragment) Read(p []byte) (int, error) {
+func (f fragment) Read(p []byte) (int, error) {
 	return f.buffer.Read(p)
 }
 
-func (f Fragment) Write(p []byte) (int, error) {
+func (f fragment) Write(p []byte) (int, error) {
 	return f.buffer.Write(p)
 }
 
-func (f *Fragment) prepareWrite() {
+func (f *fragment) prepareWrite() {
 	f.base = f.cloneBuffer()
 }
 
-func (f *Fragment) cloneBuffer() []byte {
+func (f *fragment) cloneBuffer() []byte {
 	return slices.Clone(f.buffer.Bytes())
 }
 
-func (f *Fragment) logAppend(ctx context.Context, l log.Log) error {
+func (f *fragment) logAppend(ctx context.Context, l log.Log) error {
 	lsn, err := l.Append(ctx, f.fileRecordID(), f.cloneBuffer())
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (f *Fragment) logAppend(ctx context.Context, l log.Log) error {
 	return nil
 }
 
-func (f *Fragment) logUpdate(ctx context.Context, l log.Log) error {
+func (f *fragment) logUpdate(ctx context.Context, l log.Log) error {
 	lsn, err := l.Update(ctx, f.fileRecordID(), f.cloneBuffer(), f.base)
 	if err != nil {
 		return err
@@ -124,10 +124,10 @@ func (f *Fragment) logUpdate(ctx context.Context, l log.Log) error {
 	return nil
 }
 
-func (f *Fragment) fileRecordID() link.FileRecordID {
+func (f *fragment) fileRecordID() link.FileRecordID {
 	return f.p.FileBlockID().FileRecordID(f.slotID)
 }
 
-func (f *Fragment) Delete() {
+func (f *fragment) Delete() {
 	f.p.Delete(f.slotID)
 }
