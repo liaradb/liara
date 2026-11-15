@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 	"testing/synctest"
-	"time"
 	"uuid"
 
 	"github.com/liaradb/liaradb/collection/btree"
@@ -15,7 +14,6 @@ import (
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -96,7 +94,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 type item struct {
 	key   string
-	value *entity.RequestLog
+	value *TestItem
 }
 
 func createData() []item {
@@ -105,8 +103,8 @@ func createData() []item {
 	items := make([]item, 0, count)
 	for i := range count {
 		data[15] = byte(i) + 1
-		rid, _ := value.NewRequestIDFromString(data.String())
-		items = append(items, item{fmt.Sprintf("%v", i+1), entity.NewRequestLog(rid, value.NewTime(time.Now().Add(time.Duration(i)*time.Second)))})
+		rid, _ := NewTestIDFromString(data.String())
+		items = append(items, item{fmt.Sprintf("%v", i+1), NewTestItem(rid)})
 	}
 	return items
 }
@@ -137,7 +135,7 @@ func testGet(
 			t.Fatal(i.key, err)
 		}
 
-		rl, err := readRequestLog(value)
+		rl, err := readTestItem(value)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -171,15 +169,15 @@ func getListValues(
 	data []item,
 	ic *IndexedCollection,
 	tn tablename.TableName,
-) ([]entity.RequestLog, error) {
-	result := make([]entity.RequestLog, 0, len(data))
+) ([]TestItem, error) {
+	result := make([]TestItem, 0, len(data))
 	i := 0
 	for r, err := range ic.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}
 
-		rl, err := readRequestLog(r)
+		rl, err := readTestItem(r)
 		if err != nil {
 			return nil, err
 		}
@@ -190,17 +188,17 @@ func getListValues(
 	return result, nil
 }
 
-func readRequestLog(s *record.Record) (*entity.RequestLog, error) {
-	defer s.Release()
+func readTestItem(r *record.Record) (*TestItem, error) {
+	defer r.Release()
 
-	rl := entity.RequestLog{}
-	return &rl, rl.Read(s)
+	rl := TestItem{}
+	return &rl, rl.Read(r)
 }
 
-func createSortedValues(data []item) []entity.RequestLog {
+func createSortedValues(data []item) []TestItem {
 	type tuple struct {
 		key   key.Key
-		value *entity.RequestLog
+		value *TestItem
 	}
 
 	tuples := make([]tuple, 0, len(data))
@@ -210,7 +208,7 @@ func createSortedValues(data []item) []entity.RequestLog {
 	slices.SortFunc(tuples, func(a, b tuple) int {
 		return strings.Compare(a.key.String(), b.key.String())
 	})
-	want := make([]entity.RequestLog, 0, len(data))
+	want := make([]TestItem, 0, len(data))
 	for _, t := range tuples {
 		want = append(want, *t.value)
 	}

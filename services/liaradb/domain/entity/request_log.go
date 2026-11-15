@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	RequestLogSize = value.RequestIDIDSize +
+	RequestLogSize = value.RequestIDSize +
 		base.TimeSize
 )
 

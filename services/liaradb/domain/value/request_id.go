@@ -20,4 +20,4 @@ func NewRequestIDFromString(value string) (RequestID, error) {
 	}
 }
 
-const RequestIDIDSize = base.BaseIDSize
+const RequestIDSize = base.BaseIDSize
