@@ -14,7 +14,7 @@ import (
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 )
 
-func TestSpan_Write(t *testing.T) {
+func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
@@ -27,26 +27,26 @@ func TestSpan_Write(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New()
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
-	s.InitIndexes()
+	r := New()
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+	r.InitIndexes()
 
-	if err := tr0.Write(s.Writer()); err != nil {
+	if err := tr0.Write(r.Writer()); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := s.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 
-	s.SeekStart()
+	r.SeekStart()
 
 	tr1 := &testRecord{
 		data: make([]byte, 11),
 	}
 
-	if err := tr1.Read(s); err != nil {
+	if err := tr1.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,21 +55,21 @@ func TestSpan_Write(t *testing.T) {
 	}
 }
 
-func TestSpan_Length(t *testing.T) {
+func TestRecord_Length(t *testing.T) {
 	t.Parallel()
 
-	s := New()
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 100))
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 10000))
-	s.InitIndexes()
+	r := New()
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 100))
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 10000))
+	r.InitIndexes()
 
 	want := 100 + 10000
-	if l := s.Length(); l != want {
+	if l := r.Length(); l != want {
 		t.Errorf("incorrect length: %v, expected: %v", l, want)
 	}
 }
 
-func TestSpan_InitIndexes(t *testing.T) {
+func TestRecord_InitIndexes(t *testing.T) {
 	t.Parallel()
 
 	t.Run("default", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestSpan_InitIndexes(t *testing.T) {
 	// TODO: How do we test other cases?
 }
 
-func TestSpan_Read__Invalid(t *testing.T) {
+func TestRecord_Read__Invalid(t *testing.T) {
 	t.Parallel()
 
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
@@ -93,53 +93,53 @@ func TestSpan_Read__Invalid(t *testing.T) {
 	size := float64(tr0.Size()) / 2
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
-	s := New()
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
-	s.InitIndexes()
+	r := New()
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+	r.InitIndexes()
 
-	if err := tr0.Write(s.Writer()); err != nil {
+	if err := tr0.Write(r.Writer()); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := s.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 
-	s.SeekStart()
+	r.SeekStart()
 
-	s.fragments[1].buffer.Bytes()[8] = 0
+	r.fragments[1].buffer.Bytes()[8] = 0
 
 	tr1 := &testRecord{
 		data: make([]byte, 11),
 	}
 
-	if err := tr1.Read(s); !errors.Is(err, page.ErrInvalidCRC) {
+	if err := tr1.Read(r); !errors.Is(err, page.ErrInvalidCRC) {
 		t.Errorf("incorrect error: %v, expected: %v", err, page.ErrInvalidCRC)
 	}
 }
 
-func TestSpan_Bytes(t *testing.T) {
+func TestRecord_Bytes(t *testing.T) {
 	t.Parallel()
 
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
-	s := New()
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 5))
-	_ = s.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, len(want)-5))
-	s.InitIndexes()
+	r := New()
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 5))
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, len(want)-5))
+	r.InitIndexes()
 
-	if _, err := s.Writer().Write(want); err != nil {
+	if _, err := r.Writer().Write(want); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := s.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
 		t.Fatal(err)
 	}
 
-	s.SeekStart()
+	r.SeekStart()
 
-	if d, err := s.Bytes(); err != nil {
+	if d, err := r.Bytes(); err != nil {
 		t.Fatal(err)
 	} else if !slices.Equal(d, want) {
 		t.Errorf("incorrect result: %v, expected: %v", d, want)

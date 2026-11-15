@@ -19,7 +19,7 @@ func TestTip(t *testing.T) {
 	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
 		tip := NewTip(st.Storage, link.NewFileName("fn"))
 		want := 128
-		s, err := tip.Span(t.Context(), want)
+		s, err := tip.Record(t.Context(), want)
 		if err != nil {
 			t.Fatal(err)
 		}

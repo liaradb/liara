@@ -35,17 +35,17 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		sp, err := ic.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
+		r, err := ic.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		b0 := base.NewFixedBytesFromSize(5)
-		if err := b0.Read(sp); err != nil {
+		if err := b0.Read(r); err != nil {
 			t.Fatal(err)
 		}
 
-		sp.Release()
+		r.Release()
 		result := b0.Value()
 
 		if !slices.Equal(result, want) {
@@ -174,12 +174,12 @@ func getListValues(
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for s, err := range ic.List(ctx, &logtesting.MockLog{}, tn) {
+	for r, err := range ic.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}
 
-		rl, err := readRequestLog(s)
+		rl, err := readRequestLog(r)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +190,7 @@ func getListValues(
 	return result, nil
 }
 
-func readRequestLog(s *record.Span) (*entity.RequestLog, error) {
+func readRequestLog(s *record.Record) (*entity.RequestLog, error) {
 	defer s.Release()
 
 	rl := entity.RequestLog{}

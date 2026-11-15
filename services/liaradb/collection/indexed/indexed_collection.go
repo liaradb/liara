@@ -54,7 +54,7 @@ func (ic *IndexedCollection) GetByKey(
 	tx Transaction,
 	tn tablename.TableName,
 	k key.Key,
-) (*record.Span, error) {
+) (*record.Record, error) {
 	if err := tx.SLock(ctx, tn, k.String()); err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func (ic *IndexedCollection) List(
 	ctx context.Context,
 	tx Transaction,
 	tn tablename.TableName,
-) iter.Seq2[*record.Span, error] {
-	return func(yield func(*record.Span, error) bool) {
+) iter.Seq2[*record.Record, error] {
+	return func(yield func(*record.Record, error) bool) {
 		fn := tn.Collection()
 		for r, err := range ic.c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
@@ -116,6 +116,6 @@ func (ic *IndexedCollection) GetByRecordID(
 	ctx context.Context,
 	tn tablename.TableName,
 	rid link.RecordID,
-) (*record.Span, error) {
+) (*record.Record, error) {
 	return ic.h.Get(ctx, tn.Collection(), rid)
 }

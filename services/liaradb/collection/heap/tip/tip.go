@@ -23,8 +23,8 @@ func NewTip(s *storage.Storage, fn link.FileName) Tip {
 	}
 }
 
-func (t *Tip) Span(ctx context.Context, size int) (*record.Span, error) {
-	s := record.New()
+func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
+	r := record.New()
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {
@@ -36,7 +36,7 @@ func (t *Tip) Span(ctx context.Context, size int) (*record.Span, error) {
 	available := 0
 	remaining := size
 
-	l := t.appendToSpan(s, t.current, t.capRemaining(remaining))
+	l := t.appendToRecord(r, t.current, t.capRemaining(remaining))
 
 	available = l
 	remaining -= l
@@ -47,21 +47,21 @@ func (t *Tip) Span(ctx context.Context, size int) (*record.Span, error) {
 			return nil, err
 		}
 
-		l := t.appendToSpan(s, p, t.capRemaining(remaining))
+		l := t.appendToRecord(r, p, t.capRemaining(remaining))
 
 		available += l
 		remaining -= l
 	}
 
-	s.InitIndexes()
-	return s, nil
+	r.InitIndexes()
+	return r, nil
 }
 
 func (*Tip) capRemaining(remaining int) int16 {
 	return int16(min(remaining, math.MaxInt16))
 }
 
-func (t *Tip) appendToSpan(s *record.Span, p *bufferpage.BufferPage, remaining int16) int {
+func (t *Tip) appendToRecord(r *record.Record, p *bufferpage.BufferPage, remaining int16) int {
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {
@@ -69,7 +69,7 @@ func (t *Tip) appendToSpan(s *record.Span, p *bufferpage.BufferPage, remaining i
 		return l
 	}
 
-	_ = s.Append(p, link.SlotID(p.Count()), header, data)
+	_ = r.Append(p, link.SlotID(p.Count()), header, data)
 	return l
 }
 

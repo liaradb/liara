@@ -26,12 +26,12 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	s, err := t.ic.GetByKey(ctx, tx, tablename.Tenant, k)
+	r, err := t.ic.GetByKey(ctx, tx, tablename.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.readTenant(s)
+	return t.readTenant(r)
 }
 
 func (t *Tenant) List(
@@ -39,20 +39,20 @@ func (t *Tenant) List(
 	tx indexed.Transaction,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for s, err := range t.ic.List(ctx, tx, tablename.Tenant) {
+		for r, err := range t.ic.List(ctx, tx, tablename.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(t.readTenant(s)) {
+			if !yield(t.readTenant(r)) {
 				return
 			}
 		}
 	}
 }
 
-func (*Tenant) readTenant(s *record.Span) (*entity.Tenant, error) {
+func (*Tenant) readTenant(s *record.Record) (*entity.Tenant, error) {
 	defer s.Release()
 
 	t := entity.Tenant{}

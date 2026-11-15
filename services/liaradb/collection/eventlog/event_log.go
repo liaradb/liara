@@ -65,9 +65,9 @@ func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.Ev
 		return nil, err
 	}
 
-	s, err := l.ic.GetByRecordID(ctx, tn, rid)
+	r, err := l.ic.GetByRecordID(ctx, tn, rid)
 
-	return l.readEvent(s)
+	return l.readEvent(r)
 }
 
 func (l *EventLog) GetAggregate(
@@ -93,13 +93,13 @@ func (l *EventLog) GetAggregate(
 				return
 			}
 
-			s, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
+			r, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			e, err := l.readEvent(s)
+			e, err := l.readEvent(r)
 			if !yield(e, err) || err != nil {
 				return
 			}
@@ -127,13 +127,13 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			s, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
+			r, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			e, err := l.readEvent(s)
+			e, err := l.readEvent(r)
 			if e.GlobalVersion().Value() > lw.Value() {
 				return
 			}
@@ -149,7 +149,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	}
 }
 
-func (*EventLog) readEvent(s *record.Span) (*entity.Event, error) {
+func (*EventLog) readEvent(s *record.Record) (*entity.Event, error) {
 	defer s.Release()
 
 	e := entity.Event{}

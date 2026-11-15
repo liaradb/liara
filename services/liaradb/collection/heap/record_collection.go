@@ -29,7 +29,7 @@ func (h *Heap) Insert(
 ) (link.RecordID, error) {
 	t := tip.NewTip(h.s, fn)
 
-	s, err := t.Span(ctx, w.Size())
+	s, err := t.Record(ctx, w.Size())
 	if err != nil {
 		return link.RecordID{}, err
 	}
@@ -51,7 +51,7 @@ func (h *Heap) Get(
 	ctx context.Context,
 	fn link.FileName,
 	rid link.RecordID,
-) (*record.Span, error) {
+) (*record.Record, error) {
 	fbid := fn.FileBlockID(rid.Block())
 	b, err := h.s.Request(ctx, fbid)
 	if err != nil {
@@ -92,7 +92,7 @@ func (h *Heap) Replace(
 	defer s.Release()
 
 	if size, length := w.Size(), s.Length(); size < length {
-		// Extend Span
+		// Extend Record
 		return io.ErrShortWrite
 	} else if size > length {
 		// Return Fragments to Free Space Manager

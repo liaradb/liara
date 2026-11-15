@@ -24,12 +24,12 @@ func (kv *KeyValue) Get(
 	tn tablename.TableName,
 	k key.Key,
 ) ([]byte, error) {
-	s, err := kv.ic.GetByKey(ctx, tx, tn, k)
+	r, err := kv.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.BytesAndRelease()
+	return r.BytesAndRelease()
 }
 
 func (kv *KeyValue) List(
@@ -38,13 +38,13 @@ func (kv *KeyValue) List(
 	tn tablename.TableName,
 ) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
-		for s, err := range kv.ic.List(ctx, tx, tn) {
+		for r, err := range kv.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(s.BytesAndRelease()) {
+			if !yield(r.BytesAndRelease()) {
 				return
 			}
 		}

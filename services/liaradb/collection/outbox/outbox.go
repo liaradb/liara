@@ -28,12 +28,12 @@ func (o *Outbox) Get(
 ) (*entity.Outbox, error) {
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	k := key.NewKey(oid.Bytes())
-	s, err := o.ic.GetByKey(ctx, tx, tn, k)
+	r, err := o.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return o.readOutbox(s)
+	return o.readOutbox(r)
 }
 
 func (o *Outbox) List(
@@ -43,20 +43,20 @@ func (o *Outbox) List(
 ) iter.Seq2[*entity.Outbox, error] {
 	tn := tablename.NewTenantFolder(tid).Outbox()
 	return func(yield func(*entity.Outbox, error) bool) {
-		for s, err := range o.ic.List(ctx, tx, tn) {
+		for r, err := range o.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(o.readOutbox(s)) {
+			if !yield(o.readOutbox(r)) {
 				return
 			}
 		}
 	}
 }
 
-func (*Outbox) readOutbox(s *record.Span) (*entity.Outbox, error) {
+func (*Outbox) readOutbox(s *record.Record) (*entity.Outbox, error) {
 	defer s.Release()
 
 	o := entity.Outbox{}

@@ -30,12 +30,12 @@ func (i *Idempotency) Get(
 	rqid value.RequestID,
 ) (*entity.RequestLog, error) {
 	k := key.NewKey(rqid.Bytes())
-	s, err := i.ic.GetByKey(ctx, tx, tn, k)
+	r, err := i.ic.GetByKey(ctx, tx, tn, k)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.readRequestLog(s)
+	return i.readRequestLog(r)
 }
 
 func (i *Idempotency) List(
@@ -44,20 +44,20 @@ func (i *Idempotency) List(
 	tn tablename.TableName,
 ) iter.Seq2[*entity.RequestLog, error] {
 	return func(yield func(*entity.RequestLog, error) bool) {
-		for s, err := range i.ic.List(ctx, tx, tn) {
+		for r, err := range i.ic.List(ctx, tx, tn) {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			if !yield(i.readRequestLog(s)) {
+			if !yield(i.readRequestLog(r)) {
 				return
 			}
 		}
 	}
 }
 
-func (*Idempotency) readRequestLog(s *record.Span) (*entity.RequestLog, error) {
+func (*Idempotency) readRequestLog(s *record.Record) (*entity.RequestLog, error) {
 	defer s.Release()
 
 	rl := entity.RequestLog{}
