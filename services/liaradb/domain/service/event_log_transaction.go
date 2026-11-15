@@ -5,9 +5,9 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/eventlog"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/eventlog"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/set"
 )

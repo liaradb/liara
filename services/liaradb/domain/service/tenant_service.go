@@ -5,9 +5,9 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"

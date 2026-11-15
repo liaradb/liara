@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/keyvalue"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
 	"github.com/liaradb/liaradb/util/set"
 )
 

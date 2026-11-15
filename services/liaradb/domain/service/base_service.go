@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/collection/idempotency"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/idempotency"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
 )

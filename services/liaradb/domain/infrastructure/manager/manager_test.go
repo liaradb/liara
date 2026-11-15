@@ -10,7 +10,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/keyvalue"
+	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
