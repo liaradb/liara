@@ -5,7 +5,7 @@ import (
 	"iter"
 	"slices"
 
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
@@ -24,7 +24,7 @@ type Node struct {
 }
 
 type action interface {
-	Log(context.Context, span.Log) (logpage.LogSequenceNumber, error)
+	Log(context.Context, log.Log) (logpage.LogSequenceNumber, error)
 }
 
 func New(buffer *storage.Buffer) Node {
@@ -71,7 +71,7 @@ func (n *Node) addAction(a action) {
 	n.actions = append(n.actions, a)
 }
 
-func (n *Node) LogActions(ctx context.Context, l span.Log) error {
+func (n *Node) LogActions(ctx context.Context, l log.Log) error {
 	for _, a := range n.actions {
 		lsn, err := a.Log(ctx, l)
 		if err != nil {

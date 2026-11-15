@@ -3,7 +3,7 @@ package node
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -25,6 +25,6 @@ func newInsertAction(
 	}
 }
 
-func (a *insertAction) Log(ctx context.Context, l span.Log) (logpage.LogSequenceNumber, error) {
+func (a *insertAction) Log(ctx context.Context, l log.Log) (logpage.LogSequenceNumber, error) {
 	return l.Insert(ctx, a.frid, a.data)
 }

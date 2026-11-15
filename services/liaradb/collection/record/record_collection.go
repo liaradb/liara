@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/collection/record/bufferpage"
 	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/collection/span"
@@ -22,7 +23,7 @@ func New(s *storage.Storage) *RecordCollection {
 
 func (rc *RecordCollection) Insert(
 	ctx context.Context,
-	l span.Log,
+	l log.Log,
 	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {
@@ -78,7 +79,7 @@ func (rc *RecordCollection) Get(
 
 func (rc *RecordCollection) Replace(
 	ctx context.Context,
-	l span.Log,
+	l log.Log,
 	fn link.FileName,
 	rid link.RecordID,
 	w serializer.SizedSerializer,
@@ -106,7 +107,7 @@ func (rc *RecordCollection) Replace(
 
 func (rc *RecordCollection) Delete(
 	ctx context.Context,
-	l span.Log,
+	l log.Log,
 	fn link.FileName,
 	rid link.RecordID,
 ) error {

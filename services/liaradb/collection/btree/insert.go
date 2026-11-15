@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -26,7 +26,7 @@ func newInsert(s *storage.Storage) insert {
 // Insert key value pair into tree
 func (c *insert) Insert(
 	ctx context.Context,
-	l span.Log,
+	l log.Log,
 	fn link.FileName,
 	k key.Key,
 	rid link.RecordID,

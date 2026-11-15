@@ -1,4 +1,4 @@
-package span
+package log
 
 import (
 	"context"

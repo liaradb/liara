@@ -6,7 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -22,7 +22,7 @@ func New(page node.Node) *LeafNode {
 	}
 }
 
-func (n *LeafNode) LogActions(ctx context.Context, l span.Log) error {
+func (n *LeafNode) LogActions(ctx context.Context, l log.Log) error {
 	return n.node.LogActions(ctx, l)
 }
 

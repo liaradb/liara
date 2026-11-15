@@ -4,6 +4,7 @@ import (
 	"context"
 	"slices"
 
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -103,7 +104,7 @@ func (f *Fragment) cloneBuffer() []byte {
 	return slices.Clone(f.buffer.Bytes())
 }
 
-func (f *Fragment) logAppend(ctx context.Context, l Log) error {
+func (f *Fragment) logAppend(ctx context.Context, l log.Log) error {
 	lsn, err := l.Append(ctx, f.fileRecordID(), f.cloneBuffer())
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (f *Fragment) logAppend(ctx context.Context, l Log) error {
 	return nil
 }
 
-func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
+func (f *Fragment) logUpdate(ctx context.Context, l log.Log) error {
 	lsn, err := l.Update(ctx, f.fileRecordID(), f.cloneBuffer(), f.base)
 	if err != nil {
 		return err

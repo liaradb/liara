@@ -5,6 +5,7 @@ import (
 	"io"
 	"slices"
 
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/multi"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage/link"
@@ -105,12 +106,12 @@ func (s Span) SeekStart() {
 	}
 }
 
-func (s Span) CommitAppend(ctx context.Context, l Log) error {
+func (s Span) CommitAppend(ctx context.Context, l log.Log) error {
 	s.commit()
 	return s.logAppend(ctx, l)
 }
 
-func (s Span) CommitUpdate(ctx context.Context, l Log) error {
+func (s Span) CommitUpdate(ctx context.Context, l log.Log) error {
 	s.commit()
 	return s.logUpdate(ctx, l)
 }
@@ -121,7 +122,7 @@ func (s Span) commit() {
 	}
 }
 
-func (s Span) logAppend(ctx context.Context, l Log) error {
+func (s Span) logAppend(ctx context.Context, l log.Log) error {
 	for _, f := range s.fragments {
 		if err := f.logAppend(ctx, l); err != nil {
 			return err
@@ -131,7 +132,7 @@ func (s Span) logAppend(ctx context.Context, l Log) error {
 	return nil
 }
 
-func (s Span) logUpdate(ctx context.Context, l Log) error {
+func (s Span) logUpdate(ctx context.Context, l log.Log) error {
 	for _, f := range s.fragments {
 		if err := f.logUpdate(ctx, l); err != nil {
 			return err
