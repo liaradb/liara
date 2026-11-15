@@ -1,4 +1,4 @@
-package tablename
+package tenantfolder
 
 import (
 	"testing"

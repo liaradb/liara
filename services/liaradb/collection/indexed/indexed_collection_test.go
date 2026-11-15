@@ -14,8 +14,8 @@ import (
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
-	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
+	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -23,7 +23,7 @@ import (
 func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
 		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
-		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
+		tn := &testTableName{}
 
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
@@ -56,7 +56,7 @@ func TestIndexedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
-		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
+		tn := &testTableName{}
 
 		data := createData()
 		slices.Reverse(data)
@@ -77,7 +77,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
-		tn := tablename.NewTenantFolder(value.DefaultTenantID).GlobalTable("test")
+		tn := &testTableName{}
 
 		data := createData()
 
@@ -213,4 +213,19 @@ func createSortedValues(data []item) []TestItem {
 		want = append(want, *t.value)
 	}
 	return want
+}
+
+type testTableName struct {
+}
+
+func (t *testTableName) Collection() link.FileName {
+	return link.NewFileName("table.col")
+}
+
+func (t *testTableName) Index(i base.Uint32) link.FileName {
+	return link.NewFileName(fmt.Sprintf("table--%v.bt", i))
+}
+
+func (t *testTableName) String() string {
+	return "table"
 }

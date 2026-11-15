@@ -12,6 +12,7 @@ import (
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/storage"
@@ -30,7 +31,7 @@ func testRecovery(t *testing.T) {
 
 	fsys := filetesting.New(nil)
 	dir := t.TempDir()
-	tf := tablename.NewTenantFolder(value.NewTenantID())
+	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
 

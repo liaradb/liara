@@ -4,11 +4,11 @@ import (
 	"context"
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/idempotency"
 	"github.com/liaradb/liaradb/domain/infrastructure/outbox"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -43,7 +43,7 @@ func (os *OutboxService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	tn := tablename.NewTenantFolder(tid).Outbox()
+	tn := tenantfolder.NewTenantFolder(tid).Outbox()
 	oid := value.NewOutboxID()
 	if err := tx.XLock(ctx, tn, oid.String()); err != nil {
 		return value.OutboxID{}, err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -13,7 +13,7 @@ func TestItemID(t *testing.T) {
 
 	id := "id"
 	tid := value.NewTenantID()
-	i := newItemID(tablename.NewTenantFolder(tid).GlobalTable("table"), id)
+	i := newItemID(tenantfolder.NewTenantFolder(tid).GlobalTable("table"), id)
 
 	want := fmt.Sprintf("%v/table|%v", tid.String(), id)
 

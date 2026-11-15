@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/raw"
@@ -22,7 +23,7 @@ type Manager struct {
 func New(kv *keyvalue.KeyValue) *Manager {
 	return &Manager{
 		kv: kv,
-		tn: tablename.Manager,
+		tn: tenantfolder.Manager,
 	}
 }
 

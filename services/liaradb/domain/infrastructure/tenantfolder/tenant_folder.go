@@ -1,4 +1,4 @@
-package tablename
+package tenantfolder
 
 import (
 	"errors"
@@ -15,7 +15,6 @@ import (
 
 var eventLogRegexp = regexp.MustCompile("event_log--([0-9a-f]*).col")
 
-// TODO: This shouldn't reference domain
 type TenantFolder struct {
 	tenantID value.TenantID
 }

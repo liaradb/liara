@@ -5,21 +5,21 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/eventlog"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/set"
 )
 
 type eventLogTransaction struct {
 	el     *eventlog.EventLog
-	tf     tablename.TenantFolder
+	tf     tenantfolder.TenantFolder
 	events []*entity.Event
 	keys   set.Set[key.Key]
 }
 
-func newEventLogTransaction(el *eventlog.EventLog, tf tablename.TenantFolder) eventLogTransaction {
+func newEventLogTransaction(el *eventlog.EventLog, tf tenantfolder.TenantFolder) eventLogTransaction {
 	return eventLogTransaction{
 		el:   el,
 		tf:   tf,

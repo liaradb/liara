@@ -6,7 +6,6 @@ import (
 	"iter"
 	"time"
 
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/eventlog"
@@ -14,6 +13,7 @@ import (
 	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
 	"github.com/liaradb/liaradb/domain/infrastructure/outbox"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/query"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
@@ -52,7 +52,7 @@ func NewEventService(
 func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.FileSystem, dir string, tIDs []value.TenantID) error {
 	tIDMap := make(map[value.TenantID][]value.PartitionID)
 	for _, tid := range tIDs {
-		tf := tablename.NewTenantFolder(tid)
+		tf := tenantfolder.NewTenantFolder(tid)
 		pids, err := tf.Partitions(fsys, dir)
 		if err != nil {
 			return err
@@ -66,7 +66,7 @@ func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.F
 
 func (es *EventService) initGlobalVersions(ctx context.Context, tIDs map[value.TenantID][]value.PartitionID) error {
 	for tid, pids := range tIDs {
-		tf := tablename.NewTenantFolder(tid)
+		tf := tenantfolder.NewTenantFolder(tid)
 
 		var gv value.GlobalVersion
 		for _, pid := range pids {
@@ -110,7 +110,7 @@ func (es *EventService) Append(
 	}
 
 	return tx.Run(ctx, func() error {
-		tf := tablename.NewTenantFolder(cmd.TenantID)
+		tf := tenantfolder.NewTenantFolder(cmd.TenantID)
 		if cmd.RequestID != nil {
 			tnRl := tf.RequestLog()
 			// Verify idempotency
@@ -130,7 +130,7 @@ func (es *EventService) append(
 	ctx context.Context,
 	cmd command.AppendEvent,
 	tx *transaction.Transaction,
-	tf tablename.TenantFolder,
+	tf tenantfolder.TenantFolder,
 ) error {
 	elt := newEventLogTransaction(es.eventLog, tf)
 
@@ -181,7 +181,7 @@ func (es *EventService) TestIdempotency(
 
 	defer tx.Release()
 
-	tn := tablename.NewTenantFolder(qry.TenantID).RequestLog()
+	tn := tenantfolder.NewTenantFolder(qry.TenantID).RequestLog()
 	return es.testRequestID(ctx, tx, tn, qry.RequestID)
 }
 
@@ -199,7 +199,7 @@ func (es *EventService) Get(
 	defer tx.Release()
 
 	return func(yield func(*entity.Event, error) bool) {
-		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		tn := tenantfolder.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if !yield(e, err) {
 				return
@@ -223,7 +223,7 @@ func (es *EventService) GetByAggregateIDAndName(
 	defer tx.Release()
 
 	return func(yield func(*entity.Event, error) bool) {
-		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		tn := tenantfolder.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if err != nil {
 				yield(nil, err)
@@ -259,7 +259,7 @@ func (es *EventService) GetAfterGlobalVersion(
 		defer tx.Release()
 
 		count := 0
-		tn := tablename.NewTenantFolder(tid).EventLog(pid)
+		tn := tenantfolder.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.EventsAfterGlobalVersion(ctx, tx, tn, version, sub, es.gvg.LowWater(tid)) {
 			count++
 			if !yield(e, err) || count >= limit.Value() {
@@ -305,7 +305,7 @@ func (es *EventService) SetValue(
 		return err
 	}
 
-	tn := tablename.NewTenantFolder(tid).GlobalTable("value")
+	tn := tenantfolder.NewTenantFolder(tid).GlobalTable("value")
 	if err := tx.XLock(ctx, tn, r.ID().String()); err != nil {
 		return err
 	}

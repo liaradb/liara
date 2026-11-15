@@ -4,10 +4,10 @@ import (
 	"context"
 	"iter"
 
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
 	"github.com/liaradb/liaradb/util/iterator"
@@ -56,7 +56,7 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 		return err
 	}
 
-	if err := tx.SLock(ctx, tablename.Tenant, cmd.TenantID.String()); err != nil {
+	if err := tx.SLock(ctx, tenantfolder.Tenant, cmd.TenantID.String()); err != nil {
 		return err
 	}
 

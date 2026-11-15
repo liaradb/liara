@@ -7,8 +7,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 )
 
@@ -26,7 +26,7 @@ func (t *Tenant) Get(
 	tid value.TenantID,
 ) (*entity.Tenant, error) {
 	k := key.NewKey(tid.Bytes())
-	r, err := t.ic.GetByKey(ctx, tx, tablename.Tenant, k)
+	r, err := t.ic.GetByKey(ctx, tx, tenantfolder.Tenant, k)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (t *Tenant) List(
 	tx indexed.Transaction,
 ) iter.Seq2[*entity.Tenant, error] {
 	return func(yield func(*entity.Tenant, error) bool) {
-		for r, err := range t.ic.List(ctx, tx, tablename.Tenant) {
+		for r, err := range t.ic.List(ctx, tx, tenantfolder.Tenant) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -67,7 +67,7 @@ func (t *Tenant) Insert(
 	k := key.NewKey(e.ID().Bytes())
 	_, err := t.ic.Insert(ctx,
 		tx,
-		tablename.Tenant,
+		tenantfolder.Tenant,
 		k,
 		e)
 	return err
@@ -80,7 +80,7 @@ func (t *Tenant) Replace(
 ) error {
 	return t.ic.Replace(ctx,
 		tx,
-		tablename.Tenant,
+		tenantfolder.Tenant,
 		key.NewKey(e.ID().Bytes()),
 		e)
 }

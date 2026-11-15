@@ -16,6 +16,7 @@ import (
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
+	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
@@ -29,7 +30,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
 	idp := New(indexed.New(heap.New(s.Storage), c), c)
-	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
+	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 	slices.Reverse(data)
@@ -52,7 +53,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
 	idp := New(indexed.New(heap.New(s.Storage), c), c)
-	n := tablename.NewTenantFolder(value.NewTenantID()).RequestLog()
+	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 
