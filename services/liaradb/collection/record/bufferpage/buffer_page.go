@@ -1,7 +1,7 @@
 package bufferpage
 
 import (
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"

@@ -6,8 +6,8 @@ import (
 
 	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/collection/record/bufferpage"
+	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/record/tip"
-	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"

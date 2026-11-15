@@ -6,7 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/fixed"
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"

@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/span"
+	"github.com/liaradb/liaradb/collection/record/span"
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/serializer"
 	"github.com/liaradb/liaradb/storage/link"
