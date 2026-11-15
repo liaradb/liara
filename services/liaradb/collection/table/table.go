@@ -1,6 +1,6 @@
 package table
 
-import "github.com/liaradb/liaradb/collection/schema"
+import "github.com/liaradb/liaradb/collection/table/schema"
 
 type Table struct {
 	id       ID

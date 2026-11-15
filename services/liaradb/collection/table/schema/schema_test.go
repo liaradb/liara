@@ -3,7 +3,7 @@ package schema
 import (
 	"testing"
 
-	"github.com/liaradb/liaradb/collection/schema/column"
+	"github.com/liaradb/liaradb/collection/table/schema/column"
 )
 
 func TestSchema(t *testing.T) {

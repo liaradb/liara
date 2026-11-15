@@ -1,6 +1,6 @@
 package schema
 
-import "github.com/liaradb/liaradb/collection/schema/column"
+import "github.com/liaradb/liaradb/collection/table/schema/column"
 
 type Schema struct {
 	id      ID

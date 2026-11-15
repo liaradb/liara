@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/collection/manager"
 	"github.com/liaradb/liaradb/collection/outbox"
 	"github.com/liaradb/liaradb/collection/record"
-	"github.com/liaradb/liaradb/collection/schema"
+	"github.com/liaradb/liaradb/collection/table/schema"
 	"github.com/liaradb/liaradb/collection/tenant"
 	"github.com/liaradb/liaradb/domain/service"
 	"github.com/liaradb/liaradb/storage"
