@@ -259,16 +259,15 @@ func (p *Page) Count() link.SlotID {
 	return p.list.Count()
 }
 
+// TODO: When do we set and test this value?
 func (p *Page) initMagic() {
 	p.magic.Set(int32(MagicPage))
 }
 
-// TODO: We are not using this
 func (p *Page) isEmpty() bool {
 	return Magic(p.magic.Get()).IsEmpty()
 }
 
-// TODO: We are not using this
 func (p *Page) isPage() bool {
 	return Magic(p.magic.Get()).IsPage()
 }

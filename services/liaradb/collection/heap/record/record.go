@@ -73,30 +73,21 @@ func (r *Record) sortFragments() {
 	})
 }
 
-// TODO: Can we do this without creating a new reader?
 func (r Record) Read(p []byte) (n int, err error) {
 	if !r.valid() {
 		return 0, page.ErrInvalidCRC
 	}
 
-	readers := make([]io.Reader, 0, len(r.fragments))
-	for _, f := range r.fragments {
-		readers = append(readers, f)
-	}
-
-	reader := multi.NewReader(readers...)
+	reader := multi.NewReader(r.fragments...)
 	return reader.Read(p)
 }
 
-// TODO: Can we do this without creating a new writer?
 func (r *Record) Writer() io.Writer {
-	writers := make([]io.Writer, 0, len(r.fragments))
 	for _, f := range r.fragments {
 		f.prepareWrite()
-		writers = append(writers, f)
 	}
 
-	return multi.NewWriter(writers...)
+	return multi.NewWriter(r.fragments...)
 }
 
 // Testing only
