@@ -4,7 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/liaradb/liaradb/collection/bufferpage"
+	"github.com/liaradb/liaradb/collection/record/bufferpage"
 	"github.com/liaradb/liaradb/collection/record/tip"
 	"github.com/liaradb/liaradb/collection/span"
 	"github.com/liaradb/liaradb/encoder/serializer"
