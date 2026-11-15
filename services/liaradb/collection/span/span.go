@@ -162,3 +162,9 @@ func (s *Span) BytesAndRelease() ([]byte, error) {
 
 	return s.Bytes()
 }
+
+func (s *Span) Delete() {
+	for _, f := range s.fragments {
+		f.Delete()
+	}
+}

@@ -90,13 +90,35 @@ func (rc *RecordCollection) Replace(
 
 	defer s.Release()
 
-	if w.Size() > s.Length() {
+	if size, length := w.Size(), s.Length(); size < length {
+		// Extend Span
 		return io.ErrShortWrite
+	} else if size > length {
+		// Return Fragments to Free Space Manager
 	}
 
 	if err := w.Write(s.Writer()); err != nil {
 		return err
 	}
+
+	return s.CommitUpdate(ctx, l)
+}
+
+func (rc *RecordCollection) Delete(
+	ctx context.Context,
+	l span.Log,
+	fn link.FileName,
+	rid link.RecordID,
+) error {
+	s, err := rc.Get(ctx, fn, rid)
+	if err != nil {
+		return err
+	}
+
+	defer s.Release()
+
+	s.Delete()
+	// Return fragments to Free Space Manager
 
 	return s.CommitUpdate(ctx, l)
 }

@@ -251,6 +251,10 @@ func (p *Page) Clear() {
 	p.initNext()
 }
 
+func (p *Page) Delete(i link.SlotID) {
+	p.list.Delete(i)
+}
+
 func (p *Page) Count() link.SlotID {
 	return p.list.Count()
 }

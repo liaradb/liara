@@ -55,3 +55,7 @@ func (bp *BufferPage) Next(size int16) ([]byte, []byte) {
 func (bp *BufferPage) Slot(i link.SlotID) ([]byte, []byte) {
 	return bp.page.Slot(i)
 }
+
+func (bp *BufferPage) Delete(i link.SlotID) {
+	bp.page.Delete(i)
+}

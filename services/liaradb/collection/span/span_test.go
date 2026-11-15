@@ -163,3 +163,6 @@ func (t *testBufferPage) Release() {
 func (t *testBufferPage) Slot(link.SlotID) ([]byte, []byte) {
 	return nil, nil
 }
+
+func (t *testBufferPage) Delete(link.SlotID) {
+}

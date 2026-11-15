@@ -36,6 +36,7 @@ type BufferPage interface {
 	CommitAppend(size int16)
 	Release()
 	Slot(link.SlotID) ([]byte, []byte)
+	Delete(link.SlotID)
 }
 
 func newFragment(
@@ -122,6 +123,10 @@ func (f *Fragment) logUpdate(ctx context.Context, l Log) error {
 	return nil
 }
 
-func (f Fragment) fileRecordID() link.FileRecordID {
+func (f *Fragment) fileRecordID() link.FileRecordID {
 	return f.p.FileBlockID().FileRecordID(f.slotID)
+}
+
+func (f *Fragment) Delete() {
+	f.p.Delete(f.slotID)
 }
