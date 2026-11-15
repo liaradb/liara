@@ -4,6 +4,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/scan"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/should"
@@ -53,6 +54,30 @@ func TestPage_Fill(t *testing.T) {
 	}
 }
 
+func TestPage_Replace(t *testing.T) {
+	t.Parallel()
+
+	p := New(20, 4, 4)
+
+	want := []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 0, 0, 0, 0}
+	b := buffer.NewFromSlice(want)
+	if err := p.Replace(b); err != nil {
+		t.Fatal(err)
+	}
+
+	if data := p.Data(); !slices.Equal(data, want) {
+		t.Errorf("incorrect data: %v, expected: %v", data, want)
+	}
+
+	p.Clear()
+
+	want = make([]byte, 20)
+	_ = scan.SetInt32(want, int32(MagicPage))
+	if data := p.Data(); !slices.Equal(data, want) {
+		t.Errorf("incorrect data: %v, expected: %v", data, want)
+	}
+}
+
 func TestPage_Header(t *testing.T) {
 	t.Parallel()
 
@@ -61,6 +86,16 @@ func TestPage_Header(t *testing.T) {
 
 	if h := p.Header(); !slices.Equal(h, want[headerSize:headerSize+4]) {
 		t.Errorf("incorrect data: %v, expected: %v", h, want[headerSize:headerSize+4])
+	}
+
+	if tid := p.TrackingID(); tid != 0 {
+		t.Errorf("incorrect tracking id: %v, expected: %v", tid, 0)
+	}
+
+	p.SetTrackingID(1)
+
+	if tid := p.TrackingID(); tid != 1 {
+		t.Errorf("incorrect tracking id: %v, expected: %v", tid, 1)
 	}
 }
 
@@ -112,6 +147,10 @@ func TestPage_NextMustFit(t *testing.T) {
 	t.Parallel()
 
 	p := New(40, 4, 4)
+
+	if _, _, ok := p.NextMustFit(100); ok {
+		t.Error("should not fit oversized")
+	}
 
 	header, data, _ := p.NextMustFit(8)
 
@@ -302,6 +341,56 @@ func TestPage_SlotsRange(t *testing.T) {
 	if !slices.Equal(result, want[1:4]) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want[1:4])
 	}
+
+	for range p.SlotsRange(1, 4) {
+		// Early return
+		break
+	}
+}
+
+func TestPage_SlotsReverse(t *testing.T) {
+	t.Parallel()
+
+	p := New(256, 4, 4)
+
+	want := []int64{101, 102, 103, 104, 105}
+	for _, v := range want {
+		_, b := p.Next(8)
+		_ = scan.SetInt64(b, v)
+		_ = p.CommitAppend(8)
+	}
+
+	result := make([]int64, 0, 5)
+	for _, b := range p.SlotsReverse() {
+		v, _ := scan.Int64(b)
+		result = append(result, v)
+	}
+
+	slices.Reverse(want)
+	if !slices.Equal(result, want) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
+
+	for range p.SlotsReverse() {
+		// Early return
+		break
+	}
+}
+
+func TestPage_Delete(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	_, _ = p.Next(8)
+	_ = p.CommitAppend(8)
+
+	_, _ = p.Slot(0)
+
+	p.Delete(0)
+	should.Panic(t, "slot should not exist", func() {
+		_, _ = p.Slot(0)
+	})
 }
 
 func TestPage_RecoverAppend(t *testing.T) {
