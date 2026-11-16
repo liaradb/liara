@@ -1,4 +1,4 @@
-package tenantfolder
+package tablename
 
 import "strings"
 

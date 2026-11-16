@@ -5,8 +5,8 @@ import (
 	"iter"
 
 	"github.com/liaradb/liaradb/collection/btree/node"
-	record1 "github.com/liaradb/liaradb/collection/heap/record"
-	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
+	heaprecord "github.com/liaradb/liaradb/collection/heap/record"
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -211,8 +211,8 @@ func (re *Replay) recoverRollback() error {
 }
 
 func (re *Replay) getPage(r *record.Record, b *storage.Buffer) *page.Page {
-	if tenantfolder.IsBTree(r.FileRecordID().FileBlockID().FileName().String()) {
-		return record1.NewPage(b.Raw()).Page
+	if tablename.IsBTree(r.FileRecordID().FileBlockID().FileName().String()) {
+		return heaprecord.NewPage(b.Raw()).Page
 	}
 
 	return page.NewFromSlice(b.Raw(), node.HeaderSize, 0)

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 )
@@ -92,7 +93,7 @@ func (tf TenantFolder) partitionString(dir fs.DirEntry) (string, bool) {
 	}
 
 	n := dir.Name()
-	if !IsCollection(n) {
+	if !tablename.IsCollection(n) {
 		return "", false
 	}
 
