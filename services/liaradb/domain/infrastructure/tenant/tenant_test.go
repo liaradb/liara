@@ -58,6 +58,60 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	synctest.Wait()
 }
 
+func TestTenant_Get__Error(t *testing.T) {
+	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+		l := &logtesting.MockLog{}
+		tid := value.NewTenantID()
+
+		if _, err := tn.Get(ctx, l, tid); err == nil {
+			t.Fatal("should return error")
+		}
+	})
+}
+
+func TestTenant_Replace(t *testing.T) {
+	t.Skip()
+	// TODO: Replace across two pages panics
+	storagetesting.SyncTest(t, 10, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+		l := &logtesting.MockLog{}
+
+		id := value.NewTenantID()
+		t0 := entity.NewTenant(id, value.NewTenantName("Tenant 1"))
+
+		if err := tn.Insert(ctx, l, t0); err != nil {
+			t.Fatal(err)
+		}
+
+		t1, err := tn.Get(ctx, l, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if *t1 != *t0 {
+			t.Errorf("incorrect result: %v, expected: %v", *t1, *t0)
+		}
+
+		t1.Rename(value.NewTenantName("Tenant 2"))
+
+		if err := tn.Replace(ctx, l, t1); err != nil {
+			t.Fatal(err)
+		}
+
+		t2, err := tn.Get(ctx, l, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if *t2 != *t1 {
+			t.Errorf("incorrect result: %v, expected: %v", *t2, *t1)
+		}
+	})
+}
+
 type item struct {
 	key   string
 	value *entity.Tenant

@@ -62,6 +62,62 @@ func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	synctest.Wait()
 }
 
+func TestOutbox_Get__Error(t *testing.T) {
+	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+		l := &logtesting.MockLog{}
+		tid := value.NewTenantID()
+
+		if _, err := ob.Get(ctx, l, tid, value.NewOutboxID()); err == nil {
+			t.Fatal("should return error")
+		}
+	})
+}
+
+func TestOutbox_Replace(t *testing.T) {
+	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+		l := &logtesting.MockLog{}
+		tid := value.NewTenantID()
+		pid := value.NewPartitionID(0)
+
+		id := value.NewOutboxID()
+		o0 := entity.NewOutbox(id, pid)
+
+		o0.UpdatePosition(value.NewGlobalVersion(1), value.NewSubVersion(2))
+
+		if err := ob.Insert(ctx, l, tid, id, o0); err != nil {
+			t.Fatal(err)
+		}
+
+		o1, err := ob.Get(ctx, l, tid, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if *o1 != *o0 {
+			t.Errorf("incorrect result: %v, expected: %v", *o1, *o0)
+		}
+
+		o1.UpdatePosition(value.NewGlobalVersion(10), value.NewSubVersion(20))
+
+		if err := ob.Replace(ctx, l, tid, id, o1); err != nil {
+			t.Fatal(err)
+		}
+
+		o2, err := ob.Get(ctx, l, tid, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if *o2 != *o1 {
+			t.Errorf("incorrect result: %v, expected: %v", *o2, *o1)
+		}
+	})
+}
+
 type item struct {
 	key   string
 	value *entity.Outbox

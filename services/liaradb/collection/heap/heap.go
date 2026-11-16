@@ -77,13 +77,14 @@ func (h *Heap) Get(
 		}
 
 		p := bufferpage.New(b)
-		f = r.AppendSlot(p, link.SlotID(0))
+		f = r.AppendSlot(p, f.NextSlotID())
 	}
 
 	ok = true
 	return r, nil
 }
 
+// TODO: Change to take a Record instead of Serializer to avoid second Get
 func (h *Heap) Replace(
 	ctx context.Context,
 	l log.Log,

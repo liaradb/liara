@@ -20,6 +20,12 @@ func SyncTest(t *testing.T, max int, bs int16, f func(*testing.T, Storage)) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
+		defer func() {
+			if r := recover(); r != nil {
+				synctest.Wait()
+				t.Fatal(r)
+			}
+		}()
 		fsys := filetesting.New(nil)
 		s := CreateStorageWithFileSystem(t, max, bs, fsys, ".")
 

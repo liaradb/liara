@@ -86,7 +86,7 @@ func (ic *IndexedCollection) List(
 			}
 
 			s, err := ic.h.Get(ctx, fn, r.RecordID)
-			if !yield(s, err) {
+			if !yield(s, err) || err != nil {
 				return
 			}
 		}
