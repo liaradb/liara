@@ -14,6 +14,10 @@ func TestRequestLog(t *testing.T) {
 	tm := value.NewTime(time.Now())
 	rl := NewRequestLog(rlid, tm)
 
+	if s := rl.Size(); s != RequestLogSize {
+		t.Errorf("incorrect size: %v, expected: %v", s, RequestLogSize)
+	}
+
 	if i := rl.ID(); i != rlid {
 		t.Errorf("incorrect id: %v, expected: %v", i, rlid)
 	}
@@ -42,22 +46,18 @@ func TestRequestLog_RestoreRequestLog(t *testing.T) {
 func TestRequestLog_ReadWrite(t *testing.T) {
 	t.Parallel()
 
+	r, w := newReaderWriter()
+
 	rl := NewRequestLog(
 		value.NewRequestID(),
 		value.NewTime(time.Now()))
-
-	data := make([]byte, RequestLogSize+2)
-	data0 := rl.WriteData(data)
-
-	if l := len(data0); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := rl.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
 	rl1 := &RequestLog{}
-	data1 := rl1.ReadData(data)
-
-	if l := len(data1); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := rl1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
 	if !rl1.Compare(rl) {

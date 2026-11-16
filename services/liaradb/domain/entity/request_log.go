@@ -50,16 +50,6 @@ func (rl *RequestLog) Compare(b *RequestLog) bool {
 	return rl.id == b.id && rl.time.Compare(b.time.Value()) == 0
 }
 
-func (rl *RequestLog) WriteData(data []byte) []byte {
-	data0 := rl.id.WriteData(data)
-	return rl.time.WriteData(data0)
-}
-
-func (rl *RequestLog) ReadData(data []byte) []byte {
-	data0 := rl.id.ReadData(data)
-	return rl.time.ReadData(data0)
-}
-
 func (rl *RequestLog) Write(w io.Writer) error {
 	return serializer.WriteAll(w,
 		rl.id,
