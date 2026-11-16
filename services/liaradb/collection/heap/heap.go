@@ -29,22 +29,22 @@ func (h *Heap) Insert(
 ) (link.RecordID, error) {
 	t := tip.NewTip(h.s, fn)
 
-	s, err := t.Record(ctx, w.Size())
+	r, err := t.Record(ctx, w.Size())
 	if err != nil {
 		return link.RecordID{}, err
 	}
 
-	defer s.Release()
+	defer r.Release()
 
-	if err := w.Write(s.Writer()); err != nil {
+	if err := w.Write(r.Writer()); err != nil {
 		return link.RecordID{}, err
 	}
 
-	if err := s.CommitAppend(ctx, l); err != nil {
+	if err := r.CommitAppend(ctx, l); err != nil {
 		return link.RecordID{}, err
 	}
 
-	return s.RecordID(), nil
+	return r.RecordID(), nil
 }
 
 func (h *Heap) Get(
@@ -58,23 +58,30 @@ func (h *Heap) Get(
 		return nil, err
 	}
 
-	s := record.New()
+	r := record.New()
+	ok := false
+	defer func() {
+		if !ok {
+			r.Release()
+		}
+	}()
+
 	p := bufferpage.New(b)
-	f := s.AppendSlot(p, rid.SlotID())
+	f := r.AppendSlot(p, rid.SlotID())
 
 	for f.NextBlockID() != 0 {
 		fbid.SetBlockID(f.NextBlockID())
 		b, err := h.s.Request(ctx, fbid)
 		if err != nil {
-			s.Release()
 			return nil, err
 		}
 
 		p := bufferpage.New(b)
-		f = s.AppendSlot(p, link.SlotID(0))
+		f = r.AppendSlot(p, link.SlotID(0))
 	}
 
-	return s, nil
+	ok = true
+	return r, nil
 }
 
 func (h *Heap) Replace(
@@ -84,25 +91,25 @@ func (h *Heap) Replace(
 	rid link.RecordID,
 	w serializer.SizedSerializer,
 ) error {
-	s, err := h.Get(ctx, fn, rid)
+	r, err := h.Get(ctx, fn, rid)
 	if err != nil {
 		return err
 	}
 
-	defer s.Release()
+	defer r.Release()
 
-	if size, length := w.Size(), s.Length(); size < length {
+	if size, length := w.Size(), r.Length(); size < length {
 		// Extend Record
 		return io.ErrShortWrite
 	} else if size > length {
 		// Return Fragments to Free Space Manager
 	}
 
-	if err := w.Write(s.Writer()); err != nil {
+	if err := w.Write(r.Writer()); err != nil {
 		return err
 	}
 
-	return s.CommitUpdate(ctx, l)
+	return r.CommitUpdate(ctx, l)
 }
 
 func (h *Heap) Delete(

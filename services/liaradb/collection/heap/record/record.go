@@ -41,12 +41,18 @@ func (r *Record) valid() bool {
 }
 
 func (r *Record) AppendSlot(b BufferPage, sid link.SlotID) *fragment {
+	// Append first in case of panic
+	r.buffers = append(r.buffers, b)
 	h, d := b.Slot(sid)
-	return r.Append(b, sid, h, d)
+	return r.appendFragment(b, sid, h, d)
 }
 
 func (r *Record) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *fragment {
 	r.buffers = append(r.buffers, b)
+	return r.appendFragment(b, sid, header, data)
+}
+
+func (r *Record) appendFragment(b BufferPage, sid link.SlotID, header []byte, data []byte) *fragment {
 	f := newFragment(b, sid, header, data)
 	r.fragments = append(r.fragments, f)
 	return f

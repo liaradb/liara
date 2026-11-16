@@ -23,6 +23,7 @@ func NewTip(s *storage.Storage, fn link.FileName) Tip {
 	}
 }
 
+// TODO: Ensure release on error
 func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 	r := record.New()
 
