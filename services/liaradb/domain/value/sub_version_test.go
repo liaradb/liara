@@ -30,3 +30,21 @@ func TestSubVersion(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", s2, s1)
 	}
 }
+
+func TestSubVersion_Increment(t *testing.T) {
+	t.Parallel()
+
+	sv0 := NewSubVersion(1)
+	sv1 := sv0.Increment()
+	sv2 := sv1.Increment()
+
+	if v := sv0.Value(); v != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 1)
+	}
+	if v := sv1.Value(); v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
+	}
+	if v := sv2.Value(); v != 3 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 3)
+	}
+}

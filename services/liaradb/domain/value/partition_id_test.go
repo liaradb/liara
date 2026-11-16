@@ -10,13 +10,13 @@ func TestPartitionID(t *testing.T) {
 
 	r, w := newReaderWriter()
 
-	var e PartitionID = NewPartitionID(1)
-	if err := e.Write(w); err != nil {
+	var pid PartitionID = NewPartitionID(1)
+	if err := pid.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	size := w.Len()
-	if s := e.Size(); s != size {
+	if s := pid.Size(); s != size {
 		t.Errorf("incorrect size: %v, expected: %v", s, size)
 	}
 
@@ -25,8 +25,24 @@ func TestPartitionID(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s1, s2 := e.String(), e2.String()
+	s1, s2 := pid.String(), e2.String()
 	if s1 != s2 {
 		t.Errorf("incorrect value: %v, expected: %v", s2, s1)
+	}
+}
+
+func TestPartitionID_Value(t *testing.T) {
+	t.Parallel()
+
+	var pid0 PartitionID = NewPartitionID(1)
+
+	if v := pid0.Value(); v != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 1)
+	}
+
+	var pid1 PartitionID = NewPartitionID(2)
+
+	if v := pid1.Value(); v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 }

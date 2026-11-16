@@ -30,3 +30,21 @@ func TestGlobalVersion(t *testing.T) {
 		t.Errorf("incorrect value: %v, expected: %v", s2, s1)
 	}
 }
+
+func TestGlobalVersion_Increment(t *testing.T) {
+	t.Parallel()
+
+	gv0 := NewGlobalVersion(1)
+	gv1 := gv0.Increment()
+	gv2 := gv1.Increment()
+
+	if v := gv0.Value(); v != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 1)
+	}
+	if v := gv1.Value(); v != 2 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 2)
+	}
+	if v := gv2.Value(); v != 3 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 3)
+	}
+}
