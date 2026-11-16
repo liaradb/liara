@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
@@ -24,11 +25,11 @@ func newPartitionedTable(tf TenantFolder, name string, pid value.PartitionID) Pa
 }
 
 func (t PartitionedTableName) Collection() link.FileName {
-	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v.col", t.name, t.pid)))
+	return tablename.CollectionExtension.FileName(t.String())
 }
 
 func (t PartitionedTableName) Index(i base.Uint32) link.FileName {
-	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v--%v.bt", t.name, i, t.pid)))
+	return tablename.BTreeExtension.FileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v--%v", t.name, i, t.pid)))
 }
 
 func (t PartitionedTableName) String() string {

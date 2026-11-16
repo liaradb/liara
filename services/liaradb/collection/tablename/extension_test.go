@@ -2,6 +2,26 @@ package tablename
 
 import "testing"
 
+func TestExtension_FileName(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should create collection name", func(t *testing.T) {
+		fn := CollectionExtension.FileName("name")
+		want := "name.col"
+		if n := fn.String(); n != "name.col" {
+			t.Errorf("incorrect file name: %v, expected: %v", n, want)
+		}
+	})
+
+	t.Run("should create B+Tree name", func(t *testing.T) {
+		fn := BTreeExtension.FileName("name")
+		want := "name.bt"
+		if n := fn.String(); n != "name.bt" {
+			t.Errorf("incorrect file name: %v, expected: %v", n, want)
+		}
+	})
+}
+
 func TestIsBTree(t *testing.T) {
 	for message, c := range map[string]struct {
 		skip   bool

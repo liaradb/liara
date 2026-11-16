@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
 )
@@ -21,11 +22,11 @@ func newGlobalTableName(tf TenantFolder, name string) GlobalTableName {
 }
 
 func (t GlobalTableName) Collection() link.FileName {
-	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v.col", t.name)))
+	return tablename.CollectionExtension.FileName(t.String())
 }
 
 func (t GlobalTableName) Index(i base.Uint32) link.FileName {
-	return link.NewFileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v.bt", t.name, i)))
+	return tablename.BTreeExtension.FileName(path.Join(t.tf.String(), fmt.Sprintf("%v--%v", t.name, i)))
 }
 
 func (t GlobalTableName) String() string {
