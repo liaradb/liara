@@ -30,4 +30,9 @@ func TestPartitionedTable(t *testing.T) {
 	if s := idx.String(); s != idxWant {
 		t.Errorf("incorrect string: %v, expected: %v", s, idxWant)
 	}
+
+	sWant := fmt.Sprintf("%v/%v--%08x", tid, name, 2)
+	if s := tbl.String(); s != sWant {
+		t.Errorf("incorrect string: %v, expected: %v", s, sWant)
+	}
 }

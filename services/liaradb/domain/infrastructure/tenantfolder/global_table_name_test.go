@@ -29,4 +29,9 @@ func TestGlobalTable(t *testing.T) {
 	if s := idx.String(); s != idxWant {
 		t.Errorf("incorrect string: %v, expected: %v", s, idxWant)
 	}
+
+	sWant := fmt.Sprintf("%v/%v", tid, name)
+	if s := tbl.String(); s != sWant {
+		t.Errorf("incorrect string: %v, expected: %v", s, sWant)
+	}
 }
