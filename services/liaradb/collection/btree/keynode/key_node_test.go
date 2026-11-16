@@ -3,7 +3,6 @@ package keynode
 import (
 	"slices"
 	"testing"
-	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
@@ -17,10 +16,8 @@ func TestKeyNode(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should insert", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -32,10 +29,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should replace root", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -73,10 +68,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should iterate in order", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -88,10 +81,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should get child", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -103,10 +94,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should search items", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -119,10 +108,8 @@ func TestKeyNode(t *testing.T) {
 
 	// TODO: This method is private
 	t.Run("should search indexes", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -153,10 +140,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should search before items", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -172,10 +157,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should search after items", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -191,10 +174,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should fill", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
@@ -223,10 +204,8 @@ func TestKeyNode(t *testing.T) {
 	})
 
 	t.Run("should replace", func(t *testing.T) {
-		t.Parallel()
-		synctest.Test(t, func(t *testing.T) {
-			s := storagetesting.CreateStorage(t, 2, 256)
-			b := createBuffer(t, s)
+		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
 			defer b.Release()
 
 			bp := node.New(b)
