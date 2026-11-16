@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 	"testing/synctest"
+
+	"github.com/liaradb/liaradb/util/testing/should"
 )
 
 func TestRequest(t *testing.T) {
@@ -50,12 +52,6 @@ func testRequest__DoubleReply(t *testing.T) {
 
 	go func() {
 		if r, ok := h.Listen(t.Context()); ok {
-			defer func() {
-				if r := recover(); r == nil {
-					t.Errorf("should panic")
-				}
-			}()
-
 			if v := r.Value(); v != "a" {
 				t.Errorf("incorrect value: %v, expected: %v", v, "a")
 			}
@@ -65,7 +61,10 @@ func testRequest__DoubleReply(t *testing.T) {
 			}
 
 			r.Reply(2, errValue)
-			r.Reply(2, errValue)
+
+			should.Panic(t, "should panic", func() {
+				r.Reply(2, errValue)
+			})
 		}
 	}()
 
