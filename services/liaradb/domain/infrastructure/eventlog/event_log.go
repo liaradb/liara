@@ -149,11 +149,11 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	}
 }
 
-func (*EventLog) readEvent(s *record.Record) (*entity.Event, error) {
-	defer s.Release()
+func (*EventLog) readEvent(r *record.Record) (*entity.Event, error) {
+	defer r.Release()
 
 	e := entity.Event{}
-	return &e, e.Read(s)
+	return &e, e.Read(r)
 }
 
 func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {

@@ -52,11 +52,11 @@ func (t *Tenant) List(
 	}
 }
 
-func (*Tenant) readTenant(s *record.Record) (*entity.Tenant, error) {
-	defer s.Release()
+func (*Tenant) readTenant(r *record.Record) (*entity.Tenant, error) {
+	defer r.Release()
 
 	t := entity.Tenant{}
-	return &t, t.Read(s)
+	return &t, t.Read(r)
 }
 
 func (t *Tenant) Insert(

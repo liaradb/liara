@@ -57,11 +57,11 @@ func (i *Idempotency) List(
 	}
 }
 
-func (*Idempotency) readRequestLog(s *record.Record) (*entity.RequestLog, error) {
-	defer s.Release()
+func (*Idempotency) readRequestLog(r *record.Record) (*entity.RequestLog, error) {
+	defer r.Release()
 
 	rl := entity.RequestLog{}
-	return &rl, rl.Read(s)
+	return &rl, rl.Read(r)
 }
 
 func (i *Idempotency) Insert(

@@ -11,9 +11,8 @@ import (
 )
 
 type Tip struct {
-	s       *storage.Storage
-	fn      link.FileName
-	current *bufferpage.BufferPage
+	s  *storage.Storage
+	fn link.FileName
 }
 
 func NewTip(s *storage.Storage, fn link.FileName) Tip {
@@ -23,21 +22,25 @@ func NewTip(s *storage.Storage, fn link.FileName) Tip {
 	}
 }
 
-// TODO: Ensure release on error
 func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 	r := record.New()
+	ok := false
+	defer func() {
+		if !ok {
+			r.Release()
+		}
+	}()
 
 	b, err := t.s.RequestCurrent(ctx, t.fn)
 	if err != nil {
 		return nil, err
 	}
 
-	t.current = bufferpage.New(b)
-
 	available := 0
 	remaining := size
 
-	l := t.appendToRecord(r, t.current, t.capRemaining(remaining))
+	p := bufferpage.New(b)
+	l := t.appendToRecord(r, p, t.capRemaining(remaining))
 
 	available = l
 	remaining -= l
@@ -55,6 +58,7 @@ func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 	}
 
 	r.InitIndexes()
+	ok = true
 	return r, nil
 }
 
@@ -63,14 +67,21 @@ func (*Tip) capRemaining(remaining int) int16 {
 }
 
 func (t *Tip) appendToRecord(r *record.Record, p *bufferpage.BufferPage, remaining int16) int {
+	ok := false
+	defer func() {
+		if !ok {
+			p.Release()
+		}
+	}()
+
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {
-		p.Release()
 		return l
 	}
 
 	_ = r.Append(p, link.SlotID(p.Count()), header, data)
+	ok = true
 	return l
 }
 

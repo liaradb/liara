@@ -55,14 +55,22 @@ func (s *baseService) initTransaction(ctx context.Context, tid value.TenantID) (
 		return nil, err
 	}
 
+	ok := false
+	defer func() {
+		if !ok {
+			tx.Release()
+		}
+	}()
+
 	if tid == value.DefaultTenantID {
+		ok = true
 		return tx, nil
 	}
 
 	if _, err := s.tenant.Get(ctx, tx, tid); err != nil {
-		tx.Release()
 		return nil, err
 	}
 
+	ok = true
 	return tx, nil
 }

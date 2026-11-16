@@ -56,11 +56,11 @@ func (o *Outbox) List(
 	}
 }
 
-func (*Outbox) readOutbox(s *record.Record) (*entity.Outbox, error) {
-	defer s.Release()
+func (*Outbox) readOutbox(r *record.Record) (*entity.Outbox, error) {
+	defer r.Release()
 
 	o := entity.Outbox{}
-	return &o, o.Read(s)
+	return &o, o.Read(r)
 }
 
 func (o *Outbox) Insert(
