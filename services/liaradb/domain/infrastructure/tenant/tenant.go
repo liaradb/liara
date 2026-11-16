@@ -45,7 +45,7 @@ func (t *Tenant) List(
 				return
 			}
 
-			if !yield(t.readTenant(r)) {
+			if e, err := t.readTenant(r); !yield(e, err) || err != nil {
 				return
 			}
 		}

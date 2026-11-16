@@ -123,6 +123,10 @@ func testList(
 	if !slices.Equal(result, want) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	for range o.List(ctx, &logtesting.MockLog{}, tid) {
+		break
+	}
 }
 
 func getListValues(

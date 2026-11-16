@@ -137,6 +137,10 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 	if !slices.Equal(result, want) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	for range kv.List(ctx, &logtesting.MockLog{}, tn) {
+		break
+	}
 }
 
 func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {

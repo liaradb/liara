@@ -99,8 +99,7 @@ func (l *EventLog) GetAggregate(
 				return
 			}
 
-			e, err := l.readEvent(r)
-			if !yield(e, err) || err != nil {
+			if e, err := l.readEvent(r); !yield(e, err) || err != nil {
 				return
 			}
 		}

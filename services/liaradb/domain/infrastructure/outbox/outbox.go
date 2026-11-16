@@ -49,7 +49,7 @@ func (o *Outbox) List(
 				return
 			}
 
-			if !yield(o.readOutbox(r)) {
+			if e, err := o.readOutbox(r); !yield(e, err) || err != nil {
 				return
 			}
 		}

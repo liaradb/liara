@@ -44,7 +44,7 @@ func (kv *KeyValue) List(
 				return
 			}
 
-			if !yield(r.BytesAndRelease()) {
+			if d, err := r.BytesAndRelease(); !yield(d, err) || err != nil {
 				return
 			}
 		}

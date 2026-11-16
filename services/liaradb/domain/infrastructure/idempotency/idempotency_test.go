@@ -117,9 +117,9 @@ func testList(
 	t *testing.T,
 	data []item,
 	idp *Idempotency,
-	n tablename.TableName,
+	tn tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, idp, n)
+	result, err := getListValues(ctx, data, idp, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,17 +128,21 @@ func testList(
 	if !slices.Equal(result, want) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	for range idp.List(ctx, &logtesting.MockLog{}, tn) {
+		break
+	}
 }
 
 func getListValues(
 	ctx context.Context,
 	data []item,
 	o *Idempotency,
-	n tablename.TableName,
+	tn tablename.TableName,
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &logtesting.MockLog{}, n) {
+	for value, err := range o.List(ctx, &logtesting.MockLog{}, tn) {
 		if err != nil {
 			return nil, err
 		}

@@ -119,16 +119,20 @@ func testList(
 	if !slices.Equal(result, want) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
+
+	for range tn.List(ctx, &logtesting.MockLog{}) {
+		break
+	}
 }
 
 func getListValues(
 	ctx context.Context,
 	data []item,
-	o *Tenant,
+	tn *Tenant,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &logtesting.MockLog{}) {
+	for value, err := range tn.List(ctx, &logtesting.MockLog{}) {
 		if err != nil {
 			return nil, err
 		}

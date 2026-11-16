@@ -50,7 +50,7 @@ func (i *Idempotency) List(
 				return
 			}
 
-			if !yield(i.readRequestLog(r)) {
+			if e, err := i.readRequestLog(r); !yield(e, err) || err != nil {
 				return
 			}
 		}
