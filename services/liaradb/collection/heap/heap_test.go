@@ -2,7 +2,6 @@ package heap
 
 import (
 	"testing"
-	"testing/synctest"
 
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/logtesting"
@@ -10,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
-func TestHeap(t *testing.T) {
+func TestHeap_Get(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
 		h := New(s.Storage)
 
@@ -43,7 +42,29 @@ func TestHeap(t *testing.T) {
 		if item != *want {
 			t.Errorf("incorrect result: %v, expected: %v", item, *want)
 		}
+	})
+}
 
-		synctest.Wait()
+func TestHeap_Delete(t *testing.T) {
+	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		h := New(s.Storage)
+
+		fn := link.NewFileName("test")
+		bid := link.BlockID(0)
+		rid := link.NewRecordID(bid, link.SlotID(0))
+
+		want := NewTestItem(NewTestID())
+		rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, want)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := h.Delete(t.Context(), &logtesting.MockLog{}, fn, rid); err != nil {
+			t.Fatal(err)
+		}
+
+		should.Panic(t, "should not get value", func() {
+			_, _ = h.Get(t.Context(), fn, rid)
+		})
 	})
 }

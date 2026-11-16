@@ -17,6 +17,7 @@ import (
 func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
+	l := &logtesting.MockLog{}
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
@@ -36,7 +37,7 @@ func TestRecord_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), l); err != nil {
 		t.Fatal(err)
 	}
 
@@ -52,6 +53,56 @@ func TestRecord_Write(t *testing.T) {
 
 	if !reflect.DeepEqual(tr1, tr0) {
 		t.Errorf("incorrect record: %v, expected: %v", tr1, tr0)
+	}
+
+	if c := len(l.Records()); c != 2 {
+		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
+	}
+}
+
+func TestRecord_Update(t *testing.T) {
+	t.Parallel()
+
+	l := &logtesting.MockLog{}
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+
+	tr0 := &testRecord{
+		id:   base.Uint64(2),
+		data: slices.Clone(want),
+	}
+
+	size := float64(tr0.Size()) / 2
+	a, b := int(math.Floor(size)), int(math.Ceil(size))
+
+	r := New()
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+	r.InitIndexes()
+
+	if err := tr0.Write(r.Writer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := r.CommitUpdate(t.Context(), l); err != nil {
+		t.Fatal(err)
+	}
+
+	r.SeekStart()
+
+	tr1 := &testRecord{
+		data: make([]byte, 11),
+	}
+
+	if err := tr1.Read(r); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(tr1, tr0) {
+		t.Errorf("incorrect record: %v, expected: %v", tr1, tr0)
+	}
+
+	if c := len(l.Records()); c != 2 {
+		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
 	}
 }
 
@@ -147,6 +198,7 @@ func TestRecord_Bytes(t *testing.T) {
 }
 
 type testBufferPage struct {
+	released bool
 }
 
 func (t *testBufferPage) FileBlockID() link.FileBlockID { return link.FileBlockID{} }
@@ -158,6 +210,11 @@ func (t *testBufferPage) CommitAppend(size int16) {
 }
 
 func (t *testBufferPage) Release() {
+	t.released = true
+}
+
+func (t *testBufferPage) isReleased() bool {
+	return t.released
 }
 
 func (t *testBufferPage) Slot(link.SlotID) ([]byte, []byte) {

@@ -1,0 +1,76 @@
+package record
+
+import (
+	"math"
+	"slices"
+	"testing"
+
+	"github.com/liaradb/liaradb/encoder/base"
+	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
+)
+
+func TestFragment(t *testing.T) {
+	t.Parallel()
+
+	l := &logtesting.MockLog{}
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+
+	tr0 := &testRecord{
+		id:   base.Uint64(2),
+		data: slices.Clone(want),
+	}
+
+	size := float64(tr0.Size()) / 2
+	a, b := int(math.Floor(size)), int(math.Ceil(size))
+
+	r := New()
+	f0 := r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	f1 := r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+	r.InitIndexes()
+
+	r.CommitAppend(t.Context(), l)
+
+	if nsid, sid := f0.NextSlotID(), f1.RecordID().SlotID(); nsid != 0 && nsid != sid {
+		t.Errorf("incorrect next slot id: %v, expected: %v", nsid, sid)
+	}
+}
+
+func TestFragmentRelease(t *testing.T) {
+	t.Parallel()
+
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+
+	tr0 := &testRecord{
+		id:   base.Uint64(2),
+		data: slices.Clone(want),
+	}
+
+	size := float64(tr0.Size()) / 2
+	a, b := int(math.Floor(size)), int(math.Ceil(size))
+
+	bp0 := testBufferPage{}
+	bp1 := testBufferPage{}
+
+	r := New()
+	_ = r.Append(&bp0, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(&bp1, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+
+	if bp0.isReleased() {
+		t.Error("should not be released")
+	}
+
+	if bp1.isReleased() {
+		t.Error("should not be released")
+	}
+
+	r.Release()
+
+	if !bp0.isReleased() {
+		t.Error("should be released")
+	}
+
+	if !bp1.isReleased() {
+		t.Error("should be released")
+	}
+}

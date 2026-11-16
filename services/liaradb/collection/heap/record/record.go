@@ -12,7 +12,7 @@ import (
 )
 
 type Record struct {
-	fragments []*fragment
+	fragments []*Fragment
 	buffers   []BufferPage
 }
 
@@ -40,19 +40,19 @@ func (r *Record) valid() bool {
 	return true
 }
 
-func (r *Record) AppendSlot(b BufferPage, sid link.SlotID) *fragment {
+func (r *Record) AppendSlot(b BufferPage, sid link.SlotID) *Fragment {
 	// Append first in case of panic
 	r.buffers = append(r.buffers, b)
 	h, d := b.Slot(sid)
 	return r.appendFragment(b, sid, h, d)
 }
 
-func (r *Record) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *fragment {
+func (r *Record) Append(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
 	r.buffers = append(r.buffers, b)
 	return r.appendFragment(b, sid, header, data)
 }
 
-func (r *Record) appendFragment(b BufferPage, sid link.SlotID, header []byte, data []byte) *fragment {
+func (r *Record) appendFragment(b BufferPage, sid link.SlotID, header []byte, data []byte) *Fragment {
 	f := newFragment(b, sid, header, data)
 	r.fragments = append(r.fragments, f)
 	return f
@@ -74,7 +74,7 @@ func (r *Record) InitIndexes() {
 
 // Sort to ensure writes are sequential, and prevent deadlocks
 func (r *Record) sortFragments() {
-	slices.SortFunc(r.fragments, func(a, b *fragment) int {
+	slices.SortFunc(r.fragments, func(a, b *Fragment) int {
 		return int(a.p.FileBlockID().BlockID() - b.p.FileBlockID().BlockID())
 	})
 }
