@@ -55,20 +55,6 @@ func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
 	o.globalVersion = v
 }
 
-func (o *Outbox) WriteData(data []byte) []byte {
-	data0 := o.id.WriteData(data)
-	data1 := o.partitionID.WriteData(data0)
-	data2 := o.globalVersion.WriteData(data1)
-	return o.subVersion.WriteData(data2)
-}
-
-func (o *Outbox) ReadData(data []byte) []byte {
-	data0 := o.id.ReadData(data)
-	data1 := o.partitionID.ReadData(data0)
-	data2 := o.globalVersion.ReadData(data1)
-	return o.subVersion.ReadData(data2)
-}
-
 func (o *Outbox) Read(r io.Reader) error {
 	return serializer.ReadAll(r,
 		&o.id,

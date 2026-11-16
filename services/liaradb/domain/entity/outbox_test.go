@@ -51,24 +51,21 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 func TestOutbox_ReadWrite(t *testing.T) {
 	t.Parallel()
 
+	r, w := newReaderWriter()
+
 	o := RestoreOutbox(
 		value.NewOutboxID(),
 		value.NewPartitionID(2),
 		value.NewGlobalVersion(12345),
 		value.NewSubVersion(67890))
 
-	data := make([]byte, OutboxSize+2)
-	data0 := o.WriteData(data)
-
-	if l := len(data0); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := o.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
 	o1 := &Outbox{}
-	data1 := o1.ReadData(data)
-
-	if l := len(data1); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := o1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
 	if *o1 != *o {

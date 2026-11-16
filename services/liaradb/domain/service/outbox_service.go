@@ -51,8 +51,6 @@ func (os *OutboxService) CreateOutbox(
 
 	return tx.RunResult(ctx, func() (value.OutboxID, error) {
 		outbox := entity.NewOutbox(oid, pid)
-		data := make([]byte, entity.OutboxSize)
-		_ = outbox.WriteData(data)
 
 		if err := os.outbox.Insert(ctx, tx, tid, oid, outbox); err != nil {
 			return value.OutboxID{}, err
