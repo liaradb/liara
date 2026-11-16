@@ -51,8 +51,9 @@ func (o *Outbox) GlobalVersion() value.GlobalVersion { return o.globalVersion }
 func (o *Outbox) SubVersion() value.SubVersion       { return o.subVersion }
 func (o *Outbox) Size() int                          { return OutboxSize }
 
-func (o *Outbox) UpdateGlobalVersion(v value.GlobalVersion) {
+func (o *Outbox) UpdatePosition(v value.GlobalVersion, sv value.SubVersion) {
 	o.globalVersion = v
+	o.subVersion = sv
 }
 
 func (o *Outbox) Read(r io.Reader) error {

@@ -80,6 +80,7 @@ func (os *OutboxService) UpdateOutboxPosition(
 	tid value.TenantID,
 	oid value.OutboxID,
 	v value.GlobalVersion,
+	sv value.SubVersion,
 ) error {
 	tx, err := os.initTransaction(ctx, tid)
 	if err != nil {
@@ -92,7 +93,7 @@ func (os *OutboxService) UpdateOutboxPosition(
 			return err
 		}
 
-		o.UpdateGlobalVersion(v)
+		o.UpdatePosition(v, sv)
 
 		return os.outbox.Replace(ctx, tx, tid, oid, o)
 	})

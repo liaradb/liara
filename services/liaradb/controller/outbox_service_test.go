@@ -63,13 +63,14 @@ func (es *testOutboxService) UpdateOutboxPosition(
 	ctx context.Context,
 	tid value.TenantID,
 	outboxID value.OutboxID,
-	globalVersion value.GlobalVersion,
+	gv value.GlobalVersion,
+	sv value.SubVersion,
 ) error {
 	o, ok := es.outboxes[outboxID]
 	if !ok {
 		return baseerror.ErrNotFound
 	}
 
-	o.UpdateGlobalVersion(globalVersion)
+	o.UpdatePosition(gv, sv)
 	return nil
 }

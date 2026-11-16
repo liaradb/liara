@@ -18,7 +18,7 @@ type OutboxService interface {
 	GetOutbox(
 		ctx context.Context,
 		tid value.TenantID,
-		outboxID value.OutboxID,
+		oid value.OutboxID,
 	) (*entity.Outbox, error)
 
 	ListOutboxes(
@@ -29,7 +29,8 @@ type OutboxService interface {
 	UpdateOutboxPosition(
 		ctx context.Context,
 		tid value.TenantID,
-		outboxID value.OutboxID,
-		globalVersion value.GlobalVersion,
+		oid value.OutboxID,
+		gv value.GlobalVersion,
+		sv value.SubVersion,
 	) error
 }

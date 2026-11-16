@@ -14,6 +14,10 @@ func TestOutbox(t *testing.T) {
 
 	o := NewOutbox(oid, pid)
 
+	if s := o.Size(); s != OutboxSize {
+		t.Errorf("incorrect size: %v, expected: %v", s, OutboxSize)
+	}
+
 	if i := o.ID(); i != oid {
 		t.Errorf("incorrect id: %v, expected: %v", i, oid)
 	}
@@ -24,6 +28,10 @@ func TestOutbox(t *testing.T) {
 
 	if v := o.GlobalVersion().Value(); v != 0 {
 		t.Errorf("incorrect global version: %v, expected: %v", v, 0)
+	}
+
+	if v := o.SubVersion().Value(); v != 0 {
+		t.Errorf("incorrect sub version: %v, expected: %v", v, 0)
 	}
 }
 
@@ -40,11 +48,16 @@ func TestOutbox_UpdateGlobalVersion(t *testing.T) {
 	}
 
 	gv := value.NewGlobalVersion(12345)
+	sv := value.NewSubVersion(67890)
 
-	o.UpdateGlobalVersion(gv)
+	o.UpdatePosition(gv, sv)
 
 	if v := o.GlobalVersion(); v != gv {
 		t.Errorf("incorrect global version: %v, expected: %v", v, gv)
+	}
+
+	if v := o.SubVersion(); v != sv {
+		t.Errorf("incorrect global version: %v, expected: %v", v, sv)
 	}
 }
 

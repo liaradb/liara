@@ -243,7 +243,8 @@ func (esc *EventSourceController) UpdateOutboxPosition(
 	if err := esc.outboxService.UpdateOutboxPosition(ctx,
 		tid,
 		oid,
-		value.NewGlobalVersion(request.GlobalVersion)); err != nil {
+		value.NewGlobalVersion(request.GlobalVersion),
+		value.NewSubVersion(request.SubVersion)); err != nil {
 		return nil, err
 	}
 
