@@ -13,6 +13,10 @@ func TestTenant(t *testing.T) {
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)
 
+	if s := tn.Size(); s != TenantSize {
+		t.Errorf("incorrect size: %v, expected: %v", s, TenantSize)
+	}
+
 	if i := tn.ID(); i != tid {
 		t.Errorf("incorrect id: %v, expected: %v", i, tid)
 	}
@@ -70,22 +74,19 @@ func TestTenant_Rename(t *testing.T) {
 func TestTenant_ReadWrite(t *testing.T) {
 	t.Parallel()
 
+	r, w := newReaderWriter()
+
 	tid := value.NewTenantID()
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)
 
-	data := make([]byte, TenantSize+2)
-	data0 := tn.WriteData(data)
-
-	if l := len(data0); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := tn.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
 	tn1 := &Tenant{}
-	data1 := tn1.ReadData(data)
-
-	if l := len(data1); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
+	if err := tn1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
 	if *tn1 != *tn {

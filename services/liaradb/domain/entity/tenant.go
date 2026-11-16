@@ -53,18 +53,6 @@ func (t *Tenant) Rename(name value.TenantName) error {
 	return nil
 }
 
-func (t *Tenant) WriteData(data []byte) []byte {
-	data0 := t.id.WriteData(data)
-	data1 := t.version.WriteData(data0)
-	return t.name.WriteData(data1)
-}
-
-func (t *Tenant) ReadData(data []byte) []byte {
-	data0 := t.id.ReadData(data)
-	data1 := t.version.ReadData(data0)
-	return t.name.ReadData(data1)
-}
-
 func (t *Tenant) Write(r io.Writer) error {
 	return serializer.WriteAll(r,
 		t.id,
