@@ -67,6 +67,51 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	synctest.Wait()
 }
 
+func TestIdempotency_Test(t *testing.T) {
+	storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		c := btree.NewCursor(s.Storage)
+		idp := New(indexed.New(heap.New(s.Storage), c), c)
+		l := &logtesting.MockLog{}
+		tn := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
+
+		if ok, err := idp.Test(ctx, l, tn, value.NewRequestID()); err != nil {
+			t.Fatal(err)
+		} else if !ok {
+			t.Error("should be true")
+		}
+
+		rqid := value.NewRequestID()
+		rl := entity.NewRequestLog(rqid, value.NewTime(time.Now()))
+
+		if err := idp.Insert(ctx, l, tn, rqid, rl); err != nil {
+			t.Fatal(err)
+		}
+
+		if ok, err := idp.Test(ctx, l, tn, rqid); err != nil {
+			t.Fatal(err)
+		} else if ok {
+			t.Error("should be false")
+		}
+	})
+}
+
+func TestIdempotency_Get__Error(t *testing.T) {
+	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		c := btree.NewCursor(s.Storage)
+		idp := New(indexed.New(heap.New(s.Storage), c), c)
+		l := &logtesting.MockLog{}
+		tid := value.NewTenantID()
+		tn := tenantfolder.NewTenantFolder(tid).Outbox()
+		rqid := value.NewRequestID()
+
+		if _, err := idp.Get(ctx, l, tn, rqid); err == nil {
+			t.Fatal("should return error")
+		}
+	})
+}
+
 type item struct {
 	key   string
 	value *entity.RequestLog
