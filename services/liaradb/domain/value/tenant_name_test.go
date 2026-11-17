@@ -1,14 +1,26 @@
 package value
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/liaradb/liaradb/encoder/buffer"
+)
 
 func TestTenantName(t *testing.T) {
 	n := NewTenantName("name")
-	data := make([]byte, TenantNameSize)
-	_ = n.WriteData(data)
+
+	b := buffer.New(n.Size())
+	if err := n.Write(b); err != nil {
+		t.Fatal(err)
+	}
+
+	b.SeekStart()
 
 	r := TenantName{}
-	r.ReadData(data)
+	if err := r.Read(b); err != nil {
+		t.Fatal(err)
+	}
+
 	if r.String() != n.String() {
 		t.Errorf("incorrect result: %v, expected: %v", r.String(), n.String())
 	}

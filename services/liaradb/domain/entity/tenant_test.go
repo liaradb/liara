@@ -13,8 +13,10 @@ func TestTenant(t *testing.T) {
 	name := value.NewTenantName("name")
 	tn := NewTenant(tid, name)
 
-	if s := tn.Size(); s != TenantSize {
-		t.Errorf("incorrect size: %v, expected: %v", s, TenantSize)
+	const tenantSize = 16 + 8 + 256
+
+	if s := tn.Size(); s != tenantSize {
+		t.Errorf("incorrect size: %v, expected: %v", s, tenantSize)
 	}
 
 	if i := tn.ID(); i != tid {

@@ -7,12 +7,6 @@ import (
 	"github.com/liaradb/liaradb/encoder/serializer"
 )
 
-const (
-	TenantSize = value.TenantIDSize +
-		value.VersionSize +
-		value.TenantNameSize
-)
-
 type Tenant struct {
 	id      value.TenantID
 	version value.Version
@@ -22,7 +16,6 @@ type Tenant struct {
 func (t *Tenant) ID() value.TenantID     { return t.id }
 func (t *Tenant) Version() value.Version { return t.version }
 func (t *Tenant) Name() value.TenantName { return t.name }
-func (t *Tenant) Size() int              { return TenantSize }
 
 func NewTenant(
 	id value.TenantID,
@@ -51,6 +44,13 @@ func (t *Tenant) Rename(name value.TenantName) error {
 	t.name = name
 	t.version.Increment()
 	return nil
+}
+
+func (t *Tenant) Size() int {
+	return serializer.Size(
+		t.id,
+		t.version,
+		t.name)
 }
 
 func (t *Tenant) Write(r io.Writer) error {

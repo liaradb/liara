@@ -50,6 +50,37 @@ func Read(r io.Reader, value *[]byte) error {
 	return readData(r, *value)
 }
 
+func WriteShortString[S ~string](w io.Writer, value S) error {
+	if len(value) > 255 {
+		return io.ErrShortWrite
+	}
+
+	if err := WriteInt8(w, uint8(len(value))); err != nil {
+		return err
+	}
+
+	if _, err := w.Write([]byte(value)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadShortString[S ~string](r io.Reader, s *S) error {
+	var l uint8
+	if err := ReadInt8(r, &l); err != nil {
+		return err
+	}
+
+	b := make([]byte, l)
+	if err := readData(r, b); err != nil {
+		return err
+	}
+
+	*s = S(b)
+	return nil
+}
+
 func WriteString[S ~string](w io.Writer, value S) error {
 	if err := WriteInt32(w, uint32(len(value))); err != nil {
 		return err
