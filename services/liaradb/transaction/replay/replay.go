@@ -47,6 +47,8 @@ func (re *Replay) Recover(ctx context.Context) error {
 
 func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	switch r.Action() {
+	case record.ActionShutdown:
+		return nil
 	case record.ActionCheckpoint:
 		return re.recoverCheckpoint(r)
 	case record.ActionStart:
