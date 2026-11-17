@@ -35,6 +35,7 @@ type BufferPage interface {
 	SetLogSequenceNumber(logpage.LogSequenceNumber)
 	FileBlockID() link.FileBlockID
 	CommitAppend(size int16)
+	CommitUpdate()
 	Release()
 	Slot(link.SlotID) ([]byte, []byte)
 	Delete(link.SlotID)
@@ -70,9 +71,14 @@ func (f Fragment) valid() bool {
 		Compare(f.buffer.Bytes())
 }
 
-func (f Fragment) commit() {
+func (f Fragment) commitAppend() {
 	f.commitCRC()
 	f.p.CommitAppend(f.size)
+}
+
+func (f Fragment) commitUpdate() {
+	f.commitCRC()
+	f.p.CommitUpdate()
 }
 
 func (f Fragment) commitCRC() {

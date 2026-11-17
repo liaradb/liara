@@ -209,6 +209,9 @@ func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 func (t *testBufferPage) CommitAppend(size int16) {
 }
 
+func (t *testBufferPage) CommitUpdate() {
+}
+
 func (t *testBufferPage) Release() {
 	t.released = true
 }

@@ -44,6 +44,10 @@ func (bp *BufferPage) CommitAppend(size int16) {
 	bp.buffer.SetDirty()
 }
 
+func (bp *BufferPage) CommitUpdate() {
+	bp.buffer.SetDirty()
+}
+
 func (bp *BufferPage) Count() link.SlotID {
 	return bp.page.Count()
 }

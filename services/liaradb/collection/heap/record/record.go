@@ -104,18 +104,24 @@ func (r Record) SeekStart() {
 }
 
 func (r Record) CommitAppend(ctx context.Context, l log.Log) error {
-	r.commit()
+	r.commitAppend()
 	return r.logAppend(ctx, l)
 }
 
 func (r Record) CommitUpdate(ctx context.Context, l log.Log) error {
-	r.commit()
+	r.commitUpdate()
 	return r.logUpdate(ctx, l)
 }
 
-func (r Record) commit() {
+func (r Record) commitAppend() {
 	for _, f := range r.fragments {
-		f.commit()
+		f.commitAppend()
+	}
+}
+
+func (r Record) commitUpdate() {
+	for _, f := range r.fragments {
+		f.commitUpdate()
 	}
 }
 

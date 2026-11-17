@@ -73,7 +73,8 @@ func TestHeap_Replace(t *testing.T) {
 	fn := link.NewFileName("test")
 
 	t.Run("should handle same size", func(t *testing.T) {
-		storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		// Very small to span fragments
+		storagetesting.SyncTest(t, 100, 40, func(t *testing.T, s storagetesting.Storage) {
 			h := New(s.Storage)
 
 			first := NewTestItem(NewTestName("name0"))

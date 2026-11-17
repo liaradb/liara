@@ -72,8 +72,6 @@ func TestTenant_Get__Error(t *testing.T) {
 }
 
 func TestTenant_Replace(t *testing.T) {
-	t.Skip()
-	// TODO: Replace across two pages panics
 	storagetesting.SyncTest(t, 10, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
