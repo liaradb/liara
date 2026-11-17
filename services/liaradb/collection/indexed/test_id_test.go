@@ -2,9 +2,7 @@ package indexed
 
 import "github.com/liaradb/liaradb/encoder/base"
 
-type (
-	baseID = base.ID
-)
+type baseID = base.ID
 
 type TestID struct {
 	baseID

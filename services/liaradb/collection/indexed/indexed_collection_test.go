@@ -72,7 +72,7 @@ func TestIndexedCollection(t *testing.T) {
 	})
 }
 
-func TestRequestLog__LargeBuffer(t *testing.T) {
+func TestIndexedCollection__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
@@ -92,6 +92,45 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 	})
 }
 
+func TestIndexedCollection_Replace(t *testing.T) {
+	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
+		tn := &testTableName{}
+		l := &logtesting.MockLog{}
+
+		id := NewTestID()
+		ti0 := NewTestItem(id, NewTestName("name0"))
+
+		k := key.NewKey(id.Bytes())
+		if _, err := ic.Insert(ctx, l, tn, k, ti0); err != nil {
+			t.Fatal(err)
+		}
+
+		ti1 := NewTestItem(id, NewTestName("name1"))
+
+		if err := ic.Replace(ctx, l, tn, k, ti1); err != nil {
+			t.Fatal(err)
+		}
+
+		r, err := ic.GetByKey(ctx, l, tn, k)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer r.Release()
+
+		var result TestItem
+		if err := result.Read(r); err != nil {
+			t.Fatal(err)
+		}
+
+		if result != *ti1 {
+			t.Errorf("incorrect result: %v, expected: %v", result, *ti1)
+		}
+	})
+}
+
 type item struct {
 	key   string
 	value *TestItem
@@ -104,7 +143,7 @@ func createData() []item {
 	for i := range count {
 		data[15] = byte(i) + 1
 		rid, _ := NewTestIDFromString(data.String())
-		items = append(items, item{fmt.Sprintf("%v", i+1), NewTestItem(rid)})
+		items = append(items, item{fmt.Sprintf("%v", i+1), NewTestItem(rid, NewTestName(""))})
 	}
 	return items
 }
