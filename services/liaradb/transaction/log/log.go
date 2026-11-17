@@ -205,6 +205,18 @@ func (l *Log) UpdateHeader(
 }
 
 // Manager thread
+func (l *Log) Shutdown(
+	ctx context.Context,
+) (logpage.LogSequenceNumber, error) {
+	return l.rq.Append(ctx, record.New(
+		record.TransactionID{},
+		link.FileRecordID{},
+		record.ActionShutdown,
+		nil,
+		nil))
+}
+
+// Manager thread
 func (l *Log) Checkpoint(
 	ctx context.Context,
 	txids ...record.TransactionID,

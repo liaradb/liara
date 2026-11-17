@@ -211,5 +211,13 @@ func (m *Manager) Shutdown(ctx context.Context, now time.Time) error {
 	}
 
 	m.setCheckpoint(lsn)
+
+	lsn, err = m.log.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	m.setCheckpoint(lsn)
+
 	return nil
 }

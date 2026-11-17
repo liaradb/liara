@@ -11,19 +11,21 @@ type Action uint32
 const ActionSize = 4
 
 const (
-	ActionCheckpoint   Action = 1
-	ActionStart        Action = 2
-	ActionCommit       Action = 3
-	ActionRollback     Action = 4
-	ActionAppend       Action = 5
-	ActionInsert       Action = 6
-	ActionRemove       Action = 7
-	ActionUpdate       Action = 8
-	ActionClear        Action = 9
-	ActionUpdateHeader Action = 10
+	ActionShutdown     Action = 1
+	ActionCheckpoint   Action = 2
+	ActionStart        Action = 3
+	ActionCommit       Action = 4
+	ActionRollback     Action = 5
+	ActionAppend       Action = 6
+	ActionInsert       Action = 7
+	ActionRemove       Action = 8
+	ActionUpdate       Action = 9
+	ActionClear        Action = 10
+	ActionUpdateHeader Action = 11
 )
 
 const (
+	actionNameShutdown     = "Shutdown"
 	actionNameCheckpoint   = "Checkpoint"
 	actionNameStart        = "Start"
 	actionNameCommit       = "Commit"
@@ -49,6 +51,8 @@ func (a *Action) Read(r io.Reader) error {
 
 func (a Action) String() string {
 	switch a {
+	case ActionShutdown:
+		return actionNameShutdown
 	case ActionCheckpoint:
 		return actionNameCheckpoint
 	case ActionStart:
