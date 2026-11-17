@@ -21,6 +21,18 @@ func TestStringSize(t *testing.T) {
 	}
 }
 
+func TestBytesSize(t *testing.T) {
+	t.Parallel()
+
+	value := []byte("abcde")
+	want := HeaderSize + len(value)
+
+	s := BytesSize(value)
+	if s != want {
+		t.Errorf("incorrect size: %v, expected: %v", s, want)
+	}
+}
+
 func TestByteEncoder(t *testing.T) {
 	t.Parallel()
 
@@ -149,6 +161,91 @@ func TestByteEncoder__Short(t *testing.T) {
 		var result []byte
 		if err := Read(b, &result); err != io.EOF {
 			t.Error("should return err")
+		}
+	})
+}
+
+func TestShortStringEncoder(t *testing.T) {
+	t.Parallel()
+
+	r, w := iotesting.NewReaderWriter()
+
+	want := "abcde"
+	if err := WriteShortString(w, want); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := w.Flush(); err != nil {
+		t.Fatal(err)
+	}
+
+	var result string
+	if err := ReadShortString(r, &result); err != nil {
+		t.Fatal(err)
+	}
+
+	if result != want {
+		t.Errorf("incorrect value: %v, expected: %v", result, want)
+	}
+}
+
+func TestReadShortString__Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error on empty reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(0)
+
+		if err := ReadShortString(b, &s); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should return error on short reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(1)
+
+		if err := WriteInt8(b, uint8(1)); err != nil {
+			t.Fatal(err)
+		}
+
+		if _, err := b.Seek(0, io.SeekStart); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := ReadShortString(b, &s); err == nil {
+			t.Error("should return error")
+		}
+	})
+}
+
+func TestWriteShortString__Error(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error on empty reader", func(t *testing.T) {
+		var s string
+		b := buffer.New(0)
+
+		if err := WriteShortString(b, s); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should return error on short reader", func(t *testing.T) {
+		var s string = "a"
+		b := buffer.New(1)
+
+		if err := WriteShortString(b, s); err == nil {
+			t.Error("should return error")
+		}
+	})
+
+	t.Run("should return error on long string", func(t *testing.T) {
+		s := string(make([]byte, 256))
+		b := buffer.New(256)
+
+		if err := WriteShortString(b, s); err == nil {
+			t.Error("should return error")
 		}
 	})
 }
