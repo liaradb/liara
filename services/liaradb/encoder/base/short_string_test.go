@@ -12,7 +12,7 @@ func TestShortString(t *testing.T) {
 	t.Parallel()
 
 	want := "name"
-	n := NewShortString(want)
+	n := NewShortString[ShortString255](want)
 
 	if n.String() != want {
 		t.Errorf("incorrect string: %v, expected: %v", n.String(), want)
@@ -36,7 +36,7 @@ func TestShortString_Read_Write(t *testing.T) {
 
 	buf := buffer.New(8)
 
-	b := NewShortString("name")
+	b := NewShortString[ShortString255]("name")
 	if err := b.Write(buf); err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestShortString_Read_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var b0 ShortString
+	var b0 ShortString[ShortString255]
 	if err := b0.Read(buf); err != nil {
 		t.Fatal(err)
 	}

@@ -5,10 +5,11 @@ import (
 )
 
 type (
-	baseID          = base.ID
-	baseString      = base.String
-	baseShortString = base.ShortString
-	baseTime        = base.Time
-	baseUint32      = base.Uint32
-	baseUint64      = base.Uint64
+	baseID     = base.ID
+	baseString = base.String
+	baseTime   = base.Time
+	baseUint32 = base.Uint32
+	baseUint64 = base.Uint64
+
+	baseShortString[S base.ShortStringSizer] = base.ShortString[S]
 )
