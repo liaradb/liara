@@ -2,6 +2,7 @@ package value
 
 import (
 	"io"
+	"slices"
 	"testing"
 )
 
@@ -46,5 +47,23 @@ func TestGlobalVersion_Increment(t *testing.T) {
 	}
 	if v := gv2.Value(); v != 3 {
 		t.Errorf("incorrect value: %v, expected: %v", v, 3)
+	}
+}
+
+func TestGlobalVersion_Bytes(t *testing.T) {
+	t.Parallel()
+
+	gv0 := NewGlobalVersion(1)
+	gv1 := gv0.Increment()
+
+	want0 := [8]byte{0, 0, 0, 0, 0, 0, 0, 1}
+	want1 := [8]byte{0, 0, 0, 0, 0, 0, 0, 2}
+
+	if b := gv0.Bytes(); !slices.Equal(b, want0[:]) {
+		t.Errorf("incorrect bytes: %v, expected: %v", b, want0[:])
+	}
+
+	if b := gv1.Bytes(); !slices.Equal(b, want1[:]) {
+		t.Errorf("incorrect bytes: %v, expected: %v", b, want1[:])
 	}
 }
