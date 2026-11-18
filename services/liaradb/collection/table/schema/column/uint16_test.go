@@ -17,4 +17,8 @@ func TestUInt16(t *testing.T) {
 	if tp := u.Type(); tp != TypeUInt16 {
 		t.Errorf("incorrect type: %v, expected: %v", tp, TypeUInt16)
 	}
+
+	if v := u.Value(); v != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 0)
+	}
 }

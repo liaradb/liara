@@ -18,4 +18,8 @@ func TestString(t *testing.T) {
 	if tp := s.Type(); tp != TypeString {
 		t.Errorf("incorrect type: %v, expected: %v", tp, TypeString)
 	}
+
+	if v := s.Value(); v != "" {
+		t.Errorf("incorrect value: %v, expected: %v", v, "")
+	}
 }

@@ -17,4 +17,8 @@ func TestInt32(t *testing.T) {
 	if tp := i.Type(); tp != TypeInt32 {
 		t.Errorf("incorrect type: %v, expected: %v", tp, TypeInt32)
 	}
+
+	if v := i.Value(); v != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 0)
+	}
 }

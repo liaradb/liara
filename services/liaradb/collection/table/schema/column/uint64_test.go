@@ -17,4 +17,8 @@ func TestUInt64(t *testing.T) {
 	if tp := u.Type(); tp != TypeUInt64 {
 		t.Errorf("incorrect type: %v, expected: %v", tp, TypeUInt64)
 	}
+
+	if v := u.Value(); v != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 0)
+	}
 }

@@ -4,7 +4,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
-	"github.com/liaradb/liaradb/collection/table/schema"
 	"github.com/liaradb/liaradb/domain/infrastructure/eventlog"
 	"github.com/liaradb/liaradb/domain/infrastructure/idempotency"
 	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
@@ -24,7 +23,6 @@ type services struct {
 
 type collections struct {
 	manager     *manager.Manager
-	schemaMgr   *schema.Manager
 	Tenant      *tenant.Tenant
 	EventLog    *eventlog.EventLog
 	KeyValue    *keyvalue.KeyValue
@@ -59,7 +57,6 @@ func newCollections(s *storage.Storage) *collections {
 	kv := keyvalue.New(ic)
 	return &collections{
 		manager:     manager.New(kv),
-		schemaMgr:   schema.NewManager(s),
 		Tenant:      tenant.New(ic),
 		EventLog:    eventlog.New(ic, c),
 		KeyValue:    kv,

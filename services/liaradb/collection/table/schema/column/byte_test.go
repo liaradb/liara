@@ -17,4 +17,8 @@ func TestByte(t *testing.T) {
 	if tp := b.Type(); tp != TypeByte {
 		t.Errorf("incorrect type: %v, expected: %v", tp, TypeByte)
 	}
+
+	if v := b.Value(); v != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", v, 0)
+	}
 }

@@ -15,6 +15,21 @@ func TestSchema(t *testing.T) {
 	}
 }
 
+func TestSchema_AddColumn__Error(t *testing.T) {
+	t.Parallel()
+
+	s := NewSchema(NewID())
+
+	name := "name"
+	if !s.AddColumn(column.NewByte(name)) {
+		t.Fatal("should add column")
+	}
+
+	if s.AddColumn(column.NewByte(name)) {
+		t.Fatal("should not add column")
+	}
+}
+
 func TestSchema_GetByte(t *testing.T) {
 	s := NewSchema(NewID())
 
@@ -27,6 +42,13 @@ func TestSchema_GetByte(t *testing.T) {
 	}
 
 	_, ok = s.GetByte("other")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
+
+	s.AddColumn(column.NewInt16("other_type"))
+
+	_, ok = s.GetByte("other_type")
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
@@ -47,6 +69,13 @@ func TestSchema_GetInt8(t *testing.T) {
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
+
+	s.AddColumn(column.NewInt16("other_type"))
+
+	_, ok = s.GetInt8("other_type")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
 }
 
 func TestSchema_GetInt16(t *testing.T) {
@@ -61,6 +90,13 @@ func TestSchema_GetInt16(t *testing.T) {
 	}
 
 	_, ok = s.GetInt16("other")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetInt16("other_type")
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
@@ -81,6 +117,13 @@ func TestSchema_GetInt32(t *testing.T) {
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetInt32("other_type")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
 }
 
 func TestSchema_GetInt64(t *testing.T) {
@@ -95,6 +138,13 @@ func TestSchema_GetInt64(t *testing.T) {
 	}
 
 	_, ok = s.GetInt64("other")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetInt64("other_type")
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
@@ -115,6 +165,13 @@ func TestSchema_GetUInt16(t *testing.T) {
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetUInt16("other_type")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
 }
 
 func TestSchema_GetUInt32(t *testing.T) {
@@ -129,6 +186,13 @@ func TestSchema_GetUInt32(t *testing.T) {
 	}
 
 	_, ok = s.GetUInt32("other")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetUInt32("other_type")
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
@@ -149,6 +213,13 @@ func TestSchema_GetUInt64(t *testing.T) {
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetUInt64("other_type")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
 }
 
 func TestSchema_GetString(t *testing.T) {
@@ -163,6 +234,13 @@ func TestSchema_GetString(t *testing.T) {
 	}
 
 	_, ok = s.GetString("other")
+	if ok {
+		t.Errorf("incorrect result: %v, expected: %v", ok, false)
+	}
+
+	s.AddColumn(column.NewInt8("other_type"))
+
+	_, ok = s.GetString("other_type")
 	if ok {
 		t.Errorf("incorrect result: %v, expected: %v", ok, false)
 	}
