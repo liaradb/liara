@@ -1,11 +1,6 @@
 package base
 
-import (
-	"io"
-	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
-)
+import "testing"
 
 func TestUint64_String(t *testing.T) {
 	t.Parallel()
@@ -44,27 +39,23 @@ func TestUint64_String(t *testing.T) {
 func TestUInt64__Remainder(t *testing.T) {
 	t.Parallel()
 
-	b := NewUint64(2)
+	r, w := newReaderWriter()
 
-	data := make([]byte, 16)
-	data0 := b.WriteData(data)
-
-	if l := len(data0); l != 8 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	b0 := NewUint64(2)
+	if err := b0.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
-	b0 := Uint64(0)
-	data1 := b0.ReadData(data)
-
-	if l := len(data1); l != 8 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	b1 := Uint64(0)
+	if err := b1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
-	if v := b0.Value(); v != 2 {
+	if v := b1.Value(); v != 2 {
 		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 
-	if s := b.Size(); s != 8 {
+	if s := b0.Size(); s != 8 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 8)
 	}
 }
@@ -72,36 +63,20 @@ func TestUInt64__Remainder(t *testing.T) {
 func TestUint64_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(8)
+	r, w := newReaderWriter()
 
 	b := NewUint64(2)
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	var b0 Uint64
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
 	if b != b0 {
 		t.Errorf("incorrect value: %v, expected: %v", b, b0)
-	}
-}
-
-func TestUInt64(t *testing.T) {
-	t.Parallel()
-	b0 := NewUint64(2)
-
-	var b1 Uint64
-	_ = b1.ReadData(b0.Bytes())
-
-	if v := b1.Value(); v != 2 {
-		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 }
 

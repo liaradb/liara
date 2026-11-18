@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"testing"
 	"time"
+
+	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestTime(t *testing.T) {
@@ -46,6 +48,39 @@ func TestTime_WriteRead(t *testing.T) {
 	}
 }
 
+func TestTime_WriteRead__Error(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now()
+	tm := NewTime(now)
+
+	// Test first error
+	buf := buffer.New(7)
+
+	if err := tm.Write(buf); err == nil {
+		t.Fatal("should return error")
+	}
+
+	buf.SeekStart()
+
+	if err := tm.Read(buf); err == nil {
+		t.Fatal("should return error")
+	}
+
+	// Test second error
+	buf = buffer.New(15)
+
+	if err := tm.Write(buf); err == nil {
+		t.Fatal("should return error")
+	}
+
+	buf.SeekStart()
+
+	if err := tm.Read(buf); err == nil {
+		t.Fatal("should return error")
+	}
+}
+
 func TestTime_Equal(t *testing.T) {
 	now := time.Now()
 
@@ -59,30 +94,6 @@ func TestTime_Equal(t *testing.T) {
 
 	if a.Equal(c) {
 		t.Error("should not equal")
-	}
-}
-
-func TestTime_WriteDataReadData(t *testing.T) {
-	t.Parallel()
-
-	o := NewTime(time.Now())
-
-	data := make([]byte, TimeSize+2)
-	data0 := o.WriteData(data)
-
-	if l := len(data0); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
-	}
-
-	o1 := Time{}
-	data1 := o1.ReadData(data)
-
-	if l := len(data1); l != 2 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 2)
-	}
-
-	if !o1.Equal(o) {
-		t.Errorf("incorrect result: %v, expected: %v", o1, o)
 	}
 }
 

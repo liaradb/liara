@@ -1,41 +1,39 @@
 package base
 
 import (
-	"io"
 	"slices"
 	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestString(t *testing.T) {
 	t.Parallel()
 
-	size := 32
-	n := String("name")
-	data := make([]byte, size)
-	_ = n.WriteData(data, size)
+	s0 := String("name")
 
-	var r String
-	data0 := r.ReadData(data, size)
+	r, w := newReaderWriter()
 
-	if l := len(data0); l != 0 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 0)
+	if err := s0.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
-	if r.String() != n.String() {
-		t.Errorf("incorrect result: %v, expected: %v", r.String(), n.String())
+	var s1 String
+	if err := s1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
-	if b := r.Bytes(); !slices.Equal(b, []byte("name")) {
+	if s1.String() != s0.String() {
+		t.Errorf("incorrect result: %v, expected: %v", s1.String(), s0.String())
+	}
+
+	if b := s1.Bytes(); !slices.Equal(b, []byte("name")) {
 		t.Errorf("incorrect bytes: %v, expected: %v", b, []byte("name"))
 	}
 
-	if l := r.Length(); l != 4 {
+	if l := s1.Length(); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	if s := r.Size(); s != 4+4 {
+	if s := s1.Size(); s != 4+4 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 4+4)
 	}
 }
@@ -43,19 +41,15 @@ func TestString(t *testing.T) {
 func TestString_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(8)
+	r, w := newReaderWriter()
 
 	b := String("name")
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	var b0 String
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 

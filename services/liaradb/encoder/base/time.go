@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/encoder/scan"
 )
 
 type baseTime = time.Time
@@ -44,18 +43,6 @@ func (t *Time) Read(r io.Reader) error {
 
 	t.baseTime = time.Unix(s, n).UTC()
 	return nil
-}
-
-func (t *Time) WriteData(data []byte) []byte {
-	data0 := scan.SetInt64(data, t.baseTime.Unix())
-	return scan.SetInt64(data0, int64(t.baseTime.Nanosecond()))
-}
-
-func (t *Time) ReadData(data []byte) []byte {
-	s, data0 := scan.Int64(data)
-	n, data1 := scan.Int64(data0)
-	t.baseTime = time.Unix(s, n).UTC()
-	return data1
 }
 
 func (t Time) Equal(b Time) bool {

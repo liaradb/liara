@@ -1,11 +1,8 @@
 package base
 
 import (
-	"io"
 	"slices"
 	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestBytes(t *testing.T) {
@@ -47,19 +44,15 @@ func TestBytes(t *testing.T) {
 func TestBytes_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(8)
+	r, w := newReaderWriter()
 
 	b := NewBytes([]byte{1, 2, 3, 4})
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	var b0 Bytes
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 

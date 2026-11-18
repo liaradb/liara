@@ -1,12 +1,10 @@
 package base
 
 import (
-	"encoding/binary"
 	"fmt"
 	"io"
 
 	"github.com/liaradb/liaradb/encoder/raw"
-	"github.com/liaradb/liaradb/encoder/scan"
 )
 
 type Uint64 uint64
@@ -26,26 +24,10 @@ func (b Uint64) Signed() int64  { return int64(b) }
 func (b Uint64) Size() int      { return Uint64Size }
 func (b Uint64) String() string { return fmt.Sprintf("%016x", b.Value()) }
 
-func (b Uint64) Bytes() []byte {
-	var data [8]byte
-	binary.BigEndian.PutUint64(data[:], uint64(b))
-	return data[:]
-}
-
 func (b Uint64) Write(w io.Writer) error {
 	return raw.WriteInt64(w, b)
 }
 
 func (b *Uint64) Read(r io.Reader) error {
 	return raw.ReadInt64(r, b)
-}
-
-func (b Uint64) WriteData(data []byte) []byte {
-	return scan.SetUint64(data, b.Value())
-}
-
-func (b *Uint64) ReadData(data []byte) []byte {
-	v, data0 := scan.Uint64(data)
-	*b = Uint64(v)
-	return data0
 }

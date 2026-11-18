@@ -1,6 +1,10 @@
 package value
 
-import "github.com/liaradb/liaradb/encoder/base"
+import (
+	"encoding/binary"
+
+	"github.com/liaradb/liaradb/encoder/base"
+)
 
 const GlobalVersionSize = base.Uint64Size
 
@@ -14,4 +18,10 @@ func NewGlobalVersion(value uint64) GlobalVersion {
 
 func (gv GlobalVersion) Increment() GlobalVersion {
 	return NewGlobalVersion(gv.Value() + 1)
+}
+
+func (gv GlobalVersion) Bytes() []byte {
+	var data [8]byte
+	binary.BigEndian.PutUint64(data[:], gv.Value())
+	return data[:]
 }

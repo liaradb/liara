@@ -1,11 +1,8 @@
 package base
 
 import (
-	"io"
 	"slices"
 	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestShortString(t *testing.T) {
@@ -34,19 +31,15 @@ func TestShortString(t *testing.T) {
 func TestShortString_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(8)
+	r, w := newReaderWriter()
 
 	b := NewShortString[ShortString255]("name")
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	var b0 ShortString[ShortString255]
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 

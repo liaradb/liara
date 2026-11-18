@@ -1,11 +1,6 @@
 package base
 
-import (
-	"io"
-	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
-)
+import "testing"
 
 func TestUint32_String(t *testing.T) {
 	t.Parallel()
@@ -44,27 +39,23 @@ func TestUint32_String(t *testing.T) {
 func TestUIn32__Remainder(t *testing.T) {
 	t.Parallel()
 
-	b := NewUint32(2)
+	r, w := newReaderWriter()
 
-	data := make([]byte, 8)
-	data0 := b.WriteData(data)
-
-	if l := len(data0); l != 4 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	b0 := NewUint32(2)
+	if err := b0.Write(w); err != nil {
+		t.Fatal(err)
 	}
 
-	b0 := Uint32(0)
-	data1 := b0.ReadData(data)
-
-	if l := len(data1); l != 4 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	b1 := Uint32(0)
+	if err := b1.Read(r); err != nil {
+		t.Fatal(err)
 	}
 
-	if v := b0.Value(); v != 2 {
+	if v := b1.Value(); v != 2 {
 		t.Errorf("incorrect value: %v, expected: %v", v, 2)
 	}
 
-	if s := b.Size(); s != 4 {
+	if s := b0.Size(); s != 4 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 }
@@ -72,19 +63,15 @@ func TestUIn32__Remainder(t *testing.T) {
 func TestUint32_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(4)
+	r, w := newReaderWriter()
 
 	b := NewUint32(2)
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	var b0 Uint32
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 

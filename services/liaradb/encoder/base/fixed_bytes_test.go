@@ -1,11 +1,8 @@
 package base
 
 import (
-	"io"
 	"slices"
 	"testing"
-
-	"github.com/liaradb/liaradb/encoder/buffer"
 )
 
 func TestFixedBytesBytes(t *testing.T) {
@@ -13,38 +10,36 @@ func TestFixedBytesBytes(t *testing.T) {
 
 	want := []byte("name")
 	size := len(want)
-	n := NewFixedBytes(want)
+	fb0 := NewFixedBytes(want)
 
-	data := buffer.New(size)
+	r, w := newReaderWriter()
 
-	if err := n.Write(data); err != nil {
+	if err := fb0.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
-	data.SeekStart()
-
-	r := NewFixedBytesFromSize(size)
-	if err := r.Read(data); err != nil {
+	fb1 := NewFixedBytesFromSize(size)
+	if err := fb1.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
-	if !r.Compare(n) {
+	if !fb1.Compare(fb0) {
 		t.Error("should be equal")
 	}
 
-	if r.String() != n.String() {
-		t.Errorf("incorrect result: %v, expected: %v", r.String(), n.String())
+	if fb1.String() != fb0.String() {
+		t.Errorf("incorrect result: %v, expected: %v", fb1.String(), fb0.String())
 	}
 
-	if b := r.Value(); !slices.Equal(b, []byte("name")) {
+	if b := fb1.Value(); !slices.Equal(b, []byte("name")) {
 		t.Errorf("incorrect bytes: %v, expected: %v", b, []byte("name"))
 	}
 
-	if l := r.Length(); l != 4 {
+	if l := fb1.Length(); l != 4 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 4)
 	}
 
-	if s := r.Size(); s != 4 {
+	if s := fb1.Size(); s != 4 {
 		t.Errorf("incorrect size: %v, expected: %v", s, 4)
 	}
 }
@@ -52,19 +47,15 @@ func TestFixedBytesBytes(t *testing.T) {
 func TestFixedBytes_Read_Write(t *testing.T) {
 	t.Parallel()
 
-	buf := buffer.New(8)
+	r, w := newReaderWriter()
 
 	b := NewFixedBytes([]byte{1, 2, 3, 4})
-	if err := b.Write(buf); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := buf.Seek(0, io.SeekStart); err != nil {
+	if err := b.Write(w); err != nil {
 		t.Fatal(err)
 	}
 
 	b0 := NewFixedBytesFromSize(4)
-	if err := b0.Read(buf); err != nil {
+	if err := b0.Read(r); err != nil {
 		t.Fatal(err)
 	}
 
