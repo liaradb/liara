@@ -160,6 +160,20 @@ func TestBuffer_Reset(t *testing.T) {
 func TestBuffer_ReadWrite(t *testing.T) {
 	t.Parallel()
 
+	t.Run("should handle empty write", func(t *testing.T) {
+		b := New(20)
+
+		if n, err := b.Write(nil); err != nil {
+			t.Fatal(err)
+		} else if n != 0 {
+			t.Errorf("incorrect write number: %v, expected: %v", n, 0)
+		}
+
+		if c := b.Cursor(); c != 0 {
+			t.Errorf("incorrect cursor: %v, expected: %v", c, 0)
+		}
+	})
+
 	t.Run("should write", func(t *testing.T) {
 		t.Parallel()
 
