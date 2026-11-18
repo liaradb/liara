@@ -1,6 +1,7 @@
 package multi
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -84,39 +85,40 @@ func TestReaderWriter_Append(t *testing.T) {
 	}
 }
 
-// TODO: Test this
-func TestReaderWriter__Error(t *testing.T) {
+func TestReader__Error(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 
-	a, b, c := buffer.New(7), buffer.New(8), buffer.New(8)
+	a, b, c := buffer.New(8), &errorWriter{}, buffer.New(8)
+	r := NewReader[io.Reader](a, b, c)
 
-	w := NewWriter(a, b, c)
-	r := NewReader(a, b, c)
+	result := make([]byte, 24)
+	if _, err := r.Read(result); err == nil {
+		t.Error("should return error")
+	}
+}
+
+func TestWriter__Error(t *testing.T) {
+	t.Parallel()
+
+	a, b, c := buffer.New(8), &errorWriter{}, buffer.New(8)
+	w := NewWriter[io.Writer](a, b, c)
 
 	want := make([]byte, 0, 24)
 	for i := range cap(want) {
 		want = append(want, byte(i))
 	}
 
-	if _, err := w.Write(want); err != nil {
-		t.Fatal(err)
+	if _, err := w.Write(want); err == nil {
+		t.Error("should return error")
 	}
+}
 
-	if _, err := a.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+type errorWriter struct{}
 
-	if _, err := b.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
+func (rd *errorWriter) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("error")
+}
 
-	if _, err := c.Seek(0, io.SeekStart); err != nil {
-		t.Fatal(err)
-	}
-
-	result := make([]byte, 24)
-	if _, err := r.Read(result); err != nil {
-		t.Fatal(err)
-	}
+func (wr *errorWriter) Write(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("error")
 }

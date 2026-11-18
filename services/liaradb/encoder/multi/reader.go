@@ -27,7 +27,7 @@ func (rd *Reader[R]) Read(p []byte) (n int, err error) {
 			return n, err
 		}
 		if n >= l {
-			return n, nil
+			break
 		}
 		rd.current++
 	}

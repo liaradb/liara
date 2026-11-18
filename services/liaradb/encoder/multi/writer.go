@@ -27,7 +27,7 @@ func (wr *Writer[W]) Write(p []byte) (n int, err error) {
 			return n, err
 		}
 		if n >= l {
-			return n, nil
+			break
 		}
 		wr.current++
 	}
