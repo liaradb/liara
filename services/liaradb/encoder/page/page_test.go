@@ -1,6 +1,7 @@
 package page
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -76,6 +77,23 @@ func TestPage_Replace(t *testing.T) {
 	if data := p.Data(); !slices.Equal(data, want) {
 		t.Errorf("incorrect data: %v, expected: %v", data, want)
 	}
+}
+
+func TestPage_Replace__Error(t *testing.T) {
+	t.Parallel()
+
+	p := New(20, 4, 4)
+
+	if err := p.Replace(&errorReader{}); err == nil {
+		t.Error("should return error")
+	}
+}
+
+type errorReader struct {
+}
+
+func (r *errorReader) Read([]byte) (int, error) {
+	return 0, fmt.Errorf("error")
 }
 
 func TestPage_Header(t *testing.T) {
@@ -180,6 +198,10 @@ func TestPage_Insert(t *testing.T) {
 
 	p := New(128, 4, 4)
 
+	if c := p.Count(); c != 0 {
+		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+
 	{
 		header, data := p.Next(8)
 
@@ -195,6 +217,10 @@ func TestPage_Insert(t *testing.T) {
 		data[0] = 2
 
 		_ = p.CommitAppend(8)
+
+		if c := p.Count(); c != 1 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 1)
+		}
 	}
 
 	{
@@ -212,6 +238,10 @@ func TestPage_Insert(t *testing.T) {
 		data[0] = 4
 
 		_ = p.Insert(8, 0)
+
+		if c := p.Count(); c != 2 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 2)
+		}
 	}
 
 	{
@@ -453,6 +483,16 @@ func TestPage_RevertAppend(t *testing.T) {
 	}
 }
 
+func TestPage_RevertAppend__Panic(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	should.Panic(t, "should panic", func() {
+		p.RecoverAppend(make([]byte, 50))
+	})
+}
+
 func TestPage_RecoverInsert(t *testing.T) {
 	t.Parallel()
 
@@ -498,6 +538,28 @@ func TestPage_RecoverInsert(t *testing.T) {
 	}
 }
 
+func TestPage_RecoverInsert__Panic(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	should.Panic(t, "should panic", func() {
+		p.RecoverInsert(0, make([]byte, 50))
+	})
+}
+
+func TestPage_RecoverUpdate__Panic(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	p.CommitAppend(8)
+
+	should.Panic(t, "should panic", func() {
+		p.RecoverUpdate(0, make([]byte, 50))
+	})
+}
+
 func TestPage_RecoverHeader(t *testing.T) {
 	t.Parallel()
 
@@ -513,5 +575,52 @@ func TestPage_RecoverHeader(t *testing.T) {
 
 	if !slices.Equal(header1, header0) {
 		t.Errorf("incorrect data:\n%v,\nexpected:\n%v", header1, header0)
+	}
+}
+
+func TestPage_RecoverHeader__Panic(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	should.Panic(t, "should panic", func() {
+		p.RecoverHeader(make([]byte, 50))
+	})
+}
+
+func TestPage_RecoverClear(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+	want := slices.Clone(p.Data())
+
+	p.CommitAppend(8)
+
+	p.RecoverClear()
+
+	if data := p.Data(); !slices.Equal(data, want) {
+		t.Errorf("incorrect data: %v, expected: %v", data, want)
+	}
+}
+
+func TestPage_IsPage(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4, 4)
+
+	if !p.IsPage() {
+		t.Error("should be page")
+	}
+	if p.IsEmpty() {
+		t.Error("should not be empty")
+	}
+
+	p.Fill(make([]byte, 40))
+
+	if p.IsPage() {
+		t.Error("should not be page")
+	}
+	if !p.IsEmpty() {
+		t.Error("should be empty")
 	}
 }

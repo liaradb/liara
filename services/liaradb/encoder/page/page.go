@@ -264,11 +264,11 @@ func (p *Page) initMagic() {
 	p.magic.Set(int32(MagicPage))
 }
 
-func (p *Page) isEmpty() bool {
+func (p *Page) IsEmpty() bool {
 	return Magic(p.magic.Get()).IsEmpty()
 }
 
-func (p *Page) isPage() bool {
+func (p *Page) IsPage() bool {
 	return Magic(p.magic.Get()).IsPage()
 }
 
