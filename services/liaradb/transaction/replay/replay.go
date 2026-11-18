@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	heaprecord "github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/tablename"
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -83,14 +84,13 @@ func (re *Replay) recoverCheckpoint(r *record.Record) error {
 
 func (*Replay) txIDsFromData(
 	data []byte,
-) iter.Seq[record.TransactionID] {
-	return func(yield func(record.TransactionID) bool) {
-		for i := range len(data) % record.TransactionIDSize {
-			start := i * record.TransactionIDSize
-			item := data[start : start+record.TransactionIDSize]
+) iter.Seq2[record.TransactionID, error] {
+	return func(yield func(record.TransactionID, error) bool) {
+		b := buffer.NewFromSlice(data)
+		for range len(data) / record.TransactionIDSize {
 			txID := record.TransactionID{}
-			_ = txID.ReadData(item)
-			if !yield(txID) {
+			err := txID.Read(b)
+			if !yield(txID, err) || err != nil {
 				return
 			}
 		}

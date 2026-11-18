@@ -5,6 +5,7 @@ import (
 	"context"
 	"iter"
 
+	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pageiterator"
@@ -221,25 +222,31 @@ func (l *Log) Checkpoint(
 	ctx context.Context,
 	txids ...record.TransactionID,
 ) (logpage.LogSequenceNumber, error) {
+	data, err := l.txIDsToData(txids)
+	if err != nil {
+		return logpage.LogSequenceNumber{}, err
+	}
+
 	return l.rq.Append(ctx, record.New(
 		record.TransactionID{},
 		link.FileRecordID{},
 		record.ActionCheckpoint,
-		l.txIDsToData(txids),
+		data,
 		nil))
 }
 
 func (cv *Log) txIDsToData(
 	txids []record.TransactionID,
-) []byte {
-	data := make([]byte, len(txids)*record.TransactionIDSize)
+) ([]byte, error) {
+	b := buffer.New(len(txids) * record.TransactionIDSize)
 
-	data0 := data
 	for _, txid := range txids {
-		data0 = txid.WriteData(data0)
+		if err := txid.Write(b); err != nil {
+			return nil, err
+		}
 	}
 
-	return data
+	return b.Bytes(), nil
 }
 
 // Testing only
