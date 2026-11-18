@@ -46,6 +46,25 @@ func TestCache(t *testing.T) {
 	}
 }
 
+func TestCache_FSYS(t *testing.T) {
+	t.Parallel()
+
+	c0 := &Cache{files: make(map[string]*CacheFile)}
+	fs := NewWithFileSystem(c0)
+
+	if fsys := fs.FSYS(); fsys != c0 {
+		t.Errorf("incorrect fsys: %v, expected: %v", fsys, c0)
+	}
+}
+
+func TestCache_MkDirAll(t *testing.T) {
+	fs := New()
+
+	if err := fs.MkDirAll(path.Join(t.TempDir(), "dir1", "dir2")); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestCache_CloseFile(t *testing.T) {
 	t.Parallel()
 
@@ -136,6 +155,10 @@ func TestCache_Remove(t *testing.T) {
 		t.Error("file should not be nil")
 	}
 
+	if cf, ok := f.(*CacheFile); !ok || !cf.IsOpen() {
+		t.Error("should be open")
+	}
+
 	if c := ic.Count(); c != 1 {
 		t.Errorf("incorrect count, expected: %v, recieved: %v", 1, c)
 	}
@@ -155,6 +178,12 @@ func TestCache_Remove(t *testing.T) {
 		t.Error(err)
 	} else if f == nil {
 		t.Error("file should not be nil")
+	}
+
+	if s, err := ic.Stat(dir); err != nil {
+		t.Error(err)
+	} else if s == nil {
+		t.Error("stat should not be nil")
 	}
 
 	if c := ic.Count(); c != 0 {
