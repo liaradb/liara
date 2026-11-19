@@ -83,25 +83,8 @@ func (s *Storage) run(ctx context.Context) {
 }
 
 func (s *Storage) requestBuffer(r *bufferRequest) {
-	if fbid, err := s.getBufferID(r.Value()); err != nil {
-		r.Reply(nil, err)
-	} else {
-		r.Reply(s.getBuffer(r.Context(), fbid, r.Value().isNext()))
-	}
-}
-
-func (s *Storage) getBufferID(v bufferQuery) (link.FileBlockID, error) {
-	switch v.queryType {
-	case bufferQueryTypeByID:
-		return v.fbid, nil
-	case bufferQueryTypeCurrent:
-		return s.highFileBlockID(v.fileName), nil
-	case bufferQueryTypeNext:
-		s.incrementHighWater(v.fileName)
-		return s.highFileBlockID(v.fileName), nil
-	default:
-		return link.FileBlockID{}, ErrInvalidRequest
-	}
+	fbid, next := r.Value().getBufferID(s)
+	r.Reply(s.getBuffer(r.Context(), fbid, next))
 }
 
 func (s *Storage) getBuffer(ctx context.Context, fbid link.FileBlockID, next bool) (*Buffer, error) {
@@ -266,7 +249,7 @@ func (s *Storage) Highwater(ctx context.Context, fn link.FileName) (link.FileBlo
 
 // External thread
 func (s *Storage) Request(ctx context.Context, fbid link.FileBlockID) (*Buffer, error) {
-	b, err := s.request(ctx, newBufferByIDQuery(fbid))
+	b, err := s.request(ctx, newQueryByID(fbid))
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +259,7 @@ func (s *Storage) Request(ctx context.Context, fbid link.FileBlockID) (*Buffer, 
 
 // External thread
 func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	b, err := s.request(ctx, newCurrentBufferQuery(fn))
+	b, err := s.request(ctx, newQueryCurrent(fn))
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +269,7 @@ func (s *Storage) RequestCurrent(ctx context.Context, fn link.FileName) (*Buffer
 
 // External thread
 func (s *Storage) RequestNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
-	b, err := s.request(ctx, newNextBufferQuery(fn))
+	b, err := s.request(ctx, newQueryNext(fn))
 	if err != nil {
 		return nil, err
 	}
@@ -349,16 +332,19 @@ func (s *Storage) initHighwater(fn link.FileName, f filecache.File) error {
 	return nil
 }
 
-func (s *Storage) incrementHighWater(fn link.FileName) {
-	s.hwMux.Lock()
-	defer s.hwMux.Unlock()
-
-	s.highWater[fn]++
-}
-
 func (s *Storage) highFileBlockID(fn link.FileName) link.FileBlockID {
 	s.hwMux.RLock()
 	defer s.hwMux.RUnlock()
 
 	return fn.FileBlockID(s.highWater[fn])
+}
+
+func (s *Storage) incrementHighFileBlockID(fn link.FileName) link.FileBlockID {
+	s.hwMux.Lock()
+	defer s.hwMux.Unlock()
+
+	hw := s.highWater[fn]
+	hw++
+	s.highWater[fn] = hw
+	return fn.FileBlockID(hw)
 }

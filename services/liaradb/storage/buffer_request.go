@@ -7,41 +7,11 @@ import (
 
 type bufferRequest = async.Request[bufferQuery, *Buffer]
 
-type bufferQuery struct {
-	fbid      link.FileBlockID
-	fileName  link.FileName
-	queryType bufferQueryType
+type bufferQuery interface {
+	getBufferID(highWater) (link.FileBlockID, bool)
 }
 
-type bufferQueryType int
-
-const (
-	bufferQueryTypeByID = iota
-	bufferQueryTypeCurrent
-	bufferQueryTypeNext
-)
-
-func newBufferByIDQuery(fbid link.FileBlockID) bufferQuery {
-	return bufferQuery{
-		fbid:      fbid,
-		queryType: bufferQueryTypeByID,
-	}
-}
-
-func newCurrentBufferQuery(fn link.FileName) bufferQuery {
-	return bufferQuery{
-		fileName:  fn,
-		queryType: bufferQueryTypeCurrent,
-	}
-}
-
-func newNextBufferQuery(fn link.FileName) bufferQuery {
-	return bufferQuery{
-		fileName:  fn,
-		queryType: bufferQueryTypeNext,
-	}
-}
-
-func (q bufferQuery) isNext() bool {
-	return q.queryType == bufferQueryTypeNext
+type highWater interface {
+	highFileBlockID(link.FileName) link.FileBlockID
+	incrementHighFileBlockID(link.FileName) link.FileBlockID
 }
