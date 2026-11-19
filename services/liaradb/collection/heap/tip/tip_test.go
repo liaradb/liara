@@ -1,6 +1,7 @@
 package tip
 
 import (
+	"context"
 	"testing"
 	"testing/synctest"
 
@@ -47,5 +48,19 @@ func TestTip(t *testing.T) {
 		}
 
 		synctest.Wait()
+	})
+}
+
+func TestTip__Error(t *testing.T) {
+	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
+		tip := NewTip(st.Storage, link.NewFileName("fn"))
+
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		_, err := tip.Record(ctx, 128)
+		if err == nil {
+			t.Error("should return error")
+		}
 	})
 }

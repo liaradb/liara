@@ -39,19 +39,18 @@ func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 	available := 0
 	remaining := size
 
-	p := bufferpage.New(b)
-	l := t.appendToRecord(r, p, t.capRemaining(remaining))
+	l := t.appendToRecord(r, b, t.capRemaining(remaining))
 
 	available = l
 	remaining -= l
 
 	for available < size {
-		p, err := t.next(ctx)
+		b, err := t.s.RequestNext(ctx, t.fn)
 		if err != nil {
 			return nil, err
 		}
 
-		l := t.appendToRecord(r, p, t.capRemaining(remaining))
+		l := t.appendToRecord(r, b, t.capRemaining(remaining))
 
 		available += l
 		remaining -= l
@@ -66,14 +65,15 @@ func (*Tip) capRemaining(remaining int) int16 {
 	return int16(min(remaining, math.MaxInt16))
 }
 
-func (t *Tip) appendToRecord(r *record.Record, p *bufferpage.BufferPage, remaining int16) int {
+func (t *Tip) appendToRecord(r *record.Record, b *storage.Buffer, remaining int16) int {
 	ok := false
 	defer func() {
 		if !ok {
-			p.Release()
+			b.Release()
 		}
 	}()
 
+	p := bufferpage.New(b)
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {
@@ -83,13 +83,4 @@ func (t *Tip) appendToRecord(r *record.Record, p *bufferpage.BufferPage, remaini
 	_ = r.Append(p, link.SlotID(p.Count()), header, data)
 	ok = true
 	return l
-}
-
-func (t *Tip) next(ctx context.Context) (*bufferpage.BufferPage, error) {
-	b, err := t.s.RequestNext(ctx, t.fn)
-	if err != nil {
-		return nil, err
-	}
-
-	return bufferpage.New(b), nil
 }
