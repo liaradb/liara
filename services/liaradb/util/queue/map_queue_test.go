@@ -47,6 +47,31 @@ func TestQueue_Count(t *testing.T) {
 	}
 }
 
+func TestQueue_IsFirst(t *testing.T) {
+	t.Parallel()
+
+	mq := MapQueue[int, string]{}
+
+	if mq.IsFirst(1) {
+		t.Error("should not be first")
+	}
+
+	mq.Push(1, "a")
+
+	if !mq.IsFirst(1) {
+		t.Error("should be first")
+	}
+
+	mq.Push(2, "b")
+
+	if !mq.IsFirst(1) {
+		t.Error("should be first")
+	}
+	if mq.IsFirst(2) {
+		t.Error("should not be first")
+	}
+}
+
 func TestQueue_PopDefault(t *testing.T) {
 	t.Parallel()
 

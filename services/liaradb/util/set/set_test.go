@@ -73,7 +73,7 @@ func TestSet_Union(t *testing.T) {
 	t.Parallel()
 
 	a := New(0)
-	b := New(1)
+	b := New(1, 2)
 	c := a.Union(b)
 	if !c.Includes(0) {
 		t.Error("should include 0")
@@ -81,21 +81,27 @@ func TestSet_Union(t *testing.T) {
 	if !c.Includes(1) {
 		t.Error("should include 1")
 	}
+	if !c.Includes(2) {
+		t.Error("should include 2")
+	}
 }
 
 func TestSet_Intersection(t *testing.T) {
 	t.Parallel()
 
-	a := New(0, 1)
-	b := New(1, 2)
+	a := New(0, 1, 2)
+	b := New(2, 3)
 	c := a.Intersection(b)
 	if c.Includes(0) {
 		t.Error("should not include 0")
 	}
-	if !c.Includes(1) {
-		t.Error("should include 1")
+	if c.Includes(1) {
+		t.Error("should not include 1")
 	}
-	if c.Includes(2) {
-		t.Error("should not include 2")
+	if !c.Includes(2) {
+		t.Error("should include 2")
+	}
+	if c.Includes(3) {
+		t.Error("should not include 3")
 	}
 }

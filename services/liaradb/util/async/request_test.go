@@ -122,6 +122,7 @@ func testRequest_Send__CanceledOrCancel(t *testing.T) {
 	go func() {
 		if r, ok := h.Listen(t.Context()); ok {
 			cancel()
+			synctest.Wait()
 			r.Reply(2, errValue)
 		}
 	}()
@@ -146,8 +147,6 @@ func testRequest_Send__CanceledOrCancel(t *testing.T) {
 	} else {
 		t.Error("should return error")
 	}
-
-	synctest.Wait()
 }
 
 func TestRequest__Wait__Canceled(t *testing.T) {
