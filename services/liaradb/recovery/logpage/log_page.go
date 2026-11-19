@@ -42,10 +42,6 @@ func (lp *LogPage) TimeLineID() TimeLineID {
 	return TimeLineID(lp.page.TrackingID())
 }
 
-func (lp *LogPage) Header() []byte {
-	return lp.page.Header()
-}
-
 func (lp *LogPage) Data() []byte {
 	return lp.page.Data()
 }

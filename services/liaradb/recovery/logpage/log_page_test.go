@@ -120,7 +120,9 @@ func TestLogPage_Replace(t *testing.T) {
 	}
 
 	b := buffer.NewFromSlice(data)
-	p.Replace(b)
+	if err := p.Replace(b); err != nil {
+		t.Fatal(err)
+	}
 	if !slices.Equal(p.Data()[:4], want) {
 		t.Errorf("incorrect data: %v, expected: %v", p.Data()[:4], data)
 	}
@@ -128,6 +130,17 @@ func TestLogPage_Replace(t *testing.T) {
 	p.Complete()
 	if c != 0 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 0)
+	}
+}
+
+func TestLogPage_Replace__Error(t *testing.T) {
+	t.Parallel()
+
+	p := New(256, 8)
+
+	b := buffer.New(0)
+	if err := p.Replace(b); err == nil {
+		t.Error("should return error")
 	}
 }
 
@@ -163,5 +176,98 @@ func TestLogPage_Shadow(t *testing.T) {
 	s.Complete()
 	if c != 1 {
 		t.Errorf("incorrect count: %v, expected: %v", c, 1)
+	}
+}
+
+func TestLogPage_Next_Commit(t *testing.T) {
+	t.Parallel()
+
+	p := New(40, 4)
+
+	header, data := p.Next(8)
+
+	if l := len(header); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+	if l := len(data); l != 8 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	}
+
+	header[0] = 12
+	data[1] = 34
+
+	p.Commit(8)
+
+	c := 0
+	for header, data = range p.Slots() {
+		c++
+		break
+	}
+
+	if c != 1 {
+		t.Fatalf("incorrect slots: %v, expected: %v", c, 1)
+	}
+	if l := len(header); l != 4 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 4)
+	}
+	if l := len(data); l != 8 {
+		t.Errorf("incorrect length: %v, expected: %v", l, 8)
+	}
+	if header[0] != 12 {
+		t.Errorf("incorrect header: %v, expected: %v", header[0], 12)
+	}
+	if data[1] != 34 {
+		t.Errorf("incorrect data: %v, expected: %v", data[0], 34)
+	}
+}
+
+func TestLogPage_Slots(t *testing.T) {
+	t.Parallel()
+
+	p := New(128, 4)
+
+	type row struct {
+		h []byte
+		d []byte
+	}
+
+	want := []row{{
+		h: []byte("head"),
+		d: []byte("bodydata"),
+	}, {
+		h: []byte("word"),
+		d: []byte("twowords"),
+	}}
+
+	for _, item := range want {
+		h, d := p.Next(int16(len(item.d)))
+		copy(h, item.h)
+		copy(d, item.d)
+		p.Commit(int16(len(item.d)))
+	}
+
+	result := make([]row, 0, len(want))
+
+	for h, d := range p.Slots() {
+		result = append(result, row{h, d})
+	}
+
+	if !slices.EqualFunc(result, want, func(a, b row) bool {
+		return slices.Equal(a.h, b.h) && slices.Equal(a.d, b.d)
+	}) {
+		t.Errorf("incorrect result: %v, expected: %v", result, want)
+	}
+
+	slices.Reverse(want)
+	reverse := make([]row, 0, len(want))
+
+	for h, d := range p.SlotsReverse() {
+		reverse = append(reverse, row{h, d})
+	}
+
+	if !slices.EqualFunc(reverse, want, func(a, b row) bool {
+		return slices.Equal(a.h, b.h) && slices.Equal(a.d, b.d)
+	}) {
+		t.Errorf("incorrect result: %v, expected: %v", reverse, want)
 	}
 }
