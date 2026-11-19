@@ -34,7 +34,27 @@ func TestRecordID_New(t *testing.T) {
 	}
 }
 
-func TestRecordID_WriteRead(t *testing.T) {
+func TestRecordID_ReadWrite(t *testing.T) {
+	t.Parallel()
+
+	r, w := newReaderWriter()
+
+	rid0 := NewRecordID(2, 3)
+	if err := rid0.Write(w); err != nil {
+		t.Fatal(err)
+	}
+
+	var rid1 RecordID
+	if err := rid1.Read(r); err != nil {
+		t.Fatal(err)
+	}
+
+	if rid1 != rid0 {
+		t.Errorf("incorrect result: %v, expected: %v", rid1, rid0)
+	}
+}
+
+func TestRecordID_WriteDataReadData(t *testing.T) {
 	t.Parallel()
 
 	id := NewRecordID(1, 2)

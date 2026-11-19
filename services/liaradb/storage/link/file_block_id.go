@@ -21,12 +21,6 @@ func NewFileBlockID(fn FileName, blockID BlockID) FileBlockID {
 	}
 }
 
-func (i FileBlockID) Size() int {
-	return serializer.Size(
-		i.fileName,
-		i.blockID)
-}
-
 func (i FileBlockID) Offset(bufferSize int64) Offset {
 	return i.blockID.Offset(bufferSize)
 }
@@ -51,6 +45,12 @@ func (i FileBlockID) Next() FileBlockID {
 		fileName: i.fileName,
 		blockID:  i.blockID + 1,
 	}
+}
+
+func (i FileBlockID) Size() int {
+	return serializer.Size(
+		i.fileName,
+		i.blockID)
 }
 
 func (i *FileBlockID) Read(r io.Reader) error {
