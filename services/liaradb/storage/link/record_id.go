@@ -20,9 +20,9 @@ func NewRecordID(block BlockID, slotID SlotID) RecordID {
 	}
 }
 
-func (i RecordID) Block() BlockID { return i.block }
-func (i RecordID) SlotID() SlotID { return i.slotID }
-func (i RecordID) Size() int      { return RecordIDSize }
+func (i RecordID) BlockID() BlockID { return i.block }
+func (i RecordID) SlotID() SlotID   { return i.slotID }
+func (i RecordID) Size() int        { return RecordIDSize }
 
 func (i RecordID) Write(w io.Writer) error {
 	return serializer.WriteAll(w,

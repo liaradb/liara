@@ -7,7 +7,7 @@ func TestRecordID_Defaults(t *testing.T) {
 
 	id := RecordID{}
 
-	if b := id.Block(); b != 0 {
+	if b := id.BlockID(); b != 0 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 0)
 	}
 
@@ -25,7 +25,7 @@ func TestRecordID_New(t *testing.T) {
 
 	id := NewRecordID(1, 2)
 
-	if b := id.Block(); b != 1 {
+	if b := id.BlockID(); b != 1 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
 	}
 
@@ -65,7 +65,7 @@ func TestRecordID_WriteDataReadData(t *testing.T) {
 	id0 := RecordID{}
 	id0.ReadData(data)
 
-	if b := id0.Block(); b != 1 {
+	if b := id0.BlockID(); b != 1 {
 		t.Errorf("incorrect block: %v, expected: %v", b, 1)
 	}
 

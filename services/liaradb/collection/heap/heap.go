@@ -52,7 +52,7 @@ func (h *Heap) Get(
 	fn link.FileName,
 	rid link.RecordID,
 ) (*record.Record, error) {
-	fbid := fn.FileBlockID(rid.Block())
+	fbid := fn.FileBlockID(rid.BlockID())
 	b, err := h.s.Request(ctx, fbid)
 	if err != nil {
 		return nil, err

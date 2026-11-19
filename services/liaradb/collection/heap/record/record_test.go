@@ -131,6 +131,41 @@ func TestRecord_InitIndexes(t *testing.T) {
 	// TODO: How do we test other cases?
 }
 
+func TestRecord_RecordID(t *testing.T) {
+	t.Parallel()
+
+	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+
+	tr0 := &testRecord{
+		id:   base.Uint64(2),
+		data: slices.Clone(want),
+	}
+
+	size := float64(tr0.Size()) / 2
+	a, b := int(math.Floor(size)), int(math.Ceil(size))
+
+	r := New()
+	f0 := r.Append(&testBufferPage{
+		fileBlockID: link.NewFileBlockID("", 2)},
+		link.SlotID(0),
+		make([]byte, fragmentHeaderSize), make([]byte, a))
+	f1 := r.Append(&testBufferPage{
+		fileBlockID: link.NewFileBlockID("", 1)},
+		link.SlotID(0),
+		make([]byte, fragmentHeaderSize), make([]byte, b))
+	r.InitIndexes()
+
+	rid0 := f0.RecordID()
+	rid1 := f1.RecordID()
+
+	// Expect it to be sorted
+	if rid := r.RecordID(); rid != rid1 {
+		t.Errorf("incorrect record id: %v, expected: %v", rid, rid1)
+	} else if rid == rid0 {
+		t.Errorf("incorrect record id: %v, expected: %v", rid, rid1)
+	}
+}
+
 func TestRecord_Read__Invalid(t *testing.T) {
 	t.Parallel()
 
@@ -198,10 +233,12 @@ func TestRecord_Bytes(t *testing.T) {
 }
 
 type testBufferPage struct {
-	released bool
+	fileBlockID link.FileBlockID
+	released    bool
+	deleted     bool
 }
 
-func (t *testBufferPage) FileBlockID() link.FileBlockID { return link.FileBlockID{} }
+func (t *testBufferPage) FileBlockID() link.FileBlockID { return t.fileBlockID }
 
 func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
@@ -225,4 +262,9 @@ func (t *testBufferPage) Slot(link.SlotID) ([]byte, []byte) {
 }
 
 func (t *testBufferPage) Delete(link.SlotID) {
+	t.deleted = true
+}
+
+func (t *testBufferPage) isDeleted() bool {
+	return t.deleted
 }
