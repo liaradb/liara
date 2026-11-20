@@ -5,41 +5,41 @@ import "testing"
 func TestBTreeHeader_Level(t *testing.T) {
 	t.Parallel()
 
-	p, _ := newHeader(make([]byte, testHeaderSize))
-	if l := p.Level(); l != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	h, _ := newHeader(make([]byte, testHeaderSize))
+	if l := h.Level(); l != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 0)
 	}
 
-	p.setLevel(1)
-	if l := p.Level(); l != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	h.setLevel(1)
+	if l := h.Level(); l != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 1)
 	}
 }
 
 func TestBTreePage_HighID(t *testing.T) {
 	t.Parallel()
 
-	p, _ := newHeader(make([]byte, testHeaderSize))
-	if id := p.HighID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	h, _ := newHeader(make([]byte, testHeaderSize))
+	if id := h.HighID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 0)
 	}
 
-	p.SetHighID(1)
-	if id := p.HighID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	h.SetHighID(1)
+	if id := h.HighID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 1)
 	}
 }
 
 func TestBTreePage_LowID(t *testing.T) {
 	t.Parallel()
 
-	p, _ := newHeader(make([]byte, testHeaderSize))
-	if id := p.LowID(); id != 0 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 0)
+	h, _ := newHeader(make([]byte, testHeaderSize))
+	if id := h.LowID(); id != 0 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 0)
 	}
 
-	p.SetLowID(1)
-	if id := p.LowID(); id != 1 {
-		t.Errorf("incorrect value: %v, expected: %v", p, 1)
+	h.SetLowID(1)
+	if id := h.LowID(); id != 1 {
+		t.Errorf("incorrect value: %v, expected: %v", h, 1)
 	}
 }

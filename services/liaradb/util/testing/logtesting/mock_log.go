@@ -13,6 +13,11 @@ type MockLog struct {
 	txid    record.TransactionID
 	lsn     logpage.LogSequenceNumber
 	records []*record.Record
+	err     error
+}
+
+func (t *MockLog) SetError(err error) {
+	t.err = err
 }
 
 func (t *MockLog) LogSequenceNumber() logpage.LogSequenceNumber { return t.lsn }
@@ -27,30 +32,50 @@ func (t *MockLog) XLock(context.Context, tablename.TableName, string) error {
 }
 
 func (t *MockLog) Append(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
+	if t.err != nil {
+		return logpage.LogSequenceNumber{}, t.err
+	}
+
 	t.increment()
 	t.addRecord(record.New(t.txid, frid, record.ActionAppend, data, nil))
 	return t.lsn, nil
 }
 
 func (t *MockLog) Insert(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
+	if t.err != nil {
+		return logpage.LogSequenceNumber{}, t.err
+	}
+
 	t.increment()
 	t.addRecord(record.New(t.txid, frid, record.ActionInsert, data, nil))
 	return t.lsn, nil
 }
 
 func (t *MockLog) Update(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+	if t.err != nil {
+		return logpage.LogSequenceNumber{}, t.err
+	}
+
 	t.increment()
 	t.addRecord(record.New(t.txid, frid, record.ActionUpdate, data, prev))
 	return t.lsn, nil
 }
 
 func (t *MockLog) Clear(ctx context.Context, frid link.FileRecordID, prev []byte) (logpage.LogSequenceNumber, error) {
+	if t.err != nil {
+		return logpage.LogSequenceNumber{}, t.err
+	}
+
 	t.increment()
 	t.addRecord(record.New(t.txid, frid, record.ActionClear, nil, prev))
 	return t.lsn, nil
 }
 
 func (t *MockLog) UpdateHeader(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+	if t.err != nil {
+		return logpage.LogSequenceNumber{}, t.err
+	}
+
 	t.increment()
 	t.addRecord(record.New(t.txid, frid, record.ActionUpdateHeader, data, prev))
 	return t.lsn, nil
