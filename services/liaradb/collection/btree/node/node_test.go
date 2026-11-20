@@ -9,11 +9,14 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 const (
 	testHeaderSize = 2 + page.MagicSize + 8 + HeaderSize
+	itemSize       = 4
 )
 
 func TestNode_Dirty(t *testing.T) {
@@ -373,6 +376,10 @@ func testNode_Children(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, values)
 	}
 
+	for range n.Children() {
+		break
+	}
+
 	synctest.Wait()
 }
 
@@ -426,6 +433,10 @@ func testNode_ChildrenRange(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
+	for range n.ChildrenRange(1, 4) {
+		break
+	}
+
 	synctest.Wait()
 }
 
@@ -456,16 +467,16 @@ func testNode_Clear(t *testing.T) {
 		{9, 10}}
 
 	for _, v := range values {
-		b, ok := n.Append(itemSize * int16(len(v)))
+		b, ok := n.Append(int16(len(v)))
 		if !ok {
 			t.Error("should get a buffer")
 		}
 
-		n.CommitAppend(itemSize * int16(len(v)))
-
 		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
 			t.Error(err)
 		}
+
+		n.CommitAppend(int16(len(v)))
 	}
 
 	n.Clear()
@@ -482,6 +493,30 @@ func testNode_Clear(t *testing.T) {
 
 	if l := len(result); l != 0 {
 		t.Errorf("incorrect length: %v, expected: %v", l, 0)
+	}
+
+	l := logtesting.MockLog{}
+	if err := n.LogActions(t.Context(), &l); err != nil {
+		t.Fatal(err)
+	}
+
+	if lsn, want := n.LogSequenceNumber(), l.LogSequenceNumber(); lsn != want {
+		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
+	}
+
+	for i, r := range l.Records() {
+		if i < len(values) {
+			if a := r.Action(); a != record.ActionAppend {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
+			}
+			if d, want := r.Data(), values[i]; !slices.Equal(d, want) {
+				t.Errorf("incorrect data: %v, expected: %v", d, want)
+			}
+		} else {
+			if a := r.Action(); a != record.ActionClear {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionClear)
+			}
+		}
 	}
 
 	n.Release()

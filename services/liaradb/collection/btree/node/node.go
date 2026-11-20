@@ -12,10 +12,6 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
-const (
-	itemSize = 4
-)
-
 type Node struct {
 	header
 	page    *page.Page
@@ -40,7 +36,9 @@ func New(buffer *storage.Buffer) Node {
 
 func (n *Node) Clear() {
 	// n.buffer.Clear()
-	n.addAction(newClearAction(n.buffer.FileBlockID().FileRecordID(0), n.page.Data()))
+	n.addAction(newClearAction(
+		n.buffer.FileBlockID().FileRecordID(0),
+		slices.Clone(n.page.Data())))
 	n.page.Clear()
 }
 
@@ -94,7 +92,7 @@ func (n *Node) CommitAppend(size int16) {
 	sid := n.page.CommitAppend(size)
 	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
-	n.addAction(newAppendAction(frid, b))
+	n.addAction(newAppendAction(frid, slices.Clone(b)))
 	n.addHeaderAction(frid)
 }
 
@@ -103,7 +101,7 @@ func (n *Node) CommitInsert(size int16, index link.SlotID) {
 	sid := n.page.Insert(size, index)
 	frid := n.buffer.FileBlockID().FileRecordID(sid)
 
-	n.addAction(newInsertAction(frid, b))
+	n.addAction(newInsertAction(frid, slices.Clone(b)))
 	n.addHeaderAction(frid)
 }
 
