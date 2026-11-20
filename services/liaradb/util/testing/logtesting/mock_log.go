@@ -14,6 +14,7 @@ type MockLog struct {
 	lsn     logpage.LogSequenceNumber
 	records []*record.Record
 	err     error
+	locks   map[tablename.TableName]map[string]int
 }
 
 func (t *MockLog) SetError(err error) {
@@ -23,11 +24,37 @@ func (t *MockLog) SetError(err error) {
 func (t *MockLog) LogSequenceNumber() logpage.LogSequenceNumber { return t.lsn }
 func (t *MockLog) Records() []*record.Record                    { return t.records }
 
-func (t *MockLog) SLock(context.Context, tablename.TableName, string) error {
+func (t *MockLog) SLock(ctx context.Context, tn tablename.TableName, key string) error {
+	if t.locks == nil {
+		t.locks = make(map[tablename.TableName]map[string]int)
+	}
+	locks, ok := t.locks[tn]
+	if !ok {
+		locks = make(map[string]int)
+		t.locks[tn] = locks
+	}
+
+	if locks[key] < 2 {
+		locks[key] = 1
+	}
+
 	return nil
 }
 
-func (t *MockLog) XLock(context.Context, tablename.TableName, string) error {
+func (t *MockLog) XLock(ctx context.Context, tn tablename.TableName, key string) error {
+	if t.locks == nil {
+		t.locks = make(map[tablename.TableName]map[string]int)
+	}
+	locks, ok := t.locks[tn]
+	if !ok {
+		locks = make(map[string]int)
+		t.locks[tn] = locks
+	}
+
+	if locks[key] < 2 {
+		locks[key] = 2
+	}
+
 	return nil
 }
 

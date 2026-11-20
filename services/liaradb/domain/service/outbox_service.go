@@ -8,10 +8,8 @@ import (
 	"github.com/liaradb/liaradb/domain/infrastructure/idempotency"
 	"github.com/liaradb/liaradb/domain/infrastructure/outbox"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
-	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type OutboxService struct {
@@ -43,13 +41,8 @@ func (os *OutboxService) CreateOutbox(
 		return value.OutboxID{}, err
 	}
 
-	tn := tenantfolder.NewTenantFolder(tid).Outbox()
-	oid := value.NewOutboxID()
-	if err := tx.XLock(ctx, tn, oid.String()); err != nil {
-		return value.OutboxID{}, err
-	}
-
 	return tx.RunResult(ctx, func() (value.OutboxID, error) {
+		oid := value.NewOutboxID()
 		outbox := entity.NewOutbox(oid, pid)
 
 		if err := os.outbox.Insert(ctx, tx, tid, oid, outbox); err != nil {
@@ -103,10 +96,19 @@ func (os *OutboxService) ListOutboxes(
 	ctx context.Context,
 	tid value.TenantID,
 ) iter.Seq2[*entity.Outbox, error] {
-	tx, err := os.initTransaction(ctx, tid)
-	if err != nil {
-		return iterator.Error[*entity.Outbox](err)
-	}
+	return func(yield func(*entity.Outbox, error) bool) {
+		tx, err := os.initTransaction(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
 
-	return os.outbox.List(ctx, tx, tid)
+		defer tx.Release()
+
+		for o, err := range os.outbox.List(ctx, tx, tid) {
+			if !yield(o, err) {
+				return
+			}
+		}
+	}
 }

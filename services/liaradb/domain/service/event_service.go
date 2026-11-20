@@ -18,7 +18,6 @@ import (
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/filecache"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type EventService struct {
@@ -191,14 +190,15 @@ func (es *EventService) Get(
 	pid value.PartitionID,
 	id value.AggregateID,
 ) iter.Seq2[*entity.Event, error] {
-	tx, err := es.initTransaction(ctx, tid)
-	if err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
-
-	defer tx.Release()
-
 	return func(yield func(*entity.Event, error) bool) {
+		tx, err := es.initTransaction(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		defer tx.Release()
+
 		tn := tenantfolder.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if !yield(e, err) {
@@ -215,14 +215,15 @@ func (es *EventService) GetByAggregateIDAndName(
 	id value.AggregateID,
 	name value.AggregateName,
 ) iter.Seq2[*entity.Event, error] {
-	tx, err := es.initTransaction(ctx, tid)
-	if err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
-
-	defer tx.Release()
-
 	return func(yield func(*entity.Event, error) bool) {
+		tx, err := es.initTransaction(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		defer tx.Release()
+
 		tn := tenantfolder.NewTenantFolder(tid).EventLog(pid)
 		for e, err := range es.eventLog.GetAggregate(ctx, tx, tn, id) {
 			if err != nil {
@@ -276,22 +277,32 @@ func (es *EventService) GetByOutbox(
 	oid value.OutboxID,
 	limit value.Limit,
 ) iter.Seq2[*entity.Event, error] {
-	tx, err := es.initTransaction(ctx, tid)
-	if err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
+	return func(yield func(*entity.Event, error) bool) {
+		tx, err := es.initTransaction(ctx, tid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
 
-	o, err := es.outbox.Get(ctx, tx, tid, oid)
-	if err != nil {
-		return iterator.Error[*entity.Event](err)
-	}
+		defer tx.Release()
 
-	return es.GetAfterGlobalVersion(ctx,
-		tid,
-		o.GlobalVersion(),
-		o.SubVersion(),
-		o.PartitionID(),
-		limit)
+		o, err := es.outbox.Get(ctx, tx, tid, oid)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		for e, err := range es.GetAfterGlobalVersion(ctx,
+			tid,
+			o.GlobalVersion(),
+			o.SubVersion(),
+			o.PartitionID(),
+			limit) {
+			if !yield(e, err) {
+				return
+			}
+		}
+	}
 }
 
 func (es *EventService) SetValue(

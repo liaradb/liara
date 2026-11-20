@@ -25,48 +25,48 @@ func NewConcurrencyMgr[K comparable](lt *LockTable[K]) *ConcurrencyMgr[K] {
 	}
 }
 
-func (cm *ConcurrencyMgr[K]) SLock(ctx context.Context, blk K) error {
-	if cm.hasAnyLock(blk) {
+func (cm *ConcurrencyMgr[K]) SLock(ctx context.Context, k K) error {
+	if cm.hasAnyLock(k) {
 		return nil
 	}
 
-	if ok := cm.lockTable.sLock(ctx, blk); !ok {
-		return fmt.Errorf("unable to SLock %v: %w", blk, ErrLockAbort)
+	if ok := cm.lockTable.sLock(ctx, k); !ok {
+		return fmt.Errorf("unable to SLock %v: %w", k, ErrLockAbort)
 	}
 
-	cm.locks[blk] = lockTypeS
+	cm.locks[k] = lockTypeS
 
 	return nil
 }
 
-func (cm *ConcurrencyMgr[K]) XLock(ctx context.Context, blk K) error {
-	switch cm.locks[blk] {
+func (cm *ConcurrencyMgr[K]) XLock(ctx context.Context, k K) error {
+	switch cm.locks[k] {
 	case lockTypeX:
 		return nil
 	case lockTypeS:
-		if ok := cm.lockTable.upgradeLock(ctx, blk); !ok {
-			return fmt.Errorf("unable to UpgradeLock %v: %w", blk, ErrLockAbort)
+		if ok := cm.lockTable.upgradeLock(ctx, k); !ok {
+			return fmt.Errorf("unable to UpgradeLock %v: %w", k, ErrLockAbort)
 		}
 	default:
-		if ok := cm.lockTable.xLock(ctx, blk); !ok {
-			return fmt.Errorf("unable to XLock %v: %w", blk, ErrLockAbort)
+		if ok := cm.lockTable.xLock(ctx, k); !ok {
+			return fmt.Errorf("unable to XLock %v: %w", k, ErrLockAbort)
 		}
 	}
 
-	cm.locks[blk] = lockTypeX
+	cm.locks[k] = lockTypeX
 
 	return nil
 }
 
 func (cm *ConcurrencyMgr[K]) Release() {
-	for blk := range cm.locks {
-		cm.lockTable.release(blk)
+	for k := range cm.locks {
+		cm.lockTable.release(k)
 	}
 
 	clear(cm.locks)
 }
 
-func (cm *ConcurrencyMgr[K]) hasAnyLock(blk K) bool {
-	l := cm.locks[blk]
+func (cm *ConcurrencyMgr[K]) hasAnyLock(k K) bool {
+	l := cm.locks[k]
 	return l > lockTypeNone
 }

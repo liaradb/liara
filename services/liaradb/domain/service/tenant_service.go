@@ -7,10 +7,8 @@ import (
 	"github.com/liaradb/liaradb/domain/command"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
-	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/transaction"
-	"github.com/liaradb/liaradb/util/iterator"
 )
 
 type TenantService struct {
@@ -56,20 +54,16 @@ func (ts *TenantService) Rename(ctx context.Context, cmd command.RenameTenant) e
 		return err
 	}
 
-	if err := tx.SLock(ctx, tenantfolder.Tenant, cmd.TenantID.String()); err != nil {
-		return err
-	}
-
-	tnt, err := ts.tc.Get(ctx, tx, cmd.TenantID)
-	if err != nil {
-		return err
-	}
-
-	if err := tnt.Rename(cmd.TenantName); err != nil {
-		return err
-	}
-
 	return tx.Run(ctx, func() error {
+		tnt, err := ts.tc.Get(ctx, tx, cmd.TenantID)
+		if err != nil {
+			return err
+		}
+
+		if err := tnt.Rename(cmd.TenantName); err != nil {
+			return err
+		}
+
 		return ts.tc.Replace(ctx, tx, tnt)
 	})
 }
@@ -86,12 +80,19 @@ func (ts *TenantService) Get(ctx context.Context, tenantID value.TenantID) (*ent
 }
 
 func (ts *TenantService) List(ctx context.Context, limit int, offset int) iter.Seq2[*entity.Tenant, error] {
-	tx, err := ts.txManager.Next(ctx)
-	if err != nil {
-		return iterator.Error[*entity.Tenant](err)
+	return func(yield func(*entity.Tenant, error) bool) {
+		tx, err := ts.txManager.Next(ctx)
+		if err != nil {
+			yield(nil, err)
+			return
+		}
+
+		defer tx.Release()
+
+		for t, err := range ts.tc.List(ctx, tx) {
+			if !yield(t, err) {
+				return
+			}
+		}
 	}
-
-	defer tx.Release()
-
-	return ts.tc.List(ctx, tx)
 }

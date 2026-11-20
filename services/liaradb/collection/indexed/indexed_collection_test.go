@@ -29,11 +29,12 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		if _, err := ic.Insert(t.Context(), &logtesting.MockLog{}, tn, k, b); err != nil {
+		l := logtesting.MockLog{}
+		if _, err := ic.Insert(t.Context(), &l, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
-		r, err := ic.GetByKey(t.Context(), &logtesting.MockLog{}, tn, k)
+		r, err := ic.GetByKey(t.Context(), &l, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +62,8 @@ func TestIndexedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		if err := insertData(ctx, &logtesting.MockLog{}, ic, tn, data); err != nil {
+		l := logtesting.MockLog{}
+		if err := insertData(ctx, &l, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 

@@ -15,8 +15,8 @@ func TestLockTable(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
 			lt := New[int](1)
 			lt.Run(t.Context())
-			ctx := t.Context()
 
+			ctx := t.Context()
 			if !lt.xLock(ctx, 0) {
 				t.Fatal("should get lock")
 			}

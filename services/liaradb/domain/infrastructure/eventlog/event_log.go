@@ -165,6 +165,6 @@ func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableNa
 		return value.GlobalVersion{}, err
 	}
 
-	v, _ := scan.Uint64([]byte(k.A.String()))
+	v, _ := scan.Uint64(k.A.Value())
 	return value.NewGlobalVersion(v), nil
 }
