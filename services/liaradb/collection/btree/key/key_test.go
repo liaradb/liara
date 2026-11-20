@@ -68,51 +68,51 @@ func TestKey(t *testing.T) {
 
 			if c.equal {
 				if !a.Equal(b) {
-					t.Error("should be equal")
+					t.Errorf("%v: should be equal", message)
 				}
 			} else {
 				if a.Equal(b) {
-					t.Error("should not be equal")
+					t.Errorf("%v: should not be equal", message)
 				}
 			}
 
 			if c.greater {
 				if !a.Greater(b) {
-					t.Error("should be greater")
+					t.Errorf("%v: should be greater", message)
 				}
 			} else {
 				if a.Greater(b) {
-					t.Error("should not be greater")
+					t.Errorf("%v: should not be greater", message)
 				}
 			}
 
 			if c.greaterEqual {
 				if !a.GreaterEqual(b) {
-					t.Error("should be greater than or equal")
+					t.Errorf("%v: should be greater than or equal", message)
 				}
 			} else {
 				if a.GreaterEqual(b) {
-					t.Error("should not be greater than or equal")
+					t.Errorf("%v: should not be greater than or equal", message)
 				}
 			}
 
 			if c.less {
 				if !a.Less(b) {
-					t.Error("should be less")
+					t.Errorf("%v: should be less", message)
 				}
 			} else {
 				if a.Less(b) {
-					t.Error("should not be less")
+					t.Errorf("%v: should not be less", message)
 				}
 			}
 
 			if c.lessEqual {
 				if !a.LessEqual(b) {
-					t.Error("should be less than or equal")
+					t.Errorf("%v: should be less than or equal", message)
 				}
 			} else {
 				if a.LessEqual(b) {
-					t.Error("should not be less than or equal")
+					t.Errorf("%v: should not be less than or equal", message)
 				}
 			}
 		})
@@ -156,5 +156,119 @@ func TestKey_String(t *testing.T) {
 
 	if s := k.String(); s != want {
 		t.Errorf("incorrect string: %v, expected: %v", s, want)
+	}
+}
+
+func TestKey_ABSize(t *testing.T) {
+	t.Parallel()
+
+	a := "abcdefg"
+	b := 2
+	k := NewKey2([]byte(a), int64(b))
+
+	if s, want := k.A.Size(), len(a); s != want {
+		t.Errorf("incorrect size: %v, expected: %v", s, want)
+	}
+
+	if s, want := k.B.Size(), 8; s != want {
+		t.Errorf("incorrect size: %v, expected: %v", s, want)
+	}
+
+	if s, want := k.Size(), len(a)+8; s != want {
+		t.Errorf("incorrect size: %v, expected: %v", s, want)
+	}
+}
+
+func TestKey_ReadWrite(t *testing.T) {
+	t.Parallel()
+
+	a := "abcdefg"
+	b := 2
+	k0 := NewKey2([]byte(a), int64(b))
+
+	data := make([]byte, k0.Size())
+	k0.Write(data)
+
+	var k1 Key
+	k1.Read(data)
+
+	if k1 != k0 {
+		t.Errorf("incorrect result: %v, expected: %v", k1, k0)
+	}
+}
+
+func TestStringKey_GreaterEqual(t *testing.T) {
+	t.Parallel()
+
+	for message, c := range map[string]struct {
+		skip   bool
+		a      stringKey
+		b      stringKey
+		result bool
+	}{
+		"should handle equal": {
+			a:      "a",
+			b:      "a",
+			result: true,
+		},
+		"should handle greater": {
+			a:      "b",
+			b:      "a",
+			result: true,
+		},
+		"should handle less": {
+			a:      "a",
+			b:      "b",
+			result: false,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			if e := c.a.GreaterEqual(c.b); e != c.result {
+				t.Errorf("%v: incorrect result: %v, expected: %v", message, e, c.result)
+			}
+		})
+	}
+}
+
+func TestStringKey_LessEqual(t *testing.T) {
+	t.Parallel()
+
+	for message, c := range map[string]struct {
+		skip   bool
+		a      stringKey
+		b      stringKey
+		result bool
+	}{
+		"should handle equal": {
+			a:      "a",
+			b:      "a",
+			result: true,
+		},
+		"should handle greater": {
+			a:      "b",
+			b:      "a",
+			result: false,
+		},
+		"should handle less": {
+			a:      "a",
+			b:      "b",
+			result: true,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			if e := c.a.LessEqual(c.b); e != c.result {
+				t.Errorf("%v: incorrect result: %v, expected: %v", message, e, c.result)
+			}
+		})
 	}
 }

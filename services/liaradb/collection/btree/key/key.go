@@ -22,48 +22,23 @@ func NewKey2(a []byte, b int64) Key {
 func (k Key) Size() int      { return k.A.Size() + k.B.Size() }
 func (k Key) String() string { return fmt.Sprintf("%v%v", k.A, k.B) }
 
-func (k Key) Equal(o any) bool {
-	b, ok := o.(Key)
-	if !ok {
-		return false
-	}
-
+func (k Key) Equal(b Key) bool {
 	return k.A.Equal(b.A) && k.B.Equal(b.B)
 }
 
-func (k Key) Greater(o any) bool {
-	b, ok := o.(Key)
-	if !ok {
-		return false
-	}
-
+func (k Key) Greater(b Key) bool {
 	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.Greater(b.B))
 }
 
-func (k Key) GreaterEqual(o any) bool {
-	b, ok := o.(Key)
-	if !ok {
-		return false
-	}
-
+func (k Key) GreaterEqual(b Key) bool {
 	return k.A.Greater(b.A) || (k.A.Equal(b.A) && k.B.GreaterEqual(b.B))
 }
 
-func (k Key) Less(o any) bool {
-	b, ok := o.(Key)
-	if !ok {
-		return false
-	}
-
+func (k Key) Less(b Key) bool {
 	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.Less(b.B))
 }
 
-func (k Key) LessEqual(o any) bool {
-	b, ok := o.(Key)
-	if !ok {
-		return false
-	}
-
+func (k Key) LessEqual(b Key) bool {
 	return k.A.Less(b.A) || (k.A.Equal(b.A) && k.B.LessEqual(b.B))
 }
 
