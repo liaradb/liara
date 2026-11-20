@@ -12,6 +12,6 @@ func newQueryByID(fbid link.FileBlockID) bufferQuery {
 	}
 }
 
-func (q queryByID) getBufferID(hw highWater) (link.FileBlockID, bool) {
+func (q queryByID) getBufferID(*Storage) (link.FileBlockID, bool) {
 	return q.fbid, false
 }

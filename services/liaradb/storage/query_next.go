@@ -12,6 +12,6 @@ func newQueryNext(fn link.FileName) bufferQuery {
 	}
 }
 
-func (q queryNext) getBufferID(hw highWater) (link.FileBlockID, bool) {
-	return hw.incrementHighFileBlockID(q.fileName), true
+func (q queryNext) getBufferID(s *Storage) (link.FileBlockID, bool) {
+	return s.incrementHighFileBlockID(q.fileName), true
 }

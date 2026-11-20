@@ -8,10 +8,5 @@ import (
 type bufferRequest = async.Request[bufferQuery, *Buffer]
 
 type bufferQuery interface {
-	getBufferID(highWater) (link.FileBlockID, bool)
-}
-
-type highWater interface {
-	highFileBlockID(link.FileName) link.FileBlockID
-	incrementHighFileBlockID(link.FileName) link.FileBlockID
+	getBufferID(*Storage) (link.FileBlockID, bool)
 }

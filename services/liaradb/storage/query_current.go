@@ -12,6 +12,6 @@ func newQueryCurrent(fn link.FileName) bufferQuery {
 	}
 }
 
-func (q queryCurrent) getBufferID(hw highWater) (link.FileBlockID, bool) {
-	return hw.highFileBlockID(q.fileName), false
+func (q queryCurrent) getBufferID(s *Storage) (link.FileBlockID, bool) {
+	return s.highFileBlockID(q.fileName), false
 }
