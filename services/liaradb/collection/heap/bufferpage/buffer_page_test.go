@@ -43,7 +43,16 @@ func TestBufferPage(t *testing.T) {
 			h, d := bp.Next(8)
 			h[0] = 1
 			d[0] = 2
+
+			if b.Dirty() {
+				t.Error("should not be dirty")
+			}
+
 			bp.CommitAppend(8)
+
+			if !b.Dirty() {
+				t.Error("should be dirty")
+			}
 		}
 
 		if c := bp.Count(); c != 1 {
@@ -65,6 +74,29 @@ func TestBufferPage(t *testing.T) {
 			should.Panic(t, "slot should not exist", func() {
 				_, _ = bp.Slot(0)
 			})
+		}
+	})
+}
+
+func TestBufferPage_CommitUpdate(t *testing.T) {
+	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		fbid := link.NewFileName("test").FileBlockID(link.BlockID(0))
+		b0, err := s.Storage.Request(t.Context(), fbid)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		bp0 := New(b0)
+		defer bp0.Release()
+
+		if b0.Dirty() {
+			t.Error("should not be dirty")
+		}
+
+		bp0.CommitUpdate()
+
+		if !b0.Dirty() {
+			t.Error("should be dirty")
 		}
 	})
 }
