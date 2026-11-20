@@ -1,6 +1,7 @@
 package heap
 
 import (
+	"context"
 	"testing"
 
 	"github.com/liaradb/liaradb/storage/link"
@@ -44,6 +45,40 @@ func TestHeap_Get(t *testing.T) {
 
 		if item != *want {
 			t.Errorf("incorrect result: %v, expected: %v", item, *want)
+		}
+	})
+}
+
+func TestHeap_Get__Error(t *testing.T) {
+	storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
+		h := New(s.Storage)
+
+		fn := link.NewFileName("test")
+		bid := link.BlockID(0)
+		rid := link.NewRecordID(bid, link.SlotID(0))
+
+		// Long name
+		d := make([]byte, 200)
+		copy(d, "name")
+		want := NewTestItem(NewTestName(string(d)))
+		rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, want)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		r, err := h.Get(t.Context(), fn, rid)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		r.Release()
+
+		ctx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		_, err = h.Get(ctx, fn, rid)
+		if err == nil {
+			t.Error("should return error")
 		}
 	})
 }
