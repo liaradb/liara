@@ -8,6 +8,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
@@ -25,6 +27,89 @@ func TestKeyNode(t *testing.T) {
 
 			data := testKeyNodeInsertData(t, kn)
 			testKeyNodeChildren(t, kn, data)
+		})
+	})
+
+	t.Run("should insert and split", func(t *testing.T) {
+		storagetesting.SyncTest(t, 2, 80, func(t *testing.T, s storagetesting.Storage) {
+			b := createBuffer(t, s.Storage)
+			defer b.Release()
+
+			n := node.New(b)
+			kn := New(n)
+
+			data := []keyEntry{
+				{key.NewKey([]byte("abcd")), 1},
+				{key.NewKey([]byte("efgh")), 2},
+				{key.NewKey([]byte("ijkl")), 3},
+			}
+
+			if a, b, ok := kn.Insert(data[0].key, data[0].block); !ok {
+				t.Error("should insert")
+			} else if a != nil {
+				t.Errorf("incorrect iterator: %v, expected: %v", a, nil)
+			} else if b != nil {
+				t.Errorf("incorrect iterator: %v, expected: %v", b, nil)
+			}
+
+			if a, b, ok := kn.Insert(data[1].key, data[1].block); !ok {
+				t.Error("should insert")
+			} else if a != nil {
+				t.Errorf("incorrect iterator: %v, expected: %v", a, nil)
+			} else if b != nil {
+				t.Errorf("incorrect iterator: %v, expected: %v", b, nil)
+			}
+
+			if a, b, ok := kn.Insert(data[2].key, data[2].block); ok {
+				t.Error("should not insert")
+			} else {
+				resultA := make([]keyEntry, 0, 1)
+				for k, v := range a {
+					resultA = append(resultA, newKeyEntry(k, v))
+				}
+				if want := data[:1]; !slices.Equal(resultA, want) {
+					t.Errorf("incorrect result: %v, expected: %v", resultA, want)
+				}
+
+				resultB := make([]keyEntry, 0, 2)
+				for k, v := range b {
+					resultB = append(resultB, newKeyEntry(k, v))
+				}
+				if want := data[1:]; !slices.Equal(resultB, want) {
+					t.Errorf("incorrect result: %v, expected: %v", resultB, want)
+				}
+			}
+
+			l := logtesting.MockLog{}
+			if err := kn.LogActions(t.Context(), &l); err != nil {
+				t.Error(err)
+			}
+
+			for i, r := range l.Records() {
+				if a := r.Action(); a != record.ActionInsert {
+					t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
+				}
+				var ke keyEntry
+				ke.Read(r.Data())
+				switch i {
+				case 0:
+					if k, want := ke.Key(), data[0].Key(); k != want {
+						t.Errorf("incorrect key: %v, expected: %v", k, want)
+					}
+					if b, want := ke.Block(), data[0].Block(); b != want {
+						t.Errorf("incorrect key: %v, expected: %v", b, want)
+					}
+				case 1:
+					if k, want := ke.Key(), data[1].Key(); k != want {
+						t.Errorf("incorrect key: %v, expected: %v", k, want)
+					}
+					if b, want := ke.Block(), data[1].Block(); b != want {
+						t.Errorf("incorrect key: %v, expected: %v", b, want)
+					}
+				default:
+					t.Error("too many actions")
+				}
+			}
 		})
 	})
 
