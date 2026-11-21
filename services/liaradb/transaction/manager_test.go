@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"context"
+	"iter"
 	"slices"
 	"testing"
 	"testing/synctest"
@@ -54,25 +56,73 @@ func createManager(t *testing.T) (*Manager, *log.Log) {
 	return m, l
 }
 
+func createManagerIterator(t *testing.T) (*Manager, *log.Log, func() iter.Seq[*record.Record]) {
+	t.Helper()
+
+	fsys, dir := createFiles()
+	l, cancel := createLogCancel(t, fsys, dir)
+
+	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
+	m := NewManager(l, s, 1)
+
+	ctx, cancel2 := context.WithCancel(t.Context())
+	m.Run(ctx, func(err error) {})
+
+	return m, l, func() iter.Seq[*record.Record] {
+		if err := l.Flush(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+
+		cancel2()
+		cancel()
+		return iterateLog(t, fsys, dir)
+	}
+}
+
 func createLog(t *testing.T, fsys filecache.FileSystem, dir string) *log.Log {
 	t.Helper()
 
+	l, cancel := createLogCancel(t, fsys, dir)
+
+	t.Cleanup(cancel)
+
+	return l
+}
+
+func createLogCancel(t *testing.T, fsys filecache.FileSystem, dir string) (*log.Log, func()) {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(t.Context())
+
 	l := log.New(256, 3, 256, 100, fsys, dir)
-	if err := l.Run(t.Context(), func(err error) {}); err != nil {
+	if err := l.Run(ctx, func(err error) {}); err != nil {
 		t.Fatal(err)
 	}
-
-	t.Cleanup(func() {
-		if err := l.Close(); err != nil {
-			t.Error(err)
-		}
-	})
 
 	if err := l.StartWriter(); err != nil {
 		t.Fatal(err)
 	}
 
-	return l
+	return l, func() {
+		cancel()
+		synctest.Wait()
+		if err := l.Close(); err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func iterateLog(t *testing.T, fsys filecache.FileSystem, dir string) iter.Seq[*record.Record] {
+	t.Helper()
+
+	l := log.New(256, 3, 256, 100, fsys, dir)
+
+	it, err := l.Recover()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return it
 }
 
 func createFiles() (filecache.FileSystem, string) {
