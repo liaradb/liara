@@ -34,9 +34,18 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		if !l.IsXLocked(tn, k.String()) {
+			t.Fatal("should be x locked")
+		}
+
+		l = logtesting.MockLog{}
 		r, err := ic.GetByKey(t.Context(), &l, tn, k)
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if !l.IsSLocked(tn, k.String()) {
+			t.Fatal("should be x locked")
 		}
 
 		b0 := base.NewFixedBytesFromSize(5)
@@ -99,25 +108,39 @@ func TestIndexedCollection_Replace(t *testing.T) {
 		ctx := t.Context()
 		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
-		l := &logtesting.MockLog{}
 
 		id := NewTestID()
 		ti0 := NewTestItem(id, NewTestName("name0"))
-
 		k := key.NewKey(id.Bytes())
+
+		l := &logtesting.MockLog{}
 		if _, err := ic.Insert(ctx, l, tn, k, ti0); err != nil {
 			t.Fatal(err)
 		}
 
+		if !l.IsXLocked(tn, k.String()) {
+			t.Fatal("should be x locked")
+		}
+
 		ti1 := NewTestItem(id, NewTestName("name1"))
 
+		l = &logtesting.MockLog{}
 		if err := ic.Replace(ctx, l, tn, k, ti1); err != nil {
 			t.Fatal(err)
 		}
 
+		if !l.IsXLocked(tn, k.String()) {
+			t.Fatal("should be x locked")
+		}
+
+		l = &logtesting.MockLog{}
 		r, err := ic.GetByKey(ctx, l, tn, k)
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if !l.IsSLocked(tn, k.String()) {
+			t.Fatal("should be x locked")
 		}
 
 		defer r.Release()

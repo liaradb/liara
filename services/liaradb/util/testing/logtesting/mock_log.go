@@ -58,6 +58,45 @@ func (t *MockLog) XLock(ctx context.Context, tn tablename.TableName, key string)
 	return nil
 }
 
+func (t *MockLog) IsLocked(tn tablename.TableName, key string) bool {
+	if t.locks == nil {
+		return false
+	}
+
+	locks, ok := t.locks[tn]
+	if !ok {
+		return false
+	}
+
+	return locks[key] > 0
+}
+
+func (t *MockLog) IsSLocked(tn tablename.TableName, key string) bool {
+	if t.locks == nil {
+		return false
+	}
+
+	locks, ok := t.locks[tn]
+	if !ok {
+		return false
+	}
+
+	return locks[key] == 1
+}
+
+func (t *MockLog) IsXLocked(tn tablename.TableName, key string) bool {
+	if t.locks == nil {
+		return false
+	}
+
+	locks, ok := t.locks[tn]
+	if !ok {
+		return false
+	}
+
+	return locks[key] == 2
+}
+
 func (t *MockLog) Append(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
