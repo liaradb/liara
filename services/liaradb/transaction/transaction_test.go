@@ -11,6 +11,7 @@ import (
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
+// TODO: Ensure Transaction pins BufferList
 // TODO: Verify Transaction.Release
 func TestTransaction_Run(t *testing.T) {
 	t.Parallel()

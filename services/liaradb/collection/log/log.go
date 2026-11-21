@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -15,4 +16,10 @@ type Log interface {
 	UpdateHeader(context.Context, link.FileRecordID, []byte, []byte) (logpage.LogSequenceNumber, error)
 	// TODO: Use Truncate for splitting B+Tree nodes
 	// Truncate(context.Context, link.FileRecordID, []byte) (logpage.LogSequenceNumber, error)
+}
+
+type BufferList interface {
+	Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error)
+	PinCurrent(context.Context, link.FileName) (*storage.Buffer, error)
+	PinNext(context.Context, link.FileName) (*storage.Buffer, error)
 }

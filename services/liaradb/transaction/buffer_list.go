@@ -33,6 +33,26 @@ func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.
 	return b, nil
 }
 
+func (bl *BufferList) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	b, err := bl.storage.RequestCurrent(ctx, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	bl.buffers[b.FileBlockID()] = b
+	return b, nil
+}
+
+func (bl *BufferList) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	b, err := bl.storage.RequestNext(ctx, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	bl.buffers[b.FileBlockID()] = b
+	return b, nil
+}
+
 func (bl *BufferList) Release() {
 	for _, b := range bl.buffers {
 		b.Release()
