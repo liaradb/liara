@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"fmt"
+	"slices"
 	"testing"
 	"testing/synctest"
 
@@ -8,6 +10,81 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
 )
+
+// TODO: Verify Transaction.Release
+func TestTransaction_Run(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should commit", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			m, _, iterator := createManagerIterator(t)
+			ctx := t.Context()
+
+			tx, err := m.Next(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := tx.Run(t.Context(), func() error {
+				_, err := tx.Insert(t.Context(), link.FileRecordID{}, nil)
+				return err
+			}); err != nil {
+				t.Fatal(err)
+			}
+
+			want := []record.Action{
+				record.ActionStart,
+				record.ActionInsert,
+				record.ActionCommit,
+			}
+
+			actions := make([]record.Action, 0, len(want))
+			for r := range iterator() {
+				actions = append(actions, r.Action())
+			}
+
+			if !slices.Equal(actions, want) {
+				t.Errorf("incorrect actions: %v, expected: %v", actions, want)
+			}
+		})
+	})
+
+	t.Run("should rollback", func(t *testing.T) {
+		synctest.Test(t, func(t *testing.T) {
+			m, _, iterator := createManagerIterator(t)
+			ctx := t.Context()
+
+			tx, err := m.Next(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := tx.Run(t.Context(), func() error {
+				if _, err := tx.Insert(t.Context(), link.FileRecordID{}, nil); err != nil {
+					t.Fatal(err)
+				}
+				return fmt.Errorf("error")
+			}); err == nil {
+				t.Error("should return error")
+			}
+
+			want := []record.Action{
+				record.ActionStart,
+				record.ActionInsert,
+				record.ActionRollback,
+			}
+
+			actions := make([]record.Action, 0, len(want))
+			for r := range iterator() {
+				actions = append(actions, r.Action())
+			}
+
+			if !slices.Equal(actions, want) {
+				t.Errorf("incorrect actions: %v, expected: %v", actions, want)
+			}
+		})
+	})
+}
 
 func TestTransaction_Append(t *testing.T) {
 	t.Parallel()
