@@ -6,6 +6,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
@@ -130,61 +131,73 @@ func (t *Transaction) rollback(ctx context.Context) error {
 	return nil
 }
 
-func (l *Transaction) Append(
+func (t *Transaction) Append(
 	ctx context.Context,
 	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Append(ctx,
-		l.id,
+	return t.log.Append(ctx,
+		t.id,
 		frid,
 		data)
 }
 
-func (l *Transaction) Insert(
+func (t *Transaction) Insert(
 	ctx context.Context,
 	frid link.FileRecordID,
 	data []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Insert(ctx,
-		l.id,
+	return t.log.Insert(ctx,
+		t.id,
 		frid,
 		data)
 }
 
-func (l *Transaction) Update(
+func (t *Transaction) Update(
 	ctx context.Context,
 	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Update(ctx,
-		l.id,
+	return t.log.Update(ctx,
+		t.id,
 		frid,
 		data,
 		prev)
 }
 
-func (l *Transaction) Clear(
+func (t *Transaction) Clear(
 	ctx context.Context,
 	frid link.FileRecordID,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.Clear(ctx,
-		l.id,
+	return t.log.Clear(ctx,
+		t.id,
 		frid,
 		prev)
 }
 
-func (l *Transaction) UpdateHeader(
+func (t *Transaction) UpdateHeader(
 	ctx context.Context,
 	frid link.FileRecordID,
 	data []byte,
 	prev []byte,
 ) (logpage.LogSequenceNumber, error) {
-	return l.log.UpdateHeader(ctx,
-		l.id,
+	return t.log.UpdateHeader(ctx,
+		t.id,
 		frid,
 		data,
 		prev)
+}
+
+func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+	return t.bufferList.Pin(ctx, fbid)
+}
+
+func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	return t.bufferList.PinCurrent(ctx, fn)
+}
+
+func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	return t.bufferList.PinNext(ctx, fn)
 }

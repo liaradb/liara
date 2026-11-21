@@ -5,6 +5,7 @@ import (
 
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/recovery/logpage"
+	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
 )
@@ -153,4 +154,16 @@ func (t *Transaction) increment() {
 
 func (t *Transaction) addRecord(r *record.Record) {
 	t.records = append(t.records, r)
+}
+
+func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+	panic("unimplemented")
+}
+
+func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	panic("unimplemented")
+}
+
+func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+	panic("unimplemented")
 }
