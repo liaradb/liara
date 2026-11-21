@@ -201,3 +201,7 @@ func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storag
 func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
 	return t.bufferList.PinNext(ctx, fn)
 }
+
+func (t *Transaction) Unpin(b *storage.Buffer) {
+	t.bufferList.ReleaseBuffer(b)
+}

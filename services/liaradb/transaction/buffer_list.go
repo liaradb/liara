@@ -60,6 +60,8 @@ func (bl *BufferList) Release() {
 }
 
 func (bl *BufferList) ReleaseBuffer(b *storage.Buffer) {
-	b.Release()
-	delete(bl.buffers, b.FileBlockID())
+	if !b.Dirty() {
+		b.Release()
+		delete(bl.buffers, b.FileBlockID())
+	}
 }

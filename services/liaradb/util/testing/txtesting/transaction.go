@@ -16,6 +16,13 @@ type Transaction struct {
 	records []*record.Record
 	err     error
 	locks   map[tablename.TableName]map[string]int
+	bl      bufferList
+}
+
+func New(s *storage.Storage) *Transaction {
+	return &Transaction{
+		bl: newBufferList(s),
+	}
 }
 
 func (t *Transaction) SetError(err error) {
@@ -157,13 +164,21 @@ func (t *Transaction) addRecord(r *record.Record) {
 }
 
 func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
-	panic("unimplemented")
+	return t.bl.Pin(ctx, fbid)
 }
 
 func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
-	panic("unimplemented")
+	return t.bl.PinCurrent(ctx, fn)
 }
 
 func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
-	panic("unimplemented")
+	return t.bl.PinNext(ctx, fn)
+}
+
+func (t *Transaction) Unpin(b *storage.Buffer) {
+	t.bl.ReleaseBuffer(b)
+}
+
+func (t *Transaction) Release() {
+	t.bl.Release()
 }

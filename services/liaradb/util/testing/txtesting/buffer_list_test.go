@@ -1,0 +1,74 @@
+package txtesting
+
+import (
+	"testing"
+	"testing/synctest"
+
+	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/storage/lrupool"
+	"github.com/liaradb/liaradb/util/testing/filetesting"
+)
+
+func TestBufferList(t *testing.T) {
+	t.Parallel()
+	synctest.Test(t, testBufferList)
+}
+
+func testBufferList(t *testing.T) {
+	fsys := filetesting.New(nil)
+	s := storage.New(fsys, lrupool.New(), 2, 1024, t.TempDir())
+	bl := newBufferList(s)
+
+	ctx := t.Context()
+	if err := s.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	fn := link.NewFileName("testfile")
+
+	b0, err := bl.Pin(ctx, fn.FileBlockID(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p := b0.FileBlockID().BlockID(); p != 1 {
+		t.Errorf("incorrect result: expected %v, recieved %v", 1, p)
+	}
+	if p := b0.Pins(); p != 1 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
+	}
+
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
+	b1, err := bl.Pin(ctx, fn.FileBlockID(2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p := b1.FileBlockID().BlockID(); p != 2 {
+		t.Fatalf("incorrect result: expected %v, recieved %v", 2, p)
+	}
+	if p := b1.Pins(); p != 1 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 1)
+	}
+	if r := b1.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+
+	bl.Release()
+
+	synctest.Wait()
+	if p := b0.Pins(); p != 0 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
+	if r := b0.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+	if p := b1.Pins(); p != 0 {
+		t.Errorf("incorrect pins: %v, expected: %v", p, 0)
+	}
+	if r := b1.Reads(); r != 1 {
+		t.Errorf("incorrect reads: %v, expected: %v", r, 1)
+	}
+}

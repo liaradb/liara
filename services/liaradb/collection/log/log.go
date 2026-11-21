@@ -20,4 +20,5 @@ type Log interface {
 	Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error)
 	PinCurrent(context.Context, link.FileName) (*storage.Buffer, error)
 	PinNext(context.Context, link.FileName) (*storage.Buffer, error)
+	Unpin(*storage.Buffer)
 }

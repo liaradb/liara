@@ -53,7 +53,7 @@ func (b *Buffer) unpin() bool {
 	b.pins--
 	if b.pins < 0 {
 		// This should never happen
-		panic("nevative pins")
+		panic("negative pins")
 	}
 	return b.pins == 0
 }
