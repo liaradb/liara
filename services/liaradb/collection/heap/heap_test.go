@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestHeap_Get(t *testing.T) {
@@ -26,7 +26,7 @@ func TestHeap_Get(t *testing.T) {
 		d := make([]byte, 200)
 		copy(d, "name")
 		want := NewTestItem(NewTestName(string(d)))
-		rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, want)
+		rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, want)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +61,7 @@ func TestHeap_Get__Error(t *testing.T) {
 		d := make([]byte, 200)
 		copy(d, "name")
 		want := NewTestItem(NewTestName(string(d)))
-		rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, want)
+		rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, want)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,12 +89,12 @@ func TestHeap_Delete(t *testing.T) {
 		fn := link.NewFileName("test")
 		want := NewTestItem(NewTestName("name"))
 
-		rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, want)
+		rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, want)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if err := h.Delete(t.Context(), &logtesting.MockLog{}, fn, rid); err != nil {
+		if err := h.Delete(t.Context(), &txtesting.Transaction{}, fn, rid); err != nil {
 			t.Fatal(err)
 		}
 
@@ -113,13 +113,13 @@ func TestHeap_Replace(t *testing.T) {
 			h := New(s.Storage)
 
 			first := NewTestItem(NewTestName("name0"))
-			rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, first)
+			rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, first)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			second := NewTestItem(NewTestName("name1"))
-			if err := h.Replace(t.Context(), &logtesting.MockLog{}, fn, rid, second); err != nil {
+			if err := h.Replace(t.Context(), &txtesting.Transaction{}, fn, rid, second); err != nil {
 				t.Fatal(err)
 			}
 
@@ -147,13 +147,13 @@ func TestHeap_Replace(t *testing.T) {
 			h := New(s.Storage)
 
 			first := NewTestItem(NewTestName("name0"))
-			rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, first)
+			rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, first)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			second := NewTestItem(NewTestName("name"))
-			if err := h.Replace(t.Context(), &logtesting.MockLog{}, fn, rid, second); err != nil {
+			if err := h.Replace(t.Context(), &txtesting.Transaction{}, fn, rid, second); err != nil {
 				t.Fatal(err)
 			}
 
@@ -181,13 +181,13 @@ func TestHeap_Replace(t *testing.T) {
 			h := New(s.Storage)
 
 			first := NewTestItem(NewTestName("name0"))
-			rid, err := h.Insert(t.Context(), &logtesting.MockLog{}, fn, first)
+			rid, err := h.Insert(t.Context(), &txtesting.Transaction{}, fn, first)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			second := NewTestItem(NewTestName("name12"))
-			if err := h.Replace(t.Context(), &logtesting.MockLog{}, fn, rid, second); err != nil {
+			if err := h.Replace(t.Context(), &txtesting.Transaction{}, fn, rid, second); err != nil {
 				t.Fatal(err)
 			}
 

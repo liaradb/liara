@@ -16,8 +16,8 @@ import (
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestIndexedCollection_InsertAndGet(t *testing.T) {
@@ -29,22 +29,22 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		l := logtesting.MockLog{}
-		if _, err := ic.Insert(t.Context(), &l, tn, k, b); err != nil {
+		tx := txtesting.Transaction{}
+		if _, err := ic.Insert(t.Context(), &tx, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
-		if !l.IsXLocked(tn, k.String()) {
+		if !tx.IsXLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
 
-		l = logtesting.MockLog{}
-		r, err := ic.GetByKey(t.Context(), &l, tn, k)
+		tx = txtesting.Transaction{}
+		r, err := ic.GetByKey(t.Context(), &tx, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if !l.IsSLocked(tn, k.String()) {
+		if !tx.IsSLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
 
@@ -71,8 +71,8 @@ func TestIndexedCollection(t *testing.T) {
 		data := createData()
 		slices.Reverse(data)
 
-		l := logtesting.MockLog{}
-		if err := insertData(ctx, &l, ic, tn, data); err != nil {
+		tx := txtesting.Transaction{}
+		if err := insertData(ctx, &tx, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
@@ -92,7 +92,7 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 
 		data := createData()
 
-		if err := insertData(ctx, &logtesting.MockLog{}, ic, tn, data); err != nil {
+		if err := insertData(ctx, &txtesting.Transaction{}, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
@@ -113,33 +113,33 @@ func TestIndexedCollection_Replace(t *testing.T) {
 		ti0 := NewTestItem(id, NewTestName("name0"))
 		k := key.NewKey(id.Bytes())
 
-		l := &logtesting.MockLog{}
-		if _, err := ic.Insert(ctx, l, tn, k, ti0); err != nil {
+		tx := txtesting.Transaction{}
+		if _, err := ic.Insert(ctx, &tx, tn, k, ti0); err != nil {
 			t.Fatal(err)
 		}
 
-		if !l.IsXLocked(tn, k.String()) {
+		if !tx.IsXLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
 
 		ti1 := NewTestItem(id, NewTestName("name1"))
 
-		l = &logtesting.MockLog{}
-		if err := ic.Replace(ctx, l, tn, k, ti1); err != nil {
+		tx = txtesting.Transaction{}
+		if err := ic.Replace(ctx, &tx, tn, k, ti1); err != nil {
 			t.Fatal(err)
 		}
 
-		if !l.IsXLocked(tn, k.String()) {
+		if !tx.IsXLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
 
-		l = &logtesting.MockLog{}
-		r, err := ic.GetByKey(ctx, l, tn, k)
+		tx = txtesting.Transaction{}
+		r, err := ic.GetByKey(ctx, &tx, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if !l.IsSLocked(tn, k.String()) {
+		if !tx.IsSLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
 
@@ -194,7 +194,7 @@ func testGet(
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := ic.GetByKey(ctx, &logtesting.MockLog{}, tn, k)
+		value, err := ic.GetByKey(ctx, &txtesting.Transaction{}, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -236,7 +236,7 @@ func getListValues(
 ) ([]TestItem, error) {
 	result := make([]TestItem, 0, len(data))
 	i := 0
-	for r, err := range ic.List(ctx, &logtesting.MockLog{}, tn) {
+	for r, err := range ic.List(ctx, &txtesting.Transaction{}, tn) {
 		if err != nil {
 			return nil, err
 		}

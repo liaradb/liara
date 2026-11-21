@@ -9,9 +9,9 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestKeyNode(t *testing.T) {
@@ -80,12 +80,12 @@ func TestKeyNode(t *testing.T) {
 				}
 			}
 
-			l := logtesting.MockLog{}
-			if err := kn.LogActions(t.Context(), &l); err != nil {
+			tx := txtesting.Transaction{}
+			if err := kn.LogActions(t.Context(), &tx); err != nil {
 				t.Error(err)
 			}
 
-			for i, r := range l.Records() {
+			for i, r := range tx.Records() {
 				if a := r.Action(); a != record.ActionInsert {
 					t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
 				}
@@ -166,12 +166,12 @@ func TestKeyNode(t *testing.T) {
 				}
 			}
 
-			l := logtesting.MockLog{}
-			if err := kn.LogActions(t.Context(), &l); err != nil {
+			tx := txtesting.Transaction{}
+			if err := kn.LogActions(t.Context(), &tx); err != nil {
 				t.Error(err)
 			}
 
-			for i, r := range l.Records() {
+			for i, r := range tx.Records() {
 				if a := r.Action(); a != record.ActionInsert {
 					t.Errorf("incorrect action: %v, expected: %v", a, record.ActionInsert)
 				}

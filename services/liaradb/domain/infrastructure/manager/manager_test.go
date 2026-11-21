@@ -11,8 +11,8 @@ import (
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/infrastructure/keyvalue"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestManager(t *testing.T) {
@@ -26,7 +26,7 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 	want := createValues(data)
 
 	for _, d := range data {
-		if err := m.Insert(t.Context(), &logtesting.MockLog{}, key.NewKey([]byte(d.key)), d.value); err != nil {
+		if err := m.Insert(t.Context(), &txtesting.Transaction{}, key.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -40,7 +40,7 @@ func testManager(t *testing.T, s storagetesting.Storage) {
 func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), &logtesting.MockLog{}, key.NewKey([]byte(d.key)))
+		v, err := m.Get(t.Context(), &txtesting.Transaction{}, key.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +54,7 @@ func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 }
 
 func testList(t *testing.T, want []int64, m *Manager) {
-	i, err := m.List(t.Context(), &logtesting.MockLog{})
+	i, err := m.List(t.Context(), &txtesting.Transaction{})
 	if err != nil {
 		t.Fatal(err)
 	}

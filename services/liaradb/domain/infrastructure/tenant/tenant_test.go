@@ -13,8 +13,8 @@ import (
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestTenant(t *testing.T) {
@@ -28,7 +28,7 @@ func testTenant(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, tn, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,7 +48,7 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, tn, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -62,10 +62,10 @@ func TestTenant_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		tid := value.NewTenantID()
 
-		if _, err := tn.Get(ctx, l, tid); err == nil {
+		if _, err := tn.Get(ctx, &tx, tid); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -75,16 +75,16 @@ func TestTenant_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 10, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 
 		id := value.NewTenantID()
 		t0 := entity.NewTenant(id, value.NewTenantName("Tenant 1"))
 
-		if err := tn.Insert(ctx, l, t0); err != nil {
+		if err := tn.Insert(ctx, &tx, t0); err != nil {
 			t.Fatal(err)
 		}
 
-		t1, err := tn.Get(ctx, l, id)
+		t1, err := tn.Get(ctx, &tx, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,11 +95,11 @@ func TestTenant_Replace(t *testing.T) {
 
 		t1.Rename(value.NewTenantName("Tenant 2"))
 
-		if err := tn.Replace(ctx, l, t1); err != nil {
+		if err := tn.Replace(ctx, &tx, t1); err != nil {
 			t.Fatal(err)
 		}
 
-		t2, err := tn.Get(ctx, l, id)
+		t2, err := tn.Get(ctx, &tx, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -145,7 +145,7 @@ func testGet(
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := tn.Get(ctx, &logtesting.MockLog{}, i.value.ID())
+		value, err := tn.Get(ctx, &txtesting.Transaction{}, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -172,7 +172,7 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range tn.List(ctx, &logtesting.MockLog{}) {
+	for range tn.List(ctx, &txtesting.Transaction{}) {
 		break
 	}
 }
@@ -184,7 +184,7 @@ func getListValues(
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range tn.List(ctx, &logtesting.MockLog{}) {
+	for value, err := range tn.List(ctx, &txtesting.Transaction{}) {
 		if err != nil {
 			return nil, err
 		}

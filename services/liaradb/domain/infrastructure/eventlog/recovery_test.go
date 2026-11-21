@@ -18,7 +18,7 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/lrupool"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestEventLog_Recovery(t *testing.T) {
@@ -71,7 +71,7 @@ func write(
 	}
 
 	for _, r := range events {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
+		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -104,7 +104,7 @@ func recover(
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
+	for e, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
 		value.NewGlobalVersion(0),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {

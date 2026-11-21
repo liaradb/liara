@@ -15,8 +15,8 @@ import (
 	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
 	"github.com/liaradb/liaradb/encoder/base"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestKeyValue(t *testing.T) {
@@ -43,7 +43,7 @@ func TestKeyValue(t *testing.T) {
 				kv := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
 				tn := tenantfolder.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
-				if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, c.data); err != nil {
+				if err := insertData(ctx, &txtesting.Transaction{}, kv, tn, c.data); err != nil {
 					t.Fatal(err)
 				}
 
@@ -67,7 +67,7 @@ func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, kv, tn, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, kv, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,7 +114,7 @@ func insertData(ctx context.Context, tx indexed.Transaction, kv *KeyValue, tn ta
 
 func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, data []item) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, &logtesting.MockLog{}, tn, key.NewKey([]byte(i.key)))
+		value, err := kv.Get(ctx, &txtesting.Transaction{}, tn, key.NewKey([]byte(i.key)))
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -138,7 +138,7 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range kv.List(ctx, &logtesting.MockLog{}, tn) {
+	for range kv.List(ctx, &txtesting.Transaction{}, tn) {
 		break
 	}
 }
@@ -146,7 +146,7 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
-	for value, err := range kv.List(ctx, &logtesting.MockLog{}, tn) {
+	for value, err := range kv.List(ctx, &txtesting.Transaction{}, tn) {
 		if err != nil {
 			return nil, err
 		}

@@ -15,8 +15,8 @@ import (
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestOutbox(t *testing.T) {
@@ -31,7 +31,7 @@ func testOutbox(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, tid, o, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -52,7 +52,7 @@ func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, tid, o, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -66,10 +66,10 @@ func TestOutbox_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		tid := value.NewTenantID()
 
-		if _, err := ob.Get(ctx, l, tid, value.NewOutboxID()); err == nil {
+		if _, err := ob.Get(ctx, &tx, tid, value.NewOutboxID()); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -79,7 +79,7 @@ func TestOutbox_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		tid := value.NewTenantID()
 		pid := value.NewPartitionID(0)
 
@@ -88,11 +88,11 @@ func TestOutbox_Replace(t *testing.T) {
 
 		o0.UpdatePosition(value.NewGlobalVersion(1), value.NewSubVersion(2))
 
-		if err := ob.Insert(ctx, l, tid, id, o0); err != nil {
+		if err := ob.Insert(ctx, &tx, tid, id, o0); err != nil {
 			t.Fatal(err)
 		}
 
-		o1, err := ob.Get(ctx, l, tid, id)
+		o1, err := ob.Get(ctx, &tx, tid, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -103,11 +103,11 @@ func TestOutbox_Replace(t *testing.T) {
 
 		o1.UpdatePosition(value.NewGlobalVersion(10), value.NewSubVersion(20))
 
-		if err := ob.Replace(ctx, l, tid, id, o1); err != nil {
+		if err := ob.Replace(ctx, &tx, tid, id, o1); err != nil {
 			t.Fatal(err)
 		}
 
-		o2, err := ob.Get(ctx, l, tid, id)
+		o2, err := ob.Get(ctx, &tx, tid, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -152,7 +152,7 @@ func testGet(
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := o.Get(ctx, &logtesting.MockLog{}, tid, i.value.ID())
+		value, err := o.Get(ctx, &txtesting.Transaction{}, tid, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -180,7 +180,7 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range o.List(ctx, &logtesting.MockLog{}, tid) {
+	for range o.List(ctx, &txtesting.Transaction{}, tid) {
 		break
 	}
 }
@@ -193,7 +193,7 @@ func getListValues(
 ) ([]entity.Outbox, error) {
 	result := make([]entity.Outbox, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &logtesting.MockLog{}, tid) {
+	for value, err := range o.List(ctx, &txtesting.Transaction{}, tid) {
 		if err != nil {
 			return nil, err
 		}

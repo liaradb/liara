@@ -1,4 +1,4 @@
-package logtesting
+package txtesting
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
-type MockLog struct {
+type Transaction struct {
 	txid    record.TransactionID
 	lsn     logpage.LogSequenceNumber
 	records []*record.Record
@@ -17,14 +17,14 @@ type MockLog struct {
 	locks   map[tablename.TableName]map[string]int
 }
 
-func (t *MockLog) SetError(err error) {
+func (t *Transaction) SetError(err error) {
 	t.err = err
 }
 
-func (t *MockLog) LogSequenceNumber() logpage.LogSequenceNumber { return t.lsn }
-func (t *MockLog) Records() []*record.Record                    { return t.records }
+func (t *Transaction) LogSequenceNumber() logpage.LogSequenceNumber { return t.lsn }
+func (t *Transaction) Records() []*record.Record                    { return t.records }
 
-func (t *MockLog) SLock(ctx context.Context, tn tablename.TableName, key string) error {
+func (t *Transaction) SLock(ctx context.Context, tn tablename.TableName, key string) error {
 	if t.locks == nil {
 		t.locks = make(map[tablename.TableName]map[string]int)
 	}
@@ -41,7 +41,7 @@ func (t *MockLog) SLock(ctx context.Context, tn tablename.TableName, key string)
 	return nil
 }
 
-func (t *MockLog) XLock(ctx context.Context, tn tablename.TableName, key string) error {
+func (t *Transaction) XLock(ctx context.Context, tn tablename.TableName, key string) error {
 	if t.locks == nil {
 		t.locks = make(map[tablename.TableName]map[string]int)
 	}
@@ -58,7 +58,7 @@ func (t *MockLog) XLock(ctx context.Context, tn tablename.TableName, key string)
 	return nil
 }
 
-func (t *MockLog) IsLocked(tn tablename.TableName, key string) bool {
+func (t *Transaction) IsLocked(tn tablename.TableName, key string) bool {
 	if t.locks == nil {
 		return false
 	}
@@ -71,7 +71,7 @@ func (t *MockLog) IsLocked(tn tablename.TableName, key string) bool {
 	return locks[key] > 0
 }
 
-func (t *MockLog) IsSLocked(tn tablename.TableName, key string) bool {
+func (t *Transaction) IsSLocked(tn tablename.TableName, key string) bool {
 	if t.locks == nil {
 		return false
 	}
@@ -84,7 +84,7 @@ func (t *MockLog) IsSLocked(tn tablename.TableName, key string) bool {
 	return locks[key] == 1
 }
 
-func (t *MockLog) IsXLocked(tn tablename.TableName, key string) bool {
+func (t *Transaction) IsXLocked(tn tablename.TableName, key string) bool {
 	if t.locks == nil {
 		return false
 	}
@@ -97,7 +97,7 @@ func (t *MockLog) IsXLocked(tn tablename.TableName, key string) bool {
 	return locks[key] == 2
 }
 
-func (t *MockLog) Append(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
+func (t *Transaction) Append(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
 	}
@@ -107,7 +107,7 @@ func (t *MockLog) Append(ctx context.Context, frid link.FileRecordID, data []byt
 	return t.lsn, nil
 }
 
-func (t *MockLog) Insert(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
+func (t *Transaction) Insert(ctx context.Context, frid link.FileRecordID, data []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
 	}
@@ -117,7 +117,7 @@ func (t *MockLog) Insert(ctx context.Context, frid link.FileRecordID, data []byt
 	return t.lsn, nil
 }
 
-func (t *MockLog) Update(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *Transaction) Update(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
 	}
@@ -127,7 +127,7 @@ func (t *MockLog) Update(ctx context.Context, frid link.FileRecordID, data []byt
 	return t.lsn, nil
 }
 
-func (t *MockLog) Clear(ctx context.Context, frid link.FileRecordID, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *Transaction) Clear(ctx context.Context, frid link.FileRecordID, prev []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
 	}
@@ -137,7 +137,7 @@ func (t *MockLog) Clear(ctx context.Context, frid link.FileRecordID, prev []byte
 	return t.lsn, nil
 }
 
-func (t *MockLog) UpdateHeader(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
+func (t *Transaction) UpdateHeader(ctx context.Context, frid link.FileRecordID, data []byte, prev []byte) (logpage.LogSequenceNumber, error) {
 	if t.err != nil {
 		return logpage.LogSequenceNumber{}, t.err
 	}
@@ -147,10 +147,10 @@ func (t *MockLog) UpdateHeader(ctx context.Context, frid link.FileRecordID, data
 	return t.lsn, nil
 }
 
-func (t *MockLog) increment() {
+func (t *Transaction) increment() {
 	t.lsn = t.lsn.Increment()
 }
 
-func (t *MockLog) addRecord(r *record.Record) {
+func (t *Transaction) addRecord(r *record.Record) {
 	t.records = append(t.records, r)
 }

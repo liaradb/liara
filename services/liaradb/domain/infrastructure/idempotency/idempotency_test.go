@@ -18,8 +18,8 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestIdempotency(t *testing.T) {
@@ -35,7 +35,7 @@ func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &logtesting.MockLog{}, idp, n, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +57,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 
 	data := createData()
 
-	if err := insertData(ctx, &logtesting.MockLog{}, idp, n, data); err != nil {
+	if err := insertData(ctx, &txtesting.Transaction{}, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
@@ -72,10 +72,10 @@ func TestIdempotency_Test(t *testing.T) {
 		ctx := t.Context()
 		c := btree.NewCursor(s.Storage)
 		idp := New(indexed.New(heap.New(s.Storage), c), c)
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		tn := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
-		if ok, err := idp.Test(ctx, l, tn, value.NewRequestID()); err != nil {
+		if ok, err := idp.Test(ctx, &tx, tn, value.NewRequestID()); err != nil {
 			t.Fatal(err)
 		} else if !ok {
 			t.Error("should be true")
@@ -84,11 +84,11 @@ func TestIdempotency_Test(t *testing.T) {
 		rqid := value.NewRequestID()
 		rl := entity.NewRequestLog(rqid, value.NewTime(time.Now()))
 
-		if err := idp.Insert(ctx, l, tn, rqid, rl); err != nil {
+		if err := idp.Insert(ctx, &tx, tn, rqid, rl); err != nil {
 			t.Fatal(err)
 		}
 
-		if ok, err := idp.Test(ctx, l, tn, rqid); err != nil {
+		if ok, err := idp.Test(ctx, &tx, tn, rqid); err != nil {
 			t.Fatal(err)
 		} else if ok {
 			t.Error("should be false")
@@ -101,12 +101,12 @@ func TestIdempotency_Get__Error(t *testing.T) {
 		ctx := t.Context()
 		c := btree.NewCursor(s.Storage)
 		idp := New(indexed.New(heap.New(s.Storage), c), c)
-		l := &logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		tid := value.NewTenantID()
 		tn := tenantfolder.NewTenantFolder(tid).Outbox()
 		rqid := value.NewRequestID()
 
-		if _, err := idp.Get(ctx, l, tn, rqid); err == nil {
+		if _, err := idp.Get(ctx, &tx, tn, rqid); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -146,7 +146,7 @@ func testGet(
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := idp.Get(ctx, &logtesting.MockLog{}, n, i.value.ID())
+		value, err := idp.Get(ctx, &txtesting.Transaction{}, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -174,7 +174,7 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range idp.List(ctx, &logtesting.MockLog{}, tn) {
+	for range idp.List(ctx, &txtesting.Transaction{}, tn) {
 		break
 	}
 }
@@ -187,7 +187,7 @@ func getListValues(
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &logtesting.MockLog{}, tn) {
+	for value, err := range o.List(ctx, &txtesting.Transaction{}, tn) {
 		if err != nil {
 			return nil, err
 		}

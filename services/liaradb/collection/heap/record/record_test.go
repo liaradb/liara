@@ -11,13 +11,13 @@ import (
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestRecord_Write(t *testing.T) {
 	t.Parallel()
 
-	l := &logtesting.MockLog{}
+	tx := txtesting.Transaction{}
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
@@ -37,7 +37,7 @@ func TestRecord_Write(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), l); err != nil {
+	if err := r.CommitAppend(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -55,7 +55,7 @@ func TestRecord_Write(t *testing.T) {
 		t.Errorf("incorrect record: %v, expected: %v", tr1, tr0)
 	}
 
-	if c := len(l.Records()); c != 2 {
+	if c := len(tx.Records()); c != 2 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
 	}
 }
@@ -63,7 +63,7 @@ func TestRecord_Write(t *testing.T) {
 func TestRecord_Update(t *testing.T) {
 	t.Parallel()
 
-	l := &logtesting.MockLog{}
+	tx := txtesting.Transaction{}
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
@@ -83,7 +83,7 @@ func TestRecord_Update(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitUpdate(t.Context(), l); err != nil {
+	if err := r.CommitUpdate(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -101,7 +101,7 @@ func TestRecord_Update(t *testing.T) {
 		t.Errorf("incorrect record: %v, expected: %v", tr1, tr0)
 	}
 
-	if c := len(l.Records()); c != 2 {
+	if c := len(tx.Records()); c != 2 {
 		t.Errorf("incorrect record count: %v, expected: %v", c, 2)
 	}
 }
@@ -188,7 +188,7 @@ func TestRecord_Read__Invalid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &txtesting.Transaction{}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -219,7 +219,7 @@ func TestRecord_Bytes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), &logtesting.MockLog{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &txtesting.Transaction{}); err != nil {
 		t.Fatal(err)
 	}
 

@@ -6,8 +6,8 @@ import (
 	"testing/synctest"
 
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 const (
@@ -29,21 +29,21 @@ func TestTip(t *testing.T) {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		l := &logtesting.MockLog{}
-		if err := s.CommitAppend(t.Context(), l); err != nil {
+		tx := txtesting.Transaction{}
+		if err := s.CommitAppend(t.Context(), &tx); err != nil {
 			t.Fatal(err)
 		}
 
 		s.Release()
 
 		size := 0
-		for _, r := range l.Records() {
+		for _, r := range tx.Records() {
 			size += len(r.Data())
 		}
 		if size != want {
-			t.Errorf("incorrect length: %v, expected: %v", l, want)
+			t.Errorf("incorrect length: %v, expected: %v", tx, want)
 		}
-		if c := len(l.Records()); c != 3 {
+		if c := len(tx.Records()); c != 3 {
 			t.Errorf("incorrect complete count: %v, expected: %v", c, 3)
 		}
 

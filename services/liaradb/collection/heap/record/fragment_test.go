@@ -7,13 +7,13 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/base"
 	"github.com/liaradb/liaradb/storage/link"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestFragment(t *testing.T) {
 	t.Parallel()
 
-	l := &logtesting.MockLog{}
+	tx := txtesting.Transaction{}
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
@@ -33,7 +33,7 @@ func TestFragment(t *testing.T) {
 	}, link.SlotID(20), make([]byte, fragmentHeaderSize), make([]byte, b))
 	r.InitIndexes()
 
-	r.CommitAppend(t.Context(), l)
+	r.CommitAppend(t.Context(), &tx)
 
 	if nbid, bid := f0.NextBlockID(), f1.RecordID().BlockID(); nbid != bid {
 		t.Errorf("incorrect next block id: %v, expected: %v", nbid, bid)

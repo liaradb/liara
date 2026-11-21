@@ -12,8 +12,8 @@ import (
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 const (
@@ -159,16 +159,16 @@ func testNode_Append(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
 	}
 
-	l := logtesting.MockLog{}
-	if err := n.LogActions(t.Context(), &l); err != nil {
+	tx := txtesting.Transaction{}
+	if err := n.LogActions(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
-	if lsn, want := n.LogSequenceNumber(), l.LogSequenceNumber(); lsn != want {
+	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
 	}
 
-	for i, r := range l.Records() {
+	for i, r := range tx.Records() {
 		if a := r.Action(); a != record.ActionAppend {
 			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
 		}
@@ -199,11 +199,11 @@ func TestNode_LogActions__Error(t *testing.T) {
 		n := New(b)
 		n.Clear()
 
-		l := logtesting.MockLog{}
+		tx := txtesting.Transaction{}
 		errExample := fmt.Errorf("error")
-		l.SetError(errExample)
+		tx.SetError(errExample)
 
-		if err := n.LogActions(t.Context(), &l); !errors.Is(err, errExample) {
+		if err := n.LogActions(t.Context(), &tx); !errors.Is(err, errExample) {
 			t.Error("should return error")
 		}
 	})
@@ -290,16 +290,16 @@ func testNode_Insert(t *testing.T) {
 		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
 	}
 
-	l := logtesting.MockLog{}
-	if err := n.LogActions(t.Context(), &l); err != nil {
+	tx := txtesting.Transaction{}
+	if err := n.LogActions(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
-	if lsn, want := n.LogSequenceNumber(), l.LogSequenceNumber(); lsn != want {
+	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
 	}
 
-	for i, r := range l.Records() {
+	for i, r := range tx.Records() {
 		if a := r.Action(); a != record.ActionInsert {
 			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
 		}
@@ -573,16 +573,16 @@ func testNode_Clear(t *testing.T) {
 		t.Errorf("incorrect length: %v, expected: %v", l, 0)
 	}
 
-	l := logtesting.MockLog{}
-	if err := n.LogActions(t.Context(), &l); err != nil {
+	tx := txtesting.Transaction{}
+	if err := n.LogActions(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
-	if lsn, want := n.LogSequenceNumber(), l.LogSequenceNumber(); lsn != want {
+	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
 		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
 	}
 
-	for i, r := range l.Records() {
+	for i, r := range tx.Records() {
 		if i < len(values) {
 			if a := r.Action(); a != record.ActionAppend {
 				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
@@ -612,16 +612,16 @@ func TestPage__HeaderActions(t *testing.T) {
 		n.SetHighID(3)
 		n.CommitAppend(2)
 
-		l := logtesting.MockLog{}
-		if err := n.LogActions(t.Context(), &l); err != nil {
+		tx := txtesting.Transaction{}
+		if err := n.LogActions(t.Context(), &tx); err != nil {
 			t.Fatal(err)
 		}
 
-		if lsn, want := n.LogSequenceNumber(), l.LogSequenceNumber(); lsn != want {
+		if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
 			t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
 		}
 
-		for i, r := range l.Records() {
+		for i, r := range tx.Records() {
 			switch i {
 			case 0:
 				if a := r.Action(); a != record.ActionAppend {

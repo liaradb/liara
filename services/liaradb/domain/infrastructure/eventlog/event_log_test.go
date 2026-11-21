@@ -14,8 +14,8 @@ import (
 	"github.com/liaradb/liaradb/domain/entity"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenantfolder"
 	"github.com/liaradb/liaradb/domain/value"
-	"github.com/liaradb/liaradb/util/testing/logtesting"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestEventLog_Append(t *testing.T) {
@@ -38,14 +38,14 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 		createEvent(4, 4)}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
+		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
+	for e, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
 		value.NewGlobalVersion(0),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {
@@ -84,14 +84,14 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 		createEvent(4, 4)}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
+		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	partialResults := make([]*entity.Event, 0)
 
-	for n, err := range el.EventsAfterGlobalVersion(ctx, &logtesting.MockLog{}, tn,
+	for n, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
 		value.NewGlobalVersion(3),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {
@@ -129,7 +129,7 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 		createEvent(4, 4)}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
+		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -168,7 +168,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 		createEvent(4, 3)}
 
 	for _, r := range records {
-		if err := el.Append(ctx, &logtesting.MockLog{}, tn, r); err != nil {
+		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -176,7 +176,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	want := []entity.Event{*records[1], *records[3]}
 
 	result := make([]entity.Event, 0)
-	for e, err := range el.GetAggregate(ctx, &logtesting.MockLog{}, tn, aggregateID) {
+	for e, err := range el.GetAggregate(ctx, &txtesting.Transaction{}, tn, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}
