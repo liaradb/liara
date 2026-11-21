@@ -2,6 +2,7 @@ package bufferpage
 
 import (
 	"github.com/liaradb/liaradb/collection/heap/record"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
@@ -10,12 +11,14 @@ import (
 type BufferPage struct {
 	page   record.Page
 	buffer *storage.Buffer
+	l      log.Log
 }
 
-func New(b *storage.Buffer) *BufferPage {
+func New(b *storage.Buffer, l log.Log) *BufferPage {
 	return &BufferPage{
 		page:   record.NewPage(b.Raw()),
 		buffer: b,
+		l:      l,
 	}
 }
 
@@ -35,7 +38,7 @@ func (bp *BufferPage) Shadow(base *BufferPage) {
 
 // TODO: Must latch before write
 func (bp *BufferPage) Release() {
-	bp.buffer.Release()
+	bp.l.Unpin(bp.buffer)
 }
 
 func (bp *BufferPage) CommitAppend(size int16) {

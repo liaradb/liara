@@ -40,15 +40,18 @@ func TestKeyValue(t *testing.T) {
 
 			storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
 				ctx := t.Context()
-				kv := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+				kv := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 				tn := tenantfolder.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
-				if err := insertData(ctx, &txtesting.Transaction{}, kv, tn, c.data); err != nil {
+				tx := txtesting.New(s.Storage)
+				defer tx.Release()
+
+				if err := insertData(ctx, tx, kv, tn, c.data); err != nil {
 					t.Fatal(err)
 				}
 
-				testGet(ctx, t, kv, tn, c.data)
-				testList(ctx, t, c.data, kv, tn)
+				testGet(ctx, t, tx, kv, tn, c.data)
+				testList(ctx, t, tx, c.data, kv, tn)
 
 				synctest.Wait()
 			})
@@ -62,17 +65,20 @@ func TestKeyValue__LargeBuffer(t *testing.T) {
 
 func testKeyValue__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	kv := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+	kv := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 	tn := tenantfolder.NewTenantFolder(value.NewTenantID()).GlobalTable("testfile")
 
 	data := createData()
 
-	if err := insertData(ctx, &txtesting.Transaction{}, kv, tn, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, kv, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, kv, tn, data)
-	testList(ctx, t, data, kv, tn)
+	testGet(ctx, t, tx, kv, tn, data)
+	testList(ctx, t, tx, data, kv, tn)
 
 	synctest.Wait()
 }
@@ -112,9 +118,9 @@ func insertData(ctx context.Context, tx indexed.Transaction, kv *KeyValue, tn ta
 	return nil
 }
 
-func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.TableName, data []item) {
+func testGet(ctx context.Context, t *testing.T, tx indexed.Transaction, kv *KeyValue, tn tablename.TableName, data []item) {
 	for _, i := range data {
-		value, err := kv.Get(ctx, &txtesting.Transaction{}, tn, key.NewKey([]byte(i.key)))
+		value, err := kv.Get(ctx, tx, tn, key.NewKey([]byte(i.key)))
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -127,8 +133,8 @@ func testGet(ctx context.Context, t *testing.T, kv *KeyValue, tn tablename.Table
 	}
 }
 
-func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn tablename.TableName) {
-	result, err := getListValues(ctx, data, kv, tn)
+func testList(ctx context.Context, t *testing.T, tx indexed.Transaction, data []item, kv *KeyValue, tn tablename.TableName) {
+	result, err := getListValues(ctx, tx, data, kv, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,15 +144,15 @@ func testList(ctx context.Context, t *testing.T, data []item, kv *KeyValue, tn t
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range kv.List(ctx, &txtesting.Transaction{}, tn) {
+	for range kv.List(ctx, tx, tn) {
 		break
 	}
 }
 
-func getListValues(ctx context.Context, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {
+func getListValues(ctx context.Context, tx indexed.Transaction, data []item, kv *KeyValue, tn tablename.TableName) ([]string, error) {
 	result := make([]string, 0, len(data))
 	i := 0
-	for value, err := range kv.List(ctx, &txtesting.Transaction{}, tn) {
+	for value, err := range kv.List(ctx, tx, tn) {
 		if err != nil {
 			return nil, err
 		}

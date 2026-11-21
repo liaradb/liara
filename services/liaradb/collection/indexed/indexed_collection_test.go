@@ -22,15 +22,16 @@ import (
 
 func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
 
 		k := key.NewKey([]byte("abcde"))
 		want := []byte{1, 2, 3, 4, 5}
 		b := base.NewFixedBytes(want)
 
-		tx := txtesting.Transaction{}
-		if _, err := ic.Insert(t.Context(), &tx, tn, k, b); err != nil {
+		tx := txtesting.New(s.Storage)
+
+		if _, err := ic.Insert(t.Context(), tx, tn, k, b); err != nil {
 			t.Fatal(err)
 		}
 
@@ -38,8 +39,11 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 			t.Fatal("should be x locked")
 		}
 
-		tx = txtesting.Transaction{}
-		r, err := ic.GetByKey(t.Context(), &tx, tn, k)
+		tx.Release()
+
+		tx = txtesting.New(s.Storage)
+
+		r, err := ic.GetByKey(t.Context(), tx, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -47,6 +51,8 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 		if !tx.IsSLocked(tn, k.String()) {
 			t.Fatal("should be x locked")
 		}
+
+		tx.Release()
 
 		b0 := base.NewFixedBytesFromSize(5)
 		if err := b0.Read(r); err != nil {
@@ -65,19 +71,21 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 func TestIndexedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
 
 		data := createData()
 		slices.Reverse(data)
 
-		tx := txtesting.Transaction{}
-		if err := insertData(ctx, &tx, ic, tn, data); err != nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if err := insertData(ctx, tx, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, ic, tn, data)
-		testList(ctx, t, data, ic, tn)
+		testGet(ctx, t, tx, ic, tn, data)
+		testList(ctx, t, tx, data, ic, tn)
 
 		synctest.Wait()
 	})
@@ -87,17 +95,20 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
 
 		data := createData()
 
-		if err := insertData(ctx, &txtesting.Transaction{}, ic, tn, data); err != nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if err := insertData(ctx, tx, ic, tn, data); err != nil {
 			t.Fatal(err)
 		}
 
-		testGet(ctx, t, ic, tn, data)
-		testList(ctx, t, data, ic, tn)
+		testGet(ctx, t, tx, ic, tn, data)
+		testList(ctx, t, tx, data, ic, tn)
 
 		synctest.Wait()
 	})
@@ -106,15 +117,15 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 func TestIndexedCollection_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(s.Storage), btree.NewCursor(s.Storage))
+		ic := New(heap.New(), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
 
 		id := NewTestID()
 		ti0 := NewTestItem(id, NewTestName("name0"))
 		k := key.NewKey(id.Bytes())
 
-		tx := txtesting.Transaction{}
-		if _, err := ic.Insert(ctx, &tx, tn, k, ti0); err != nil {
+		tx := txtesting.New(s.Storage)
+		if _, err := ic.Insert(ctx, tx, tn, k, ti0); err != nil {
 			t.Fatal(err)
 		}
 
@@ -124,8 +135,10 @@ func TestIndexedCollection_Replace(t *testing.T) {
 
 		ti1 := NewTestItem(id, NewTestName("name1"))
 
-		tx = txtesting.Transaction{}
-		if err := ic.Replace(ctx, &tx, tn, k, ti1); err != nil {
+		tx.Release()
+
+		tx = txtesting.New(s.Storage)
+		if err := ic.Replace(ctx, tx, tn, k, ti1); err != nil {
 			t.Fatal(err)
 		}
 
@@ -133,8 +146,10 @@ func TestIndexedCollection_Replace(t *testing.T) {
 			t.Fatal("should be x locked")
 		}
 
-		tx = txtesting.Transaction{}
-		r, err := ic.GetByKey(ctx, &tx, tn, k)
+		tx.Release()
+
+		tx = txtesting.New(s.Storage)
+		r, err := ic.GetByKey(ctx, tx, tn, k)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -144,6 +159,8 @@ func TestIndexedCollection_Replace(t *testing.T) {
 		}
 
 		defer r.Release()
+
+		tx.Release()
 
 		var result TestItem
 		if err := result.Read(r); err != nil {
@@ -186,6 +203,7 @@ func insertData(ctx context.Context, tx Transaction, ic *IndexedCollection, tn t
 func testGet(
 	ctx context.Context,
 	t *testing.T,
+	tx Transaction,
 	ic *IndexedCollection,
 	tn tablename.TableName,
 	data []item,
@@ -194,7 +212,7 @@ func testGet(
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := ic.GetByKey(ctx, &txtesting.Transaction{}, tn, k)
+		value, err := ic.GetByKey(ctx, tx, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -213,11 +231,12 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
+	tx Transaction,
 	data []item,
 	ic *IndexedCollection,
 	tn tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, ic, tn)
+	result, err := getListValues(ctx, tx, data, ic, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -230,13 +249,14 @@ func testList(
 
 func getListValues(
 	ctx context.Context,
+	tx Transaction,
 	data []item,
 	ic *IndexedCollection,
 	tn tablename.TableName,
 ) ([]TestItem, error) {
 	result := make([]TestItem, 0, len(data))
 	i := 0
-	for r, err := range ic.List(ctx, &txtesting.Transaction{}, tn) {
+	for r, err := range ic.List(ctx, tx, tn) {
 		if err != nil {
 			return nil, err
 		}

@@ -6,18 +6,19 @@ import (
 
 	"github.com/liaradb/liaradb/collection/heap/bufferpage"
 	"github.com/liaradb/liaradb/collection/heap/record"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Tip struct {
-	s  *storage.Storage
+	l  log.Log
 	fn link.FileName
 }
 
-func NewTip(s *storage.Storage, fn link.FileName) Tip {
+func NewTip(l log.Log, fn link.FileName) Tip {
 	return Tip{
-		s:  s,
+		l:  l,
 		fn: fn,
 	}
 }
@@ -31,7 +32,7 @@ func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 		}
 	}()
 
-	b, err := t.s.RequestCurrent(ctx, t.fn)
+	b, err := t.l.PinCurrent(ctx, t.fn)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +46,7 @@ func (t *Tip) Record(ctx context.Context, size int) (*record.Record, error) {
 	remaining -= l
 
 	for available < size {
-		b, err := t.s.RequestNext(ctx, t.fn)
+		b, err := t.l.PinNext(ctx, t.fn)
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +74,7 @@ func (t *Tip) appendToRecord(r *record.Record, b *storage.Buffer, remaining int1
 		}
 	}()
 
-	p := bufferpage.New(b)
+	p := bufferpage.New(b, t.l)
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {

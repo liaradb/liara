@@ -61,7 +61,7 @@ func write(
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	c := btree.NewCursor(s)
-	el := New(indexed.New(heap.New(s), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 
 	ctx, cancel := context.WithCancel(baseCtx)
 	defer cancel()
@@ -70,11 +70,15 @@ func write(
 		t.Fatal(err)
 	}
 
+	tx := txtesting.New(s)
+
 	for _, r := range events {
-		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
+		if err := el.Append(ctx, tx, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
+
+	tx.Release()
 
 	if err := s.FlushUnpinned(baseCtx); err != nil {
 		t.Fatal(err)
@@ -93,7 +97,7 @@ func recover(
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
 	c := btree.NewCursor(s)
-	el := New(indexed.New(heap.New(s), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -104,7 +108,11 @@ func recover(
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
+	tx := txtesting.New(s)
+
+	defer tx.Release()
+
+	for e, err := range el.EventsAfterGlobalVersion(ctx, tx, tn,
 		value.NewGlobalVersion(0),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {

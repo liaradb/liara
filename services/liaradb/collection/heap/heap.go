@@ -9,16 +9,14 @@ import (
 	"github.com/liaradb/liaradb/collection/heap/tip"
 	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/serializer"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type Heap struct {
-	s *storage.Storage
 }
 
-func New(s *storage.Storage) *Heap {
-	return &Heap{s: s}
+func New() *Heap {
+	return &Heap{}
 }
 
 func (h *Heap) Insert(
@@ -27,7 +25,7 @@ func (h *Heap) Insert(
 	fn link.FileName,
 	w serializer.SizedSerializer,
 ) (link.RecordID, error) {
-	t := tip.NewTip(h.s, fn)
+	t := tip.NewTip(l, fn)
 
 	r, err := t.Record(ctx, w.Size())
 	if err != nil {
@@ -49,11 +47,12 @@ func (h *Heap) Insert(
 
 func (h *Heap) Get(
 	ctx context.Context,
+	l log.Log,
 	fn link.FileName,
 	rid link.RecordID,
 ) (*record.Record, error) {
 	fbid := fn.FileBlockID(rid.BlockID())
-	b, err := h.s.Request(ctx, fbid)
+	b, err := l.Pin(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -66,17 +65,17 @@ func (h *Heap) Get(
 		}
 	}()
 
-	p := bufferpage.New(b)
+	p := bufferpage.New(b, l)
 	f := r.AppendSlot(p, rid.SlotID())
 
 	for f.NextBlockID() != 0 {
 		fbid.SetBlockID(f.NextBlockID())
-		b, err := h.s.Request(ctx, fbid)
+		b, err := l.Pin(ctx, fbid)
 		if err != nil {
 			return nil, err
 		}
 
-		p := bufferpage.New(b)
+		p := bufferpage.New(b, l)
 		f = r.AppendSlot(p, f.NextSlotID())
 	}
 
@@ -92,7 +91,7 @@ func (h *Heap) Replace(
 	rid link.RecordID,
 	w serializer.SizedSerializer,
 ) error {
-	r, err := h.Get(ctx, fn, rid)
+	r, err := h.Get(ctx, l, fn, rid)
 	if err != nil {
 		return err
 	}
@@ -119,7 +118,7 @@ func (h *Heap) Delete(
 	fn link.FileName,
 	rid link.RecordID,
 ) error {
-	s, err := h.Get(ctx, fn, rid)
+	s, err := h.Get(ctx, l, fn, rid)
 	if err != nil {
 		return err
 	}

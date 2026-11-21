@@ -34,7 +34,7 @@ func TestEventService_Append(t *testing.T) {
 func testEventService_Append(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(s), c)
+	ic := indexed.New(heap.New(), c)
 	ts := tenant.New(ic)
 	es := NewEventService(m,
 		ts,
@@ -92,7 +92,7 @@ func TestEventService_Append__Large(t *testing.T) {
 func testEventService_Append__Large(t *testing.T) {
 	m, s := createManager(t, 1024, 1024)
 	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(s), c)
+	ic := indexed.New(heap.New(), c)
 	ts := tenant.New(ic)
 
 	es := NewEventService(m,
@@ -189,7 +189,7 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir, pageSize, maxRecordSize)
-	s := storagetesting.CreateStorageWithFileSystem(t, 2, 1024, fsys, dir)
+	s := storagetesting.CreateStorageWithFileSystem(t, 32, 1024, fsys, dir)
 
 	m := transaction.NewManager(l, s, 1)
 	m.Run(t.Context(), func(err error) {})

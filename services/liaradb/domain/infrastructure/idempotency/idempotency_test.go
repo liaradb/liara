@@ -29,18 +29,21 @@ func TestIdempotency(t *testing.T) {
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(heap.New(s.Storage), c), c)
+	idp := New(indexed.New(heap.New(), c), c)
 	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &txtesting.Transaction{}, idp, n, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, idp, n, data)
-	testList(ctx, t, data, idp, n)
+	testGet(ctx, t, tx, idp, n, data)
+	testList(ctx, t, tx, data, idp, n)
 
 	synctest.Wait()
 }
@@ -52,17 +55,20 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(heap.New(s.Storage), c), c)
+	idp := New(indexed.New(heap.New(), c), c)
 	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
 
-	if err := insertData(ctx, &txtesting.Transaction{}, idp, n, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, idp, n, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, idp, n, data)
-	testList(ctx, t, data, idp, n)
+	testGet(ctx, t, tx, idp, n, data)
+	testList(ctx, t, tx, data, idp, n)
 
 	synctest.Wait()
 }
@@ -71,11 +77,13 @@ func TestIdempotency_Test(t *testing.T) {
 	storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		c := btree.NewCursor(s.Storage)
-		idp := New(indexed.New(heap.New(s.Storage), c), c)
-		tx := txtesting.Transaction{}
+		idp := New(indexed.New(heap.New(), c), c)
 		tn := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
-		if ok, err := idp.Test(ctx, &tx, tn, value.NewRequestID()); err != nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if ok, err := idp.Test(ctx, tx, tn, value.NewRequestID()); err != nil {
 			t.Fatal(err)
 		} else if !ok {
 			t.Error("should be true")
@@ -84,11 +92,11 @@ func TestIdempotency_Test(t *testing.T) {
 		rqid := value.NewRequestID()
 		rl := entity.NewRequestLog(rqid, value.NewTime(time.Now()))
 
-		if err := idp.Insert(ctx, &tx, tn, rqid, rl); err != nil {
+		if err := idp.Insert(ctx, tx, tn, rqid, rl); err != nil {
 			t.Fatal(err)
 		}
 
-		if ok, err := idp.Test(ctx, &tx, tn, rqid); err != nil {
+		if ok, err := idp.Test(ctx, tx, tn, rqid); err != nil {
 			t.Fatal(err)
 		} else if ok {
 			t.Error("should be false")
@@ -100,13 +108,15 @@ func TestIdempotency_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		c := btree.NewCursor(s.Storage)
-		idp := New(indexed.New(heap.New(s.Storage), c), c)
-		tx := txtesting.Transaction{}
+		idp := New(indexed.New(heap.New(), c), c)
 		tid := value.NewTenantID()
 		tn := tenantfolder.NewTenantFolder(tid).Outbox()
 		rqid := value.NewRequestID()
 
-		if _, err := idp.Get(ctx, &tx, tn, rqid); err == nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if _, err := idp.Get(ctx, tx, tn, rqid); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -141,12 +151,13 @@ func insertData(ctx context.Context, tx indexed.Transaction, o *Idempotency, tn 
 func testGet(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	idp *Idempotency,
 	n tablename.TableName,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := idp.Get(ctx, &txtesting.Transaction{}, n, i.value.ID())
+		value, err := idp.Get(ctx, tx, n, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -160,11 +171,12 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	data []item,
 	idp *Idempotency,
 	tn tablename.TableName,
 ) {
-	result, err := getListValues(ctx, data, idp, tn)
+	result, err := getListValues(ctx, tx, data, idp, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,20 +186,21 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range idp.List(ctx, &txtesting.Transaction{}, tn) {
+	for range idp.List(ctx, tx, tn) {
 		break
 	}
 }
 
 func getListValues(
 	ctx context.Context,
+	tx indexed.Transaction,
 	data []item,
 	o *Idempotency,
 	tn tablename.TableName,
 ) ([]entity.RequestLog, error) {
 	result := make([]entity.RequestLog, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &txtesting.Transaction{}, tn) {
+	for value, err := range o.List(ctx, tx, tn) {
 		if err != nil {
 			return nil, err
 		}

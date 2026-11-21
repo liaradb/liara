@@ -7,19 +7,21 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/should"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestBufferPage(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
 		fbid := link.NewFileName("test").FileBlockID(link.BlockID(0))
-		b, err := s.Storage.Request(t.Context(), fbid)
+		b, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		bp := New(b)
-
-		defer bp.Release()
+		bp := New(b, tx)
 
 		if i := bp.FileBlockID(); i != fbid {
 			t.Errorf("incorrect file block id: %v, expected: %v", i, fbid)
@@ -80,14 +82,16 @@ func TestBufferPage(t *testing.T) {
 
 func TestBufferPage_CommitUpdate(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
 		fbid := link.NewFileName("test").FileBlockID(link.BlockID(0))
-		b0, err := s.Storage.Request(t.Context(), fbid)
+		b0, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		bp0 := New(b0)
-		defer bp0.Release()
+		bp0 := New(b0, tx)
 
 		if b0.Dirty() {
 			t.Error("should not be dirty")
@@ -103,22 +107,23 @@ func TestBufferPage_CommitUpdate(t *testing.T) {
 
 func TestBufferPage_Shadow(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
 		fbid := link.NewFileName("test").FileBlockID(link.BlockID(0))
-		b0, err := s.Storage.Request(t.Context(), fbid)
+		b0, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		bp0 := New(b0)
-		defer bp0.Release()
+		bp0 := New(b0, tx)
 
-		b1, err := s.Storage.Request(t.Context(), fbid)
+		b1, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		bp1 := New(b1)
-		defer bp1.Release()
+		bp1 := New(b1, tx)
 
 		{
 			bp0.SetLogSequenceNumber(logpage.NewLogSequenceNumber(1))

@@ -23,17 +23,20 @@ func TestTenant(t *testing.T) {
 
 func testTenant(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+	tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &txtesting.Transaction{}, tn, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, tn, data)
-	testList(ctx, t, data, tn)
+	testGet(ctx, t, tx, tn, data)
+	testList(ctx, t, tx, data, tn)
 
 	synctest.Wait()
 }
@@ -44,16 +47,19 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+	tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 
 	data := createData()
 
-	if err := insertData(ctx, &txtesting.Transaction{}, tn, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, tn, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, tn, data)
-	testList(ctx, t, data, tn)
+	testGet(ctx, t, tx, tn, data)
+	testList(ctx, t, tx, data, tn)
 
 	synctest.Wait()
 }
@@ -61,11 +67,13 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 func TestTenant_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		tx := txtesting.Transaction{}
+		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
 		tid := value.NewTenantID()
 
-		if _, err := tn.Get(ctx, &tx, tid); err == nil {
+		if _, err := tn.Get(ctx, tx, tid); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -74,17 +82,19 @@ func TestTenant_Get__Error(t *testing.T) {
 func TestTenant_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 10, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		tn := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		tx := txtesting.Transaction{}
+		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
 		id := value.NewTenantID()
 		t0 := entity.NewTenant(id, value.NewTenantName("Tenant 1"))
 
-		if err := tn.Insert(ctx, &tx, t0); err != nil {
+		if err := tn.Insert(ctx, tx, t0); err != nil {
 			t.Fatal(err)
 		}
 
-		t1, err := tn.Get(ctx, &tx, id)
+		t1, err := tn.Get(ctx, tx, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -95,11 +105,11 @@ func TestTenant_Replace(t *testing.T) {
 
 		t1.Rename(value.NewTenantName("Tenant 2"))
 
-		if err := tn.Replace(ctx, &tx, t1); err != nil {
+		if err := tn.Replace(ctx, tx, t1); err != nil {
 			t.Fatal(err)
 		}
 
-		t2, err := tn.Get(ctx, &tx, id)
+		t2, err := tn.Get(ctx, tx, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -141,11 +151,12 @@ func insertData(ctx context.Context, tx indexed.Transaction, o *Tenant, data []i
 func testGet(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	tn *Tenant,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := tn.Get(ctx, &txtesting.Transaction{}, i.value.ID())
+		value, err := tn.Get(ctx, tx, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -159,10 +170,11 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	data []item,
 	tn *Tenant,
 ) {
-	result, err := getListValues(ctx, data, tn)
+	result, err := getListValues(ctx, tx, data, tn)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,19 +184,20 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range tn.List(ctx, &txtesting.Transaction{}) {
+	for range tn.List(ctx, tx) {
 		break
 	}
 }
 
 func getListValues(
 	ctx context.Context,
+	tx indexed.Transaction,
 	data []item,
 	tn *Tenant,
 ) ([]entity.Tenant, error) {
 	result := make([]entity.Tenant, 0, len(data))
 	i := 0
-	for value, err := range tn.List(ctx, &txtesting.Transaction{}) {
+	for value, err := range tn.List(ctx, tx) {
 		if err != nil {
 			return nil, err
 		}

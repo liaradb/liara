@@ -59,13 +59,13 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.
 	return err
 }
 
-func (l *EventLog) Find(ctx context.Context, tn tablename.TableName, id value.EventID) (*entity.Event, error) {
+func (l *EventLog) Find(ctx context.Context, tx indexed.Transaction, tn tablename.TableName, id value.EventID) (*entity.Event, error) {
 	rid, err := l.c.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := l.ic.GetByRecordID(ctx, tn, rid)
+	r, err := l.ic.GetByRecordID(ctx, tx, tn, rid)
 
 	return l.readEvent(r)
 }
@@ -93,7 +93,7 @@ func (l *EventLog) GetAggregate(
 				return
 			}
 
-			r, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
+			r, err := l.ic.GetByRecordID(ctx, tx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -126,7 +126,7 @@ func (l *EventLog) EventsAfterGlobalVersion(
 				return
 			}
 
-			r, err := l.ic.GetByRecordID(ctx, tn, sr.RecordID)
+			r, err := l.ic.GetByRecordID(ctx, tx, tn, sr.RecordID)
 			if err != nil {
 				yield(nil, err)
 				return

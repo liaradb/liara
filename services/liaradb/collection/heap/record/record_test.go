@@ -169,6 +169,8 @@ func TestRecord_RecordID(t *testing.T) {
 func TestRecord_Read__Invalid(t *testing.T) {
 	t.Parallel()
 
+	tx := txtesting.Transaction{}
+
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	tr0 := &testRecord{
@@ -188,7 +190,7 @@ func TestRecord_Read__Invalid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), &txtesting.Transaction{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -208,6 +210,8 @@ func TestRecord_Read__Invalid(t *testing.T) {
 func TestRecord_Bytes(t *testing.T) {
 	t.Parallel()
 
+	tx := txtesting.Transaction{}
+
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	r := New()
@@ -219,7 +223,7 @@ func TestRecord_Bytes(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := r.CommitAppend(t.Context(), &txtesting.Transaction{}); err != nil {
+	if err := r.CommitAppend(t.Context(), &tx); err != nil {
 		t.Fatal(err)
 	}
 

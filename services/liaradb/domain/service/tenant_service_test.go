@@ -21,7 +21,7 @@ func TestTenantService_Create(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, s := createManager(t, 1024, 1024)
 		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(s), c)
+		ic := indexed.New(heap.New(), c)
 		ts := NewTenantService(m, tenant.New(ic))
 
 		name := value.NewTenantName("name")
@@ -54,7 +54,7 @@ func TestTenantService_Rename(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, s := createManager(t, 1024, 1024)
 		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(s), c)
+		ic := indexed.New(heap.New(), c)
 		ts := NewTenantService(m, tenant.New(ic))
 
 		tid, err := ts.Create(t.Context(), command.CreateTenant{
@@ -94,7 +94,7 @@ func TestTenantService_List(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, s := createManager(t, 1024, 1024)
 		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(s), c)
+		ic := indexed.New(heap.New(), c)
 		ts := NewTenantService(m, tenant.New(ic))
 
 		tid0, err := ts.Create(t.Context(), command.CreateTenant{

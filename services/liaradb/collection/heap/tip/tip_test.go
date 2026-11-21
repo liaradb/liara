@@ -18,23 +18,25 @@ const (
 
 func TestTip(t *testing.T) {
 	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
-		tip := NewTip(st.Storage, link.NewFileName("fn"))
+		tx := txtesting.New(st.Storage)
+		defer tx.Release()
+
+		tip := NewTip(tx, link.NewFileName("fn"))
 		want := 128
-		s, err := tip.Record(t.Context(), want)
+		r, err := tip.Record(t.Context(), want)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		if l := s.Length(); l != want {
+		if l := r.Length(); l != want {
 			t.Errorf("incorrect length: %v, expected: %v", l, want)
 		}
 
-		tx := txtesting.Transaction{}
-		if err := s.CommitAppend(t.Context(), &tx); err != nil {
+		if err := r.CommitAppend(t.Context(), tx); err != nil {
 			t.Fatal(err)
 		}
 
-		s.Release()
+		r.Release()
 
 		size := 0
 		for _, r := range tx.Records() {
@@ -53,7 +55,8 @@ func TestTip(t *testing.T) {
 
 func TestTip__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 16, pageSize, func(t *testing.T, st storagetesting.Storage) {
-		tip := NewTip(st.Storage, link.NewFileName("fn"))
+		tx := txtesting.New(st.Storage)
+		tip := NewTip(tx, link.NewFileName("fn"))
 
 		ctx, cancel := context.WithCancel(t.Context())
 		cancel()

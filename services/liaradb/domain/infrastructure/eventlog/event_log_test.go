@@ -25,7 +25,7 @@ func TestEventLog_Append(t *testing.T) {
 func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(s.Storage), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -37,15 +37,18 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 		createEvent(3, 3),
 		createEvent(4, 4)}
 
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
 	for _, r := range records {
-		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
+		if err := el.Append(ctx, tx, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	result := make([]*entity.Event, 0)
 
-	for e, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
+	for e, err := range el.EventsAfterGlobalVersion(ctx, tx, tn,
 		value.NewGlobalVersion(0),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {
@@ -71,7 +74,7 @@ func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
 func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(s.Storage), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -83,15 +86,18 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 		createEvent(3, 3),
 		createEvent(4, 4)}
 
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
 	for _, r := range records {
-		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
+		if err := el.Append(ctx, tx, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	partialResults := make([]*entity.Event, 0)
 
-	for n, err := range el.EventsAfterGlobalVersion(ctx, &txtesting.Transaction{}, tn,
+	for n, err := range el.EventsAfterGlobalVersion(ctx, tx, tn,
 		value.NewGlobalVersion(3),
 		value.NewSubVersion(0),
 		value.NewGlobalVersion(10)) {
@@ -116,7 +122,7 @@ func TestEventLog_Find(t *testing.T) {
 func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(s.Storage), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -128,13 +134,16 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 		createEvent(3, 3),
 		createEvent(4, 4)}
 
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
 	for _, r := range records {
-		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
+		if err := el.Append(ctx, tx, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	e, err := el.Find(ctx, tn, records[2].ID())
+	e, err := el.Find(ctx, tx, tn, records[2].ID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +162,7 @@ func TestEventLog_GetAggregate(t *testing.T) {
 func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
 	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(s.Storage), c), c)
+	el := New(indexed.New(heap.New(), c), c)
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -167,8 +176,11 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 		createEventAggregate(3, 2, aggregateID),
 		createEvent(4, 3)}
 
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
 	for _, r := range records {
-		if err := el.Append(ctx, &txtesting.Transaction{}, tn, r); err != nil {
+		if err := el.Append(ctx, tx, tn, r); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -176,7 +188,7 @@ func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	want := []entity.Event{*records[1], *records[3]}
 
 	result := make([]entity.Event, 0)
-	for e, err := range el.GetAggregate(ctx, &txtesting.Transaction{}, tn, aggregateID) {
+	for e, err := range el.GetAggregate(ctx, tx, tn, aggregateID) {
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -53,7 +53,7 @@ func newServices(txManager *transaction.Manager, s *storage.Storage) *services {
 
 func newCollections(s *storage.Storage) *collections {
 	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(s), c)
+	ic := indexed.New(heap.New(), c)
 	kv := keyvalue.New(ic)
 	return &collections{
 		manager:     manager.New(kv),

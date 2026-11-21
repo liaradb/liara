@@ -20,7 +20,7 @@ func TestOutboxService_CreateOutbox(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, s := createManager(t, 1024, 1024)
 		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(s), c)
+		ic := indexed.New(heap.New(), c)
 		tc := tenant.New(ic)
 		idc := idempotency.New(ic, c)
 		oc := outbox.New(ic)
@@ -69,7 +69,7 @@ func TestOutboxService_Update(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		m, s := createManager(t, 1024, 1024)
 		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(s), c)
+		ic := indexed.New(heap.New(), c)
 		tc := tenant.New(ic)
 		idc := idempotency.New(ic, c)
 		oc := outbox.New(ic)

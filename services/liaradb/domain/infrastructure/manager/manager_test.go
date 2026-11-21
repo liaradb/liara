@@ -20,27 +20,30 @@ func TestManager(t *testing.T) {
 }
 
 func testManager(t *testing.T, s storagetesting.Storage) {
-	m := New(keyvalue.New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage))))
+	m := New(keyvalue.New(indexed.New(heap.New(), btree.NewCursor(s.Storage))))
 
 	data := createData()
 	want := createValues(data)
 
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
 	for _, d := range data {
-		if err := m.Insert(t.Context(), &txtesting.Transaction{}, key.NewKey([]byte(d.key)), d.value); err != nil {
+		if err := m.Insert(t.Context(), tx, key.NewKey([]byte(d.key)), d.value); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	testGet(t, data, want, m)
-	testList(t, want, m)
+	testGet(t, tx, data, want, m)
+	testList(t, tx, want, m)
 
 	synctest.Wait()
 }
 
-func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
+func testGet(t *testing.T, tx indexed.Transaction, data []tuple, want []int64, m *Manager) {
 	i := make([]int64, 0, len(data))
 	for _, d := range data {
-		v, err := m.Get(t.Context(), &txtesting.Transaction{}, key.NewKey([]byte(d.key)))
+		v, err := m.Get(t.Context(), tx, key.NewKey([]byte(d.key)))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -53,8 +56,8 @@ func testGet(t *testing.T, data []tuple, want []int64, m *Manager) {
 	}
 }
 
-func testList(t *testing.T, want []int64, m *Manager) {
-	i, err := m.List(t.Context(), &txtesting.Transaction{})
+func testList(t *testing.T, tx indexed.Transaction, want []int64, m *Manager) {
+	i, err := m.List(t.Context(), tx)
 	if err != nil {
 		t.Fatal(err)
 	}

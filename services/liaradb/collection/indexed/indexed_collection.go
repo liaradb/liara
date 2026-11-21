@@ -64,7 +64,7 @@ func (ic *IndexedCollection) GetByKey(
 		return nil, err
 	}
 
-	return ic.h.Get(ctx, tn.Collection(), rid)
+	return ic.h.Get(ctx, tx, tn.Collection(), rid)
 }
 
 func (ic *IndexedCollection) List(
@@ -85,7 +85,7 @@ func (ic *IndexedCollection) List(
 				return
 			}
 
-			s, err := ic.h.Get(ctx, fn, r.RecordID)
+			s, err := ic.h.Get(ctx, tx, fn, r.RecordID)
 			if !yield(s, err) || err != nil {
 				return
 			}
@@ -114,8 +114,9 @@ func (ic *IndexedCollection) Replace(
 
 func (ic *IndexedCollection) GetByRecordID(
 	ctx context.Context,
+	tx Transaction,
 	tn tablename.TableName,
 	rid link.RecordID,
 ) (*record.Record, error) {
-	return ic.h.Get(ctx, tn.Collection(), rid)
+	return ic.h.Get(ctx, tx, tn.Collection(), rid)
 }

@@ -25,18 +25,21 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()
 	slices.Reverse(data)
 
-	if err := insertData(ctx, &txtesting.Transaction{}, tid, o, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, tid, o, data)
-	testList(ctx, t, tid, data, o)
+	testGet(ctx, t, tx, tid, o, data)
+	testList(ctx, t, tx, tid, data, o)
 
 	synctest.Wait()
 }
@@ -47,17 +50,20 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 	tid := value.NewTenantID()
 
 	data := createData()
 
-	if err := insertData(ctx, &txtesting.Transaction{}, tid, o, data); err != nil {
+	tx := txtesting.New(s.Storage)
+	defer tx.Release()
+
+	if err := insertData(ctx, tx, tid, o, data); err != nil {
 		t.Fatal(err)
 	}
 
-	testGet(ctx, t, tid, o, data)
-	testList(ctx, t, tid, data, o)
+	testGet(ctx, t, tx, tid, o, data)
+	testList(ctx, t, tx, tid, data, o)
 
 	synctest.Wait()
 }
@@ -65,11 +71,13 @@ func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 func TestOutbox_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		tx := txtesting.Transaction{}
+		ob := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 		tid := value.NewTenantID()
 
-		if _, err := ob.Get(ctx, &tx, tid, value.NewOutboxID()); err == nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if _, err := ob.Get(ctx, tx, tid, value.NewOutboxID()); err == nil {
 			t.Fatal("should return error")
 		}
 	})
@@ -78,8 +86,7 @@ func TestOutbox_Get__Error(t *testing.T) {
 func TestOutbox_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ob := New(indexed.New(heap.New(s.Storage), btree.NewCursor(s.Storage)))
-		tx := txtesting.Transaction{}
+		ob := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 		tid := value.NewTenantID()
 		pid := value.NewPartitionID(0)
 
@@ -88,11 +95,14 @@ func TestOutbox_Replace(t *testing.T) {
 
 		o0.UpdatePosition(value.NewGlobalVersion(1), value.NewSubVersion(2))
 
-		if err := ob.Insert(ctx, &tx, tid, id, o0); err != nil {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if err := ob.Insert(ctx, tx, tid, id, o0); err != nil {
 			t.Fatal(err)
 		}
 
-		o1, err := ob.Get(ctx, &tx, tid, id)
+		o1, err := ob.Get(ctx, tx, tid, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -103,11 +113,11 @@ func TestOutbox_Replace(t *testing.T) {
 
 		o1.UpdatePosition(value.NewGlobalVersion(10), value.NewSubVersion(20))
 
-		if err := ob.Replace(ctx, &tx, tid, id, o1); err != nil {
+		if err := ob.Replace(ctx, tx, tid, id, o1); err != nil {
 			t.Fatal(err)
 		}
 
-		o2, err := ob.Get(ctx, &tx, tid, id)
+		o2, err := ob.Get(ctx, tx, tid, id)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -147,12 +157,13 @@ func insertData(ctx context.Context, tx indexed.Transaction, tid value.TenantID,
 func testGet(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	o *Outbox,
 	data []item,
 ) {
 	for _, i := range data {
-		value, err := o.Get(ctx, &txtesting.Transaction{}, tid, i.value.ID())
+		value, err := o.Get(ctx, tx, tid, i.value.ID())
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
@@ -166,11 +177,12 @@ func testGet(
 func testList(
 	ctx context.Context,
 	t *testing.T,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	data []item,
 	o *Outbox,
 ) {
-	result, err := getListValues(ctx, tid, data, o)
+	result, err := getListValues(ctx, tx, tid, data, o)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,20 +192,21 @@ func testList(
 		t.Errorf("incorrect result: %v, expected: %v", result, want)
 	}
 
-	for range o.List(ctx, &txtesting.Transaction{}, tid) {
+	for range o.List(ctx, tx, tid) {
 		break
 	}
 }
 
 func getListValues(
 	ctx context.Context,
+	tx indexed.Transaction,
 	tid value.TenantID,
 	data []item,
 	o *Outbox,
 ) ([]entity.Outbox, error) {
 	result := make([]entity.Outbox, 0, len(data))
 	i := 0
-	for value, err := range o.List(ctx, &txtesting.Transaction{}, tid) {
+	for value, err := range o.List(ctx, tx, tid) {
 		if err != nil {
 			return nil, err
 		}
