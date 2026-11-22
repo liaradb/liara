@@ -52,6 +52,64 @@ func TestHeap_Get(t *testing.T) {
 	})
 }
 
+func TestHeap_Insert(t *testing.T) {
+	storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
+		h := New()
+
+		fn := link.NewFileName("test")
+
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		// Long name
+		d := make([]byte, 200)
+		copy(d, "name")
+		want := NewTestItem(NewTestName(string(d)))
+
+		rid0, err := h.Insert(t.Context(), tx, fn, want)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rid1, err := h.Insert(t.Context(), tx, fn, want)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		r0, err := h.Get(t.Context(), tx, fn, rid0)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer r0.Release()
+
+		r1, err := h.Get(t.Context(), tx, fn, rid1)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		defer r1.Release()
+
+		var item0 TestItem
+		if err := item0.Read(r0); err != nil {
+			t.Fatal(err)
+		}
+
+		var item1 TestItem
+		if err := item1.Read(r1); err != nil {
+			t.Fatal(err)
+		}
+
+		if item0 != *want {
+			t.Errorf("incorrect result: %v, expected: %v", item0, *want)
+		}
+
+		if item1 != *want {
+			t.Errorf("incorrect result: %v, expected: %v", item1, *want)
+		}
+	})
+}
+
 func TestHeap_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
 		h := New()

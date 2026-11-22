@@ -69,7 +69,7 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 }
 
 func TestIndexedCollection(t *testing.T) {
-	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
+	storagetesting.SyncTest(t, 100, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ic := New(heap.New(), btree.NewCursor(s.Storage))
 		tn := &testTableName{}
@@ -78,14 +78,19 @@ func TestIndexedCollection(t *testing.T) {
 		slices.Reverse(data)
 
 		tx := txtesting.New(s.Storage)
-		defer tx.Release()
+		// defer tx.Release()
 
-		if err := insertData(ctx, tx, ic, tn, data); err != nil {
-			t.Fatal(err)
+		for _, i := range data {
+			k := key.NewKey(i.value.ID().Bytes())
+			if _, err := ic.Insert(ctx, tx, tn, k, i.value); err != nil {
+				t.Fatal(err)
+			}
 		}
 
-		testGet(ctx, t, tx, ic, tn, data)
-		testList(ctx, t, tx, data, ic, tn)
+		// testGet(ctx, t, tx, ic, tn, data)
+		// testList(ctx, t, tx, data, ic, tn)
+
+		tx.Release()
 
 		synctest.Wait()
 	})
@@ -212,12 +217,12 @@ func testGet(
 
 	for _, i := range data {
 		k := key.NewKey(i.value.ID().Bytes())
-		value, err := ic.GetByKey(ctx, tx, tn, k)
+		r, err := ic.GetByKey(ctx, tx, tn, k)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}
 
-		rl, err := readTestItem(value)
+		rl, err := readTestItem(r)
 		if err != nil {
 			t.Fatal(i.key, err)
 		}

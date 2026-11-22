@@ -21,6 +21,8 @@ func TestBufferPage(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		defer b.Release()
+
 		bp := New(b, tx)
 
 		if i := bp.FileBlockID(); i != fbid {
@@ -91,6 +93,8 @@ func TestBufferPage_CommitUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		defer b0.Release()
+
 		bp0 := New(b0, tx)
 
 		if b0.Dirty() {
@@ -116,12 +120,16 @@ func TestBufferPage_Shadow(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		defer b0.Release()
+
 		bp0 := New(b0, tx)
 
 		b1, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		defer b1.Release()
 
 		bp1 := New(b1, tx)
 

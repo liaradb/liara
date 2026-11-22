@@ -18,27 +18,24 @@ import (
 )
 
 func TestTenant(t *testing.T) {
-	storagetesting.SyncTest(t, 5, 256, testTenant)
-}
+	storagetesting.SyncTest(t, 5, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 
-func testTenant(t *testing.T, s storagetesting.Storage) {
-	ctx := t.Context()
-	tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		data := createData()
+		slices.Reverse(data)
 
-	data := createData()
-	slices.Reverse(data)
+		tx := txtesting.New(s.Storage)
 
-	tx := txtesting.New(s.Storage)
-	defer tx.Release()
+		if err := insertData(ctx, tx, tn, data); err != nil {
+			t.Fatal(err)
+		}
 
-	if err := insertData(ctx, tx, tn, data); err != nil {
-		t.Fatal(err)
-	}
+		testGet(ctx, t, tx, tn, data)
+		testList(ctx, t, tx, data, tn)
 
-	testGet(ctx, t, tx, tn, data)
-	testList(ctx, t, tx, data, tn)
-
-	synctest.Wait()
+		tx.Release()
+	})
 }
 
 func TestTenant__LargeBuffer(t *testing.T) {

@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/storage/link"
 )
 
+// TODO: Track dirty pages inside and outside transaction
 type BufferPage struct {
 	page   record.Page
 	buffer *storage.Buffer
