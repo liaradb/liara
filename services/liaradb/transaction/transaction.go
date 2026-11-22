@@ -8,6 +8,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -16,7 +17,7 @@ import (
 type Transaction struct {
 	id             record.TransactionID
 	log            *log.Log
-	bufferList     *BufferList
+	bufferList     *bufferlist.BufferList
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID]
 	forceRollback  bool
 	manager        *Manager
@@ -25,7 +26,7 @@ type Transaction struct {
 func newTransaction(
 	id record.TransactionID,
 	log *log.Log,
-	bufferList *BufferList,
+	bufferList *bufferlist.BufferList,
 	concurrencyMgr *locktable.ConcurrencyMgr[ItemID],
 	manager *Manager,
 ) *Transaction {

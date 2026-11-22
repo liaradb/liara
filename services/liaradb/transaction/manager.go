@@ -8,6 +8,7 @@ import (
 
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 	"github.com/liaradb/liaradb/transaction/locktable"
 	"github.com/liaradb/liaradb/transaction/log"
 	"github.com/liaradb/liaradb/transaction/record"
@@ -127,7 +128,7 @@ func (m *Manager) next(r *async.Request[struct{}, *Transaction]) {
 	r.Reply(newTransaction(
 		m.transactionID,
 		m.log,
-		NewBufferList(m.storage),
+		bufferlist.NewBufferList(m.storage),
 		locktable.NewConcurrencyMgr(m.lockTable),
 		m,
 	), nil)
