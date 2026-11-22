@@ -7,6 +7,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 	"github.com/liaradb/liaradb/transaction/record"
 )
 
@@ -16,12 +17,12 @@ type Transaction struct {
 	records []*record.Record
 	err     error
 	locks   map[tablename.TableName]map[string]int
-	bl      bufferList
+	bl      bufferlist.BufferList
 }
 
 func New(s *storage.Storage) *Transaction {
 	return &Transaction{
-		bl: newBufferList(s),
+		bl: *bufferlist.NewBufferList(s),
 	}
 }
 

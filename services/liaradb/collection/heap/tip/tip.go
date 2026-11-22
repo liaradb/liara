@@ -68,13 +68,13 @@ func (*Tip) capRemaining(remaining int) int16 {
 
 func (t *Tip) appendToRecord(r *record.Record, b *storage.Buffer, remaining int16) int {
 	ok := false
+	p := bufferpage.New(b, t.l)
 	defer func() {
 		if !ok {
-			b.Release()
+			p.Release()
 		}
 	}()
 
-	p := bufferpage.New(b, t.l)
 	header, data := p.Next(remaining)
 	l := len(data)
 	if l == 0 {
