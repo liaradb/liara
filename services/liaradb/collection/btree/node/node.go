@@ -23,14 +23,14 @@ type action interface {
 	Log(context.Context, log.Log) (logpage.LogSequenceNumber, error)
 }
 
-func New(buffer *storage.Buffer) Node {
-	page := page.NewFromSlice(buffer.Raw(), HeaderSize, 0)
+func New(b *storage.Buffer) Node {
+	page := page.NewFromSlice(b.Raw(), HeaderSize, 0)
 	header, _ := newHeader(page.Header())
 
 	return Node{
 		header: header,
 		page:   page,
-		buffer: buffer,
+		buffer: b,
 	}
 }
 

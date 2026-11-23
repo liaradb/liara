@@ -7,7 +7,6 @@ import (
 	"time"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/command"
@@ -32,14 +31,13 @@ func TestEventService_Append(t *testing.T) {
 }
 
 func testEventService_Append(t *testing.T) {
-	m, s := createManager(t, 1024, 1024)
-	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(), c)
+	m, _ := createManager(t, 1024, 1024)
+	ic := indexed.New(heap.New())
 	ts := tenant.New(ic)
 	es := NewEventService(m,
 		ts,
-		idempotency.New(ic, c),
-		eventlog.New(ic, c),
+		idempotency.New(ic),
+		eventlog.New(ic),
 		keyvalue.New(ic),
 		outbox.New(ic))
 
@@ -90,15 +88,14 @@ func TestEventService_Append__Large(t *testing.T) {
 }
 
 func testEventService_Append__Large(t *testing.T) {
-	m, s := createManager(t, 1024, 1024)
-	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(), c)
+	m, _ := createManager(t, 1024, 1024)
+	ic := indexed.New(heap.New())
 	ts := tenant.New(ic)
 
 	es := NewEventService(m,
 		ts,
-		idempotency.New(ic, c),
-		eventlog.New(ic, c),
+		idempotency.New(ic),
+		eventlog.New(ic),
 		keyvalue.New(ic),
 		outbox.New(ic))
 
@@ -192,7 +189,11 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 	s := storagetesting.CreateStorageWithFileSystem(t, 256, 1024, fsys, dir)
 
 	m := transaction.NewManager(l, s, 1)
-	m.Run(t.Context(), func(err error) {})
+	m.Run(t.Context(), func(err error) {
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
 	t.Cleanup(func() {
 		m.Shutdown(t.Context(), time.Now())

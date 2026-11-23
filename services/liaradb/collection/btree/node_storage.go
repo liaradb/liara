@@ -6,24 +6,25 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
 type nodeStorage struct {
-	s *storage.Storage
+	l log.Log
 }
 
-func newNodeStorage(s *storage.Storage) *nodeStorage {
-	return &nodeStorage{s}
+func newNodeStorage(l log.Log) *nodeStorage {
+	return &nodeStorage{l}
 }
 
 func (ns *nodeStorage) getBuffer(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
-	return ns.s.Request(ctx, fbid)
+	return ns.l.Pin(ctx, fbid)
 }
 
 func (ns *nodeStorage) getKeyNode(ctx context.Context, fbid link.FileBlockID) (*keynode.KeyNode, error) {
-	b, err := ns.s.Request(ctx, fbid)
+	b, err := ns.l.Pin(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +33,7 @@ func (ns *nodeStorage) getKeyNode(ctx context.Context, fbid link.FileBlockID) (*
 }
 
 func (ns *nodeStorage) getLeafNode(ctx context.Context, fbid link.FileBlockID) (*leafnode.LeafNode, error) {
-	b, err := ns.s.Request(ctx, fbid)
+	b, err := ns.l.Pin(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
@@ -41,11 +42,11 @@ func (ns *nodeStorage) getLeafNode(ctx context.Context, fbid link.FileBlockID) (
 }
 
 func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
-	return ns.s.RequestNext(ctx, fn)
+	return ns.l.PinNext(ctx, fn)
 }
 
 func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn link.FileName) (*keynode.KeyNode, link.FileBlockID, error) {
-	b, err := ns.s.RequestNext(ctx, fn)
+	b, err := ns.l.PinNext(ctx, fn)
 	if err != nil {
 		return nil, link.FileBlockID{}, err
 	}
@@ -54,7 +55,7 @@ func (ns *nodeStorage) getNextKeyNode(ctx context.Context, fn link.FileName) (*k
 }
 
 func (ns *nodeStorage) getNextLeafNode(ctx context.Context, fn link.FileName) (*leafnode.LeafNode, link.FileBlockID, error) {
-	b, err := ns.s.RequestNext(ctx, fn)
+	b, err := ns.l.PinNext(ctx, fn)
 	if err != nil {
 		return nil, link.FileBlockID{}, err
 	}

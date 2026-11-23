@@ -16,11 +16,10 @@ import (
 
 type Idempotency struct {
 	ic *indexed.IndexedCollection
-	c  *btree.Cursor
 }
 
-func New(ic *indexed.IndexedCollection, c *btree.Cursor) *Idempotency {
-	return &Idempotency{ic: ic, c: c}
+func New(ic *indexed.IndexedCollection) *Idempotency {
+	return &Idempotency{ic: ic}
 }
 
 func (i *Idempotency) Get(
@@ -87,7 +86,8 @@ func (i *Idempotency) Test(
 		return false, err
 	}
 
-	_, err := i.c.Search(ctx, tn.Index(0), k)
+	c := btree.NewCursor(tx)
+	_, err := c.Search(ctx, tn.Index(0), k)
 	if errors.Is(err, btree.ErrNotFound) {
 		return true, nil
 	}

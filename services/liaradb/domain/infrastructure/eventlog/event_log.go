@@ -17,13 +17,11 @@ import (
 
 type EventLog struct {
 	ic *indexed.IndexedCollection
-	c  *btree.Cursor
 }
 
-func New(ic *indexed.IndexedCollection, c *btree.Cursor) *EventLog {
+func New(ic *indexed.IndexedCollection) *EventLog {
 	return &EventLog{
 		ic: ic,
-		c:  c,
 	}
 }
 
@@ -38,16 +36,23 @@ func (l *EventLog) Append(
 		return err
 	}
 
-	if err := l.c.Insert(ctx, tx, tn.Index(1), key.NewKey(e.ID().Bytes()), rid); err != nil {
+	c := btree.NewCursor(tx)
+	if err := c.Insert(ctx, tx, tn.Index(1), key.NewKey(e.ID().Bytes()), rid); err != nil {
 		return err
 	}
 
-	return l.c.Insert(ctx, tx, tn.Index(2), key.NewKey2(e.GlobalVersion().Bytes(), int64(e.SubVersion().Value())), rid)
+	return c.Insert(ctx, tx, tn.Index(2), key.NewKey2(e.GlobalVersion().Bytes(), int64(e.SubVersion().Value())), rid)
 }
 
-func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.Key) error {
+func (l *EventLog) CanAppend(
+	ctx context.Context,
+	tx indexed.Transaction,
+	tn tablename.TableName,
+	k key.Key,
+) error {
+	c := btree.NewCursor(tx)
 	fn := tn.Index(0)
-	_, err := l.c.Search(ctx, fn, k)
+	_, err := c.Search(ctx, fn, k)
 	if err == nil {
 		return btree.ErrExists
 	}
@@ -60,7 +65,8 @@ func (l *EventLog) CanAppend(ctx context.Context, tn tablename.TableName, k key.
 }
 
 func (l *EventLog) Find(ctx context.Context, tx indexed.Transaction, tn tablename.TableName, id value.EventID) (*entity.Event, error) {
-	rid, err := l.c.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
+	c := btree.NewCursor(tx)
+	rid, err := c.Search(ctx, tn.Index(1), key.NewKey(id.Bytes()))
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +88,8 @@ func (l *EventLog) GetAggregate(
 			return
 		}
 
-		for sr, err := range l.c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
+		c := btree.NewCursor(tx)
+		for sr, err := range c.SearchRange(ctx, tn.Index(0), key.NewKey(id.Bytes()), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -115,7 +122,8 @@ func (l *EventLog) EventsAfterGlobalVersion(
 	lw value.GlobalVersion,
 ) iter.Seq2[*entity.Event, error] {
 	return func(yield func(*entity.Event, error) bool) {
-		for sr, err := range l.c.SearchRange(ctx, tn.Index(2), key.NewKey2(version.Bytes(), int64(sub.Value())), 0, 0) {
+		c := btree.NewCursor(tx)
+		for sr, err := range c.SearchRange(ctx, tn.Index(2), key.NewKey2(version.Bytes(), int64(sub.Value())), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -155,8 +163,13 @@ func (*EventLog) readEvent(r *record.Record) (*entity.Event, error) {
 	return &e, e.Read(r)
 }
 
-func (l *EventLog) GetMaxGlobalVersion(ctx context.Context, tn tablename.TableName) (value.GlobalVersion, error) {
-	k, err := l.c.Maximum(ctx, tn.Index(2))
+func (l *EventLog) GetMaxGlobalVersion(
+	ctx context.Context,
+	tx indexed.Transaction,
+	tn tablename.TableName,
+) (value.GlobalVersion, error) {
+	c := btree.NewCursor(tx)
+	k, err := c.Maximum(ctx, tn.Index(2))
 	if err != nil {
 		if errors.Is(err, btree.ErrNotFound) {
 			return value.NewGlobalVersion(0), nil

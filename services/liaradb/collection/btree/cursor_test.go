@@ -21,9 +21,12 @@ func TestCursor_GetRoot_Default(t *testing.T) {
 func testCursor(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 2, 256)
 	ctx := t.Context()
-	fn := link.NewFileName("testfile")
 
-	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
+	tx := txtesting.New(s)
+	defer tx.Release()
+
+	fn := link.NewFileName("testfile")
+	if l, err := NewCursor(tx).Level(ctx, fn); err != nil {
 		t.Error(err)
 	} else if l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
@@ -40,6 +43,9 @@ func testCursor_Insert__Root(t *testing.T) {
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	data := []leafEntry{
 		newLeafEntry(
 			key.NewKey([]byte("a")),
@@ -53,20 +59,20 @@ func testCursor_Insert__Root(t *testing.T) {
 	}
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Error(err)
 		}
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
+		if rid, err := NewCursor(tx).Search(ctx, fn, e.key); err != nil {
 			t.Fatal(err)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
 
-	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
+	if l, err := NewCursor(tx).Level(ctx, fn); err != nil {
 		t.Error(err)
 	} else if l != 0 {
 		t.Errorf("incorrect level: %v, expected: %v", l, 0)
@@ -81,25 +87,28 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 func testCursor_Insert__RootSplit(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
+
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	fn := link.NewFileName("testfile")
 
 	data := createData()
-
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
+		if rid, err := NewCursor(tx).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
 		}
 	}
 
-	if l, err := NewCursor(s).Level(ctx, fn); err != nil {
+	if l, err := NewCursor(tx).Level(ctx, fn); err != nil {
 		t.Error(err)
 	} else if l <= 2 {
 		t.Errorf("incorrect level: %v, expected: %v", "> 2", l)
@@ -114,18 +123,21 @@ func TestCursor_Insert__Reverse(t *testing.T) {
 func testCursor_Insert__Reverse(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
+
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	fn := link.NewFileName("testfile")
 
 	data := createData()
-
 	for _, e := range reverseData(data) {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
 
 	for _, e := range data {
-		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
+		if rid, err := NewCursor(tx).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -141,6 +153,10 @@ func TestCursor_Insert__Random(t *testing.T) {
 func testCursor_Insert__Random(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
+
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	fn := link.NewFileName("testfile")
 
 	data := createData()
@@ -159,14 +175,14 @@ func testCursor_Insert__Random(t *testing.T) {
 	}
 
 	for i, e := range reorderData(order, data) {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(i, e.key, err)
 		}
 	}
 
 	for _, i := range order {
 		e := data[i]
-		if rid, err := NewCursor(s).Search(ctx, fn, e.key); err != nil {
+		if rid, err := NewCursor(tx).Search(ctx, fn, e.key); err != nil {
 			t.Error(err, e.key)
 		} else if rid != e.recordID {
 			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
@@ -184,20 +200,23 @@ func testCursor_Insert__Existing(t *testing.T) {
 	ctx := t.Context()
 	fn := link.NewFileName("testfile")
 
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	le := newLeafEntry(
 		key.NewKey([]byte("0")),
 		link.NewRecordID(1, 2))
 
-	if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, le.key, le.recordID); err != nil {
+	if err := NewCursor(tx).Insert(ctx, tx, fn, le.key, le.recordID); err != nil {
 		t.Fatal(le.key, err)
 	}
 
-	if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, le.key, le.recordID); err == nil {
+	if err := NewCursor(tx).Insert(ctx, tx, fn, le.key, le.recordID); err == nil {
 		t.Error("should not insert the same key")
 	}
 
 	c := 0
-	for _, err := range NewCursor(s).All(ctx, fn, 0, 0) {
+	for _, err := range NewCursor(tx).All(ctx, fn, 0, 0) {
 		if err != nil {
 			t.Error(err)
 		}
@@ -218,12 +237,16 @@ func TestCursor_SearchRange(t *testing.T) {
 func testCursor_SearchRange(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
+
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	fn := link.NewFileName("testfile")
 
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -234,7 +257,7 @@ func testCursor_SearchRange(t *testing.T) {
 	}
 
 	for i, e := range data {
-		c := NewCursor(s)
+		c := NewCursor(tx)
 		result := make([]SearchResult, 0, len(data))
 		for rid, err := range c.SearchRange(ctx, fn, e.key, 0, 0) {
 			if err != nil {
@@ -252,7 +275,7 @@ func testCursor_SearchRange(t *testing.T) {
 
 	// Skip and Limit
 	{
-		c := NewCursor(s)
+		c := NewCursor(tx)
 		result := make([]SearchResult, 0, len(data))
 		for r, err := range c.SearchRange(ctx, fn, key.NewKey([]byte("1")), 1, 3) {
 			if err != nil {
@@ -279,12 +302,16 @@ func TestCursor_All(t *testing.T) {
 func testCursor_All(t *testing.T) {
 	s := storagetesting.CreateStorage(t, 8, 80)
 	ctx := t.Context()
+
+	tx := txtesting.New(s)
+	defer tx.Release()
+
 	fn := link.NewFileName("testfile")
 
 	data := createData()
 
 	for _, e := range data {
-		if err := NewCursor(s).Insert(ctx, &txtesting.Transaction{}, fn, e.key, e.recordID); err != nil {
+		if err := NewCursor(tx).Insert(ctx, tx, fn, e.key, e.recordID); err != nil {
 			t.Fatal(e.key, err)
 		}
 	}
@@ -295,7 +322,7 @@ func testCursor_All(t *testing.T) {
 	}
 
 	for i := range data {
-		c := NewCursor(s)
+		c := NewCursor(tx)
 		result := make([]link.RecordID, 0, len(data))
 		for r, err := range c.All(ctx, fn, i, 0) {
 			if err != nil {
@@ -313,7 +340,7 @@ func testCursor_All(t *testing.T) {
 
 	// Skip and Limit
 	{
-		c := NewCursor(s)
+		c := NewCursor(tx)
 		result := make([]link.RecordID, 0, len(data))
 		for r, err := range c.All(ctx, fn, 1, 3) {
 			if err != nil {

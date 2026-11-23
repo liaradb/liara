@@ -49,6 +49,11 @@ func NewEventService(
 }
 
 func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.FileSystem, dir string, tIDs []value.TenantID) error {
+	tx, err := es.baseService.txManager.Next(ctx)
+	if err != nil {
+		return err
+	}
+
 	tIDMap := make(map[value.TenantID][]value.PartitionID)
 	for _, tid := range tIDs {
 		tf := tenantfolder.NewTenantFolder(tid)
@@ -60,16 +65,20 @@ func (es *EventService) InitGlobalVersions(ctx context.Context, fsys filecache.F
 		tIDMap[tid] = pids
 	}
 
-	return es.initGlobalVersions(ctx, tIDMap)
+	return es.initGlobalVersions(ctx, tx, tIDMap)
 }
 
-func (es *EventService) initGlobalVersions(ctx context.Context, tIDs map[value.TenantID][]value.PartitionID) error {
+func (es *EventService) initGlobalVersions(
+	ctx context.Context,
+	tx *transaction.Transaction,
+	tIDs map[value.TenantID][]value.PartitionID,
+) error {
 	for tid, pids := range tIDs {
 		tf := tenantfolder.NewTenantFolder(tid)
 
 		var gv value.GlobalVersion
 		for _, pid := range pids {
-			gv1, err := es.eventLog.GetMaxGlobalVersion(ctx, tf.EventLog(pid))
+			gv1, err := es.eventLog.GetMaxGlobalVersion(ctx, tx, tf.EventLog(pid))
 			if err != nil {
 				return err
 			}
@@ -147,7 +156,7 @@ func (es *EventService) append(
 			return err
 		}
 
-		if err := elt.append(ctx, e); err != nil {
+		if err := elt.append(ctx, tx, e); err != nil {
 			return err
 		}
 

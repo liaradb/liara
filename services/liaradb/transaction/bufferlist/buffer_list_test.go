@@ -12,7 +12,6 @@ import (
 
 func TestBufferList(t *testing.T) {
 	t.Parallel()
-	t.Skip()
 	synctest.Test(t, testBufferList)
 }
 

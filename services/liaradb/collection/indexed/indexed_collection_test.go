@@ -9,7 +9,6 @@ import (
 	"testing/synctest"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/heap/record"
@@ -22,7 +21,7 @@ import (
 
 func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	storagetesting.SyncTest(t, 16, 1024, func(t *testing.T, s storagetesting.Storage) {
-		ic := New(heap.New(), btree.NewCursor(s.Storage))
+		ic := New(heap.New())
 		tn := &testTableName{}
 
 		k := key.NewKey([]byte("abcde"))
@@ -71,7 +70,7 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 func TestIndexedCollection(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(), btree.NewCursor(s.Storage))
+		ic := New(heap.New())
 		tn := &testTableName{}
 
 		data := createData()
@@ -100,7 +99,7 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 	t.Skip()
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(), btree.NewCursor(s.Storage))
+		ic := New(heap.New())
 		tn := &testTableName{}
 
 		data := createData()
@@ -122,7 +121,7 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 func TestIndexedCollection_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ic := New(heap.New(), btree.NewCursor(s.Storage))
+		ic := New(heap.New())
 		tn := &testTableName{}
 
 		id := NewTestID()

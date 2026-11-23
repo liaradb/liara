@@ -7,7 +7,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
@@ -20,7 +19,7 @@ import (
 func TestTenant(t *testing.T) {
 	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		tn := New(indexed.New(heap.New()))
 
 		data := createData()
 		slices.Reverse(data)
@@ -44,7 +43,7 @@ func TestTenant__LargeBuffer(t *testing.T) {
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+	tn := New(indexed.New(heap.New()))
 
 	data := createData()
 
@@ -64,7 +63,7 @@ func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 func TestTenant_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		tn := New(indexed.New(heap.New()))
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
@@ -79,7 +78,7 @@ func TestTenant_Get__Error(t *testing.T) {
 func TestTenant_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 10, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		tn := New(indexed.New(heap.New()))
 
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()

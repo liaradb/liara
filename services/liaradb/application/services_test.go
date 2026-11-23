@@ -1,25 +1,19 @@
 package application
 
-import (
-	"testing"
-
-	"github.com/liaradb/liaradb/util/testing/storagetesting"
-)
+import "testing"
 
 func TestCollections(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-		c := newCollections(s.Storage)
-		if c == nil {
-			t.Error("should have value")
-		}
-		if c.EventLog == nil {
-			t.Error("should have value")
-		}
-		if c.Idempotency == nil {
-			t.Error("should have value")
-		}
-		if c.Outbox == nil {
-			t.Error("should have value")
-		}
-	})
+	c := newCollections()
+	if c == nil {
+		t.Error("should have value")
+	}
+	if c.EventLog == nil {
+		t.Error("should have value")
+	}
+	if c.Idempotency == nil {
+		t.Error("should have value")
+	}
+	if c.Outbox == nil {
+		t.Error("should have value")
+	}
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
-	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -15,9 +15,9 @@ type maximum struct {
 	ns *nodeStorage
 }
 
-func newMaximum(s *storage.Storage) maximum {
+func newMaximum(l log.Log) maximum {
 	return maximum{
-		ns: newNodeStorage(s),
+		ns: newNodeStorage(l),
 	}
 }
 

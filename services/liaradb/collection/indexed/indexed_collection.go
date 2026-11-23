@@ -16,13 +16,11 @@ import (
 // TODO: Create a shared goroutine for each file to manage storage
 type IndexedCollection struct {
 	h *heap.Heap
-	c *btree.Cursor
 }
 
-func New(h *heap.Heap, c *btree.Cursor) *IndexedCollection {
+func New(h *heap.Heap) *IndexedCollection {
 	return &IndexedCollection{
 		h: h,
-		c: c,
 	}
 }
 
@@ -42,7 +40,8 @@ func (ic *IndexedCollection) Insert(
 		return link.RecordID{}, err
 	}
 
-	if err := ic.c.Insert(ctx, tx, tn.Index(0), k, rid); err != nil {
+	c := btree.NewCursor(tx)
+	if err := c.Insert(ctx, tx, tn.Index(0), k, rid); err != nil {
 		return link.RecordID{}, err
 	}
 
@@ -59,7 +58,8 @@ func (ic *IndexedCollection) GetByKey(
 		return nil, err
 	}
 
-	rid, err := ic.c.Search(ctx, tn.Index(0), k)
+	c := btree.NewCursor(tx)
+	rid, err := c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,8 @@ func (ic *IndexedCollection) List(
 ) iter.Seq2[*record.Record, error] {
 	return func(yield func(*record.Record, error) bool) {
 		fn := tn.Collection()
-		for r, err := range ic.c.All(ctx, tn.Index(0), 0, 0) {
+		c := btree.NewCursor(tx)
+		for r, err := range c.All(ctx, tn.Index(0), 0, 0) {
 			if err != nil {
 				yield(nil, err)
 				return
@@ -104,7 +105,8 @@ func (ic *IndexedCollection) Replace(
 		return err
 	}
 
-	rid, err := ic.c.Search(ctx, tn.Index(0), k)
+	c := btree.NewCursor(tx)
+	rid, err := c.Search(ctx, tn.Index(0), k)
 	if err != nil {
 		return err
 	}

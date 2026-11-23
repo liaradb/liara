@@ -6,7 +6,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/command"
@@ -19,9 +18,8 @@ func TestTenantService_Create(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		m, s := createManager(t, 1024, 1024)
-		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(), c)
+		m, _ := createManager(t, 1024, 1024)
+		ic := indexed.New(heap.New())
 		ts := NewTenantService(m, tenant.New(ic))
 
 		name := value.NewTenantName("name")
@@ -52,9 +50,8 @@ func TestTenantService_Rename(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		m, s := createManager(t, 1024, 1024)
-		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(), c)
+		m, _ := createManager(t, 1024, 1024)
+		ic := indexed.New(heap.New())
 		ts := NewTenantService(m, tenant.New(ic))
 
 		tid, err := ts.Create(t.Context(), command.CreateTenant{
@@ -92,9 +89,8 @@ func TestTenantService_List(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		m, s := createManager(t, 1024, 1024)
-		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(), c)
+		m, _ := createManager(t, 1024, 1024)
+		ic := indexed.New(heap.New())
 		ts := NewTenantService(m, tenant.New(ic))
 
 		tid0, err := ts.Create(t.Context(), command.CreateTenant{

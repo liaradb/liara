@@ -9,7 +9,6 @@ import (
 	"testing/synctest"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
@@ -25,7 +24,7 @@ func TestOutbox(t *testing.T) {
 
 func testOutbox(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New()))
 	tid := value.NewTenantID()
 
 	data := createData()
@@ -50,7 +49,7 @@ func TestOutbox__LargeBuffer(t *testing.T) {
 
 func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	o := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+	o := New(indexed.New(heap.New()))
 	tid := value.NewTenantID()
 
 	data := createData()
@@ -71,7 +70,7 @@ func testOutbox__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 func TestOutbox_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ob := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		ob := New(indexed.New(heap.New()))
 		tid := value.NewTenantID()
 
 		tx := txtesting.New(s.Storage)
@@ -86,7 +85,7 @@ func TestOutbox_Get__Error(t *testing.T) {
 func TestOutbox_Replace(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		ob := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
+		ob := New(indexed.New(heap.New()))
 		tid := value.NewTenantID()
 		pid := value.NewPartitionID(0)
 

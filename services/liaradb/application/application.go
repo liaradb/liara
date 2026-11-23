@@ -58,7 +58,7 @@ func New(conf configuration) *Application {
 		conf:      conf,
 		fsys:      fsys,
 		txManager: txManager,
-		services:  newServices(txManager, s),
+		services:  newServices(txManager),
 	}
 }
 

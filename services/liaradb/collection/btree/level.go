@@ -3,7 +3,7 @@ package btree
 import (
 	"context"
 
-	"github.com/liaradb/liaradb/storage"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -11,9 +11,9 @@ type level struct {
 	ns *nodeStorage
 }
 
-func newLevel(s *storage.Storage) level {
+func newLevel(l log.Log) level {
 	return level{
-		ns: newNodeStorage(s),
+		ns: newNodeStorage(l),
 	}
 }
 

@@ -7,8 +7,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/keynode"
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
+	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -21,9 +21,9 @@ type SearchResult struct {
 	RecordID link.RecordID
 }
 
-func newSearch(s *storage.Storage) search {
+func newSearch(l log.Log) search {
 	return search{
-		ns: newNodeStorage(s),
+		ns: newNodeStorage(l),
 	}
 }
 

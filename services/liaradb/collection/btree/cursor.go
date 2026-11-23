@@ -1,6 +1,6 @@
 package btree
 
-import "github.com/liaradb/liaradb/storage"
+import "github.com/liaradb/liaradb/collection/log"
 
 type Cursor struct {
 	insert
@@ -9,11 +9,11 @@ type Cursor struct {
 	maximum
 }
 
-func NewCursor(s *storage.Storage) *Cursor {
+func NewCursor(l log.Log) *Cursor {
 	return &Cursor{
-		insert:  newInsert(s),
-		level:   newLevel(s),
-		search:  newSearch(s),
-		maximum: newMaximum(s),
+		insert:  newInsert(l),
+		level:   newLevel(l),
+		search:  newSearch(l),
+		maximum: newMaximum(l),
 	}
 }

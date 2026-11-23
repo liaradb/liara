@@ -1,7 +1,6 @@
 package application
 
 import (
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/infrastructure/eventlog"
@@ -11,7 +10,6 @@ import (
 	"github.com/liaradb/liaradb/domain/infrastructure/outbox"
 	"github.com/liaradb/liaradb/domain/infrastructure/tenant"
 	"github.com/liaradb/liaradb/domain/service"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/transaction"
 )
 
@@ -30,8 +28,8 @@ type collections struct {
 	Idempotency *idempotency.Idempotency
 }
 
-func newServices(txManager *transaction.Manager, s *storage.Storage) *services {
-	c := newCollections(s)
+func newServices(txManager *transaction.Manager) *services {
+	c := newCollections()
 	return &services{
 		es: service.NewEventService(
 			txManager,
@@ -51,16 +49,15 @@ func newServices(txManager *transaction.Manager, s *storage.Storage) *services {
 	}
 }
 
-func newCollections(s *storage.Storage) *collections {
-	c := btree.NewCursor(s)
-	ic := indexed.New(heap.New(), c)
+func newCollections() *collections {
+	ic := indexed.New(heap.New())
 	kv := keyvalue.New(ic)
 	return &collections{
 		manager:     manager.New(kv),
 		Tenant:      tenant.New(ic),
-		EventLog:    eventlog.New(ic, c),
+		EventLog:    eventlog.New(ic),
 		KeyValue:    kv,
 		Outbox:      outbox.New(ic),
-		Idempotency: idempotency.New(ic, c),
+		Idempotency: idempotency.New(ic),
 	}
 }

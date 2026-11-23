@@ -4,7 +4,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/command"
@@ -18,11 +17,10 @@ func TestOutboxService_CreateOutbox(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		m, s := createManager(t, 1024, 1024)
-		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(), c)
+		m, _ := createManager(t, 1024, 1024)
+		ic := indexed.New(heap.New())
 		tc := tenant.New(ic)
-		idc := idempotency.New(ic, c)
+		idc := idempotency.New(ic)
 		oc := outbox.New(ic)
 
 		ts := NewTenantService(m, tc)
@@ -67,11 +65,10 @@ func TestOutboxService_Update(t *testing.T) {
 	t.Parallel()
 
 	synctest.Test(t, func(t *testing.T) {
-		m, s := createManager(t, 1024, 1024)
-		c := btree.NewCursor(s)
-		ic := indexed.New(heap.New(), c)
+		m, _ := createManager(t, 1024, 1024)
+		ic := indexed.New(heap.New())
 		tc := tenant.New(ic)
-		idc := idempotency.New(ic, c)
+		idc := idempotency.New(ic)
 		oc := outbox.New(ic)
 
 		ts := NewTenantService(m, tc)

@@ -6,7 +6,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
@@ -20,7 +19,7 @@ func TestManager(t *testing.T) {
 }
 
 func testManager(t *testing.T, s storagetesting.Storage) {
-	m := New(keyvalue.New(indexed.New(heap.New(), btree.NewCursor(s.Storage))))
+	m := New(keyvalue.New(indexed.New(heap.New())))
 
 	data := createData()
 	want := createValues(data)

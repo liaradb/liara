@@ -7,7 +7,6 @@ import (
 	"testing"
 	"testing/synctest"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/collection/tablename"
@@ -60,8 +59,7 @@ func write(
 	events []*entity.Event,
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
-	c := btree.NewCursor(s)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 
 	ctx, cancel := context.WithCancel(baseCtx)
 	defer cancel()
@@ -96,8 +94,7 @@ func recover(
 	events []*entity.Event,
 ) {
 	s := storage.New(fsys, lrupool.New(), max, bs, dir)
-	c := btree.NewCursor(s)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

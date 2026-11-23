@@ -7,7 +7,6 @@ import (
 	"testing/synctest"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
 	"github.com/liaradb/liaradb/domain/command"
@@ -24,8 +23,7 @@ func TestEventLog_Append(t *testing.T) {
 
 func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -73,8 +71,7 @@ func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
 
 func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -121,8 +118,7 @@ func TestEventLog_Find(t *testing.T) {
 
 func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
@@ -161,8 +157,7 @@ func TestEventLog_GetAggregate(t *testing.T) {
 
 func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	el := New(indexed.New(heap.New(), c), c)
+	el := New(indexed.New(heap.New()))
 	tf := tenantfolder.NewTenantFolder(value.NewTenantID())
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)

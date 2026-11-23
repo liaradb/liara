@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/log"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 )
 
@@ -17,9 +16,9 @@ type insert struct {
 	ns *nodeStorage
 }
 
-func newInsert(s *storage.Storage) insert {
+func newInsert(l log.Log) insert {
 	return insert{
-		ns: newNodeStorage(s),
+		ns: newNodeStorage(l),
 	}
 }
 

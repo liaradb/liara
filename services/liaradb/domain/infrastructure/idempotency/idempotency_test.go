@@ -10,7 +10,6 @@ import (
 	"time"
 	"uuid"
 
-	"github.com/liaradb/liaradb/collection/btree"
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/heap"
 	"github.com/liaradb/liaradb/collection/indexed"
@@ -28,8 +27,7 @@ func TestIdempotency(t *testing.T) {
 
 func testIdempotency(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(heap.New(), c), c)
+	idp := New(indexed.New(heap.New()))
 	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -54,8 +52,7 @@ func TestRequestLog__LargeBuffer(t *testing.T) {
 
 func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 	ctx := t.Context()
-	c := btree.NewCursor(s.Storage)
-	idp := New(indexed.New(heap.New(), c), c)
+	idp := New(indexed.New(heap.New()))
 	n := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 	data := createData()
@@ -76,8 +73,7 @@ func testRequestLog__LargeBuffer(t *testing.T, s storagetesting.Storage) {
 func TestIdempotency_Test(t *testing.T) {
 	storagetesting.SyncTest(t, 8, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		c := btree.NewCursor(s.Storage)
-		idp := New(indexed.New(heap.New(), c), c)
+		idp := New(indexed.New(heap.New()))
 		tn := tenantfolder.NewTenantFolder(value.NewTenantID()).RequestLog()
 
 		tx := txtesting.New(s.Storage)
@@ -107,8 +103,7 @@ func TestIdempotency_Test(t *testing.T) {
 func TestIdempotency_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 4, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
-		c := btree.NewCursor(s.Storage)
-		idp := New(indexed.New(heap.New(), c), c)
+		idp := New(indexed.New(heap.New()))
 		tid := value.NewTenantID()
 		tn := tenantfolder.NewTenantFolder(tid).Outbox()
 		rqid := value.NewRequestID()
