@@ -17,7 +17,7 @@ func TestLeafNode_Fill(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -64,7 +64,7 @@ func TestLeafNode_Replace(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -113,7 +113,7 @@ func TestLeafNode_Child(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -153,7 +153,7 @@ func TestLeafNode_Children(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -192,7 +192,7 @@ func TestLeafNode_Insert(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -279,7 +279,7 @@ func TestLeafNode_Insert__Split(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -332,7 +332,7 @@ func TestLeafNode_SetLeftID(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -362,7 +362,7 @@ func TestLeafNode_SetRightID(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := node.New(b, tx)
 		defer n.Release()
 
@@ -387,8 +387,8 @@ func TestLeafNode_SetRightID(t *testing.T) {
 	})
 }
 
-func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), link.FileBlockID{})
+func createBuffer(t *testing.T, tx *txtesting.Transaction) *storage.Buffer {
+	b, err := tx.Pin(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}

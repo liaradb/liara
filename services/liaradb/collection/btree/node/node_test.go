@@ -25,7 +25,7 @@ func TestNode_Dirty(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -46,7 +46,7 @@ func TestNode_Level(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -74,7 +74,7 @@ func TestNode_Append(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -187,7 +187,7 @@ func TestNode_LogActions__Error(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -214,7 +214,7 @@ func TestNode_Insert(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -316,7 +316,7 @@ func TestNode_Space(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -345,7 +345,7 @@ func TestNode_Child(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -396,7 +396,7 @@ func TestNode_Children(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -445,7 +445,7 @@ func TestNode_ChildrenRange(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -494,8 +494,8 @@ func TestNode_ChildrenRange(t *testing.T) {
 	})
 }
 
-func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), link.FileBlockID{})
+func createBuffer(t *testing.T, tx *txtesting.Transaction) *storage.Buffer {
+	b, err := tx.Pin(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -508,7 +508,7 @@ func TestNode_Clear(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 
@@ -578,7 +578,7 @@ func TestPage__HeaderActions(t *testing.T) {
 		tx := txtesting.New(s.Storage)
 		defer tx.Release()
 
-		b := createBuffer(t, s.Storage)
+		b := createBuffer(t, tx)
 		n := New(b, tx)
 		defer n.Release()
 

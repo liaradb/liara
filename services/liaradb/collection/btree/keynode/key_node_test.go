@@ -22,7 +22,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -38,7 +38,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -123,7 +123,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -211,7 +211,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -253,7 +253,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -269,7 +269,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -285,7 +285,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -302,7 +302,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -337,7 +337,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -357,7 +357,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -377,7 +377,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -410,7 +410,7 @@ func TestKeyNode(t *testing.T) {
 			tx := txtesting.New(s.Storage)
 			defer tx.Release()
 
-			b := createBuffer(t, s.Storage)
+			b := createBuffer(t, tx)
 			n := node.New(b, tx)
 			defer n.Release()
 
@@ -496,8 +496,8 @@ func testKeyNodeSearch(t *testing.T, kn *KeyNode, data []keyEntry) {
 	}
 }
 
-func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
-	b, err := s.Request(t.Context(), link.FileBlockID{})
+func createBuffer(t *testing.T, tx *txtesting.Transaction) *storage.Buffer {
+	b, err := tx.Pin(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)
 	}
