@@ -14,11 +14,13 @@ import (
 // TODO: What happens if two goroutines append simultaneously?
 type insert struct {
 	ns *nodeStorage
+	l  log.Log
 }
 
 func newInsert(l log.Log) insert {
 	return insert{
 		ns: newNodeStorage(l),
+		l:  l,
 	}
 }
 
@@ -212,7 +214,8 @@ func (c *insert) insertRoot(
 		return err
 	}
 
-	defer b0.Release()
+	n0 := node.New(b0, c.l)
+	defer n0.Release()
 
 	// TODO: Figure out latching
 	// b0.Latch()
@@ -224,15 +227,17 @@ func (c *insert) insertRoot(
 		return err
 	}
 
-	defer b2.Release()
+	n2 := node.New(b2, c.l)
+	defer n2.Release()
 
-	b2.Latch()
-	defer b2.Unlatch()
+	n2.Latch()
+	defer n2.Unlatch()
 
+	// TODO: Should we do this with Node methods?
 	b2.Clone(b0)
 
 	// This should always return true
-	_ = keynode.New(node.New(b0)).ReplaceRoot(
+	_ = keynode.New(n0).ReplaceRoot(
 		level+1,
 		b2.FileBlockID().BlockID(),
 		key,

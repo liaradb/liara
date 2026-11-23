@@ -19,11 +19,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should insert", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			testKeyNodeChildren(t, kn, data)
@@ -32,10 +35,13 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should insert and split right", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 80, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			n := node.New(b)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
 			kn := New(n)
 
 			data := []keyEntry{
@@ -80,8 +86,7 @@ func TestKeyNode(t *testing.T) {
 				}
 			}
 
-			tx := txtesting.Transaction{}
-			if err := kn.LogActions(t.Context(), &tx); err != nil {
+			if err := kn.LogActions(t.Context(), tx); err != nil {
 				t.Error(err)
 			}
 
@@ -115,10 +120,13 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should insert and split left", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 80, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			n := node.New(b)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
 			kn := New(n)
 
 			data := []keyEntry{
@@ -166,8 +174,7 @@ func TestKeyNode(t *testing.T) {
 				}
 			}
 
-			tx := txtesting.Transaction{}
-			if err := kn.LogActions(t.Context(), &tx); err != nil {
+			if err := kn.LogActions(t.Context(), tx); err != nil {
 				t.Error(err)
 			}
 
@@ -201,11 +208,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should replace root", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := []keyEntry{
 				{key.NewKey([]byte("key1")), link.BlockID(1)},
@@ -240,11 +250,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should iterate in order", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			testKeyNodeChildren(t, kn, data)
@@ -253,11 +266,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should get child", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			testKeyNodeChild(t, kn, data)
@@ -266,11 +282,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should search items", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			testKeyNodeSearch(t, kn, data)
@@ -280,11 +299,14 @@ func TestKeyNode(t *testing.T) {
 	// TODO: This method is private
 	t.Run("should search indexes", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			for i, e := range data {
@@ -312,11 +334,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should search before items", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			want := data[0].block
@@ -329,11 +354,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should search after items", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := testKeyNodeInsertData(t, kn)
 			want := data[2].block
@@ -346,11 +374,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should fill", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := []keyEntry{
 				{key.NewKey([]byte("b")), 1},
@@ -376,11 +407,14 @@ func TestKeyNode(t *testing.T) {
 
 	t.Run("should replace", func(t *testing.T) {
 		storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-			b := createBuffer(t, s.Storage)
-			defer b.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-			bp := node.New(b)
-			kn := New(bp)
+			b := createBuffer(t, s.Storage)
+			n := node.New(b, tx)
+			defer n.Release()
+
+			kn := New(n)
 
 			data := []keyEntry{
 				{key.NewKey([]byte("b")), 1},

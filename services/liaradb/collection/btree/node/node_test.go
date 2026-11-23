@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"slices"
 	"testing"
-	"testing/synctest"
 
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
@@ -22,56 +21,48 @@ const (
 )
 
 func TestNode_Dirty(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Dirty)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Dirty(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	if b.Dirty() {
-		t.Error("should not be dirty")
-	}
+		if b.Dirty() {
+			t.Error("should not be dirty")
+		}
 
-	n := New(b)
-	n.SetDirty()
+		n.SetDirty()
 
-	if !b.Dirty() {
-		t.Error("should be dirty")
-	}
+		if !b.Dirty() {
+			t.Error("should be dirty")
+		}
+	})
 }
 
 func TestNode_Level(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Level)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Level(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
+		if l := n.Level(); l != 0 {
+			t.Errorf("incorrect level: %v, expected: %v", l, 0)
+		}
 
-	if l := n.Level(); l != 0 {
-		t.Errorf("incorrect level: %v, expected: %v", l, 0)
-	}
+		n.SetLevel(2)
 
-	n.SetLevel(2)
-
-	if l := n.Level(); l != 2 {
-		t.Errorf("incorrect level: %v, expected: %v", l, 2)
-	}
+		if l := n.Level(); l != 2 {
+			t.Errorf("incorrect level: %v, expected: %v", l, 2)
+		}
+	})
 }
 
 func TestNode_Append(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Append)
-}
-
-func testNode_Append(t *testing.T) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -79,142 +70,139 @@ func testNode_Append(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-	n := New(b)
-	v0 := []byte{1, 2, 3, 4, 5}
-	v1 := []byte{6, 7, 8, 9, 10}
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	if c := n.Count(); c != 0 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 0)
-	}
+		v0 := []byte{1, 2, 3, 4, 5}
+		v1 := []byte{6, 7, 8, 9, 10}
 
-	if s := n.Space(); s != s0 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s0)
-	}
-
-	b0, ok := n.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
-		t.Error(err)
-	}
-
-	n.CommitAppend(16)
-
-	if c := n.Count(); c != 1 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 1)
-	}
-
-	if s := n.Space(); s != s1 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s1)
-	}
-
-	b1, ok := n.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
-		t.Error(err)
-	}
-
-	n.CommitAppend(16)
-
-	if c := n.Count(); c != 2 {
-		t.Errorf("incorrect count: %v, expected: %v", c, 2)
-	}
-
-	if s := n.Space(); s != s2 {
-		t.Errorf("incorrect space: %v, expected: %v", s, s2)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
-	// 	t.Error(err)
-	// }
-
-	r0 := make([]byte, 5)
-	if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
-		t.Error(err)
-	}
-
-	if !slices.Equal(r0, v0) {
-		t.Errorf("incorrect result: %v, expected: %v", r0, v0)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
-	// 	t.Error(err)
-	// }
-
-	r1 := make([]byte, 5)
-	if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
-		t.Error(err)
-	}
-
-	if !slices.Equal(r1, v1) {
-		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
-	}
-
-	tx := txtesting.Transaction{}
-	if err := n.LogActions(t.Context(), &tx); err != nil {
-		t.Fatal(err)
-	}
-
-	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
-		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
-	}
-
-	for i, r := range tx.Records() {
-		if a := r.Action(); a != record.ActionAppend {
-			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
+		if c := n.Count(); c != 0 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 0)
 		}
-		switch i {
-		case 0:
-			v := make([]byte, 16)
-			copy(v, v0)
-			if d, want := r.Data(), v; !slices.Equal(d, want) {
-				t.Errorf("incorrect data: %v, expected: %v", d, want)
+
+		if s := n.Space(); s != s0 {
+			t.Errorf("incorrect space: %v, expected: %v", s, s0)
+		}
+
+		b0, ok := n.Append(16)
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
+			t.Error(err)
+		}
+
+		n.CommitAppend(16)
+
+		if c := n.Count(); c != 1 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 1)
+		}
+
+		if s := n.Space(); s != s1 {
+			t.Errorf("incorrect space: %v, expected: %v", s, s1)
+		}
+
+		b1, ok := n.Append(16)
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
+			t.Error(err)
+		}
+
+		n.CommitAppend(16)
+
+		if c := n.Count(); c != 2 {
+			t.Errorf("incorrect count: %v, expected: %v", c, 2)
+		}
+
+		if s := n.Space(); s != s2 {
+			t.Errorf("incorrect space: %v, expected: %v", s, s2)
+		}
+
+		// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
+		// 	t.Error(err)
+		// }
+
+		r0 := make([]byte, 5)
+		if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
+			t.Error(err)
+		}
+
+		if !slices.Equal(r0, v0) {
+			t.Errorf("incorrect result: %v, expected: %v", r0, v0)
+		}
+
+		// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
+		// 	t.Error(err)
+		// }
+
+		r1 := make([]byte, 5)
+		if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
+			t.Error(err)
+		}
+
+		if !slices.Equal(r1, v1) {
+			t.Errorf("incorrect result: %v, expected: %v", r1, v1)
+		}
+
+		if err := n.LogActions(t.Context(), tx); err != nil {
+			t.Fatal(err)
+		}
+
+		if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
+			t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
+		}
+
+		for i, r := range tx.Records() {
+			if a := r.Action(); a != record.ActionAppend {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
 			}
-		case 1:
-			v := make([]byte, 16)
-			copy(v, v1)
-			if d, want := r.Data(), v; !slices.Equal(d, want) {
-				t.Errorf("incorrect data: %v, expected: %v", d, want)
+			switch i {
+			case 0:
+				v := make([]byte, 16)
+				copy(v, v0)
+				if d, want := r.Data(), v; !slices.Equal(d, want) {
+					t.Errorf("incorrect data: %v, expected: %v", d, want)
+				}
+			case 1:
+				v := make([]byte, 16)
+				copy(v, v1)
+				if d, want := r.Data(), v; !slices.Equal(d, want) {
+					t.Errorf("incorrect data: %v, expected: %v", d, want)
+				}
 			}
 		}
-	}
-
-	synctest.Wait()
+	})
 }
-
 func TestNode_LogActions__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-		b := createBuffer(t, s.Storage)
-		defer b.Release()
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-		n := New(b)
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
+
 		n.Clear()
 
-		tx := txtesting.Transaction{}
 		errExample := fmt.Errorf("error")
 		tx.SetError(errExample)
 
-		if err := n.LogActions(t.Context(), &tx); !errors.Is(err, errExample) {
+		if err := n.LogActions(t.Context(), tx); !errors.Is(err, errExample) {
 			t.Error("should return error")
 		}
 	})
 }
 
 func TestNode_Insert(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Insert)
-}
-
-func testNode_Insert(t *testing.T) {
 	const (
 		size int16 = 256
 		s0         = size - itemSize - testHeaderSize
@@ -222,300 +210,288 @@ func testNode_Insert(t *testing.T) {
 		s2         = s1 - itemSize - 16
 	)
 
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-	n := New(b)
-	v0 := []byte{1, 2, 3, 4, 5}
-	v1 := []byte{6, 7, 8, 9, 10}
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	if s := n.Space(); s != s0 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s0)
-	}
+		v0 := []byte{1, 2, 3, 4, 5}
+		v1 := []byte{6, 7, 8, 9, 10}
 
-	b0, ok := n.Append(16)
-	if !ok {
-		t.Fatal("should get a buffer")
-	}
-
-	if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
-		t.Fatal(err)
-	}
-
-	n.CommitInsert(16, 0)
-
-	if s := n.Space(); s != s1 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s1)
-	}
-
-	b1, ok := n.Append(16)
-	if !ok {
-		t.Fatal("should get a buffer")
-	}
-
-	if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
-		t.Fatal(err)
-	}
-
-	n.CommitInsert(16, 1)
-
-	if s := n.Space(); s != s2 {
-		t.Fatalf("incorrect space: %v, expected: %v", s, s2)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	r0 := make([]byte, 5)
-	if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
-		t.Fatal(err)
-	}
-
-	if !slices.Equal(r0, v0) {
-		t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
-	}
-
-	// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
-	// 	t.Fatal(err)
-	// }
-
-	r1 := make([]byte, 5)
-	if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
-		t.Fatal(err)
-	}
-
-	if !slices.Equal(r1, v1) {
-		t.Errorf("incorrect result: %v, expected: %v", r1, v1)
-	}
-
-	tx := txtesting.Transaction{}
-	if err := n.LogActions(t.Context(), &tx); err != nil {
-		t.Fatal(err)
-	}
-
-	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
-		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
-	}
-
-	for i, r := range tx.Records() {
-		if a := r.Action(); a != record.ActionInsert {
-			t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
+		if s := n.Space(); s != s0 {
+			t.Fatalf("incorrect space: %v, expected: %v", s, s0)
 		}
-		switch i {
-		case 0:
-			v := make([]byte, 16)
-			copy(v, v0)
-			if d, want := r.Data(), v; !slices.Equal(d, want) {
-				t.Errorf("incorrect data: %v, expected: %v", d, want)
+
+		b0, ok := n.Append(16)
+		if !ok {
+			t.Fatal("should get a buffer")
+		}
+
+		if _, err := buffer.NewFromSlice(b0).Write(v0); err != nil {
+			t.Fatal(err)
+		}
+
+		n.CommitInsert(16, 0)
+
+		if s := n.Space(); s != s1 {
+			t.Fatalf("incorrect space: %v, expected: %v", s, s1)
+		}
+
+		b1, ok := n.Append(16)
+		if !ok {
+			t.Fatal("should get a buffer")
+		}
+
+		if _, err := buffer.NewFromSlice(b1).Write(v1); err != nil {
+			t.Fatal(err)
+		}
+
+		n.CommitInsert(16, 1)
+
+		if s := n.Space(); s != s2 {
+			t.Fatalf("incorrect space: %v, expected: %v", s, s2)
+		}
+
+		// if _, err := raw.NewBufferFromSlice(b0).Seek(0, io.SeekStart); err != nil {
+		// 	t.Fatal(err)
+		// }
+
+		r0 := make([]byte, 5)
+		if _, err := buffer.NewFromSlice(b0).Read(r0); err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(r0, v0) {
+			t.Fatalf("incorrect result: %v, expected: %v", r0, v0)
+		}
+
+		// if _, err := raw.NewBufferFromSlice(b1).Seek(0, io.SeekStart); err != nil {
+		// 	t.Fatal(err)
+		// }
+
+		r1 := make([]byte, 5)
+		if _, err := buffer.NewFromSlice(b1).Read(r1); err != nil {
+			t.Fatal(err)
+		}
+
+		if !slices.Equal(r1, v1) {
+			t.Errorf("incorrect result: %v, expected: %v", r1, v1)
+		}
+
+		if err := n.LogActions(t.Context(), tx); err != nil {
+			t.Fatal(err)
+		}
+
+		if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
+			t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
+		}
+
+		for i, r := range tx.Records() {
+			if a := r.Action(); a != record.ActionInsert {
+				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
 			}
-		case 1:
-			v := make([]byte, 16)
-			copy(v, v1)
-			if d, want := r.Data(), v; !slices.Equal(d, want) {
-				t.Errorf("incorrect data: %v, expected: %v", d, want)
+			switch i {
+			case 0:
+				v := make([]byte, 16)
+				copy(v, v0)
+				if d, want := r.Data(), v; !slices.Equal(d, want) {
+					t.Errorf("incorrect data: %v, expected: %v", d, want)
+				}
+			case 1:
+				v := make([]byte, 16)
+				copy(v, v1)
+				if d, want := r.Data(), v; !slices.Equal(d, want) {
+					t.Errorf("incorrect data: %v, expected: %v", d, want)
+				}
 			}
 		}
-	}
-
-	synctest.Wait()
+	})
 }
 
 func TestNode_Space(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Space)
-}
+	storagetesting.SyncTest(t, 2, 16+itemSize+testHeaderSize, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Space(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 16+itemSize+testHeaderSize)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
+		if s := n.Space(); s != 16 {
+			t.Errorf("incorrect space: %v, expected: %v", s, 16)
+		}
 
-	if s := n.Space(); s != 16 {
-		t.Errorf("incorrect space: %v, expected: %v", s, 16)
-	}
+		if _, ok := n.Append(16); !ok {
+			t.Error("should get a buffer")
+		}
 
-	if _, ok := n.Append(16); !ok {
-		t.Error("should get a buffer")
-	}
+		n.CommitAppend(16)
 
-	n.CommitAppend(16)
+		if s := n.Space(); s != 0 {
+			t.Errorf("incorrect space: %v, expected: %v", s, 0)
+		}
 
-	if s := n.Space(); s != 0 {
-		t.Errorf("incorrect space: %v, expected: %v", s, 0)
-	}
-
-	if _, ok := n.Append(16); ok {
-		t.Error("should not get a buffer")
-	}
-
-	synctest.Wait()
+		if _, ok := n.Append(16); ok {
+			t.Error("should not get a buffer")
+		}
+	})
 }
 
 func TestNode_Child(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Child)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Child(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
-	values := [][]byte{
-		{1, 2, 3, 4, 5},
-		{6, 7, 8, 9, 10}}
-	b0, ok := n.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	n.CommitAppend(16)
-
-	if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
-		t.Error(err)
-	}
-
-	b1, ok := n.Append(16)
-	if !ok {
-		t.Error("should get a buffer")
-	}
-
-	n.CommitAppend(16)
-
-	if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
-		t.Error(err)
-	}
-
-	result := make([][]byte, 0, 2)
-	for i := range link.SlotID(2) {
-		c := n.Child(i)
-		v := make([]byte, 5)
-		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
-			t.Fatal(err)
+		values := [][]byte{
+			{1, 2, 3, 4, 5},
+			{6, 7, 8, 9, 10}}
+		b0, ok := n.Append(16)
+		if !ok {
+			t.Error("should get a buffer")
 		}
 
-		result = append(result, v)
-	}
+		n.CommitAppend(16)
 
-	if !slices.EqualFunc(result, values, slices.Equal) {
-		t.Errorf("incorrect result: %v, expected: %v", result, values)
-	}
+		if _, err := buffer.NewFromSlice(b0).Write(values[0]); err != nil {
+			t.Error(err)
+		}
 
-	synctest.Wait()
+		b1, ok := n.Append(16)
+		if !ok {
+			t.Error("should get a buffer")
+		}
+
+		n.CommitAppend(16)
+
+		if _, err := buffer.NewFromSlice(b1).Write(values[1]); err != nil {
+			t.Error(err)
+		}
+
+		result := make([][]byte, 0, 2)
+		for i := range link.SlotID(2) {
+			c := n.Child(i)
+			v := make([]byte, 5)
+			if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, v)
+		}
+
+		if !slices.EqualFunc(result, values, slices.Equal) {
+			t.Errorf("incorrect result: %v, expected: %v", result, values)
+		}
+	})
 }
 
 func TestNode_Children(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Children)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Children(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
-	values := [][]byte{
-		{1, 2},
-		{3, 4},
-		{5, 6},
-		{7, 8},
-		{9, 10}}
+		values := [][]byte{
+			{1, 2},
+			{3, 4},
+			{5, 6},
+			{7, 8},
+			{9, 10}}
 
-	for _, v := range values {
-		b, ok := n.Append(itemSize * int16(len(v)))
-		if !ok {
-			t.Error("should get a buffer")
+		for _, v := range values {
+			b, ok := n.Append(itemSize * int16(len(v)))
+			if !ok {
+				t.Error("should get a buffer")
+			}
+
+			n.CommitAppend(itemSize * int16(len(v)))
+
+			if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
+				t.Error(err)
+			}
 		}
 
-		n.CommitAppend(itemSize * int16(len(v)))
+		result := make([][]byte, 0, len(values))
+		for c := range n.Children() {
+			v := make([]byte, 2)
+			if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+				t.Fatal(err)
+			}
 
-		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
-			t.Error(err)
-		}
-	}
-
-	result := make([][]byte, 0, len(values))
-	for c := range n.Children() {
-		v := make([]byte, 2)
-		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
-			t.Fatal(err)
+			result = append(result, v)
 		}
 
-		result = append(result, v)
-	}
+		if !slices.EqualFunc(result, values, slices.Equal) {
+			t.Errorf("incorrect result: %v, expected: %v", result, values)
+		}
 
-	if !slices.EqualFunc(result, values, slices.Equal) {
-		t.Errorf("incorrect result: %v, expected: %v", result, values)
-	}
-
-	for range n.Children() {
-		break
-	}
-
-	synctest.Wait()
+		for range n.Children() {
+			break
+		}
+	})
 }
 
 func TestNode_ChildrenRange(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_ChildrenRange)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_ChildrenRange(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
-	values := [][]byte{
-		{1, 2},
-		{3, 4},
-		{5, 6},
-		{7, 8},
-		{9, 10}}
+		values := [][]byte{
+			{1, 2},
+			{3, 4},
+			{5, 6},
+			{7, 8},
+			{9, 10}}
 
-	for _, v := range values {
-		b0, ok := n.Append(itemSize * int16(len(v)))
-		if !ok {
-			t.Error("should get a buffer")
+		for _, v := range values {
+			b0, ok := n.Append(itemSize * int16(len(v)))
+			if !ok {
+				t.Error("should get a buffer")
+			}
+
+			n.CommitAppend(itemSize * int16(len(v)))
+
+			if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
+				t.Error(err)
+			}
 		}
 
-		n.CommitAppend(itemSize * int16(len(v)))
+		result := make([][]byte, 0, len(values))
+		for c := range n.ChildrenRange(1, 4) {
+			v := make([]byte, 2)
+			if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+				t.Fatal(err)
+			}
 
-		if _, err := buffer.NewFromSlice(b0).Write(v); err != nil {
-			t.Error(err)
-		}
-	}
-
-	result := make([][]byte, 0, len(values))
-	for c := range n.ChildrenRange(1, 4) {
-		v := make([]byte, 2)
-		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
-			t.Fatal(err)
+			result = append(result, v)
 		}
 
-		result = append(result, v)
-	}
+		want := [][]byte{
+			{3, 4},
+			{5, 6},
+			{7, 8}}
 
-	want := [][]byte{
-		{3, 4},
-		{5, 6},
-		{7, 8}}
+		if !slices.EqualFunc(result, want, slices.Equal) {
+			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		}
 
-	if !slices.EqualFunc(result, want, slices.Equal) {
-		t.Errorf("incorrect result: %v, expected: %v", result, want)
-	}
-
-	for range n.ChildrenRange(1, 4) {
-		break
-	}
-
-	synctest.Wait()
+		for range n.ChildrenRange(1, 4) {
+			break
+		}
+	})
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
@@ -528,92 +504,89 @@ func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
 }
 
 func TestNode_Clear(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testNode_Clear)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testNode_Clear(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
 
-	n := New(b)
-	values := [][]byte{
-		{1, 2},
-		{3, 4},
-		{5, 6},
-		{7, 8},
-		{9, 10}}
+		values := [][]byte{
+			{1, 2},
+			{3, 4},
+			{5, 6},
+			{7, 8},
+			{9, 10}}
 
-	for _, v := range values {
-		b, ok := n.Append(int16(len(v)))
-		if !ok {
-			t.Error("should get a buffer")
+		for _, v := range values {
+			b, ok := n.Append(int16(len(v)))
+			if !ok {
+				t.Error("should get a buffer")
+			}
+
+			if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
+				t.Error(err)
+			}
+
+			n.CommitAppend(int16(len(v)))
 		}
 
-		if _, err := buffer.NewFromSlice(b).Write(v); err != nil {
-			t.Error(err)
+		n.Clear()
+
+		result := make([][]byte, 0, len(values))
+		for c := range n.Children() {
+			v := make([]byte, 2)
+			if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+				t.Fatal(err)
+			}
+
+			result = append(result, v)
 		}
 
-		n.CommitAppend(int16(len(v)))
-	}
+		if l := len(result); l != 0 {
+			t.Errorf("incorrect length: %v, expected: %v", l, 0)
+		}
 
-	n.Clear()
-
-	result := make([][]byte, 0, len(values))
-	for c := range n.Children() {
-		v := make([]byte, 2)
-		if _, err := buffer.NewFromSlice(c).Read(v); err != nil {
+		if err := n.LogActions(t.Context(), tx); err != nil {
 			t.Fatal(err)
 		}
 
-		result = append(result, v)
-	}
+		if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
+			t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
+		}
 
-	if l := len(result); l != 0 {
-		t.Errorf("incorrect length: %v, expected: %v", l, 0)
-	}
-
-	tx := txtesting.Transaction{}
-	if err := n.LogActions(t.Context(), &tx); err != nil {
-		t.Fatal(err)
-	}
-
-	if lsn, want := n.LogSequenceNumber(), tx.LogSequenceNumber(); lsn != want {
-		t.Errorf("incorrect log sequence number: %v, expected: %v", lsn, want)
-	}
-
-	for i, r := range tx.Records() {
-		if i < len(values) {
-			if a := r.Action(); a != record.ActionAppend {
-				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
-			}
-			if d, want := r.Data(), values[i]; !slices.Equal(d, want) {
-				t.Errorf("incorrect data: %v, expected: %v", d, want)
-			}
-		} else {
-			if a := r.Action(); a != record.ActionClear {
-				t.Errorf("incorrect action: %v, expected: %v", a, record.ActionClear)
+		for i, r := range tx.Records() {
+			if i < len(values) {
+				if a := r.Action(); a != record.ActionAppend {
+					t.Errorf("incorrect action: %v, expected: %v", a, record.ActionAppend)
+				}
+				if d, want := r.Data(), values[i]; !slices.Equal(d, want) {
+					t.Errorf("incorrect data: %v, expected: %v", d, want)
+				}
+			} else {
+				if a := r.Action(); a != record.ActionClear {
+					t.Errorf("incorrect action: %v, expected: %v", a, record.ActionClear)
+				}
 			}
 		}
-	}
-
-	n.Release()
-
-	synctest.Wait()
+	})
 }
 
 func TestPage__HeaderActions(t *testing.T) {
 	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
-		b := createBuffer(t, s.Storage)
-		defer b.Release()
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-		n := New(b)
+		b := createBuffer(t, s.Storage)
+		n := New(b, tx)
+		defer n.Release()
+
 		n.SetLevel(1)
 		n.SetHighID(3)
 		n.CommitAppend(2)
 
-		tx := txtesting.Transaction{}
-		if err := n.LogActions(t.Context(), &tx); err != nil {
+		if err := n.LogActions(t.Context(), tx); err != nil {
 			t.Fatal(err)
 		}
 

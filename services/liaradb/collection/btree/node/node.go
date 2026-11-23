@@ -16,6 +16,7 @@ type Node struct {
 	header
 	page    *page.Page
 	buffer  *storage.Buffer
+	l       log.Log
 	actions []action
 }
 
@@ -23,7 +24,7 @@ type action interface {
 	Log(context.Context, log.Log) (logpage.LogSequenceNumber, error)
 }
 
-func New(b *storage.Buffer) Node {
+func New(b *storage.Buffer, l log.Log) Node {
 	page := page.NewFromSlice(b.Raw(), HeaderSize, 0)
 	header, _ := newHeader(page.Header())
 
@@ -31,6 +32,7 @@ func New(b *storage.Buffer) Node {
 		header: header,
 		page:   page,
 		buffer: b,
+		l:      l,
 	}
 }
 
@@ -42,8 +44,9 @@ func (n *Node) Clear() {
 	n.page.Clear()
 }
 
+func (n *Node) Release() { n.l.Unpin(n.buffer) }
+
 // TODO: Test this
-func (n *Node) Release()  { n.buffer.Release() }
 func (n *Node) Latch()    { n.buffer.Latch() }
 func (n *Node) Unlatch()  { n.buffer.Unlatch() }
 func (n *Node) RLatch()   { n.buffer.RLatch() }

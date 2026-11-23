@@ -3,399 +3,388 @@ package leafnode
 import (
 	"slices"
 	"testing"
-	"testing/synctest"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
+	"github.com/liaradb/liaradb/util/testing/txtesting"
 )
 
 func TestLeafNode_Fill(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Fill)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_Fill(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	p := node.New(b)
-	ln := New(p)
+		ln := New(n)
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("abcde")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("fghij")),
-			link.NewRecordID(3, 4)),
-	}
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("abcde")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("fghij")),
+				link.NewRecordID(3, 4)),
+		}
 
-	ln.Fill(1, 2, func(yield func(key.Key, link.RecordID) bool) {
-		for _, le := range data {
-			if !yield(le.Key(), le.RecordID()) {
-				return
+		ln.Fill(1, 2, func(yield func(key.Key, link.RecordID) bool) {
+			for _, le := range data {
+				if !yield(le.Key(), le.RecordID()) {
+					return
+				}
 			}
+		})
+
+		result := make([]leafEntry, 0, len(data))
+		for key, rid := range ln.Children() {
+			result = append(result, newLeafEntry(key, rid))
+		}
+
+		if !slices.Equal(result, data) {
+			t.Errorf("incorrect result: %v, expected: %v", result, data)
+		}
+
+		if l := ln.LeftID(); l != 1 {
+			t.Errorf("incorrect left id: %v, expected: %v", l, 1)
+		}
+
+		if r := ln.RightID(); r != 2 {
+			t.Errorf("incorrect left id: %v, expected: %v", r, 2)
 		}
 	})
-
-	result := make([]leafEntry, 0, len(data))
-	for key, rid := range ln.Children() {
-		result = append(result, newLeafEntry(key, rid))
-	}
-
-	if !slices.Equal(result, data) {
-		t.Errorf("incorrect result: %v, expected: %v", result, data)
-	}
-
-	if l := ln.LeftID(); l != 1 {
-		t.Errorf("incorrect left id: %v, expected: %v", l, 1)
-	}
-
-	if r := ln.RightID(); r != 2 {
-		t.Errorf("incorrect left id: %v, expected: %v", r, 2)
-	}
 }
 
 func TestLeafNode_Replace(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Replace)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_Replace(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	p := node.New(b)
-	ln := New(p)
+		ln := New(n)
 
-	ln.SetLeftID(1)
+		ln.SetLeftID(1)
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("abcde")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("fghij")),
-			link.NewRecordID(3, 4)),
-	}
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("abcde")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("fghij")),
+				link.NewRecordID(3, 4)),
+		}
 
-	ln.Replace(2, func(yield func(key.Key, link.RecordID) bool) {
-		for _, le := range data {
-			if !yield(le.Key(), le.RecordID()) {
-				return
+		ln.Replace(2, func(yield func(key.Key, link.RecordID) bool) {
+			for _, le := range data {
+				if !yield(le.Key(), le.RecordID()) {
+					return
+				}
 			}
+		})
+
+		result := make([]leafEntry, 0, len(data))
+		for key, rid := range ln.Children() {
+			result = append(result, newLeafEntry(key, rid))
+		}
+
+		if !slices.Equal(result, data) {
+			t.Errorf("incorrect result: %v, expected: %v", result, data)
+		}
+
+		if l := ln.LeftID(); l != 1 {
+			t.Errorf("incorrect left id: %v, expected: %v", l, 1)
+		}
+
+		if r := ln.RightID(); r != 2 {
+			t.Errorf("incorrect left id: %v, expected: %v", r, 2)
 		}
 	})
-
-	result := make([]leafEntry, 0, len(data))
-	for key, rid := range ln.Children() {
-		result = append(result, newLeafEntry(key, rid))
-	}
-
-	if !slices.Equal(result, data) {
-		t.Errorf("incorrect result: %v, expected: %v", result, data)
-	}
-
-	if l := ln.LeftID(); l != 1 {
-		t.Errorf("incorrect left id: %v, expected: %v", l, 1)
-	}
-
-	if r := ln.RightID(); r != 2 {
-		t.Errorf("incorrect left id: %v, expected: %v", r, 2)
-	}
 }
 
 func TestLeafNode_Child(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Child)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_Child(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	p := node.New(b)
-	ln := New(p)
+		ln := New(n)
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("abcde")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("fghij")),
-			link.NewRecordID(3, 4)),
-	}
-
-	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
-		t.Error("should append")
-	}
-
-	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
-		t.Error("should append")
-	}
-
-	result := make([]leafEntry, 0, len(data))
-	for i := range link.SlotID(len(data)) {
-		c := ln.Child(i)
-		result = append(result, c)
-	}
-
-	if !slices.Equal(result, data) {
-		t.Errorf("incorrect result: %v, expected: %v", result, data)
-	}
-}
-
-func TestLeafNode_Children(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Children)
-}
-
-func testLeafNode_Children(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
-
-	p := node.New(b)
-	ln := New(p)
-
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("abcde")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("fghij")),
-			link.NewRecordID(3, 4)),
-	}
-
-	if ok := ln.Append(data[0].key, data[0].recordID); !ok {
-		t.Error("should append")
-	}
-
-	if ok := ln.Append(data[1].key, data[1].recordID); !ok {
-		t.Error("should append")
-	}
-
-	result := make([]leafEntry, 0, len(data))
-	for key, rid := range ln.Children() {
-		result = append(result, newLeafEntry(key, rid))
-	}
-
-	if !slices.Equal(result, data) {
-		t.Errorf("incorrect result: %v, expected: %v", result, data)
-	}
-}
-
-func TestLeafNode_Insert(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Insert)
-}
-
-func testLeafNode_Insert(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
-
-	bp := node.New(b)
-	ln := New(bp)
-
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("a")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("b")),
-			link.NewRecordID(3, 4)),
-		newLeafEntry(
-			key.NewKey([]byte("c")),
-			link.NewRecordID(5, 6)),
-	}
-
-	// Insert in mixed order
-	order := []int{0, 2, 1}
-	for _, i := range order {
-		e := data[i]
-		if _, _, ok := ln.Insert(e.key, e.recordID); !ok {
-			t.Error("should insert")
-		}
-	}
-
-	// Verify items are in order
-	result := make([]leafEntry, 0, len(data))
-	for key, rid := range ln.Children() {
-		result = append(result, newLeafEntry(key, rid))
-	}
-
-	if !slices.Equal(result, data) {
-		t.Errorf("incorrect result: %v, expected: %v", result, data)
-	}
-
-	// Verify record ids
-	{
-		want := make([]link.RecordID, 0, len(data))
-		for _, e := range data {
-			want = append(want, e.RecordID())
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("abcde")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("fghij")),
+				link.NewRecordID(3, 4)),
 		}
 
-		result := make([]link.RecordID, 0, len(want))
-		for _, c := range ln.RecordIDs() {
+		if ok := ln.Append(data[0].key, data[0].recordID); !ok {
+			t.Error("should append")
+		}
+
+		if ok := ln.Append(data[1].key, data[1].recordID); !ok {
+			t.Error("should append")
+		}
+
+		result := make([]leafEntry, 0, len(data))
+		for i := range link.SlotID(len(data)) {
+			c := ln.Child(i)
 			result = append(result, c)
 		}
 
-		if !slices.Equal(result, want) {
-			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		if !slices.Equal(result, data) {
+			t.Errorf("incorrect result: %v, expected: %v", result, data)
 		}
-	}
+	})
+}
 
-	// Verify items are all searchable
-	for _, e := range data {
-		if rid, ok := ln.Search(e.key); !ok {
-			t.Error("should find record id")
-		} else if rid != e.recordID {
-			t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
-		}
-	}
+func TestLeafNode_Children(t *testing.T) {
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-	// Verify search range
-	for i, e := range data {
-		want := make([]link.RecordID, 0, len(data[i:]))
-		for _, e := range data[i:] {
-			want = append(want, e.RecordID())
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
+
+		ln := New(n)
+
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("abcde")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("fghij")),
+				link.NewRecordID(3, 4)),
 		}
 
-		result := make([]link.RecordID, 0, len(want))
-		for _, rid := range ln.SearchRange(e.Key()) {
-			result = append(result, rid)
+		if ok := ln.Append(data[0].key, data[0].recordID); !ok {
+			t.Error("should append")
 		}
 
-		if !slices.Equal(result, want) {
-			t.Errorf("incorrect result: %v, expected: %v", result, want)
+		if ok := ln.Append(data[1].key, data[1].recordID); !ok {
+			t.Error("should append")
 		}
-	}
+
+		result := make([]leafEntry, 0, len(data))
+		for key, rid := range ln.Children() {
+			result = append(result, newLeafEntry(key, rid))
+		}
+
+		if !slices.Equal(result, data) {
+			t.Errorf("incorrect result: %v, expected: %v", result, data)
+		}
+	})
+}
+
+func TestLeafNode_Insert(t *testing.T) {
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
+
+		ln := New(n)
+
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("a")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("b")),
+				link.NewRecordID(3, 4)),
+			newLeafEntry(
+				key.NewKey([]byte("c")),
+				link.NewRecordID(5, 6)),
+		}
+
+		// Insert in mixed order
+		order := []int{0, 2, 1}
+		for _, i := range order {
+			e := data[i]
+			if _, _, ok := ln.Insert(e.key, e.recordID); !ok {
+				t.Error("should insert")
+			}
+		}
+
+		// Verify items are in order
+		result := make([]leafEntry, 0, len(data))
+		for key, rid := range ln.Children() {
+			result = append(result, newLeafEntry(key, rid))
+		}
+
+		if !slices.Equal(result, data) {
+			t.Errorf("incorrect result: %v, expected: %v", result, data)
+		}
+
+		// Verify record ids
+		{
+			want := make([]link.RecordID, 0, len(data))
+			for _, e := range data {
+				want = append(want, e.RecordID())
+			}
+
+			result := make([]link.RecordID, 0, len(want))
+			for _, c := range ln.RecordIDs() {
+				result = append(result, c)
+			}
+
+			if !slices.Equal(result, want) {
+				t.Errorf("incorrect result: %v, expected: %v", result, want)
+			}
+		}
+
+		// Verify items are all searchable
+		for _, e := range data {
+			if rid, ok := ln.Search(e.key); !ok {
+				t.Error("should find record id")
+			} else if rid != e.recordID {
+				t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+			}
+		}
+
+		// Verify search range
+		for i, e := range data {
+			want := make([]link.RecordID, 0, len(data[i:]))
+			for _, e := range data[i:] {
+				want = append(want, e.RecordID())
+			}
+
+			result := make([]link.RecordID, 0, len(want))
+			for _, rid := range ln.SearchRange(e.Key()) {
+				result = append(result, rid)
+			}
+
+			if !slices.Equal(result, want) {
+				t.Errorf("incorrect result: %v, expected: %v", result, want)
+			}
+		}
+	})
 }
 
 func TestLeafNode_Insert__Split(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_Insert__Split)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_Insert__Split(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	bp := node.New(b)
-	ln := New(bp)
+		ln := New(n)
 
-	data := []leafEntry{
-		newLeafEntry(
-			key.NewKey([]byte("a")),
-			link.NewRecordID(1, 2)),
-		newLeafEntry(
-			key.NewKey([]byte("b")),
-			link.NewRecordID(3, 4)),
-		newLeafEntry(
-			key.NewKey([]byte("c")),
-			link.NewRecordID(5, 6)),
-	}
-
-	// Insert in mixed order
-	order := []int{0, 2, 1}
-	for _, i := range order {
-		e := data[i]
-		if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
-			t.Errorf("should insert:\n%v\n%v", a, b)
+		data := []leafEntry{
+			newLeafEntry(
+				key.NewKey([]byte("a")),
+				link.NewRecordID(1, 2)),
+			newLeafEntry(
+				key.NewKey([]byte("b")),
+				link.NewRecordID(3, 4)),
+			newLeafEntry(
+				key.NewKey([]byte("c")),
+				link.NewRecordID(5, 6)),
 		}
-	}
 
-	// // Verify items are in order
-	// result := make([]LeafEntry, 0, len(data))
-	// for c := range ln.Children() {
-	// 	result = append(result, c)
-	// }
+		// Insert in mixed order
+		order := []int{0, 2, 1}
+		for _, i := range order {
+			e := data[i]
+			if a, b, ok := ln.Insert(e.key, e.recordID); !ok {
+				t.Errorf("should insert:\n%v\n%v", a, b)
+			}
+		}
 
-	// if !slices.Equal(result, data) {
-	// 	t.Errorf("incorrect result: %v, expected: %v", result, data)
-	// }
+		// // Verify items are in order
+		// result := make([]LeafEntry, 0, len(data))
+		// for c := range ln.Children() {
+		// 	result = append(result, c)
+		// }
 
-	// // Verify items are all searchable
-	// for _, e := range data {
-	// 	if rid, ok := ln.Search(e.key); !ok {
-	// 		t.Error("should find record id")
-	// 	} else if rid != e.recordID {
-	// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
-	// 	}
-	// }
+		// if !slices.Equal(result, data) {
+		// 	t.Errorf("incorrect result: %v, expected: %v", result, data)
+		// }
 
-	b.Release()
-
-	synctest.Wait()
+		// // Verify items are all searchable
+		// for _, e := range data {
+		// 	if rid, ok := ln.Search(e.key); !ok {
+		// 		t.Error("should find record id")
+		// 	} else if rid != e.recordID {
+		// 		t.Errorf("incorrect record id: %v, expected: %v", rid, e.recordID)
+		// 	}
+		// }
+	})
 }
 
 func TestLeafNode_SetLeftID(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_SetLeftID)
-}
+	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_SetLeftID(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	bp := node.New(b)
-	ln := New(bp)
+		ln := New(n)
 
-	if fp := ln.LeftID(); fp != 0 {
-		t.Errorf("incorrect left id: %v, expected: %v", fp, 0)
-	}
+		if fp := ln.LeftID(); fp != 0 {
+			t.Errorf("incorrect left id: %v, expected: %v", fp, 0)
+		}
 
-	if b.Dirty() {
-		t.Error("should not be dirty")
-	}
+		if b.Dirty() {
+			t.Error("should not be dirty")
+		}
 
-	ln.SetLeftID(link.BlockID(1))
-	if fp := ln.LeftID(); fp != 1 {
-		t.Errorf("incorrect left id: %v, expected: %v", fp, 1)
-	}
+		ln.SetLeftID(link.BlockID(1))
+		if fp := ln.LeftID(); fp != 1 {
+			t.Errorf("incorrect left id: %v, expected: %v", fp, 1)
+		}
 
-	if !b.Dirty() {
-		t.Error("should be dirty")
-	}
+		if !b.Dirty() {
+			t.Error("should be dirty")
+		}
+	})
 }
 
 func TestLeafNode_SetRightID(t *testing.T) {
-	t.Parallel()
-	synctest.Test(t, testLeafNode_SetRightID)
-}
+	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
 
-func testLeafNode_SetRightID(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 2, 256)
-	b := createBuffer(t, s)
-	defer b.Release()
+		b := createBuffer(t, s.Storage)
+		n := node.New(b, tx)
+		defer n.Release()
 
-	bp := node.New(b)
-	ln := New(bp)
+		ln := New(n)
 
-	if fp := ln.RightID(); fp != 0 {
-		t.Errorf("incorrect right id: %v, expected: %v", fp, 0)
-	}
+		if fp := ln.RightID(); fp != 0 {
+			t.Errorf("incorrect right id: %v, expected: %v", fp, 0)
+		}
 
-	if b.Dirty() {
-		t.Error("should not be dirty")
-	}
+		if b.Dirty() {
+			t.Error("should not be dirty")
+		}
 
-	ln.SetRightID(link.BlockID(1))
-	if fp := ln.RightID(); fp != 1 {
-		t.Errorf("incorrect right id: %v, expected: %v", fp, 1)
-	}
+		ln.SetRightID(link.BlockID(1))
+		if fp := ln.RightID(); fp != 1 {
+			t.Errorf("incorrect right id: %v, expected: %v", fp, 1)
+		}
 
-	if !b.Dirty() {
-		t.Error("should be dirty")
-	}
+		if !b.Dirty() {
+			t.Error("should be dirty")
+		}
+	})
 }
 
 func createBuffer(t *testing.T, s *storage.Storage) *storage.Buffer {
