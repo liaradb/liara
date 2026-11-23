@@ -18,7 +18,7 @@ import (
 )
 
 func TestTenant(t *testing.T) {
-	storagetesting.SyncTest(t, 5, 256, func(t *testing.T, s storagetesting.Storage) {
+	storagetesting.SyncTest(t, 20, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		tn := New(indexed.New(heap.New(), btree.NewCursor(s.Storage)))
 
@@ -39,7 +39,7 @@ func TestTenant(t *testing.T) {
 }
 
 func TestTenant__LargeBuffer(t *testing.T) {
-	storagetesting.SyncTest(t, 3, 1024, testTenant__LargeBuffer)
+	storagetesting.SyncTest(t, 20, 1024, testTenant__LargeBuffer)
 }
 
 func testTenant__LargeBuffer(t *testing.T, s storagetesting.Storage) {

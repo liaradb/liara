@@ -189,7 +189,7 @@ func createManager(t *testing.T, pageSize int16, maxRecordSize int64) (*transact
 
 	fsys, dir := createFiles()
 	l := createLog(t, fsys, dir, pageSize, maxRecordSize)
-	s := storagetesting.CreateStorageWithFileSystem(t, 32, 1024, fsys, dir)
+	s := storagetesting.CreateStorageWithFileSystem(t, 256, 1024, fsys, dir)
 
 	m := transaction.NewManager(l, s, 1)
 	m.Run(t.Context(), func(err error) {})

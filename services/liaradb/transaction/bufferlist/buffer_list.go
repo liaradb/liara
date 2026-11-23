@@ -30,6 +30,14 @@ func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.
 		return nil, err
 	}
 
+	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
+		bc.count++
+	} else {
+		bl.buffers[fbid] = &bufferCount{
+			buffer: b,
+			count:  1,
+		}
+	}
 	return b, nil
 }
 
@@ -39,6 +47,14 @@ func (bl *BufferList) PinCurrent(ctx context.Context, fn link.FileName) (*storag
 		return nil, err
 	}
 
+	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
+		bc.count++
+	} else {
+		bl.buffers[b.FileBlockID()] = &bufferCount{
+			buffer: b,
+			count:  1,
+		}
+	}
 	return b, nil
 }
 
@@ -48,12 +64,24 @@ func (bl *BufferList) PinNext(ctx context.Context, fn link.FileName) (*storage.B
 		return nil, err
 	}
 
+	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
+		bc.count++
+	} else {
+		bl.buffers[b.FileBlockID()] = &bufferCount{
+			buffer: b,
+			count:  1,
+		}
+	}
 	return b, nil
 }
 
 func (bl *BufferList) Release() {
+	for _, bc := range bl.buffers {
+		for range bc.count {
+			bc.buffer.Release()
+		}
+	}
 }
 
 func (bl *BufferList) ReleaseBuffer(b *storage.Buffer) {
-	b.Release()
 }

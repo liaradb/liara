@@ -21,9 +21,8 @@ func TestBufferPage(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		defer b.Release()
-
 		bp := New(b, tx)
+		defer bp.Release()
 
 		if i := bp.FileBlockID(); i != fbid {
 			t.Errorf("incorrect file block id: %v, expected: %v", i, fbid)
@@ -93,9 +92,8 @@ func TestBufferPage_CommitUpdate(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		defer b0.Release()
-
 		bp0 := New(b0, tx)
+		defer bp0.Release()
 
 		if b0.Dirty() {
 			t.Error("should not be dirty")
@@ -120,18 +118,16 @@ func TestBufferPage_Shadow(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		defer b0.Release()
-
 		bp0 := New(b0, tx)
+		defer bp0.Release()
 
 		b1, err := tx.Pin(t.Context(), fbid)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		defer b1.Release()
-
 		bp1 := New(b1, tx)
+		defer bp1.Release()
 
 		{
 			bp0.SetLogSequenceNumber(logpage.NewLogSequenceNumber(1))
