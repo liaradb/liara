@@ -18,7 +18,7 @@ import (
 )
 
 func TestEventLog_Append(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 1024, testEventLog_Append)
+	storagetesting.SyncTest(t, 20, 1024, testEventLog_Append)
 }
 
 func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
@@ -66,7 +66,7 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 
 func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
 	t.Skip()
-	storagetesting.SyncTest(t, 2, 1024, testEventLog_EventsAfterGlobalVersion)
+	storagetesting.SyncTest(t, 20, 1024, testEventLog_EventsAfterGlobalVersion)
 }
 
 func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storage) {
@@ -113,7 +113,7 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 }
 
 func TestEventLog_Find(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 1024, testEventLog_Find)
+	storagetesting.SyncTest(t, 20, 1024, testEventLog_Find)
 }
 
 func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
@@ -152,7 +152,7 @@ func testEventLog_Find(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestEventLog_GetAggregate(t *testing.T) {
-	storagetesting.SyncTest(t, 2, 1024, testEventLog_GetAggregate)
+	storagetesting.SyncTest(t, 20, 1024, testEventLog_GetAggregate)
 }
 
 func testEventLog_GetAggregate(t *testing.T, s storagetesting.Storage) {

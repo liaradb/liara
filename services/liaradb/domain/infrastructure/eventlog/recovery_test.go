@@ -34,7 +34,7 @@ func testRecovery(t *testing.T) {
 	pid := value.NewPartitionID(0)
 	tn := tf.EventLog(pid)
 
-	var max int = 2
+	var max int = 20
 	var bs int16 = 1024
 
 	records := []*entity.Event{

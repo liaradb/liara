@@ -85,7 +85,7 @@ func TestCursor_Insert__RootSplit(t *testing.T) {
 }
 
 func testCursor_Insert__RootSplit(t *testing.T) {
-	s := storagetesting.CreateStorage(t, 8, 80)
+	s := storagetesting.CreateStorage(t, 40, 80)
 	ctx := t.Context()
 
 	tx := txtesting.New(s)
@@ -113,6 +113,8 @@ func testCursor_Insert__RootSplit(t *testing.T) {
 	} else if l <= 2 {
 		t.Errorf("incorrect level: %v, expected: %v", "> 2", l)
 	}
+
+	synctest.Wait()
 }
 
 func TestCursor_Insert__Reverse(t *testing.T) {
