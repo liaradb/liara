@@ -9,35 +9,28 @@ import (
 
 type BufferList struct {
 	storage *storage.Storage
-	buffers map[link.FileBlockID]*bufferCount
-}
-
-type bufferCount struct {
-	buffer *storage.Buffer
-	count  int
+	buffers map[link.FileBlockID]*storage.Buffer
 }
 
 func NewBufferList(s *storage.Storage) *BufferList {
 	return &BufferList{
 		storage: s,
-		buffers: make(map[link.FileBlockID]*bufferCount),
+		buffers: make(map[link.FileBlockID]*storage.Buffer),
 	}
 }
 
 func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+	if b, ok := bl.buffers[fbid]; ok {
+		return b, nil
+	}
+
 	b, err := bl.storage.Request(ctx, fbid)
 	if err != nil {
 		return nil, err
 	}
 
-	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
-		bc.count++
-	} else {
-		bl.buffers[fbid] = &bufferCount{
-			buffer: b,
-			count:  1,
-		}
-	}
+	bl.buffers[fbid] = b
+
 	return b, nil
 }
 
@@ -47,14 +40,12 @@ func (bl *BufferList) PinCurrent(ctx context.Context, fn link.FileName) (*storag
 		return nil, err
 	}
 
-	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
-		bc.count++
-	} else {
-		bl.buffers[b.FileBlockID()] = &bufferCount{
-			buffer: b,
-			count:  1,
-		}
+	if _, ok := bl.buffers[b.FileBlockID()]; ok {
+		b.Release()
+		return b, nil
 	}
+
+	bl.buffers[b.FileBlockID()] = b
 	return b, nil
 }
 
@@ -64,24 +55,24 @@ func (bl *BufferList) PinNext(ctx context.Context, fn link.FileName) (*storage.B
 		return nil, err
 	}
 
-	if bc, ok := bl.buffers[b.FileBlockID()]; ok {
-		bc.count++
-	} else {
-		bl.buffers[b.FileBlockID()] = &bufferCount{
-			buffer: b,
-			count:  1,
-		}
+	if _, ok := bl.buffers[b.FileBlockID()]; ok {
+		b.Release()
+		return b, nil
 	}
+
+	bl.buffers[b.FileBlockID()] = b
 	return b, nil
 }
 
 func (bl *BufferList) Release() {
-	for _, bc := range bl.buffers {
-		for range bc.count {
-			bc.buffer.Release()
-		}
+	for _, b := range bl.buffers {
+		b.Release()
 	}
 }
 
 func (bl *BufferList) ReleaseBuffer(b *storage.Buffer) {
+	if !b.Dirty() {
+		b.Release()
+		delete(bl.buffers, b.FileBlockID())
+	}
 }
