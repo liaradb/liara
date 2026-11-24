@@ -78,7 +78,6 @@ func (t *Transaction) RunResult[R any](
 		return f()
 	})
 	if err != nil {
-		var r R
 		return r, errTransactionFailed(t.id, err)
 	}
 
@@ -99,12 +98,10 @@ func (t *Transaction) run[R any](
 
 	r, err := f()
 	if err != nil {
-		var r R
 		return r, errors.Join(err, t.rollback(ctx))
 	}
 
 	if t.forceRollback {
-		var r R
 		return r, t.rollback(ctx)
 	}
 
