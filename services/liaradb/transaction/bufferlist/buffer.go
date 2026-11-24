@@ -30,7 +30,7 @@ func (b *Buffer) Pins() int   { return b.b.Pins() }
 func (b *Buffer) Reads() uint { return b.b.Reads() }
 
 func (b *Buffer) Clone(a *Buffer) { b.b.Clone(a.b) }
-func (b *Buffer) Release()        { b.bl.ReleaseBuffer(b) }
+func (b *Buffer) Release()        { b.bl.releaseBuffer(b) }
 
 func (b *Buffer) Dirty() bool {
 	return b.b.Dirty()

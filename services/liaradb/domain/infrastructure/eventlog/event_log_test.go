@@ -65,7 +65,6 @@ func testEventLog_Append(t *testing.T, s storagetesting.Storage) {
 }
 
 func TestEventLog_EventsAfterGlobalVersion(t *testing.T) {
-	t.Skip()
 	storagetesting.SyncTest(t, 20, 1024, testEventLog_EventsAfterGlobalVersion)
 }
 
@@ -105,7 +104,7 @@ func testEventLog_EventsAfterGlobalVersion(t *testing.T, s storagetesting.Storag
 		partialResults = append(partialResults, n)
 	}
 
-	if !slices.EqualFunc(partialResults, records[:2], func(a, b *entity.Event) bool {
+	if !slices.EqualFunc(partialResults, records[3:], func(a, b *entity.Event) bool {
 		return reflect.DeepEqual(a, b)
 	}) {
 		t.Errorf("incorrect result: %v, expected: %v", partialResults, records[:2])

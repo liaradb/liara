@@ -6,7 +6,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-	"testing/synctest"
 	"uuid"
 
 	"github.com/liaradb/liaradb/collection/btree/key"
@@ -67,37 +66,8 @@ func TestIndexedCollection_InsertAndGet(t *testing.T) {
 	})
 }
 
-func TestIndexedCollection(t *testing.T) {
+func TestIndexedCollection_Insert(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 256, func(t *testing.T, s storagetesting.Storage) {
-		ctx := t.Context()
-		ic := New(heap.New())
-		tn := &testTableName{}
-
-		data := createData()
-		slices.Reverse(data)
-
-		tx := txtesting.New(s.Storage)
-		// defer tx.Release()
-
-		for _, i := range data {
-			k := key.NewKey(i.value.ID().Bytes())
-			if _, err := ic.Insert(ctx, tx, tn, k, i.value); err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		// testGet(ctx, t, tx, ic, tn, data)
-		// testList(ctx, t, tx, data, ic, tn)
-
-		tx.Release()
-
-		synctest.Wait()
-	})
-}
-
-func TestIndexedCollection__LargeBuffer(t *testing.T) {
-	t.Skip()
-	storagetesting.SyncTest(t, 2, 256, func(t *testing.T, s storagetesting.Storage) {
 		ctx := t.Context()
 		ic := New(heap.New())
 		tn := &testTableName{}
@@ -113,8 +83,27 @@ func TestIndexedCollection__LargeBuffer(t *testing.T) {
 
 		testGet(ctx, t, tx, ic, tn, data)
 		testList(ctx, t, tx, data, ic, tn)
+	})
+}
 
-		synctest.Wait()
+func TestIndexedCollection_Insert__Reverse(t *testing.T) {
+	storagetesting.SyncTest(t, 100, 256, func(t *testing.T, s storagetesting.Storage) {
+		ctx := t.Context()
+		ic := New(heap.New())
+		tn := &testTableName{}
+
+		data := createData()
+		slices.Reverse(data)
+
+		tx := txtesting.New(s.Storage)
+		defer tx.Release()
+
+		if err := insertData(ctx, tx, ic, tn, data); err != nil {
+			t.Fatal(err)
+		}
+
+		testGet(ctx, t, tx, ic, tn, data)
+		testList(ctx, t, tx, data, ic, tn)
 	})
 }
 

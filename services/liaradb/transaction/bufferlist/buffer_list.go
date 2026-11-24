@@ -73,7 +73,7 @@ func (bl *BufferList) Release() {
 	}
 }
 
-func (bl *BufferList) ReleaseBuffer(b *Buffer) {
+func (bl *BufferList) releaseBuffer(b *Buffer) {
 	if !b.Dirty() {
 		b.b.Release()
 		delete(bl.buffers, b.FileBlockID())
