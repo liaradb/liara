@@ -9,6 +9,7 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/record"
+	"github.com/liaradb/liaradb/util/testing/storagetesting"
 )
 
 func TestTransaction__Default(t *testing.T) {
@@ -372,6 +373,61 @@ func TestTransaction_UpdateHeader(t *testing.T) {
 		prev := []byte{9, 10, 11, 12, 13, 14, 15, 16}
 		if _, err := tx.UpdateHeader(t.Context(), link.NewFileRecordID(link.NewFileBlockID(link.NewFileName("file"), link.BlockID(1)), link.SlotID(2)), data, prev); err == nil {
 			t.Error("should return error")
+		}
+	})
+}
+
+func TestTransaction_Pin(t *testing.T) {
+	storagetesting.SyncTest(t, 200, 1024, func(t *testing.T, s storagetesting.Storage) {
+		tx := New(s.Storage)
+		defer tx.Release()
+
+		fn := link.NewFileName("test")
+		fbid0 := link.NewFileBlockID(fn, link.BlockID(0))
+		b0, err := tx.Pin(t.Context(), fbid0)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if v := b0.FileBlockID(); v != fbid0 {
+			t.Errorf("incorrect block: %v, expected: %v", v, fbid0)
+		}
+
+		c0, err := tx.PinCurrent(t.Context(), fn)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if v := c0.FileBlockID(); v != fbid0 {
+			t.Errorf("incorrect block: %v, expected: %v", v, fbid0)
+		}
+
+		n0, err := tx.PinNext(t.Context(), fn)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		fbid1 := link.NewFileBlockID("test", link.BlockID(1))
+		if v := n0.FileBlockID(); v != fbid1 {
+			t.Errorf("incorrect block: %v, expected: %v", v, fbid1)
+		}
+
+		b1, err := tx.Pin(t.Context(), fbid1)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if v := b1.FileBlockID(); v != fbid1 {
+			t.Errorf("incorrect block: %v, expected: %v", v, fbid1)
+		}
+
+		c1, err := tx.PinCurrent(t.Context(), fn)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if v := c1.FileBlockID(); v != fbid1 {
+			t.Errorf("incorrect block: %v, expected: %v", v, fbid1)
 		}
 	})
 }
