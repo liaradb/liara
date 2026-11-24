@@ -218,6 +218,18 @@ func (l *Log) Shutdown(
 }
 
 // Manager thread
+func (l *Log) Recover(
+	ctx context.Context,
+) (logpage.LogSequenceNumber, error) {
+	return l.rq.Append(ctx, record.New(
+		record.TransactionID{},
+		link.FileRecordID{},
+		record.ActionRecover,
+		nil,
+		nil))
+}
+
+// Manager thread
 func (l *Log) Checkpoint(
 	ctx context.Context,
 	txids ...record.TransactionID,
@@ -255,7 +267,7 @@ func (l *Log) Flush(ctx context.Context) error {
 }
 
 // Iterate in reverse until Checkpoint. Then iterate forward entil end of log.
-func (l *Log) Recover() (iter.Seq[*record.Record], error) {
+func (l *Log) IterateFromCheckpoint() (iter.Seq[*record.Record], error) {
 	// Currently stores in a list, but memory usage is potentially high.
 	rcs := list.New()
 

@@ -12,20 +12,22 @@ const ActionSize = 4
 
 const (
 	ActionShutdown     Action = 1
-	ActionCheckpoint   Action = 2
-	ActionStart        Action = 3
-	ActionCommit       Action = 4
-	ActionRollback     Action = 5
-	ActionAppend       Action = 6
-	ActionInsert       Action = 7
-	ActionRemove       Action = 8
-	ActionUpdate       Action = 9
-	ActionClear        Action = 10
-	ActionUpdateHeader Action = 11
+	ActionRecover      Action = 2
+	ActionCheckpoint   Action = 3
+	ActionStart        Action = 4
+	ActionCommit       Action = 5
+	ActionRollback     Action = 6
+	ActionAppend       Action = 7
+	ActionInsert       Action = 8
+	ActionRemove       Action = 9
+	ActionUpdate       Action = 10
+	ActionClear        Action = 11
+	ActionUpdateHeader Action = 12
 )
 
 const (
 	actionNameShutdown     = "Shutdown"
+	actionNameRecover      = "Recover"
 	actionNameCheckpoint   = "Checkpoint"
 	actionNameStart        = "Start"
 	actionNameCommit       = "Commit"
@@ -53,6 +55,8 @@ func (a Action) String() string {
 	switch a {
 	case ActionShutdown:
 		return actionNameShutdown
+	case ActionRecover:
+		return actionNameRecover
 	case ActionCheckpoint:
 		return actionNameCheckpoint
 	case ActionStart:

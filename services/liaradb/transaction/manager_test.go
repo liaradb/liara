@@ -117,7 +117,7 @@ func iterateLog(t *testing.T, fsys filecache.FileSystem, dir string) iter.Seq[*r
 
 	l := log.New(256, 3, 256, 100, fsys, dir)
 
-	it, err := l.Recover()
+	it, err := l.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}

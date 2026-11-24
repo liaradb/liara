@@ -273,7 +273,7 @@ func testLog_FlushCheckpoint(t *testing.T) {
 	}
 
 	l1 := createLogAllStart(t, 320, 3, 320, fsys, dir)
-	it, err := l1.Recover()
+	it, err := l1.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestLog_EmptyReader(t *testing.T) {
 func testLog_EmptyReader(t *testing.T) {
 	l := createLogStart(t, 320, 2, 320)
 
-	it, err := l.Recover()
+	it, err := l.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,7 +347,7 @@ func testLog_Iterate(t *testing.T) {
 
 	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
 
-	it, err := l.Recover()
+	it, err := l.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -428,7 +428,7 @@ func testLog_Recover(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		it, err := l.Recover()
+		it, err := l.IterateFromCheckpoint()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -507,7 +507,7 @@ func testLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		it, err := l.Recover()
+		it, err := l.IterateFromCheckpoint()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -572,7 +572,7 @@ func testLog_RecoverMany(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		it, err := l.Recover()
+		it, err := l.IterateFromCheckpoint()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -634,7 +634,7 @@ func testLog_Recover__Iterate(t *testing.T) {
 
 	l = createLogAllStart(t, 320, 2, 320, fsys, dir)
 
-	it, err := l.Recover()
+	it, err := l.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -708,7 +708,7 @@ func testLog_Commit(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -779,7 +779,7 @@ func testLog_Insert(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -839,7 +839,7 @@ func testLog_InsertAndCommit(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -887,7 +887,7 @@ func testLog_Rollback(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -930,7 +930,7 @@ func testLog_Start(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -980,7 +980,7 @@ func testLog_Update(t *testing.T) {
 
 	l2 := createLogAllStart(t, 320, 3, 320, fsys, dir)
 
-	it, err := l2.Recover()
+	it, err := l2.IterateFromCheckpoint()
 	if err != nil {
 		t.Fatal(err)
 	}

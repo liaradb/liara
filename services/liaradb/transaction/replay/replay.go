@@ -32,7 +32,7 @@ func NewReplay(
 }
 
 func (re *Replay) Recover(ctx context.Context) error {
-	it, err := re.log.Recover()
+	it, err := re.log.IterateFromCheckpoint()
 	if err != nil {
 		return err
 	}
@@ -49,6 +49,8 @@ func (re *Replay) Recover(ctx context.Context) error {
 func (re *Replay) recoverRecord(ctx context.Context, r *record.Record) error {
 	switch r.Action() {
 	case record.ActionShutdown:
+		return nil
+	case record.ActionRecover:
 		return nil
 	case record.ActionCheckpoint:
 		return re.recoverCheckpoint(r)

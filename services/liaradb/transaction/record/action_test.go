@@ -44,6 +44,9 @@ func TestAction_String(t *testing.T) {
 		"should handle shutdown": {
 			action: ActionShutdown,
 			result: "Shutdown"},
+		"should handle recover": {
+			action: ActionRecover,
+			result: "Recover"},
 		"should handle checkpoint": {
 			action: ActionCheckpoint,
 			result: "Checkpoint"},
