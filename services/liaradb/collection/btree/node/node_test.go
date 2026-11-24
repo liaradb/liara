@@ -8,8 +8,8 @@ import (
 
 	"github.com/liaradb/liaradb/encoder/buffer"
 	"github.com/liaradb/liaradb/encoder/page"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 	"github.com/liaradb/liaradb/transaction/record"
 	"github.com/liaradb/liaradb/util/testing/storagetesting"
 	"github.com/liaradb/liaradb/util/testing/txtesting"
@@ -494,7 +494,7 @@ func TestNode_ChildrenRange(t *testing.T) {
 	})
 }
 
-func createBuffer(t *testing.T, tx *txtesting.Transaction) *storage.Buffer {
+func createBuffer(t *testing.T, tx *txtesting.Transaction) *bufferlist.Buffer {
 	b, err := tx.Pin(t.Context(), link.FileBlockID{})
 	if err != nil {
 		t.Fatal(err)

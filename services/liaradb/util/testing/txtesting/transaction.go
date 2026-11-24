@@ -164,20 +164,16 @@ func (t *Transaction) addRecord(r *record.Record) {
 	t.records = append(t.records, r)
 }
 
-func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*bufferlist.Buffer, error) {
 	return t.bl.Pin(ctx, fbid)
 }
 
-func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*bufferlist.Buffer, error) {
 	return t.bl.PinCurrent(ctx, fn)
 }
 
-func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*bufferlist.Buffer, error) {
 	return t.bl.PinNext(ctx, fn)
-}
-
-func (t *Transaction) Unpin(b *storage.Buffer) {
-	t.bl.ReleaseBuffer(b)
 }
 
 func (t *Transaction) Release() {

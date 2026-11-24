@@ -4,18 +4,18 @@ import (
 	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 )
 
 // TODO: Track dirty pages inside and outside transaction
 type BufferPage struct {
 	page   record.Page
-	buffer *storage.Buffer
+	buffer *bufferlist.Buffer
 	l      log.Log
 }
 
-func New(b *storage.Buffer, l log.Log) *BufferPage {
+func New(b *bufferlist.Buffer, l log.Log) *BufferPage {
 	return &BufferPage{
 		page:   record.NewPage(b.Raw()),
 		buffer: b,
@@ -39,7 +39,7 @@ func (bp *BufferPage) Shadow(base *BufferPage) {
 
 // TODO: Must latch before write
 func (bp *BufferPage) Release() {
-	bp.l.Unpin(bp.buffer)
+	bp.buffer.Release()
 }
 
 func (bp *BufferPage) CommitAppend(size int16) {

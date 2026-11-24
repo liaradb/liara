@@ -6,7 +6,6 @@ import (
 
 	"github.com/liaradb/liaradb/collection/tablename"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
 	"github.com/liaradb/liaradb/transaction/bufferlist"
 	"github.com/liaradb/liaradb/transaction/locktable"
@@ -191,18 +190,14 @@ func (t *Transaction) UpdateHeader(
 		prev)
 }
 
-func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+func (t *Transaction) Pin(ctx context.Context, fbid link.FileBlockID) (*bufferlist.Buffer, error) {
 	return t.bufferList.Pin(ctx, fbid)
 }
 
-func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (t *Transaction) PinCurrent(ctx context.Context, fn link.FileName) (*bufferlist.Buffer, error) {
 	return t.bufferList.PinCurrent(ctx, fn)
 }
 
-func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (t *Transaction) PinNext(ctx context.Context, fn link.FileName) (*bufferlist.Buffer, error) {
 	return t.bufferList.PinNext(ctx, fn)
-}
-
-func (t *Transaction) Unpin(b *storage.Buffer) {
-	t.bufferList.ReleaseBuffer(b)
 }

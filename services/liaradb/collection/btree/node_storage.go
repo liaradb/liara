@@ -7,8 +7,8 @@ import (
 	"github.com/liaradb/liaradb/collection/btree/leafnode"
 	"github.com/liaradb/liaradb/collection/btree/node"
 	"github.com/liaradb/liaradb/collection/log"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 )
 
 type nodeStorage struct {
@@ -19,7 +19,7 @@ func newNodeStorage(l log.Log) *nodeStorage {
 	return &nodeStorage{l}
 }
 
-func (ns *nodeStorage) getBuffer(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+func (ns *nodeStorage) getBuffer(ctx context.Context, fbid link.FileBlockID) (*bufferlist.Buffer, error) {
 	return ns.l.Pin(ctx, fbid)
 }
 
@@ -41,7 +41,7 @@ func (ns *nodeStorage) getLeafNode(ctx context.Context, fbid link.FileBlockID) (
 	return leafnode.New(node.New(b, ns.l)), nil
 }
 
-func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (ns *nodeStorage) getNextBuffer(ctx context.Context, fn link.FileName) (*bufferlist.Buffer, error) {
 	return ns.l.PinNext(ctx, fn)
 }
 

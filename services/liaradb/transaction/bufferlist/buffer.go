@@ -25,9 +25,17 @@ func (b *Buffer) Unlatch()                      { b.b.Unlatch() }
 func (b *Buffer) RLatch()                       { b.b.RLatch() }
 func (b *Buffer) RUnlatch()                     { b.b.RUnlatch() }
 
-func (b *Buffer) Release() { b.bl.ReleaseBuffer(b.b) }
+// Testing only
+func (b *Buffer) Pins() int   { return b.b.Pins() }
+func (b *Buffer) Reads() uint { return b.b.Reads() }
 
-func (b *Buffer) Dirty() bool { return b.dirty }
+func (b *Buffer) Clone(a *Buffer) { b.b.Clone(a.b) }
+func (b *Buffer) Release()        { b.bl.ReleaseBuffer(b) }
+
+func (b *Buffer) Dirty() bool {
+	return b.b.Dirty()
+	// return b.dirty
+}
 
 func (b *Buffer) SetDirty() {
 	b.b.SetDirty()

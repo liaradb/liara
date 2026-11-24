@@ -7,8 +7,8 @@ import (
 	"github.com/liaradb/liaradb/collection/heap/bufferpage"
 	"github.com/liaradb/liaradb/collection/heap/record"
 	"github.com/liaradb/liaradb/collection/log"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 )
 
 type Tip struct {
@@ -66,7 +66,7 @@ func (*Tip) capRemaining(remaining int) int16 {
 	return int16(min(remaining, math.MaxInt16))
 }
 
-func (t *Tip) appendToRecord(r *record.Record, b *storage.Buffer, remaining int16) int {
+func (t *Tip) appendToRecord(r *record.Record, b *bufferlist.Buffer, remaining int16) int {
 	ok := false
 	p := bufferpage.New(b, t.l)
 	defer func() {

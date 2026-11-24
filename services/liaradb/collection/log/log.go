@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 )
 
 type Log interface {
@@ -17,8 +17,7 @@ type Log interface {
 	// TODO: Use Truncate for splitting B+Tree nodes
 	// Truncate(context.Context, link.FileRecordID, []byte) (logpage.LogSequenceNumber, error)
 
-	Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error)
-	PinCurrent(context.Context, link.FileName) (*storage.Buffer, error)
-	PinNext(context.Context, link.FileName) (*storage.Buffer, error)
-	Unpin(*storage.Buffer)
+	Pin(ctx context.Context, fbid link.FileBlockID) (*bufferlist.Buffer, error)
+	PinCurrent(context.Context, link.FileName) (*bufferlist.Buffer, error)
+	PinNext(context.Context, link.FileName) (*bufferlist.Buffer, error)
 }

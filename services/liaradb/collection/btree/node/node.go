@@ -8,14 +8,14 @@ import (
 	"github.com/liaradb/liaradb/collection/log"
 	"github.com/liaradb/liaradb/encoder/page"
 	"github.com/liaradb/liaradb/recovery/logpage"
-	"github.com/liaradb/liaradb/storage"
 	"github.com/liaradb/liaradb/storage/link"
+	"github.com/liaradb/liaradb/transaction/bufferlist"
 )
 
 type Node struct {
 	header
 	page    *page.Page
-	buffer  *storage.Buffer
+	buffer  *bufferlist.Buffer
 	l       log.Log
 	actions []action
 }
@@ -24,7 +24,7 @@ type action interface {
 	Log(context.Context, log.Log) (logpage.LogSequenceNumber, error)
 }
 
-func New(b *storage.Buffer, l log.Log) Node {
+func New(b *bufferlist.Buffer, l log.Log) Node {
 	page := page.NewFromSlice(b.Raw(), HeaderSize, 0)
 	header, _ := newHeader(page.Header())
 
@@ -44,7 +44,7 @@ func (n *Node) Clear() {
 	n.page.Clear()
 }
 
-func (n *Node) Release() { n.l.Unpin(n.buffer) }
+func (n *Node) Release() { n.buffer.Release() }
 
 // TODO: Test this
 func (n *Node) Latch()    { n.buffer.Latch() }

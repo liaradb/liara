@@ -9,17 +9,17 @@ import (
 
 type BufferList struct {
 	storage *storage.Storage
-	buffers map[link.FileBlockID]*storage.Buffer
+	buffers map[link.FileBlockID]*Buffer
 }
 
 func NewBufferList(s *storage.Storage) *BufferList {
 	return &BufferList{
 		storage: s,
-		buffers: make(map[link.FileBlockID]*storage.Buffer),
+		buffers: make(map[link.FileBlockID]*Buffer),
 	}
 }
 
-func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.Buffer, error) {
+func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*Buffer, error) {
 	if b, ok := bl.buffers[fbid]; ok {
 		return b, nil
 	}
@@ -29,50 +29,53 @@ func (bl *BufferList) Pin(ctx context.Context, fbid link.FileBlockID) (*storage.
 		return nil, err
 	}
 
-	bl.buffers[fbid] = b
+	bf := NewBuffer(bl, b)
+	bl.buffers[fbid] = bf
 
-	return b, nil
+	return bf, nil
 }
 
-func (bl *BufferList) PinCurrent(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (bl *BufferList) PinCurrent(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	b, err := bl.storage.RequestCurrent(ctx, fn)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, ok := bl.buffers[b.FileBlockID()]; ok {
+	if bf, ok := bl.buffers[b.FileBlockID()]; ok {
 		b.Release()
-		return b, nil
+		return bf, nil
 	}
 
-	bl.buffers[b.FileBlockID()] = b
-	return b, nil
+	bf := NewBuffer(bl, b)
+	bl.buffers[b.FileBlockID()] = bf
+	return bf, nil
 }
 
-func (bl *BufferList) PinNext(ctx context.Context, fn link.FileName) (*storage.Buffer, error) {
+func (bl *BufferList) PinNext(ctx context.Context, fn link.FileName) (*Buffer, error) {
 	b, err := bl.storage.RequestNext(ctx, fn)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, ok := bl.buffers[b.FileBlockID()]; ok {
+	if bf, ok := bl.buffers[b.FileBlockID()]; ok {
 		b.Release()
-		return b, nil
+		return bf, nil
 	}
 
-	bl.buffers[b.FileBlockID()] = b
-	return b, nil
+	bf := NewBuffer(bl, b)
+	bl.buffers[b.FileBlockID()] = bf
+	return bf, nil
 }
 
 func (bl *BufferList) Release() {
 	for _, b := range bl.buffers {
-		b.Release()
+		b.b.Release()
 	}
 }
 
-func (bl *BufferList) ReleaseBuffer(b *storage.Buffer) {
+func (bl *BufferList) ReleaseBuffer(b *Buffer) {
 	if !b.Dirty() {
-		b.Release()
+		b.b.Release()
 		delete(bl.buffers, b.FileBlockID())
 	}
 }
