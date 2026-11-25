@@ -32,6 +32,7 @@ func (b *Buffer) Reads() uint { return b.b.Reads() }
 func (b *Buffer) Clone(a *Buffer) { b.b.Clone(a.b) }
 func (b *Buffer) Release()        { b.bl.releaseBuffer(b) }
 
+// TODO: Use Buffer.dirty flag
 func (b *Buffer) Dirty() bool {
 	return b.b.Dirty()
 	// return b.dirty
