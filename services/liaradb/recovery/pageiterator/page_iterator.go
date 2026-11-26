@@ -1,6 +1,7 @@
 package pageiterator
 
 import (
+	"container/list"
 	"io"
 	"iter"
 
@@ -36,6 +37,7 @@ func New[R Record](
 func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, error] {
 	return func(yield func(R, error) bool) {
 		var s span.Span
+		l := list.New()
 
 		for sg, err := range pi.sl.IterateFromLSN(lsn) {
 			if err != nil {
@@ -49,7 +51,6 @@ func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, e
 				return
 			}
 
-			// TODO: Return Page
 			for p, err := range pi.iterateSegment(sg, size) {
 				if err != nil {
 					var r R
@@ -57,8 +58,15 @@ func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, e
 					return
 				}
 
+				e := l.PushBack(p)
+
+				freePages := false
+				freeAll := false
 				for h, d := range p.Slots() {
 					f := s.Append(h, d)
+					if freeAll {
+						freeAll = false
+					}
 
 					if f.Index() == 0 {
 						if rc, err := pi.ToRecord(s); !yield(rc, err) || err != nil {
@@ -66,8 +74,23 @@ func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, e
 							return
 						}
 
+						freePages = true
+						freeAll = true
 						s = span.Span{}
 					}
+				}
+
+				if freePages {
+					for n := e.Prev(); n != nil; n = n.Prev() {
+						p := n.Value.(*logpage.LogPage)
+						l.Remove(n)
+						pi.pool.Put(p)
+					}
+				}
+				if freeAll {
+					p := e.Value.(*logpage.LogPage)
+					l.Remove(e)
+					pi.pool.Put(p)
 				}
 			}
 		}
