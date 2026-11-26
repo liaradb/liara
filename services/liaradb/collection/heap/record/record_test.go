@@ -29,8 +29,10 @@ func TestRecord_Write(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	r := New()
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+
+	bp := newTestBufferPage()
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
 	r.InitIndexes()
 
 	if err := tr0.Write(r.Writer()); err != nil {
@@ -60,6 +62,28 @@ func TestRecord_Write(t *testing.T) {
 	}
 }
 
+func TestRecord_AppendSlot(t *testing.T) {
+	t.Parallel()
+
+	r := New()
+	bp := newTestBufferPage()
+	bp.CommitAppend(8)
+	bp.CommitAppend(8)
+	bp.CommitAppend(8)
+
+	f0 := r.AppendSlot(bp, link.SlotID(1))
+
+	if s, want := f0.RecordID().SlotID(), link.SlotID(1); s != want {
+		t.Errorf("incorrect slot id: %v, expected: %v", s, want)
+	}
+
+	f1 := r.AppendSlot(bp, link.SlotID(2))
+
+	if s, want := f1.RecordID().SlotID(), link.SlotID(2); s != want {
+		t.Errorf("incorrect slot id: %v, expected: %v", s, want)
+	}
+}
+
 func TestRecord_Update(t *testing.T) {
 	t.Parallel()
 
@@ -75,8 +99,10 @@ func TestRecord_Update(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	r := New()
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+
+	bp := newTestBufferPage()
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
 	r.InitIndexes()
 
 	if err := tr0.Write(r.Writer()); err != nil {
@@ -110,8 +136,10 @@ func TestRecord_Length(t *testing.T) {
 	t.Parallel()
 
 	r := New()
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 100))
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 10000))
+
+	bp := newTestBufferPage()
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 100))
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 10000))
 	r.InitIndexes()
 
 	want := 100 + 10000
@@ -182,8 +210,10 @@ func TestRecord_Read__Invalid(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	r := New()
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
+
+	bp := newTestBufferPage()
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, a))
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, b))
 	r.InitIndexes()
 
 	if err := tr0.Write(r.Writer()); err != nil {
@@ -215,8 +245,10 @@ func TestRecord_Bytes(t *testing.T) {
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
 
 	r := New()
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 5))
-	_ = r.Append(&testBufferPage{}, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, len(want)-5))
+
+	bp := newTestBufferPage()
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, 5))
+	_ = r.Append(bp, link.SlotID(0), make([]byte, fragmentHeaderSize), make([]byte, len(want)-5))
 	r.InitIndexes()
 
 	if _, err := r.Writer().Write(want); err != nil {
@@ -238,8 +270,15 @@ func TestRecord_Bytes(t *testing.T) {
 
 type testBufferPage struct {
 	fileBlockID link.FileBlockID
+	p           page.Page
 	released    bool
 	deleted     bool
+}
+
+func newTestBufferPage() *testBufferPage {
+	return &testBufferPage{
+		p: *page.New(256, 8, 14),
+	}
 }
 
 func (t *testBufferPage) FileBlockID() link.FileBlockID { return t.fileBlockID }
@@ -248,6 +287,7 @@ func (t *testBufferPage) SetLogSequenceNumber(logpage.LogSequenceNumber) {
 }
 
 func (t *testBufferPage) CommitAppend(size int16) {
+	t.p.CommitAppend(size)
 }
 
 func (t *testBufferPage) CommitUpdate() {
@@ -261,8 +301,8 @@ func (t *testBufferPage) isReleased() bool {
 	return t.released
 }
 
-func (t *testBufferPage) Slot(link.SlotID) ([]byte, []byte) {
-	return nil, nil
+func (t *testBufferPage) Slot(i link.SlotID) ([]byte, []byte) {
+	return t.p.Slot(i)
 }
 
 func (t *testBufferPage) Delete(link.SlotID) {

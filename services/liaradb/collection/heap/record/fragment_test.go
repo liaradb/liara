@@ -25,12 +25,16 @@ func TestFragment(t *testing.T) {
 	a, b := int(math.Floor(size)), int(math.Ceil(size))
 
 	r := New()
-	f0 := r.Append(&testBufferPage{
-		fileBlockID: link.NewFileBlockID("", 1),
-	}, link.SlotID(10), make([]byte, fragmentHeaderSize), make([]byte, a))
-	f1 := r.Append(&testBufferPage{
-		fileBlockID: link.NewFileBlockID("", 2),
-	}, link.SlotID(20), make([]byte, fragmentHeaderSize), make([]byte, b))
+
+	bp0 := newTestBufferPage()
+	bp0.fileBlockID = link.NewFileBlockID("", 1)
+
+	f0 := r.Append(bp0, link.SlotID(10), make([]byte, fragmentHeaderSize), make([]byte, a))
+
+	bp1 := newTestBufferPage()
+	bp1.fileBlockID = link.NewFileBlockID("", 2)
+
+	f1 := r.Append(bp1, link.SlotID(20), make([]byte, fragmentHeaderSize), make([]byte, b))
 	r.InitIndexes()
 
 	r.CommitAppend(t.Context(), &tx)
