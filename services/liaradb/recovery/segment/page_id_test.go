@@ -51,6 +51,40 @@ func TestPageID_NewActivePageIDFromSize(t *testing.T) {
 	}
 }
 
+func TestPageID_Value(t *testing.T) {
+	t.Parallel()
+
+	for message, c := range map[string]struct {
+		skip  bool
+		id    PageID
+		value uint64
+	}{
+		"should handle 0": {
+			id:    0,
+			value: 0,
+		},
+		"should handle 1": {
+			id:    1,
+			value: 1,
+		},
+		"should handle n": {
+			id:    10,
+			value: 10,
+		},
+	} {
+		t.Run(message, func(t *testing.T) {
+			t.Parallel()
+			if c.skip {
+				t.Skip()
+			}
+
+			if v := c.id.Value(); v != c.value {
+				t.Errorf("%v: incorrect value: %v, expected: %v", message, v, c.value)
+			}
+		})
+	}
+}
+
 func TestPageID_Size(t *testing.T) {
 	t.Parallel()
 

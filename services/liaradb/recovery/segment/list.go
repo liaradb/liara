@@ -321,7 +321,7 @@ func (l *List) getSegmentBeforeLSN(lsn logpage.LogSequenceNumber) (SegmentName, 
 		if lsn.Value() >= n.lsn.Value() {
 			e = e.Prev()
 			if e == nil {
-				return SegmentName{}, nil, false
+				break
 			}
 			n = e.Value.(SegmentName)
 			return n, e, true
