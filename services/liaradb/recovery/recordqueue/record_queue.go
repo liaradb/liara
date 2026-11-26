@@ -8,7 +8,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
-	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/util/async"
 )
@@ -31,7 +30,6 @@ type RecordQueue[R pagequeue.Record] struct {
 	pageSize      int16
 	sl            *segment.List
 	pq            *pagequeue.PageQueue[R]
-	ps            *pagestorage.PageStorage
 	fs            flushStatus
 	appendReqs    AppendHandler[R]
 	flushReqs     async.CommandHandler[struct{}]
@@ -46,12 +44,10 @@ func New[R pagequeue.Record](
 	sl *segment.List,
 	pl *pagepool.PagePool,
 ) *RecordQueue[R] {
-	ps := pagestorage.New(sl)
 	return &RecordQueue[R]{
 		pageSize:      pageSize,
 		sl:            sl,
-		pq:            pagequeue.New[R](ps, pl, writeQueueSize),
-		ps:            ps,
+		pq:            pagequeue.New[R](sl, pl, writeQueueSize),
 		appendReqs:    NewAppendHandler[R](),
 		flushReqs:     make(async.CommandHandler[struct{}], 1),
 		maxRecordSize: maxRecordSize,
@@ -86,7 +82,7 @@ func (rq *RecordQueue[R]) Close() error {
 func (rq *RecordQueue[R]) Init(lw, hw logpage.LogSequenceNumber) error {
 	rq.fs.init(lw, hw)
 
-	f, err := rq.ps.Init()
+	f, err := rq.sl.Init()
 	if err != nil {
 		return err
 	}

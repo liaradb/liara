@@ -7,7 +7,6 @@ import (
 	"github.com/liaradb/liaradb/recovery/logpage"
 	"github.com/liaradb/liaradb/recovery/pagepool"
 	"github.com/liaradb/liaradb/recovery/pagequeue"
-	"github.com/liaradb/liaradb/recovery/pagequeue/pagestorage"
 	"github.com/liaradb/liaradb/recovery/segment"
 	"github.com/liaradb/liaradb/recovery/span"
 	"github.com/liaradb/liaradb/util/testing/filetesting"
@@ -28,13 +27,12 @@ func TestPageIterator(t *testing.T) {
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
-			ps := pagestorage.New(sl)
-			if _, err := ps.Init(); err != nil {
+			if _, err := sl.Init(); err != nil {
 				t.Error(err)
 			}
 
 			pl := pagepool.New(size, span.FragmentHeaderSize)
-			pq := pagequeue.New[*testRecord](ps, pl, writeQueueSize)
+			pq := pagequeue.New[*testRecord](sl, pl, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100
@@ -92,13 +90,12 @@ func TestPageIterator(t *testing.T) {
 			)
 
 			sl := segment.NewList(fsys, dir, size, 1)
-			ps := pagestorage.New(sl)
-			if _, err := ps.Init(); err != nil {
+			if _, err := sl.Init(); err != nil {
 				t.Error(err)
 			}
 
 			pl := pagepool.New(size, span.FragmentHeaderSize)
-			pq := pagequeue.New[*testRecord](ps, pl, writeQueueSize)
+			pq := pagequeue.New[*testRecord](sl, pl, writeQueueSize)
 			go pq.Run(t.Context())
 
 			numberOfRecords := 100

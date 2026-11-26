@@ -2,6 +2,7 @@ package segment
 
 import (
 	"container/list"
+	"errors"
 	"io/fs"
 	"iter"
 
@@ -74,6 +75,19 @@ func (l *List) Open() error {
 
 	l.names = l.filesToNames(files)
 	return nil
+}
+
+func (l *List) Init() (*File, error) {
+	f, err := l.OpenLatestSegment()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = f.SeekTail(); err != nil {
+		return nil, errors.Join(err, f.Close())
+	}
+
+	return f, nil
 }
 
 func (l *List) init() error {
@@ -370,4 +384,29 @@ func (l *List) reverse() iter.Seq2[SegmentName, *list.Element] {
 			e = e.Prev()
 		}
 	}
+}
+
+func (l *List) Append(lsn logpage.LogSequenceNumber, data []byte) error {
+	if err := l.nextPage(lsn); err != nil {
+		return err
+	}
+
+	return l.f.Write(data)
+}
+
+func (l *List) nextPage(lsn logpage.LogSequenceNumber) error {
+	if l.f.IsEmpty() || l.f.NextPage() {
+		return nil
+	}
+
+	return l.nextSegment(lsn)
+}
+
+func (l *List) nextSegment(lsn logpage.LogSequenceNumber) error {
+	_, err := l.OpenNextSegment(lsn)
+	return err
+}
+
+func (l *List) Replace(data []byte) error {
+	return l.f.Write(data)
 }
