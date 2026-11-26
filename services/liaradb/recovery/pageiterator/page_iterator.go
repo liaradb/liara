@@ -32,30 +32,28 @@ func New[R Record](
 	}
 }
 
-// TODO: This is not used.  It may be useful for in-place Recover.
+// This is unused.  It may be useful for in-place Recover.
 func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, error] {
 	return func(yield func(R, error) bool) {
 		var s span.Span
 
-		for f, err := range pi.sl.IterateFromLSN(lsn) {
+		for sg, err := range pi.sl.IterateFromLSN(lsn) {
 			if err != nil {
 				var r R
 				yield(r, err)
 				return
 			}
 
-			size := f.Size()
+			size := sg.Size()
 			if size == 0 {
 				return
 			}
 
-			for {
-				// TODO: Return Page
-				p := pi.pool.Get()
-				if err := p.Replace(f); err != nil {
+			// TODO: Return Page
+			for p, err := range pi.iterateSegment(sg, size) {
+				if err != nil {
 					var r R
 					yield(r, err)
-					pi.pool.Put(p)
 					return
 				}
 
@@ -71,10 +69,6 @@ func (pi *PageIterator[R]) Forward(lsn logpage.LogSequenceNumber) iter.Seq2[R, e
 						s = span.Span{}
 					}
 				}
-
-				if !f.NextPageUntilSize(size) {
-					break
-				}
 			}
 		}
 	}
@@ -84,14 +78,14 @@ func (pi *PageIterator[R]) Reverse() iter.Seq2[R, error] {
 	return func(yield func(R, error) bool) {
 		var s span.Span
 
-		for f, err := range pi.sl.Reverse() {
+		for sg, err := range pi.sl.Reverse() {
 			if err != nil {
 				var r R
 				yield(r, err)
 				return
 			}
 
-			if size, err := f.SeekTail(); err != nil {
+			if size, err := sg.SeekTail(); err != nil {
 				var r R
 				yield(r, err)
 				return
@@ -99,15 +93,13 @@ func (pi *PageIterator[R]) Reverse() iter.Seq2[R, error] {
 				continue
 			}
 
-			for {
-				// TODO: Return Page
-				p := pi.pool.Get()
-				if err := p.Replace(f); err != nil {
+			// TODO: Return Page
+			for p, err := range pi.reverseSegment(sg) {
+				if err != nil {
 					if err != io.EOF {
 						var r R
 						yield(r, err)
 					}
-					pi.pool.Put(p)
 					return
 				}
 
@@ -125,13 +117,50 @@ func (pi *PageIterator[R]) Reverse() iter.Seq2[R, error] {
 						s = span.Span{}
 					}
 				}
-
-				if !f.PrevPageUntilStart() {
-					break
-				}
 			}
 		}
 	}
+}
+
+func (pi *PageIterator[R]) iterateSegment(sg *segment.File, size int64) iter.Seq2[*logpage.LogPage, error] {
+	return func(yield func(*logpage.LogPage, error) bool) {
+		for {
+			if p, err := pi.getPage(sg); !yield(p, err) ||
+				err != nil ||
+				!sg.NextPageUntilSize(size) {
+				return
+			}
+		}
+	}
+}
+
+func (pi *PageIterator[R]) reverseSegment(sg *segment.File) iter.Seq2[*logpage.LogPage, error] {
+	return func(yield func(*logpage.LogPage, error) bool) {
+		for {
+			if p, err := pi.getPage(sg); !yield(p, err) ||
+				err != nil ||
+				!sg.PrevPageUntilStart() {
+				return
+			}
+		}
+	}
+}
+
+func (pi *PageIterator[R]) getPage(sg *segment.File) (*logpage.LogPage, error) {
+	ok := false
+	p := pi.pool.Get()
+	defer func() {
+		if !ok {
+			pi.pool.Put(p)
+		}
+	}()
+
+	if err := p.Replace(sg); err != nil {
+		return nil, err
+	}
+
+	ok = true
+	return p, nil
 }
 
 func (pi *PageIterator[R]) ToRecord(s span.Span) (R, error) {

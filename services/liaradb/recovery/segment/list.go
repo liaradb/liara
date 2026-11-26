@@ -136,7 +136,7 @@ func (l *List) OpenSegmentBeforeLSN(lsn logpage.LogSequenceNumber) (*File, error
 	return f, nil
 }
 
-// TODO: This is not used
+// This is unused
 func (l *List) IterateFromLSN(lsn logpage.LogSequenceNumber) iter.Seq2[*File, error] {
 	return func(yield func(*File, error) bool) {
 		if err := l.init(); err != nil {

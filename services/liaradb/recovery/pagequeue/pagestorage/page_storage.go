@@ -40,7 +40,7 @@ func (ps *PageStorage) Append(lsn logpage.LogSequenceNumber, data []byte) error 
 		return err
 	}
 
-	return ps.write(data)
+	return ps.f.Write(data)
 }
 
 func (ps *PageStorage) nextPage(lsn logpage.LogSequenceNumber) error {
@@ -62,9 +62,5 @@ func (ps *PageStorage) nextSegment(lsn logpage.LogSequenceNumber) error {
 }
 
 func (ps *PageStorage) Replace(data []byte) error {
-	return ps.write(data)
-}
-
-func (ps *PageStorage) write(data []byte) error {
 	return ps.f.Write(data)
 }
