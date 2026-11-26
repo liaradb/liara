@@ -1,7 +1,6 @@
 package span
 
 import (
-	"io"
 	"slices"
 
 	"github.com/liaradb/liaradb/encoder/multi"
@@ -61,14 +60,10 @@ func (s Span) Write(p []byte) (n int, err error) {
 	return writer.Write(p)
 }
 
-func (s Span) SeekStart() error {
+func (s Span) SeekStart() {
 	for _, s := range s.fragments {
-		if _, err := s.buffer.Seek(0, io.SeekStart); err != nil {
-			return err
-		}
+		s.buffer.SeekStart()
 	}
-
-	return nil
 }
 
 func (s Span) Commit() {
