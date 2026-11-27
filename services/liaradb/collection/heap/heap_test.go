@@ -2,6 +2,7 @@ package heap
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/liaradb/liaradb/storage/link"
@@ -52,64 +53,6 @@ func TestHeap_Get(t *testing.T) {
 	})
 }
 
-func TestHeap_Insert(t *testing.T) {
-	storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
-		h := New()
-
-		fn := link.NewFileName("test")
-
-		tx := txtesting.New(s.Storage)
-		defer tx.Release()
-
-		// Long name
-		d := make([]byte, 200)
-		copy(d, "name")
-		want := NewTestItem(NewTestName(string(d)))
-
-		rid0, err := h.Insert(t.Context(), tx, fn, want)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		rid1, err := h.Insert(t.Context(), tx, fn, want)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		r0, err := h.Get(t.Context(), tx, fn, rid0)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		defer r0.Release()
-
-		r1, err := h.Get(t.Context(), tx, fn, rid1)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		defer r1.Release()
-
-		var item0 TestItem
-		if err := item0.Read(r0); err != nil {
-			t.Fatal(err)
-		}
-
-		var item1 TestItem
-		if err := item1.Read(r1); err != nil {
-			t.Fatal(err)
-		}
-
-		if item0 != *want {
-			t.Errorf("incorrect result: %v, expected: %v", item0, *want)
-		}
-
-		if item1 != *want {
-			t.Errorf("incorrect result: %v, expected: %v", item1, *want)
-		}
-	})
-}
-
 func TestHeap_Get__Error(t *testing.T) {
 	storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
 		h := New()
@@ -150,26 +93,150 @@ func TestHeap_Get__Error(t *testing.T) {
 	})
 }
 
+func TestHeap_Insert(t *testing.T) {
+	t.Run("should insert", func(t *testing.T) {
+		storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+
+			fn := link.NewFileName("test")
+
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
+
+			// Long name
+			d := make([]byte, 200)
+			copy(d, "name")
+			want := NewTestItem(NewTestName(string(d)))
+
+			rid0, err := h.Insert(t.Context(), tx, fn, want)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			rid1, err := h.Insert(t.Context(), tx, fn, want)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			r0, err := h.Get(t.Context(), tx, fn, rid0)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			defer r0.Release()
+
+			r1, err := h.Get(t.Context(), tx, fn, rid1)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			defer r1.Release()
+
+			var item0 TestItem
+			if err := item0.Read(r0); err != nil {
+				t.Fatal(err)
+			}
+
+			var item1 TestItem
+			if err := item1.Read(r1); err != nil {
+				t.Fatal(err)
+			}
+
+			if item0 != *want {
+				t.Errorf("incorrect result: %v, expected: %v", item0, *want)
+			}
+
+			if item1 != *want {
+				t.Errorf("incorrect result: %v, expected: %v", item1, *want)
+			}
+		})
+	})
+
+	t.Run("should handle log errors", func(t *testing.T) {
+		storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
+
+			tx.SetError(fmt.Errorf("error"))
+
+			fn := link.NewFileName("test")
+			item := NewTestItem(NewTestName("name"))
+			if _, err := h.Insert(t.Context(), tx, fn, item); err == nil {
+				t.Fatal("should return error")
+			}
+		})
+	})
+
+	t.Run("should handle canceled contexts", func(t *testing.T) {
+		storagetesting.SyncTest(t, 100, 128, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
+
+			fn := link.NewFileName("test")
+			item := NewTestItem(NewTestName("name"))
+
+			ctx, cancel := context.WithCancel(t.Context())
+			cancel()
+			if _, err := h.Insert(ctx, tx, fn, item); err == nil {
+				t.Fatal("should return error")
+			}
+		})
+	})
+}
+
 func TestHeap_Delete(t *testing.T) {
-	storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
-		h := New()
-		fn := link.NewFileName("test")
-		want := NewTestItem(NewTestName("name"))
+	t.Run("should delete", func(t *testing.T) {
+		storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+			fn := link.NewFileName("test")
+			want := NewTestItem(NewTestName("name"))
 
-		tx := txtesting.New(s.Storage)
-		defer tx.Release()
+			tx := txtesting.New(s.Storage)
+			defer tx.Release()
 
-		rid, err := h.Insert(t.Context(), tx, fn, want)
-		if err != nil {
-			t.Fatal(err)
-		}
+			rid, err := h.Insert(t.Context(), tx, fn, want)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		if err := h.Delete(t.Context(), tx, fn, rid); err != nil {
-			t.Fatal(err)
-		}
+			if err := h.Delete(t.Context(), tx, fn, rid); err != nil {
+				t.Fatal(err)
+			}
 
-		should.Panic(t, "should not get value", func() {
-			_, _ = h.Get(t.Context(), tx, fn, rid)
+			should.Panic(t, "should not get value", func() {
+				_, _ = h.Get(t.Context(), tx, fn, rid)
+			})
+		})
+	})
+
+	t.Run("should handle canceled contexts", func(t *testing.T) {
+		storagetesting.SyncTest(t, 100, 1024, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+			fn := link.NewFileName("test")
+			want := NewTestItem(NewTestName("name"))
+
+			tx := txtesting.New(s.Storage)
+
+			rid, err := h.Insert(t.Context(), tx, fn, want)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			tx.Release()
+
+			tx = txtesting.New(s.Storage)
+			defer tx.Release()
+
+			ctx, cancel := context.WithCancel(t.Context())
+			cancel()
+
+			if err := h.Delete(ctx, tx, fn, rid); err == nil {
+				t.Fatal("should return error")
+			}
 		})
 	})
 }
@@ -284,6 +351,47 @@ func TestHeap_Replace(t *testing.T) {
 
 			if result != *second {
 				t.Errorf("incorrect result: %v, expected: %v", result, *second)
+			}
+		})
+	})
+
+	t.Run("should handle canceled context", func(t *testing.T) {
+		// Very small to span fragments
+		storagetesting.SyncTest(t, 100, 40, func(t *testing.T, s storagetesting.Storage) {
+			h := New()
+
+			tx := txtesting.New(s.Storage)
+
+			rid := link.NewRecordID(0, 0)
+
+			first := NewTestItem(NewTestName("name0"))
+			second := NewTestItem(NewTestName("name1"))
+
+			should.Panic(t, "should be an invalid slot", func() {
+				if err := h.Replace(t.Context(), tx, fn, rid, second); err == nil {
+					t.Fatal("should be an invalid slot")
+				}
+			})
+
+			rid, err := h.Insert(t.Context(), tx, fn, first)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			tx.Release()
+
+			tx = txtesting.New(s.Storage)
+			defer tx.Release()
+
+			ctx, cancel := context.WithCancel(t.Context())
+			cancel()
+
+			if err := h.Replace(ctx, tx, fn, rid, second); err == nil {
+				t.Fatal("should return error")
+			}
+
+			if err := h.Replace(t.Context(), tx, fn, rid, second); err != nil {
+				t.Fatal(err)
 			}
 		})
 	})
