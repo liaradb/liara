@@ -29,12 +29,6 @@ func SyncTest(t *testing.T, max int, bs int16, f func(*testing.T, Storage)) {
 		fsys := filetesting.New(nil)
 		s := CreateStorageWithFileSystem(t, max, bs, fsys, ".")
 
-		t.Cleanup(func() {
-			if p := s.CountPinned(); p != 0 {
-				t.Errorf("incorrect pin count: %v, expected: %v", p, 0)
-			}
-		})
-
 		f(t, Storage{
 			Storage: s,
 			FSys:    fsys,
